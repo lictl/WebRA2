@@ -30,6 +30,8 @@ const frame = scene.renderSprites(viewport, {
 const visible = frame.pick(120, 90); // {kind:'object', ...}, {kind:'terrain', ...}, or null
 ```
 
+The scene's bounds remain terrain bounds; a sprite batch does not resize the map.
+Objects outside those bounds can still render inside the requested viewport.
 The example's frame, anchor and depth are caller policies. They do not select a
 native animation sequence or infer building foundations from its filename.
 `x/y` use **scene pixels**, before the existing camera and zoom transform; they
@@ -158,6 +160,13 @@ transparent originals and remapped alpha-zero holes, every supported zoom and
 fractional/negative camera clipping, detached state, empty/zero frames, duplicate
 identities, unsupported references, source hash checks, shared-payload decode-work
 limits, malformed inputs and aggregate allocations. All existing terrain tests run.
+
+After integration with the current application and coordinator-owned copied notices,
+all **444 public tests** pass, including seven build/server boundary tests. Strict
+types, 78 Markdown files / 380 local links, 280 publication paths, M0 evidence and
+the actual development build pass. The integrated build contains 31 code/license
+files from 68 approved inputs, including the sprite, voxel and mission-runtime
+notices. These counts describe this issue's checked integrated revision.
 
 Private checks re-read five SHP sources and two explicit diagnostic PAL candidates
 against complete root/member hashes. A separate Python interpreter rehashes roots,
