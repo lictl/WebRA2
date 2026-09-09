@@ -64,6 +64,11 @@ export interface TerrainTraversal {
 export class TerrainTraversalError extends Error {
   constructor(readonly code: string) { super(`traversal-${code}`); this.name = 'TerrainTraversalError'; }
 }
+const compiled = new WeakSet<object>();
+/** Same-realm, fully verified and frozen compiler results only; serialized metadata is not authority. */
+export function isTerrainTraversal(value: unknown): value is TerrainTraversal {
+  return !!value && typeof value === 'object' && compiled.has(value);
+}
 function fail(code: string): never { throw new TerrainTraversalError(code); }
 // Internal owned records only: sorted UTF-16 keys, ECMAScript finite-number JSON, exact array order.
 function canonicalText(value: unknown): string {
@@ -125,6 +130,14 @@ function factor(value: string): number | null {
   const percent = value.endsWith('%'), number = Number(percent ? value.slice(0, -1) : value);
   if (!Number.isFinite(number)) return null;
   const input = Math.fround(number); if (!Number.isFinite(input)) return null;
+  // The pinned CRT differs at exact float32 halves. Exclude those boundaries, including
+  // decimals rounded onto a half by Number, instead of claiming its ties-to-even rule.
+  const magnitude = Math.abs(number), rounded = Math.abs(input);
+  if (magnitude !== rounded) {
+    const bits = new DataView(new ArrayBuffer(4)); bits.setFloat32(0, rounded, true);
+    bits.setUint32(0, bits.getUint32(0, true) + (magnitude > rounded ? 1 : -1), true);
+    if (magnitude === (rounded + bits.getFloat32(0, true)) / 2) return null;
+  }
   const output = Math.fround(Math.min(1, percent ? input * 0.01 : input)); return Number.isFinite(output) ? (output === 0 ? 0 : output) : null;
 }
 const CELL_KEYS = ['x', 'y', 'projectedColumn', 'projectedRow', 'tileIndex', 'extraTileWord', 'rawTileIndex', 'subtile', 'elevation', 'iceRaw', 'overlayType', 'overlayData', 'sourceRecord'] as const;
@@ -280,5 +293,6 @@ export function compileTerrainTraversal(input: TerrainTraversalInput, options: P
   write(header);
   for (const row of land) write(row); for (const cell of cells) write(cell);
   for (const c of movementClasses) { const { cells: _rows, ...metadata } = c; write(metadata); for (const cell of c.cells) write(cell); }
-  return freeze({ ...result, allocations: freeze({ ...result.allocations, outputBytes: hashBytes }), sha256: hex(hashState.digest()) });
+  const owned = freeze({ ...result, allocations: freeze({ ...result.allocations, outputBytes: hashBytes }), sha256: hex(hashState.digest()) });
+  compiled.add(owned); return owned;
 }

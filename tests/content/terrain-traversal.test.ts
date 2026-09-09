@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { compileTerrainTraversal, TERRAIN_TRAVERSAL_LIMITS, type TerrainTraversalInput } from '../../packages/content/src/terrain-traversal.ts';
+import { compileTerrainTraversal, isTerrainTraversal, TERRAIN_TRAVERSAL_LIMITS, type TerrainTraversalInput } from '../../packages/content/src/terrain-traversal.ts';
 import { compileScenarioTerrain } from '../../packages/content/src/scenario-terrain.ts';
 import { compileRuntimeIni } from '../../packages/content/src/runtime-ini.ts';
 import { createIniSourceView } from '../../packages/content/src/ini-source-view.ts';
@@ -71,7 +71,7 @@ test('exact case, section reset versus absent retain, forced Winged and unsuppor
 });
 test('numeric subset caps above one, preserves nonpositive blocking and exposes invalid/tiny factors', () => {
   for (const [value, expected, unavailable] of [['2', 1, null], ['-1', -1, 'factorNonpositive'], ['0', 0, 'factorNonpositive'],
-    ['.001', Math.fround(.001), 'costRange'], ['1e500', null, 'factorUnknown'], ['.5junk', null, 'factorUnknown'], ['NaN', null, 'factorUnknown']] as const) {
+    ['.001', Math.fround(.001), 'costRange'], ['1e500', null, 'factorUnknown'], ['.5junk', null, 'factorUnknown'], ['NaN', null, 'factorUnknown'], ['0.5000000298023223876953125', null, 'factorUnknown']] as const) {
     const r = compileTerrainTraversal(fixture({ types: [0], rules: `[Clear]\nFoot=${value}\n` })); assert.equal(r.land[0]!.factors[0]!.value, expected);
     if (unavailable) assert.equal(r.movementClasses.find(c => c.id === 'foot')!.unavailable[unavailable], 10);
   }
@@ -115,10 +115,22 @@ test('profile/map stage/choice/class joins and malicious property shapes reject'
 });
 test('result ownership, sorted choices/classes and resource boundaries are deterministic', () => {
   const f = fixture(), r = compileTerrainTraversal(f), again = compileTerrainTraversal({ ...f, choices: [...f.choices].reverse(), movementClasses: [...f.movementClasses].reverse() });
+  assert.ok(isTerrainTraversal(r)); assert.equal(isTerrainTraversal({ ...r }), false); assert.equal(isTerrainTraversal(null), false);
   assert.equal(r.sha256, again.sha256); assert.equal(r.sha256, compileTerrainTraversal(f, { fields: r.allocations.fields }).sha256);
   for (const key of ['sourceBytes', 'mapBytes', 'assets', 'cells', 'indexSlots', 'classes', 'fields', 'graphWork', 'outputCells', 'outputBytes'] as const)
     assert.throws(() => compileTerrainTraversal(f, { [key]: 0 }), /traversal-|terrain-/);
   assert.throws(() => compileTerrainTraversal(f, { cells: TERRAIN_TRAVERSAL_LIMITS.cells + 1 }), /integer/);
   f.mapBytes.fill(0); f.assets[0]!.bytes.fill(0); assert.equal(r.cells[0]!.landType, 0);
   assert.ok(Object.isFrozen(r.cells[0]!.tmp)); assert.ok(Object.isFrozen(r.land[0]!.factors[0]!.history)); assert.ok(Object.isFrozen(r.assets[0]!.source.root));
+});
+test('the full 16-code native TMP lookup domain is distinct from LandType ordinals', () => {
+  const expected = [0, 8, 8, 8, 8, 10, 9, 3, 3, 2, 6, 1, 1, 0, 7, 3];
+  for (let code = 0; code < 16; code++) assert.equal(compileTerrainTraversal(fixture({ types: [code] })).cells[0]!.landType, expected[code]);
+  for (const code of [16, 127, 128, 255]) assert.deepEqual(compileTerrainTraversal(fixture({ types: [code] })).cells[0]!.blockers, ['unknown-land']);
+});
+test('same root identities cannot conflict and exact serialized-output budget remains reproducible', () => {
+  const f = fixture(), a = f.assets[0]!, other = { ...a, id: 'other', path: 'other.urb', source: { ...a.source, root: { ...a.source.root, sha256: 'c'.repeat(64) } } };
+  assert.throws(() => compileTerrainTraversal({ ...f, assets: [a, other] }), /root-identity/);
+  const r = compileTerrainTraversal(f); assert.equal(compileTerrainTraversal(f, { outputBytes: r.allocations.outputBytes }).sha256, r.sha256);
+  assert.throws(() => compileTerrainTraversal(f, { outputBytes: r.allocations.outputBytes - 1 }), /output-limit/);
 });
