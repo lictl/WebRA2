@@ -103,6 +103,8 @@ test('real synthetic importer reports cross validation; malformed nested metadat
   const value = await inspectInstallation([new File([bytes], 'ra2.mix'), new File(['original'], 'rules.ini')], { profile: 'ra2', policy: 'tolerant' });
   assert.equal(validImportReport(value), true);
   for (const corrupt of [
+    (r: any) => { r.archives[0].nameCandidates = Array(1); }, (r: any) => { r.files.payload = new Blob(['hidden']); },
+    (r: any) => { r.summary = Object.assign(new Number(0), r.summary); },
     (r: any) => { r.unexpected = new Blob(['must not propagate']); }, (r: any) => { r.files[0].payload = new Uint8Array(1); },
     (r: any) => { r.summary.bytesRead = -1; }, (r: any) => { r.files[0].size = Infinity; }, (r: any) => { r.files[0].kind = 'executable-code'; },
     (r: any) => { r.archives[0].nameCandidates = [null]; }, (r: any) => { r.archives[0].members[0].names = [null]; },

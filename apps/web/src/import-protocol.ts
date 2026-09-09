@@ -22,7 +22,7 @@ export function errorName(value: unknown): string {
   return typeof name === 'string' && publicErrors.has(name) ? name : 'Error';
 }
 export function validProgress(value: unknown): value is ImportProgress {
-  return record(value) && Object.keys(value).every(key => ['phase', 'filesProcessed', 'totalFiles', 'archives', 'members', 'bytesRead', 'currentPath'].includes(key)) && ['validate', 'archives', 'requirements'].includes(String(value.phase)) &&
+  return record(value) && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null) && Reflect.ownKeys(value).every(key => typeof key === 'string' && ['phase', 'filesProcessed', 'totalFiles', 'archives', 'members', 'bytesRead', 'currentPath'].includes(key)) && ['validate', 'archives', 'requirements'].includes(String(value.phase)) &&
     ['filesProcessed', 'totalFiles', 'archives', 'members', 'bytesRead'].every(key => Number.isSafeInteger(value[key]) && (value[key] as number) >= 0) &&
     (value.totalFiles as number) <= MAX_WORKER_FILES && (value.filesProcessed as number) <= (value.totalFiles as number) &&
     (value.archives as number) <= 512 && (value.members as number) <= 250_000 && (value.bytesRead as number) <= 64 * 1024 * 1024 &&
