@@ -130,3 +130,24 @@ full-width spacing, missing-label fallback, a duplicated RA2 label and a voiced
 briefing on this exact installation. Keep original screenshots, recordings and saves
 private. These observations are not needed before the M0 evidence can guide the
 first importer; no new product decision is required from the owner.
+
+## Native lookup and spacing follow-up
+
+[Pinned native locators](locale-native-locators.json) record two complete executable
+identities and fourteen inspected byte spans, independently hash-checked without
+executing either image. In YR, the font constructor at `0x433880` initializes spacing
+state to 1. The ordinary-character measurement path at `0x433da5–0x433dec` reads
+the one-based glyph's stored width and adds that spacing. A wrapper at `0x433ef0`
+can temporarily use spacing 2. Thus the observed, present zero-width U+3000 glyph
+uses current spacing on that path; it does not automatically advance by the header's
+ideograph width 20. This does not establish every UI wrapper's layout behavior.
+
+Both binaries sort 40-byte CSF label records with a case-insensitive comparator
+and then binary-search them. The search returns an encountered equal midpoint;
+it does not explicitly request the first or last source ordinal. The inspected
+sort performs swaps, so duplicate source order is not guaranteed stable. RA2's
+sort/lookup call sites are `0x6f9210` / `0x6f9ec0`; YR's are `0x7348bc` / `0x734e60`.
+The report therefore correctly leaves duplicate selection unverified. A pinned
+sort/search model or a focused original observation is needed when implementing
+duplicate-label behavior. These are native static observations, not copied
+instruction sequences or an executed text renderer.

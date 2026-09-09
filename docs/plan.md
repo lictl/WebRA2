@@ -1,7 +1,7 @@
 # Campaign-first implementation and agent collaboration plan
 
-Status: accepted by the owner; M0 implementation is underway. The first tooling,
-archive, specification and browser/media slices are merged. Read the
+Status: accepted by the owner; M0 evidence and feasibility are complete. The
+[exit record](analysis/m0-exit.md) maps the accepted gates to evidence and limitations. Read the
 [current handoff](task.md) for completed work, active ownership and remaining gates.
 Read [decisions](decisions.md), [architecture](architecture.md), and
 [static evidence](analysis/static-analysis.md) together with this plan.
@@ -51,7 +51,8 @@ work. Gates below still apply; parallel activity must not hide an unmet dependen
 
 ## M0 — Establish the content and behavior baseline
 
-Entry: the current metadata inventory and owner decisions. This milestone is active.
+Entry: the metadata inventory and owner decisions. This milestone is complete;
+see the [M0 exit record](analysis/m0-exit.md). Its criteria are preserved below.
 
 1. **M0-01: content/VFS evidence.** Choose or implement the MIX reader. Identify
    classic/flagged/encrypted indexes, checksums, hashed filenames, nested archives,

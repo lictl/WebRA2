@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "images": [
+    {
+      "rootFile": "gamemd.exe",
+      "sha256": "3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600",
+      "ranges": [
+        {
+          "id": "font-constructor",
+          "virtualAddress": "0x433880",
+          "fileOffset": 211072,
+          "size": 189,
+          "sha256": "4963f4a2c06170f887b256e09ad58879b4424cf79ff6ff77fa5c7a40d183d8ae"
+        },
+        {
+          "id": "font-measure",
+          "virtualAddress": "0x433cf0",
+          "fileOffset": 212208,
+          "size": 437,
+          "sha256": "3c400e9b6a576f88d153826ddadadcacb763dc2fbd6a6a7acfbad2e28c9bd820"
+        },
+        {
+          "id": "font-spacing-wrapper",
+          "virtualAddress": "0x433ef0",
+          "fileOffset": 212720,
+          "size": 52,
+          "sha256": "fdd5d65abbbcc7db2246a88ae441452c5c3d18a1bc07b05009208a5202661575"
+        },
+        {
+          "id": "font-bitmap",
+          "virtualAddress": "0x4346c0",
+          "fileOffset": 214720,
+          "size": 62,
+          "sha256": "93b267d4b9733eaf307eeab1e2f96019ee51b808fc720e1aa2c0428703fe5c10"
+        },
+        {
+          "id": "csf-sort-call",
+          "virtualAddress": "0x7348bc",
+          "fileOffset": 3360956,
+          "size": 41,
+          "sha256": "252cbcec50ff0d54fd627113fe83c262e5bb6a49598ca15ece8ce14b9b8c4b91"
+        },
+        {
+          "id": "csf-lookup",
+          "virtualAddress": "0x734e60",
+          "fileOffset": 3362400,
+          "size": 98,
+          "sha256": "7ab938621776642039aa6aa594e9b4f0f69921b155f6b220614e67d91c313269"
+        },
+        {
+          "id": "csf-sort",
+          "virtualAddress": "0x7c8b48",
+          "fileOffset": 3967816,
+          "size": 472,
+          "sha256": "c5262faab420bd2a87d2ba1c7d7e477efc8802d72eff0137e1fce57c96ef7371"
+        },
+        {
+          "id": "csf-compare",
+          "virtualAddress": "0x7c8d20",
+          "fileOffset": 3968288,
+          "size": 80,
+          "sha256": "20883affec356914a821edf1362fd4d8aa8680946b152b472a73f00a12ecdf97"
+        },
+        {
+          "id": "csf-search",
+          "virtualAddress": "0x7c8e25",
+          "fileOffset": 3968549,
+          "size": 139,
+          "sha256": "cfdcf3988eca29ba298fbd1e23ddf1d69757ab5c942541219bbd259997d657ad"
+        }
+      ]
+    },
+    {
+      "rootFile": "game.exe",
+      "sha256": "73288c03b58d370be268ca6d156b4e33bfdb2066dc980359467d8852ff3b00df",
+      "ranges": [
+        {
+          "id": "csf-sort-call",
+          "virtualAddress": "0x6f9206",
+          "fileOffset": 3117574,
+          "size": 35,
+          "sha256": "09dc6d28eedf240cf9dddf01dc8227137ec2b9dc832a0e11573bb5b240fe42bf"
+        },
+        {
+          "id": "csf-lookup",
+          "virtualAddress": "0x6f9ec0",
+          "fileOffset": 3120832,
+          "size": 98,
+          "sha256": "308ec83afe2d8f33a9532145f522144ceefd6631b8b17c6c503799f07737fa7a"
+        },
+        {
+          "id": "csf-sort",
+          "virtualAddress": "0x781d46",
+          "fileOffset": 3677510,
+          "size": 474,
+          "sha256": "4bdb51eac5b34ce0ced5079791235187bd1b66ba043dbaae8f23f7ae5732dc78"
+        },
+        {
+          "id": "csf-compare",
+          "virtualAddress": "0x781f20",
+          "fileOffset": 3677984,
+          "size": 101,
+          "sha256": "d713608a486776267f61156719b30b515a1ecd37c25142e3e9fd1913b403eb9d"
+        },
+        {
+          "id": "csf-search",
+          "virtualAddress": "0x782025",
+          "fileOffset": 3678245,
+          "size": 139,
+          "sha256": "cfdcf3988eca29ba298fbd1e23ddf1d69757ab5c942541219bbd259997d657ad"
+        }
+      ]
+    }
+  ]
+}

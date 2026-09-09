@@ -48,10 +48,13 @@ session. The remaining unknowns below need evidence or a later milestone decisio
 - New versioned WebRA2 save/replay formats. Pause singleplayer when backgrounded by
   default; return explicitly to the simulation tick schedule on resume.
 - RA2 and YR use explicit version/content profiles, including patch archives and
-  content fingerprints; reference patch selection awaits full M0 analysis.
-- First internal mission candidates are the opening Allied RA2 and Allied YR
-  missions. Confirm their archive identities and dependency counts before selecting
-  them; choose a smaller diagnostic fixture first if that gives earlier evidence.
+  content fingerprints. [ADR 0002](adr/0002-reference-profiles-and-initial-budgets.md)
+  adopts installation-specific source selections from native static evidence;
+  universal dynamic/mod precedence and historical patch numbers remain unverified.
+- First selected campaign slices are Allied RA2 `all01t.map` and Allied YR
+  `all01umd.map`, with pinned source hashes, continuation evidence and candidate
+  dependency counts in [the M0 ledger](analysis/m0-campaign-ledger.md). Synthetic
+  determinism and import diagnostics precede those playable targets.
 - Future multiplayer initially means WebRA2-to-WebRA2. Original executable/CnCNet
   wire interoperability, campaign co-op, accounts, matchmaking, and anti-cheat
   policy remain uncommitted until that milestone's requirements are gathered.
@@ -63,8 +66,10 @@ Node/TypeScript, the npm lockfile and initial envelopes; [MIX provenance](../pac
 records the adopted archive component. Browser/media reports record measured versions
 and hardware, not a permanent minimum support matrix.
 
-Before M1: production decoder builds, renderer library versus direct WebGL, complete
-save schema v1, minimum browser versions and memory/performance budgets remain.
+Before each relevant implementation slice: production decoder builds, renderer library
+versus direct WebGL, complete save schema v1 and minimum browser versions remain.
+[ADR 0002](adr/0002-reference-profiles-and-initial-budgets.md) establishes initial
+import/media resource gates; gameplay and release hardware budgets remain.
 Choose these in short architecture decision records with alternatives, evidence and
 consequences; do not open-endedly benchmark stacks.
 

@@ -20,11 +20,23 @@ the MIX reader and retain the pinned EA editor/XCC reference and adaptation prov
 credits Olaf van der Spek; no translated game strings or mission/rule payloads are
 part of the published census. No additional runtime dependency was introduced.
 
+The bounded SHP format-2 decoder, analysis CLI and original tests retain
+GPL-3.0-or-later with pinned OpenRA and EA/XCC notices in
+[the sprite provenance](../packages/formats/shp-PROVENANCE.md). The browser probe
+and loopback server are original MIT diagnostics; no retail sprite/palette is shipped.
+
 The locale/font coverage scanner and verified analysis CLI retain GPL-3.0-or-later.
 The `fonT` adaptation preserves the MIT copyright and permission notice for Belonit's
 ra2fnt revision `56da5b30fb53eebfaf35e98b2e1c6b3e150f58af` in
 [locale provenance](../packages/content/LOCALE_PROVENANCE.md). No Go implementation,
 retail font, glyph image or translated string is shipped; no dependency was added.
+
+The transitive dependency and native-profile research modules/CLIs/tests are also
+GPL-3.0-or-later; pinned YRpp/EA/XCC references and the audio-index framing attribution
+are recorded in [content provenance](../packages/content/PROVENANCE.md). The browser
+presentation diagnostics are original MIT code. Their privately evaluated FFmpeg
+core remains a separately pinned GPL research reference, not a shipped dependency;
+[the media report](analysis/media-presentation.md) records the build/notice boundary.
 
 The MIX integrity policy, its tests and checksum-domain CLI use GPL-3.0-or-later
 consistently with the format component they compose. The historical EA cache source

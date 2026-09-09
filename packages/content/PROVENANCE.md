@@ -54,3 +54,14 @@ Do not add retail payloads to fixtures or logs during future decoder work.
 Combined distribution must preserve this provenance, copyright/permission notices
 and applicable GPL corresponding source/build information. This code license does
 not license retail assets. Root license mapping updates are coordinator-owned.
+
+The transitive dependency compiler, bounded GABA v2 index reader and their CLI/tests
+also use GPL-3.0-or-later. [Their report](../../docs/analysis/dependency-candidates.md)
+pins the EA editor, YRpp `61d0887eb6040cfb36af16d592e9770ceae4dfb2` address/type
+references and XCC `6f91bf8b00d3acabb1be765118a37c0cb74e85ec` audio-index framing
+(copyright Olaf van der Spek). No YRpp implementation or XCC source body is vendored;
+these references do not establish native activation or default behavior.
+The native-profile census composes the same GPL scanners; its factual executable
+locators and static interpretations contain no native instruction sequences.
+The [locale/font notice](LOCALE_PROVENANCE.md) separately preserves the MIT font
+reference permission and the existing GPL CSF adaptation.

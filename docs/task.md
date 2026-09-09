@@ -1,28 +1,133 @@
 # Current task and refreshed-session handoff
 
-State: **COMPLETE** for the current bounded content wave on 2026-09-09.
-M0 remains **WORKING**. Source verification #24, integrity policy #11, explicit
-profiles #22 and structural campaign graphs #23 are merged. Integrated code main
-is `9ccdf0aed07a2eeb70fde4f58da52e47ac6b3198` before this handoff PR.
-The owner authorized implementation, coherent commits, GitHub issues/PRs/reviews/
-merges and autonomous blocker resolution. No playable game app exists yet.
-The exact next bounded product slice is [#27](https://github.com/lictl/WebRA2/issues/27),
-the on-device installation/asset inspector; its implementation has not started.
+State: **COMPLETE — M0 evidence and feasibility.** Final integration
+[PR #42](https://github.com/lictl/WebRA2/pull/42) is based on reviewed main
+`7b94971bef70035a06057a9d16604f60f7ce0fd5` (sprite PR #41). Consult PR #42 for its
+exact-head review, hosted checks and merge SHA. The owner asked to stop at M0 or
+essential human input; no essential human input was needed. Inspector #27 remains
+queued. Do not start it without a new continuation request.
 
-## Product decisions
+Read [M0 exit evidence](analysis/m0-exit.md), [decisions](decisions.md),
+[reference profiles/budgets](adr/0002-reference-profiles-and-initial-budgets.md), then
+the focused component report. M0 completion means an evidence baseline; no gameplay,
+full renderer, mission interpreter, simulation save runtime or multiplayer exists.
 
-Read `docs/decisions.md` (D01–D16). Both RA2/YR campaigns, cinematics, WebRA2 saves,
-installed playable locales (Steam Traditional Chinese reference), browser-local
-assets/localhost, desktop Chrome/Edge/Firefox/Safari, vanilla mods first, TypeScript
-and vetted GPL reuse. One coordinator plus three workers; original save import is
-best effort. Owner can provide original-game observations when actually needed.
+## Owner decisions
 
-## GitHub history
+Both RA2/YR campaigns and cinematics, WebRA2 saves, vanilla maps/INI/replacement
+assets first; original Windows saves best effort. Browser-native TypeScript with
+WASM when justified; vetted GPL reuse acceptable. On-device files/folders and
+localhost with no server asset uploads. Desktop Chrome/Edge/Firefox/Safari,
+keyboard/mouse; all observed installed locales, with this Steam Traditional Chinese
+reference first. Exact historical patch numbers remain unverified. One coordinator
+and up to three workers. Original-game observations can be requested only when
+an essential ambiguity cannot be settled autonomously. Do not repeat answered
+product questions or permission requests for ordinary in-scope GitHub work.
 
-All reviews below are independent agent COMMENT reviews under the shared `lictl`
-account, not approvals from separate GitHub identities. Each merge matched the
-reviewed head. Check live GitHub for the final documentation merge of this wave;
-it must not create an endless commit solely to record its own merge SHA.
+## Current ownership and preserved worktrees
+
+No implementation assignment remains active after the final integration merge.
+Coordinator owns shared configuration/lock/contracts/licensing and this handoff.
+All worker implementations are committed and independently reviewed; merged
+checkouts stay preserved. The sprite diagnostic server on port 8766 is stopped.
+Check current app/server state before reusing browser UI in a future slice.
+
+| Role | Current or preserved work | Branch / private worktree |
+| --- | --- | --- |
+| Coordinator | M0 integration PR #42 complete; look up final merge live | `codex/4-m0-exit`, repository root |
+| browser_feasibility | #38 / PR #41 sprite proof and media #40 merged | `codex/38-sprite-sample`, `local/worktrees/sprite`; media checkpoint `local/worktrees/media-presentation` |
+| mix_reader | #31 merged; native font and sprite-palette pairing research complete; implementation and review complete | `codex/31-native-profile-evidence`, `local/worktrees/native-profiles` |
+| bootstrap_review | #32 merged; independently reviewed #40 and audited M0 gates; final integration reviewer | `codex/32-dependency-closure`, `local/worktrees/dependencies` |
+
+Earlier `local/worktrees/{mix,specs,browser,campaign,checksum,profiles,graph}` and
+review checkouts remain preserved. Use `git worktree list` before selecting a new
+branch/worktree. Never stage a private dependency symlink as node_modules; use
+`npm ci` in the checkout. There are at most four active agents including coordinator.
+
+## Evidence and checks
+
+Final integrated baseline: **154 public tests pass**, strict types,
+Markdown links, publication paths and whitespace checks. The new public M0 metadata
+check additionally validates source/report hashes, profile/source joins, definition
+fingerprints and all 38 campaign ledger rows without opening retail files. Negative
+metadata regression checks reject cross-profile groups, wrong patches, omitted
+alternatives, changed openings/progression targets and stale source reports.
+Component private reproduction is a separate gate.
+
+- MIX: 69 outer / 117 total archives, 83 encrypted, 13,814 members; 629 candidate
+  name resolutions and 13,185 unknown names in the initial inventory. All indexes
+  structurally decoded; 101 of 103 advertised payload checksums match. Two movie
+  trailer causes remain #11. Tolerant/strict policies are explicit, bounded and tested.
+- Native: two complete executable hashes and 27 range hashes pinned; expansion
+  99→00, append/first-match lookup, ordinary loose-first reads, MAPSEL consumption
+  and win control branches established statically. Forty classified mission-content
+  candidates and table/rule sources reverified in 48 reads / 22,405,216 bytes.
+- Campaign: 38 selected faction mission content identities, with normal MAPSEL
+  targets and four EndOfGame controls; every mission remains INVENTORIED. Select
+  `all01t.map` then `all01umd.map` for the first campaign implementation slices.
+- Dependencies: 15 verified reads / 3,810,446 bytes; 1,889/3,763 candidate nodes and
+  2,958/10,811 edges for the two openings. All 320/670 requested sound sample names
+  have indexed BAG candidates. Indexed-entry/pair expansion is capped before its
+  Cartesian expansion, including rejected ranges. Full closure remains false.
+- Locale: three verified members / 2,200,536 bytes; GAME.FNT maps every non-control
+  character in both CSFs (1,877/1,978 unique codepoints including LF). Blank/zero-width
+  glyphs and three differing RA2 duplicate labels remain explicit. One observed
+  Traditional Chinese candidate pack spans RA2/YR; full native locale behavior awaits
+  implementation/reference checks. Raw native/font research remains private.
+- Browser/media: bounded File/storage/CJK smoke in actual four browser families;
+  real 800×600 Bink/PCM eight-second runs present 120/120 frames without underruns.
+  The 72-second Chrome run exposes 37.59× repeated reads, three dropped frames and
+  underruns. Source/queue/linear-memory/aggregate-RSS scope is recorded; persistent
+  decoder and campaign acceptance remain #12. Codec binaries/retail media are private.
+- Sprite: a real 800×600 SHP frame and its statically paired PAL displayed in
+  Chrome; 600 row prefixes and indexed/palette/RGBA hashes independently reproduced.
+  Decoder explicitly accepts only the bounded format-2 nonzero literal subset;
+  other compression, remaps, transparency and the full renderer remain unimplemented.
+- Review fixes this wave: source discovery cannot downgrade an expected member hash;
+  native reports strip extra payload fields; sparse/case-alias locale inputs fail;
+  audio pairing fanout is capped before expansion. Each code correction has regression
+  coverage. These checks do not claim an original campaign playthrough.
+
+## Commands and private research
+
+Use Node 24.20.0 from `.nvmrc`, then `npm ci` and `npm run check`. On this host the
+ignored runtime is `local/toolchain/node_modules/node/bin`; do not change global Node.
+Focused tests: `node tools/run-tests.mjs tests/<area>` accepts directories; single
+files use `node --import tsx --test tests/content/example.test.ts`.
+
+The corpus is `/Users/lucus/Projects/WebRA2/game`, always read-only. Never execute
+bundled game/editor binaries. Private output belongs under ignored `local/`; no
+assets, extracted strings/frames, native saves, raw disassembly, recordings or
+credentials in GitHub, public CI, web assets or packages. Component reports contain
+reproduction commands and exact source/hash/range identities. Missing retail files
+skip private gates; they are not a passing compatibility check.
+
+Useful private output locations: `local/native-profile-evidence/`,
+`local/media-presentation/`, `local/media-feasibility/`, `local/locale-*`, and the
+worker's ignored sprite evidence. The public metadata snapshots are independently
+reproduced by the associated verified-source CLIs. A new environment only needs
+synthetic fixtures for public checks.
+
+## GitHub traceability and continuing
+
+Every substantive slice uses issue → codex branch/coherent commits → PR → independent
+exact-head review → successful checks → coordinator merge. All reviews below are
+independent agent **COMMENT** reviews under the shared `lictl` account, not separate
+account approvals. Never bypass repository rules or push directly to main. Only the
+reviewed head may merge. Record blockers as issues and continue independent work.
+
+Remote: `https://github.com/lictl/WebRA2.git`. `gh` is authenticated as `lictl`;
+the host keychain previously chose another account for Git. Use this per-command
+helper if needed, without changing global credentials or exposing tokens:
+
+```sh
+git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push
+```
+
+Hosted CI is active; the earlier workflow-scope problem #10 was resolved through
+the existing authorized GitHub browser session. Do not request auth scope changes
+again. Do not push historical unreviewed local branches such as
+`codex/8-foundation-ci-local`.
 
 | Work | Issue / PR / final review | Merge SHA |
 | --- | --- | --- |
@@ -39,192 +144,33 @@ it must not create an endless commit solely to record its own merge SHA.
 | MIX integrity policy | [#11](https://github.com/lictl/WebRA2/issues/11), [PR #26](https://github.com/lictl/WebRA2/pull/26), [review](https://github.com/lictl/WebRA2/pull/26#pullrequestreview-5155323336) | aa89abaacd83263abab505ac1ef1d540e99acd56 |
 | Explicit profiles | [#22](https://github.com/lictl/WebRA2/issues/22), [PR #28](https://github.com/lictl/WebRA2/pull/28), [review](https://github.com/lictl/WebRA2/pull/28#pullrequestreview-5155420257) | bdb99040164d28f015aaa626885cb41e882f4863 |
 | Structural campaign graphs | [#23](https://github.com/lictl/WebRA2/issues/23), [PR #29](https://github.com/lictl/WebRA2/pull/29), [review](https://github.com/lictl/WebRA2/pull/29#pullrequestreview-5155438898) | 9ccdf0aed07a2eeb70fde4f58da52e47ac6b3198 |
+| Prior content-wave handoff | [PR #30](https://github.com/lictl/WebRA2/pull/30), [review](https://github.com/lictl/WebRA2/pull/30#pullrequestreview-5155489186) | 109977241a9bfc0468a5376ff4a74cf0ce5a0f4a |
+| Verified source discovery | [#34](https://github.com/lictl/WebRA2/issues/34), [PR #35](https://github.com/lictl/WebRA2/pull/35), [review](https://github.com/lictl/WebRA2/pull/35#pullrequestreview-5155763983) | c8ebf1f63881f97ac70268535531794f9bb8c9b4 |
+| Native profile/progression | [#31](https://github.com/lictl/WebRA2/issues/31), [PR #36](https://github.com/lictl/WebRA2/pull/36), [review](https://github.com/lictl/WebRA2/pull/36#pullrequestreview-5155989864) | 9c0238210b3b07a80ccd96f5716af81362252c81 |
+| Locale/font coverage | [#33](https://github.com/lictl/WebRA2/issues/33), [PR #37](https://github.com/lictl/WebRA2/pull/37), [review](https://github.com/lictl/WebRA2/pull/37#pullrequestreview-5156090630) | 1c3d34e8f4641e87742769a87c23444983f26968 |
+| Transitive dependency candidates | [#32](https://github.com/lictl/WebRA2/issues/32), [PR #39](https://github.com/lictl/WebRA2/pull/39), [review](https://github.com/lictl/WebRA2/pull/39#pullrequestreview-5156103573) | 223684578674763e69f790736875b165f2f1b74e |
+| Four-browser cinematic presentation | [#12](https://github.com/lictl/WebRA2/issues/12), [PR #40](https://github.com/lictl/WebRA2/pull/40), [review](https://github.com/lictl/WebRA2/pull/40#pullrequestreview-5156098847) | 8867db03dbfcefcfc0bbf3004107d08d4925393a |
+| Real SHP/palette proof | [#38](https://github.com/lictl/WebRA2/issues/38), [PR #41](https://github.com/lictl/WebRA2/pull/41), [implementation review](https://github.com/lictl/WebRA2/pull/41#pullrequestreview-5156299078), [native evidence review](https://github.com/lictl/WebRA2/pull/41#pullrequestreview-5156347564) | 7b94971bef70035a06057a9d16604f60f7ce0fd5 |
+| M0 exit integration | [#4](https://github.com/lictl/WebRA2/issues/4), [#33](https://github.com/lictl/WebRA2/issues/33), [PR #42 and its exact-head review](https://github.com/lictl/WebRA2/pull/42) | Look up PR #42 merge SHA live |
 
-Reviewed heads respectively: `c2910ea1f3eb0b90bd095903fea3e28b2b4996da`,
-`4c139f3b9c7e92d475f13047b0a8913b891704de`,
-`3319b2a0d9251689253277c3ec7ddbee9e5df777`,
-`76312b730893b0e67e2a332da33ae3f8e29c7985`,
-`08cd33e60e51a0326888155517ff026fbeffab36`,
-`84fd571b31b6799db5404917b5e5c032f672f6ac`,
-`342ba90220fcb463c38431577143130cdbb8d132`,
-`6dca4543e03c10ff353fcee2b3f2691eeb3911c4`,
-`1bd4c7109f5a76a644c8aaf4309978c08170356d`,
-`d0f4345a2744caac0bd12376239e5a95fd3d8384`,
-`559976d37c505d890052ca930b2826d96a70db6e`,
-`0eefe49071ae7efdc164f65877cc820527dc1ea3`,
-`3af48f833e87aca65e817baf63fe1001dc32c255`.
-Issues #1/#5/#6/#7/#8/#10/#16/#22/#23/#24 are closed.
-The [M0 tracker #4](https://github.com/lictl/WebRA2/issues/4) remains open.
+## Remaining work and exact next action
 
-The Git credential mismatch [#2](https://github.com/lictl/WebRA2/issues/2) was resolved
-without human input: `gh` login `lictl` has access; the host keychain selected another
-account. Use a per-command helper for Git network operations when needed:
+M0 exit, reference selections, the 38-mission ledger, budgets, compatibility matrix
+and component notices are integrated. Independent audit found no additional
+essential M0 implementation or human-input gate. Stop at the requested milestone. [#27](https://github.com/lictl/WebRA2/issues/27)
+is the next queued implementation slice: a browser asset inspector with explicit
+profiles, on-device import, progress/cancel, provenance and missing/unsupported
+content diagnostics. Assign exclusive paths and record any build dependency choice
+before starting it on a new authorized continuation. It is not a playable mission.
+The deterministic synthetic foundation follows within M1.
 
-```sh
-git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push
-```
+[#18](https://github.com/lictl/WebRA2/issues/18) retains full effective-content,
+packed/opcode/default and locale behavior work; [#12](https://github.com/lictl/WebRA2/issues/12)
+retains persistent cinematic decoding and campaign release evidence; [#11](https://github.com/lictl/WebRA2/issues/11)
+retains mismatch-cause investigation. Original comparison recipes exist and no
+observation is needed now. Full runtime dependencies, minimal asset subsets, native
+branch/defeat/save behavior, fonts/voice/subtitles and universal mod/theater order
+must remain unverified until implemented and tested.
 
-Do not change global credentials or expose tokens. Use `gh` or the integration for
-GitHub work. Do not push all local branches: `codex/8-foundation-ci-local` preserves
-an unpublished historical workflow attempt; it is not the reviewed foundation branch.
-
-## Preserved ownership and checkouts
-
-The current implementation wave is complete. Workers have clean preserved checkouts;
-there is no pending implementation assignment. Coordinator integration is on
-`codex/18-content-integration`, owning the shared handoff/README/compatibility/license
-mapping changes and their review/merge. Check live GitHub before duplicating work.
-
-| Role | Completed scope | Branch / worktree |
-| --- | --- | --- |
-| Coordinator | #24 verified Node source reader, shared integration and merge gates | `codex/24-verified-source-reader`; integration branch above |
-| `browser_feasibility` | #22 pure VFS/profile resolver and metadata projection | `codex/22-profile-resolver`, `local/worktrees/profiles` |
-| `bootstrap_review` | #23 structural campaign graph/tables and verified CLI | `codex/23-campaign-graph`, `local/worktrees/graph` |
-| `mix_reader` | #11 integrity policy/domain investigation; independent #25/#28 reviews | `codex/11-checksum-policy`, `local/worktrees/checksum` |
-
-Earlier `local/worktrees/{mix,specs,browser,campaign}` and detached review checkouts
-remain preserved. Never stage a private dependency symlink as `node_modules`;
-prefer `npm ci` in the worktree or explicit path staging. Create fresh scoped paths
-for the next wave, and reassign ownership before edits. Only the coordinator changes
-root configuration, locks, contracts and this handoff. The four-agent limit persists.
-
-Private corpus is `/Users/lucus/Projects/WebRA2/game`; workers read it in place.
-Keep private outputs in ignored `local/` and never execute bundled game programs.
-
-## Implemented evidence and validation
-
-Node 24.20.0, TypeScript 7.0.2, tsx 4.23.13, node:test, locked npm dependencies.
-On this host the ignored Node installation is
-`local/toolchain/node_modules/node/bin`; the user's global Node remains unchanged.
-Use `.nvmrc` in new environments, then `npm ci` and `npm run check`.
-Focused tests: `node tools/run-tests.mjs tests/<area>`.
-
-- Integrated current wave: **102 public synthetic tests pass**, strict type checking,
-  Markdown local-link validation, publication-path checks and `git diff --check`.
-  New suites add 8 verified-reader, 10 integrity, 18 VFS and 19 graph/table/CLI tests
-  to the 47-test baseline. No test is a retail campaign playthrough.
-  [PR #25](https://github.com/lictl/WebRA2/actions/runs/34359627772),
-  [PR #26](https://github.com/lictl/WebRA2/actions/runs/34360287465),
-  [PR #28](https://github.com/lictl/WebRA2/actions/runs/34361000322) and
-  [PR #29](https://github.com/lictl/WebRA2/actions/runs/34361326310) hosted checks passed.
-  Earlier review fixed command identity/JSON loss, short MIX reads and false census
-  completeness. This wave fixed split physical-source identity bypass in the VFS,
-  inherited-schema lookup through imported prototype-shaped INI names, and unbounded
-  manifest reads before checking the limit. Each has a regression test.
-- [Verified Node source reader](analysis/verified-source-reader.md): full-root and
-  member SHA-256, safe ranges, stable file metadata, path/symlink checks, bounded
-  streaming, cached root identity and one active read. The coordinator independently
-  verified both opening maps and both CSFs. It is analysis infrastructure; browser
-  File handles require their own adapter.
-- [MIX integrity policy](analysis/checksum-policy.md): explicit tolerant/strict policy
-  with injected bounded digest adapter and required pinned-source identity. Both
-  modes reject structural/source/verification failures; tolerant warns on checksum
-  mismatch. Private domain analysis repeats exactly; separate Python verified all
-  15 SHA-1 domains and three source identities. Five domains/byte-order variants do
-  not explain the two RA2 movie trailers. #11 remains open for native cause/handling.
-- [Profile resolver](analysis/profile-resolution.md): original MIT browser-capable
-  metadata API with explicit ranks/profile eligibility, collision/duplicate/range
-  rejection, immutable output and retained provenance/alternatives. Public metadata
-  projection repeats exactly (93,984 bytes): 62 sources, 55 mounted candidates,
-  seven unassigned. RA2 requests have 30 single-content hash candidates; YR has 18
-  plus two ambiguous `rulesmd.ini`/`all02umd.map` entries. No literal-confirmed or
-  effective native profile is claimed. Independent review verified both executable
-  hashes/all eleven filename offsets and pinned editor evidence without execution.
-- [Campaign graph](analysis/campaign-graph.md): pure bounded structural graph and
-  campaign table census; verified CLI reads 14 members / 3,449,092 bytes. Private
-  output independently reproduces the committed metadata byte-for-byte. RA2 opening
-  graph has 3,006 nodes / 2,931 edges / 1,010 reachable nodes; YR has 5,046 / 9,051 /
-  2,028, retaining rule alternatives. Country selectors and unclassified demo/training
-  maps remain explicit. One reachable RA2 placement-type reference is unresolved.
-  Native progression is unverified; full closure remains false. See the precise
-  [remaining dependency edges](analysis/mission-dependencies.md) under #18.
-- `packages/contracts/`: validated finite JSON command payloads, duplicate-safe batch
-  ordering, save/replay/evidence types. Tick/RNG/state-hash behavior and save runtime
-  remain unimplemented; abstract probes in `docs/specs/` are not executed engine tests.
-- `packages/formats/` and [MIX report](analysis/mix-reader.md): bounded classic,
-  flagged and encrypted indexes, nested sources and candidate hash resolution.
-  Private census: 69 top-level / 117 total archives, 83 encrypted, 13,814 members,
-  629 candidate-name resolutions, 13,185 unknown names. All indexes structurally
-  decoded; 101 of 103 flagged checksum payloads matched. Repeat census reproduced
-  the committed metadata byte-for-byte. Two movie archives remain under investigation.
-- `packages/content/` and [campaign report](analysis/campaign-census.md): bounded
-  byte-preserving INI/CSF and opcode scanners, verified source ranges, exact-byte
-  deduplication and rule overlap metadata. Private corpus: 384 physical map records,
-  368 hashes, 45 detailed candidates. Battle tables reference 24 RA2 faction filenames
-  (24 hashes) and 14 YR filenames (15 hashes including an unresolved patch variant).
-  Candidate event/action/script unions contain 40/67/33 RA2 IDs and 37/78/33 YR IDs;
-  these are structural occurrences, not implemented or recovered behavior meanings.
-  The coordinator's separate private CLI run reproduced the 876,998-byte snapshot
-  exactly. Wrong/missing references, source changes and caps have synthetic coverage.
-- [CSF report](analysis/locale-census.md): 4,479 RA2 and 5,211 YR labels/strings,
-  raw language field 9, with 3/0 case-folded duplicate labels. A separate Python
-  parser verified hashes/counts/Han code units at exact archive offsets. No translated
-  strings were emitted; playable-locale status remains unverified in #18.
-- [Browser report](analysis/browser-feasibility.md): Chrome 152, Firefox 151 and
-  Safari 26.6.2 measured on the recorded Mac; bounded 62.75 MiB synthetic file read,
-  OPFS/IndexedDB probes and synthetic CJK rendering. Edge was unavailable. This is
-  diagnostic code, not a complete import/storage/launcher implementation.
-- [Media report](analysis/media-feasibility.md): one 246,492-byte real Bink member,
-  41 frames plus stereo audio, decoded to null by FFmpeg WASM in actual Chrome and
-  Safari. This does not prove presentation, A/V synchronization, long-video memory
-  or Firefox/Edge playback. Private research WASM/sample files remain in `local/`;
-  no production codec bundle was adopted.
-- Initial triage: 438 files / 1,961,556,205 bytes, metadata-only snapshot independently
-  reproduced in PR #3. Raw section counts are not unique campaign mission counts.
-  No bundled game program was run and no game payload/private recording was published.
-
-The publication guard checks tracked paths/extensions, not arbitrary payload provenance;
-manual review remains necessary. GPL MIX/content provenance and combined distribution terms
-are explicit in [licensing](licensing.md), preserving MIT for separable original work.
-
-## Open issues and human involvement
-
-| Issue | Impact and next action |
-| --- | --- |
-| [#11: movie MIX checksums](https://github.com/lictl/WebRA2/issues/11) | Explicit tolerant/strict policy is merged in PR #26. Five candidate hash domains and byte-order variants do not explain the two mismatches. Native cause/runtime handling remains unresolved; preserve unchanged source identities. No immediate owner action. |
-| [#12: media/browser evidence](https://github.com/lictl/WebRA2/issues/12) | Full cinematic A/V/subtitle/seek path, realistic large inputs/peak memory, actual Edge and Firefox codec evidence, real visual assets and full import/storage recovery remain. No immediate owner action required. |
-| [#18: effective content](https://github.com/lictl/WebRA2/issues/18) | Resolve RA2/YR patch/loose/profile precedence, effective campaign progression/dependencies and playable locales using #16 candidates. Profile/graph primitives now support this investigation; native selection, full dependency closure and playable locales remain. No immediate owner action required. |
-
-The next product slice is [#27: on-device asset inspector](https://github.com/lictl/WebRA2/issues/27),
-queued with concrete acceptance criteria. It does not depend on claiming M0 complete.
-
-CI access [#10](https://github.com/lictl/WebRA2/issues/10) is **resolved** through the
-already authorized GitHub browser session. Both the
-[PR run](https://github.com/lictl/WebRA2/actions/runs/34356060476) and
-[merged-main run](https://github.com/lictl/WebRA2/actions/runs/34356266462) passed.
-The earlier requested `gh auth refresh` is no longer needed for this activation;
-no credential scopes or repository rules were changed. Future workflow writes can
-use that authorized UI route if CLI credentials still lack workflow scope.
-
-All initial product questions are answered. Ask the owner only for necessary missing
-access, an essential decision or an original-game comparison agents cannot obtain.
-
-## Next bounded actions
-
-1. Start [#27: browser asset inspector](https://github.com/lictl/WebRA2/issues/27)
-   on a fresh branch/worktree and assign exclusive paths. Implement a real on-device
-   file/folder import surface over the merged readers/resolver, explicit RA2/YR
-   selection, progress/cancel and accurate checksum/ambiguity diagnostics. Establish
-   root build dependencies through a short pinned decision. Use English and
-   Traditional Chinese shell labels and browser network evidence for no asset upload.
-   This is inspection, not gameplay; it is queued until the next implementation slice.
-2. Continue [#18](https://github.com/lictl/WebRA2/issues/18) alongside that product work:
-   full first-mission dependency edges, effective patch/loose/theater/language policy,
-   country-to-house binding and playable locales. Preserve ambiguous `all02umd.map`
-   and `rulesmd.ini`, unselected `sov09t.map`, unnamed `MAPS02.MIX/#6:b7ce3f39`,
-   unclassified demo/training maps and legacy `Basic/NextScenario` references.
-   `all01t.map` / `all01umd.map` remain source-pinned opening candidates; their graphs
-   are over-approximations, not selected fully playable slices.
-3. Progress [#12](https://github.com/lictl/WebRA2/issues/12) with actual cinematic
-   presentation/A/V sync and realistic memory in the remaining browsers. #11 policy
-   no longer blocks ordinary tolerant inspection; native checksum cause remains a
-   separate evidence question. Request narrow original-game observations only when
-   agents cannot resolve a required comparison themselves.
-4. Reassess M0 exit criteria in `docs/plan.md`: effective manifests/dependency closure,
-   unsupported format/opcode inventory, media path, dependency decisions, first
-   mission selection and reference comparison plan. M0 remains open; M1–M8 are
-   not complete, and the tick/RNG/save runtime is still unimplemented.
-
-Commit coherent slices and preserve issue → PR → independent review → merge history.
-Do not manufacture follow-up documentation commits solely to insert their own merge SHA;
-GitHub records the final merge, and the next ordinary handoff update can incorporate it.
+For the final integration PR, look up its merge SHA live; do not create an endless
+commit whose only purpose is recording its own merge SHA.

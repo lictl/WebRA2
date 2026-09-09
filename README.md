@@ -4,10 +4,11 @@ A planned browser-native reimplementation of the Red Alert 2 and Yuri's Revenge
 engines, using assets supplied by the player. Singleplayer campaigns come first;
 complete vanilla engine coverage, broader mods, and multiplayer follow.
 
-**Current state:** M0 implementation is underway. The repository includes bounded
-archive/content analysis, explicit profile resolution and checksum policy, opening
-mission dependency graphs, command contracts, and browser/media diagnostics. Native
-content precedence, complete dependencies and playable locales remain unverified.
+**Current state:** M0 evidence and feasibility are complete. The repository includes bounded
+archive/content analysis, native source-selection evidence, opening dependency and
+campaign ledgers, Unicode font coverage, command contracts, and actual four-browser
+media diagnostics and a real sprite/palette proof. Full dependency/behavior and playable-locale compatibility remain
+unverified. See [M0 evidence and remaining work](docs/analysis/m0-exit.md).
 There is no playable game app yet.
 
 ## Project documents
@@ -16,6 +17,8 @@ There is no playable game app yet.
 - [Current task and handoff](docs/task.md): completed work and the next bounded slice.
 - [Implementation and collaboration plan](docs/plan.md): milestones, dependencies,
   ownership, and acceptance gates.
+- [Reference profiles and budgets](docs/adr/0002-reference-profiles-and-initial-budgets.md):
+  selected first RA2/YR missions, asset provenance and initial engineering limits.
 - [GitHub workflow](docs/github-workflow.md): issues, linked PRs, recorded reviews,
   merge gates, and traceability across sessions.
 - [Architecture](docs/architecture.md): simulation, content, browser, saves, and mods.
@@ -49,7 +52,7 @@ npm run check
 
 These checks use original synthetic fixtures and need no game installation. They
 cover types, synthetic parser/contract/diagnostic tests, document links and tracked
-publication paths. See
+publication paths, plus consistency of public profile/campaign metadata. See
 [the toolchain decision](docs/adr/0001-m0-toolchain-and-contracts.md) for limits.
 
 ## Inspect a local installation
@@ -76,7 +79,7 @@ that exist today.
 
 ## Licensing
 
-Original repository material uses [MIT](LICENSE). The MIX and content census
+Original repository material uses [MIT](LICENSE). The MIX, sprite and content census
 components are licensed GPL-3.0-or-later; combined distributions must honor it. See
 [component licenses and notices](docs/licensing.md) before reusing or distributing
 code. Game assets remain separate and are not licensed by this repository.
