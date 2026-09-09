@@ -98,8 +98,10 @@ node --import tsx --test tests/browser/object-viewport.test.ts tests/web-ui/terr
 npm run check
 ```
 
-The implementation checkpoint passes all 502 public tests, type checking, docs,
-publication/evidence checks and the 34-file code/license build. The private probe
+The original implementation checkpoint passes 502 public tests. After integrating
+main, the reviewed code at `74bc83d1014f0d6e2ab6beacf7ffcd81d7efbfc2` passes
+548 public tests, type checking, docs/publication/evidence checks and the 35-file
+code/license build. The private probe
 reads the selected 438-file installation through the actual scene loader, then
 compares a separately assembled scene against its exact RGBA result.
 
@@ -118,9 +120,79 @@ TypeScript renderer output; this is an independent **object composition** check,
 not an independent terrain renderer or original-game oracle. Artwork identities
 also agree with the earlier native-art source preparation evidence.
 
-Final immutable build identity and four-browser UI acceptance remain pending in
-this draft. No pending gate is a passing campaign test. Private outputs stay
-under ignored `local/object-viewport/`; no retail imagery is published here.
+The independent reviewer reproduced the actual loader outputs and all private
+oracle comparisons in an isolated checkout. The [exact-head COMMENT review](https://github.com/lictl/WebRA2/pull/121#pullrequestreview-5160141495)
+records no actionable code findings, with browser acceptance still pending at
+that review checkpoint. [Hosted checks](https://github.com/lictl/WebRA2/actions/runs/34407612719)
+also pass. Private outputs stay under ignored `local/object-viewport/`; no retail
+imagery is published here.
+
+## Actual browser evidence
+
+Native folder selection on macOS used the same 438-file installation and frozen
+localhost4174 bundle. Every browser completed cancellation/retry, camera pan and
+50%/100% zoom, visible object selection, English/Traditional Chinese UI and
+navigation to the original Practice screen. Returning releases the rendered scene
+and retains the selected Files for a new load. These are actual UI checks, not
+retail mission playthroughs.
+
+| Browser | Completed opening previews | Selected visible building |
+| --- | --- | --- |
+| Chrome 152.0.7977.83 | RA2: 792 prepared / 19 unavailable; YR: 552 / 18 | RA2 (52,51), YR (82,82) |
+| Firefox 151.0.1 | RA2: 792 / 19; YR: 552 / 18 | RA2 (52,51), YR (82,82) |
+| Edge 152.0.4191.66 | RA2: 792 / 19; YR: 552 / 18 | RA2 (52,51), YR (82,82) |
+| Safari 26.6.2 | RA2: 792 / 19; YR: 552 / 18 | RA2 (52,51), YR (82,82) |
+
+The selected RA2 object is `object-199`, using `cunewy13.shp`, SHA-256
+`dbacd860954065079fcdb233cde4cde0d1de3aa36ac7501710ac4e611c16a820`.
+The YR selection is `object-142`, `cnnewy11.shp`, SHA-256
+`14e7a04eeebd72dc012e2678783314c2fee4af167edbb4609796e1753c0a7b9e`.
+The source identities agree with the private preparation; UI categories and
+coordinates agree across the tested browsers. Visible images were inspected
+privately. None are in the repository, output bundle or CI artifacts.
+
+The UI showed 333.89 / 565.04 MiB verified reads and 107 / 131 SHP sources for
+RA2/YR. Chrome exposed a 958×639 canvas (9,794,592 bytes in the four explicit
+pixel planes). Rounded counters in the other browser UIs are allocation metadata,
+not process-memory measurements. Chrome additionally exercised keyboard Home;
+every shortcut and drag-gesture/browser combination was not exhaustively tested.
+
+Completion was observed within 30 seconds per profile in Chrome, Firefox and
+Edge, within 100 seconds for Safari RA2 and within 210 seconds for Safari YR.
+These conservative rounded intervals include UI/tool scheduling and gaps between
+checks; they are observation bounds, not controlled performance benchmarks. Safari camera work remained responsive but needed its
+pending operation to finish before picking; the disabled control correctly
+prevented a premature pick.
+
+Chrome's automated tab did not open the native folder picker. A normal native
+new tab did. Edge initially displayed a selected Sleeping blank tab; a normal
+menu Quit/reopen restored rendering. No browser flags, security or settings were
+changed. The causes of those UI-control states are not established. Safari's
+static message-driven canvas updates pass independently of the separate
+[persistent-media presentation issue](https://github.com/lictl/WebRA2/issues/115).
+
+All 35 served code/license files independently match the retained build manifest
+SHA-256 `cd6ce8b29e0787be9e53e70b3504d768ef80a722251373fd33f788a5bbe9b475`:
+
+| Output | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `app.js` | 124,543 | `a6f41bda3e987209b4f8598103662775a22fb8b1dc8224b495472926c9712f7c` |
+| `workers/terrain.js` | 244,087 | `e729781fa689c6157650aba31d3427788c7fa9d344a58f490209a0898ee4bf17` |
+| `app.css` | 26,489 | `d98377a8470e6b47e81639d22ef9acba475e737dd95ada3182dd8d9e14db38b1` |
+
+The localhost browser request log contains 89 GET requests for page/code/styles/
+chunks, the terrain worker and five rejected favicon requests. The separate
+35-route code/license hash probe is excluded from that browser count. No request body or asset/save
+path appears; the launcher retains `connect-src 'none'`. This is a localhost
+server-boundary observation, not an audit of installed browser extensions or
+telemetry. The original4173 acceptance server remains intact.
+
+Private reproduction files include `probe.mjs`, `facts.json`, `oracle.py`,
+`oracle-facts.json`, `browser-observations.json`, `browser-versions.json`,
+`tested-manifest.json`, `served-facts.json`, `requests.jsonl` and check logs in
+repository-root `local/object-viewport/`. The oracle consumes private extracts;
+it is deliberately separate from public tests and cannot pass when those inputs
+are absent.
 
 See [object-art evidence](object-art.md), [sprite policy](sprite-layer.md),
 [application provenance](../apps/web/PROVENANCE.md) and
