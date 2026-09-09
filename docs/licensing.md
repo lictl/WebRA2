@@ -29,8 +29,11 @@ The map-pack LZO/LCW codecs retain their pinned OpenRA/minilzo attribution in
 [map-pack provenance](../packages/formats/MAP_PACK_PROVENANCE.md). The TMP decoder
 adapts pinned OpenRA and EA/XCC definitions and unpacking under GPL-3.0-or-later;
 [TMP provenance](../packages/formats/TMP_PROVENANCE.md) preserves their notices.
-Original runtime INI, terrain tables and verified profile composition use the
-content component's GPL-3.0-or-later license. No decoded retail map or tile is shipped.
+The selected-frame SHP runtime separately preserves its OpenRA/EA/XCC references in
+[runtime sprite provenance](../packages/formats/SHP_RUNTIME_PROVENANCE.md). Its
+notice also accompanies the development bundle.
+Original runtime INI, terrain/object tables, theater mappings and verified catalog
+profile composition use the content component's GPL-3.0-or-later license. No decoded retail map or tile is shipped.
 
 The locale/font coverage scanner and verified analysis CLI retain GPL-3.0-or-later.
 The `fonT` adaptation preserves the MIT copyright and permission notice for Belonit's

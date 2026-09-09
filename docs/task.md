@@ -6,15 +6,16 @@ until essential human input is needed. This supersedes the previous M0 stopping
 point. M0 integration [PR #42](https://github.com/lictl/WebRA2/pull/42) merged as
 `d590992382d1ce1526942e12b0c5dc51796da1a2`; its evidence remains the baseline.
 The [UI #27 / PR #56](https://github.com/lictl/WebRA2/pull/56) has merged after actual
-four-browser import acceptance. Current integration is
-[build #45 / PR #46](https://github.com/lictl/WebRA2/pull/46).
+four-browser import acceptance. The localhost build/launcher
+[#45 / PR #46](https://github.com/lictl/WebRA2/pull/46) is merged. Current coordinator
+work is [installation profile loading #79](https://github.com/lictl/WebRA2/issues/79).
 The first simulation, browser inspector, CSF runtime, incremental hashing and verified
 browser source sessions have merged, along with effective INI, map-pack codecs,
 terrain geometry, worker file reads, verified profile composition, runtime catalog
-and TMP tile decoding. Parallel follow-ups are
+and TMP/SHP decoding, object placements and theater tile mappings. Parallel work is
 [practice/save UI #75](https://github.com/lictl/WebRA2/issues/75),
-[object placements #72](https://github.com/lictl/WebRA2/issues/72) and
-[theater tile mapping #76](https://github.com/lictl/WebRA2/issues/76).
+[mission logic #82](https://github.com/lictl/WebRA2/issues/82), [terrain compositor #83](https://github.com/lictl/WebRA2/issues/83) follows the
+loader review, using explicit selected asset candidates.
 Build/import decisions are recorded in [ADR 0003](adr/0003-browser-build-and-import-boundary.md).
 No essential human input is currently needed. Finish each reviewed slice and continue
 through the accepted milestones; do not stop simply because this first wave merges.
@@ -45,10 +46,10 @@ the coordinator after independent exact-head COMMENT review and successful check
 
 | Role | Current work and exclusive paths | Branch / private worktree |
 | --- | --- | --- |
-| Coordinator | #45 final build integration; #62/#69/#71 merged; shared configuration/handoff and next renderer integration | `codex/45-browser-build` at root; preserved component worktrees |
-| browser_feasibility | #27 complete; #75 practice/save UI after #46 merges; apps/web/** and tests/web-ui/**; sole browser UI owner | `codex/27-import-shell`, `local/worktrees/import-shell`; next `codex/75-sandbox-ui` |
-| mix_reader | #76 theater tile mapping; packages/content/src/theater-tiles.ts, its tests and focused doc | `codex/76-theater-tiles`, `local/worktrees/theater-tiles` |
-| bootstrap_review | #72 object placements; packages/content/src/scenario-objects.ts, its tests and focused doc | `codex/72-scenario-objects`, `local/worktrees/scenario-objects` |
+| Coordinator | #79 catalog-to-profile loading; shared configuration/handoff/licensing; #75 simulation-worker build route | `codex/79-installation-profile`, `local/worktrees/installation-profile`; #75 route files in its UI worktree |
+| browser_feasibility | #75 practice/save UI; apps/web/**, tests/web-ui/** and docs/sandbox-ui.md; sole browser UI owner | `codex/75-sandbox-ui`, `local/worktrees/sandbox-ui` |
+| mix_reader | #76 complete; independent #79 review, then #83 bounded terrain compositor | Preserved `codex/76-theater-tiles`; review checkout under local/reviews |
+| bootstrap_review | #72/#78 complete; #82 scenario logic; packages/content/src/scenario-logic.ts, its tests and focused doc | `codex/82-scenario-logic`, `local/worktrees/scenario-logic` |
 
 The current wire contracts stay unchanged. The simulation worker owns its internal
 synthetic state policy; importer/UI shared types are coordinated before integration.
@@ -61,11 +62,13 @@ branch/worktree. Never stage a private dependency symlink as node_modules; use
 
 ## Evidence and checks
 
-Current #45 integration: **307 public tests pass**, strict types/docs/publication/
-evidence and the actual app/worker build pass (20 code/license files from 19 approved
-inputs). Four additional inherited format/locale notices accompany the development
-bundle. Counts are revision-specific, not additive. #46 still needs its final
-independent review and hosted check before coordinator merge.
+Merged #45 integration passed **307 public tests** and the actual app/worker build
+(20 code/license files from 19 approved inputs). Final independent review covered
+`e8849549ee7076150cb65a1511443dc11aa3fcfb`; exact-head hosted checks passed. The next
+#79 integration includes object/SHP/theater merges, an additional runtime SHP notice
+and the profile loader. Its counts are recorded in its linked PR after final checks;
+revision-specific counts must not be added across branches. Current #79 checks pass
+348 public tests, types/docs/publication/evidence and the 21-file/19-input build.
 
 All four actual browsers completed the worker's full-folder YR/tolerant import:
 438 files, 118 archives / 14,912 entries, 158 accepted / 280 ignored, 91 named entries,
@@ -233,23 +236,41 @@ again. Do not push historical unreviewed local branches such as
 | TMP terrain decoder | [#67 / PR #73](https://github.com/lictl/WebRA2/pull/73), [review](https://github.com/lictl/WebRA2/pull/73#pullrequestreview-5157728400) | a0dde393889bb2f92ea356a19f3e3c71c2eed8b9 |
 | Verified browser asset catalog | [#71 / PR #74](https://github.com/lictl/WebRA2/pull/74), [review](https://github.com/lictl/WebRA2/pull/74#pullrequestreview-5157755352) | 9457341122ed9459f00e6132a3839b45933d13fc |
 | Four-browser import shell | [#27 / PR #56](https://github.com/lictl/WebRA2/pull/56), [review](https://github.com/lictl/WebRA2/pull/56#pullrequestreview-5157785291) | 41f0183ccc6d4a39162b9cbdf75f6fbc08eee0cc |
+| Scenario object placements | [#72 / PR #77](https://github.com/lictl/WebRA2/pull/77), [review](https://github.com/lictl/WebRA2/pull/77#pullrequestreview-5157870528) | 4b0e30b9558cbfe0395e09ab3cfd42ed456db330 |
+| Browser build and localhost launcher | [#45 / PR #46](https://github.com/lictl/WebRA2/pull/46), [review](https://github.com/lictl/WebRA2/pull/46#pullrequestreview-5157905738) | 71f46269c8f779764e6b736c3ecc69de3c2c53e2 |
+| Selected-frame runtime SHP | [#78 / PR #80](https://github.com/lictl/WebRA2/pull/80), [review](https://github.com/lictl/WebRA2/pull/80#pullrequestreview-5158136475) | f18e25b75f689851efa4b9b02cf7048299b7e8ab |
+| Theater tile candidate mapping | [#76 / PR #81](https://github.com/lictl/WebRA2/pull/81), [review](https://github.com/lictl/WebRA2/pull/81#pullrequestreview-5158152506) | 7fe3459fb4242e2df144bab7c582864e7fe106ab |
 
 ## Remaining work and exact next action
 
-Finish exact-head review/CI and merge #46. Start the already assigned #75 practice
-scenario/save UI in a fresh worktree from main; its app-private simulation worker is
-planned at `apps/web/src/simulation-worker.ts` → `/workers/simulation.js`. Coordinator
-adds that explicit build/server route only when the entry exists during #75 integration.
-Worker-owned deterministic state, bounded integer stepping, three fixed IndexedDB
-slots and canonical save/restore/replay equivalence are accepted next-slice choices.
-The original synthetic scenario must remain visibly separate from campaign play.
+Finish independent review/CI and merge #79, then connect its verified definition
+profile to terrain/object compilation and the next real map viewport. Its Node
+private full-selection probe selects all ten pinned M0 groups in both profiles:
+11 RA2 and 12 YR candidates, retaining equivalent/shadowed alternatives; the resulting
+manifest/rules hashes exactly reproduce #62. See [the loader report](installation-profile.md).
+A review found a mutable adapter identity could change during hashing; the loader
+now detaches all validated identity scalars before the await, with an original
+mutation regression. This does not change the frozen genuine-catalog results.
 
-In parallel, finish #72 object placement and #76 theater/TMP mapping. Then connect
-verified catalog/profile/terrain/object data to a real map viewport with palettes,
-elevation, camera and picking. Extend loose theater asset recognition deliberately;
-M1 ZIP import, large loose-asset catalogs, storage/error paths and content/mod selection
-still need implementation. Continue through the accepted campaign milestones;
-no original mission is playable while required mechanics/opcodes are absent.
+#75 is implementing two original practice scenarios, worker-owned deterministic
+state, bounded integer stepping, three fixed IndexedDB slots and canonical
+save/restore/replay checks. The app-private simulation entry exists at
+`apps/web/src/simulation-worker.ts` → `/workers/simulation.js`. The coordinator
+added that explicit build/server entry and synthetic route fixture in the #75
+worktree; seven infrastructure checks passed. The UI author may include those
+coordinator-owned files in its PR, with separate infrastructure review. Actual
+four-browser practice UI acceptance is still pending. Practice remains visibly
+separate from original campaign play.
+
+#72 object placements, #78 SHP decoding and #76 theater mapping have merged after
+independent reviews. Both openings have candidate/slot coverage; no variant winner
+or rendered map is implied. #82 now compiles raw/provenanced trigger, event, action,
+tag, team, task-force and script definitions with explicit unimplemented semantics.
+Then implement common runtime interpretation and required gameplay mechanics.
+Extend loose theater asset recognition deliberately; ZIP import, large loose-asset
+catalogs, content/mod selection, palettes/elevation/camera/picking and full runtime
+asset closure remain needed. Continue through the authorized milestones while
+required mechanics/opcodes are implemented and verified.
 
 [#18](https://github.com/lictl/WebRA2/issues/18) retains full effective-content,
 packed/opcode/default and locale behavior work; [#12](https://github.com/lictl/WebRA2/issues/12)
