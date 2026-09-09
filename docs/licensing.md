@@ -51,7 +51,11 @@ The CPU terrain scene and composing browser viewport are GPL-3.0-or-later;
 and composition references. The selected-frame SHP compositor uses the same license;
 [sprite layer provenance](../packages/render/SPRITE_PROVENANCE.md) records its
 OpenRA references and explicit WebRA2 anchor, depth and remap policies. These
-notices accompany the development bundle.
+notices accompany the development bundle. The unlit VXL/HVA rasterizer also uses
+GPL-3.0-or-later, with its pinned OpenRA transform policy, composed decoder
+attributions and original CPU rasterization described in
+[voxel render provenance](../packages/render/VOXEL_PROVENANCE.md). Its notice is
+included in the code-only development bundle.
 
 The original bounded mission trigger interpreter and fixtures are GPL-3.0-or-later;
 [mission runtime provenance](../packages/sim/MISSION_LOGIC_PROVENANCE.md) separates
