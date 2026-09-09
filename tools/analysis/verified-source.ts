@@ -6,13 +6,14 @@ import { lstat, open, realpath, stat, type FileHandle } from 'node:fs/promises';
 import { join } from 'node:path';
 
 /** Existing census identity. Archive payloads and translated strings are not metadata. */
-export interface VerifiedSourceIdentity {
+export interface VerifiedSourceRange {
   rootFile: string;
   rootSha256: string;
   absoluteOffset: number;
   size: number;
-  sha256: string;
 }
+export interface VerifiedSourceIdentity extends VerifiedSourceRange { sha256: string }
+export interface DiscoveredSource { bytes: Uint8Array; identity: VerifiedSourceIdentity }
 export interface VerifiedSourceOptions {
   maxMemberBytes?: number;
   maxRootBytes?: number;
@@ -22,6 +23,8 @@ export interface VerifiedSourceOptions {
 export interface VerifiedSourceReader {
   /** Sequential reads only. The returned buffer belongs to the caller. */
   read(identity: VerifiedSourceIdentity): Promise<Uint8Array>;
+  /** Derives a member hash only after verifying its pinned root and range. */
+  discover(range: VerifiedSourceRange): Promise<DiscoveredSource>;
   /** Prevents new reads and waits for any active read to release its file handle. */
   close(): Promise<void>;
 }
@@ -39,19 +42,19 @@ function limit(value: number | undefined, fallback: number, maximum: number, min
   if (!Number.isSafeInteger(result) || result < minimum || result > maximum) fail('invalid-limit', 'Source reader limit is outside the supported range');
   return result;
 }
-function identityCopy(input: VerifiedSourceIdentity): VerifiedSourceIdentity {
+function rangeCopy(input: VerifiedSourceRange): VerifiedSourceRange {
   if (!input || typeof input !== 'object') fail('invalid-identity', 'Source identity must be an object');
-  const { rootFile, rootSha256, absoluteOffset, size, sha256 } = input;
+  const { rootFile, rootSha256, absoluteOffset, size } = input;
   if (typeof rootFile !== 'string' || !rootFile || rootFile.length > 255 || rootFile === '.' || rootFile === '..' || /[\\/:\x00-\x1f\x7f]/.test(rootFile)) {
     fail('unsafe-root-name', 'Source root must be a single safe filename');
   }
-  if (typeof rootSha256 !== 'string' || typeof sha256 !== 'string' || !/^[a-f\d]{64}$/i.test(rootSha256) || !/^[a-f\d]{64}$/i.test(sha256)) {
-    fail('invalid-hash', 'Source identity requires complete SHA-256 hashes');
+  if (typeof rootSha256 !== 'string' || !/^[a-f\d]{64}$/i.test(rootSha256)) {
+    fail('invalid-hash', 'Source range requires a complete root SHA-256 hash');
   }
   if (!Number.isSafeInteger(absoluteOffset) || absoluteOffset < 0 || !Number.isSafeInteger(size) || size < 0) {
     fail('invalid-range', 'Source range must use nonnegative safe integers');
   }
-  return { rootFile, rootSha256: rootSha256.toLowerCase(), absoluteOffset, size, sha256: sha256.toLowerCase() };
+  return { rootFile, rootSha256: rootSha256.toLowerCase(), absoluteOffset, size };
 }
 function unchanged(a: BigIntStats, b: BigIntStats): boolean {
   return a.dev === b.dev && a.ino === b.ino && a.size === b.size && a.mtimeNs === b.mtimeNs && a.ctimeNs === b.ctimeNs;
@@ -80,10 +83,10 @@ export async function createVerifiedSourceReader(directory: string, options: Ver
   }
   const verifiedRoots = new Map<string, { snapshot: BigIntStats; sha256: string }>();
   let closed = false;
-  let active: Promise<Uint8Array> | undefined;
+  let active: Promise<unknown> | undefined;
 
-  async function readSource(input: VerifiedSourceIdentity): Promise<Uint8Array> {
-    const identity = identityCopy(input);
+  async function readSource(input: VerifiedSourceRange, expectedMemberHash?: string): Promise<DiscoveredSource> {
+    const identity = rangeCopy(input);
     if (identity.size > maxMemberBytes) fail('member-limit', 'Source member exceeds the configured byte limit');
     if (!verifiedRoots.has(identity.rootFile) && verifiedRoots.size >= maxRoots) fail('root-count-limit', 'Source reader has reached its verified-root limit');
     const path = join(root, identity.rootFile);
@@ -119,8 +122,9 @@ export async function createVerifiedSourceReader(directory: string, options: Ver
           await fill(file, bytes.subarray(done, done + length), identity.absoluteOffset + done, length);
         }
         if (!unchanged(before, await file.stat({ bigint: true }))) fail('source-changed', 'Source changed while reading a member');
-        if (createHash('sha256').update(bytes).digest('hex') !== identity.sha256) fail('member-hash-mismatch', 'Source member hash differs from the pinned identity');
-        return bytes;
+        const sha256 = createHash('sha256').update(bytes).digest('hex');
+        if (expectedMemberHash !== undefined && sha256 !== expectedMemberHash) fail('member-hash-mismatch', 'Source member hash differs from the pinned identity');
+        return { bytes, identity: { ...identity, sha256 } };
       } finally {
         await file.close();
       }
@@ -130,14 +134,29 @@ export async function createVerifiedSourceReader(directory: string, options: Ver
     }
   }
 
+  function run<T>(operation: () => Promise<T>): Promise<T> {
+    if (closed) return Promise.reject(new VerifiedSourceError('reader-closed', 'Source reader is closed'));
+    if (active) return Promise.reject(new VerifiedSourceError('reader-busy', 'Source reads must be sequential'));
+    const pending = operation();
+    active = pending;
+    void pending.then(() => { active = undefined; }, () => { active = undefined; });
+    return pending;
+  }
   return {
     read(identity) {
-      if (closed) return Promise.reject(new VerifiedSourceError('reader-closed', 'Source reader is closed'));
-      if (active) return Promise.reject(new VerifiedSourceError('reader-busy', 'Source reads must be sequential'));
-      const pending = readSource(identity);
-      active = pending;
-      void pending.then(() => { active = undefined; }, () => { active = undefined; });
-      return pending;
+      return run(async () => {
+        // Snapshot and validate the expected member hash before the first await.
+        const expected = identity?.sha256;
+        if (typeof expected !== 'string' || !/^[a-f\d]{64}$/i.test(expected)) fail('invalid-hash', 'Expected member requires a complete SHA-256 hash');
+        return (await readSource(identity, expected.toLowerCase())).bytes;
+      });
+    },
+    discover(range) {
+      return run(async () => {
+        const detached = rangeCopy(range);
+        if ('sha256' in range) fail('discovery-has-member-hash', 'Use read to verify an already expected member hash');
+        return readSource(detached);
+      });
     },
     async close() {
       closed = true;

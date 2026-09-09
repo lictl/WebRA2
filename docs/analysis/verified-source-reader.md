@@ -56,3 +56,21 @@ Original synthetic tests exercise unaligned/empty ranges, hash and source change
 traversal/symlinks, limits, concurrent calls, close/drain behavior and recovery after
 failed reads. Run `node tools/run-tests.mjs tests/analysis` with the pinned Node
 version. Actual profile/campaign private reads are validated by their consumer PRs.
+
+## Discovering a newly identified member
+
+`reader.discover({ rootFile, rootSha256, absoluteOffset, size })` returns
+`{ bytes, identity }`. It verifies the complete pinned root and stable bounded range,
+then computes the member SHA-256 included in the returned `VerifiedSourceIdentity`.
+It does not compare against an independently expected member hash. To verify an
+existing expected identity use `read(identity)`; discovery rejects input containing
+`sha256` to prevent accidentally weakening that check. No publisher authenticity is
+inferred from either operation.
+
+Discovery shares the reader's single-operation guard, root verification cache, path,
+size and staleness checks and close lifecycle. Both range input and returned identity
+are detached; returned bytes belong to the caller. The discovered identity can be
+recorded as reviewed metadata and passed to `read` in later runs. This API supports
+new font/sound/art dependencies in #32/#33 without duplicating unsafe local I/O.
+Original tests cover exact derived hashes and byte ownership, empty ranges, wrong
+roots, limits and changes, cross-operation concurrency, close and input mutation.
