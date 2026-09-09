@@ -2,7 +2,7 @@
 import { orderCommands } from '../../contracts/src/index.ts';
 import { canonicalText } from './canonical.ts';
 import { sampleRandom, seededRandom } from './rng.ts';
-import { array, command, detached, fail, findEntity, identity, integer, occupied, position, record, sortedWork, validateSave, work } from './validation.ts';
+import { array, command, detached, fail, findEntity, identity, integer, position, record, sortedWork, validateSave, work } from './validation.ts';
 import { ENGINE_VERSION, RULES_VERSION, LIMITS, type CommandEnvelope, type ContentIdentity, type RngState, type Scenario, type ScheduledWork, type SimSave, type StepResult, type TraceEvent } from './types.ts';
 
 type LiveSave = { -readonly [K in keyof Omit<SimSave, 'queuedCommands' | 'scheduledWork' | 'rngStates'>]: SimSave[K] } & { queuedCommands: CommandEnvelope[]; scheduledWork: ScheduledWork[]; rngStates: { simulation: RngState } };
@@ -41,7 +41,7 @@ export class Simulation {
     let batch: CommandEnvelope[]; try { batch = orderCommands(inputs.map(c => command(c, width, height))); } catch (error) { if (error instanceof TypeError) return fail('duplicate-command'); throw error; }
     const cursors = new Map(this.#value.state.admissionCursors.map(c => [c.playerId, c.sequence]));
     for (const c of [...batch].sort((a, b) => a.playerId - b.playerId || a.sequence - b.sequence)) {
-      integer(c.tick, this.nextTick, Math.min(LIMITS.tick, this.nextTick + LIMITS.futureTicks), 'command-horizon');
+      integer(c.tick, this.nextTick, Math.min(LIMITS.tick - 1, this.nextTick + LIMITS.futureTicks), 'command-horizon');
       if (c.sequence <= (cursors.get(c.playerId) ?? -1)) fail('command-sequence-reused'); cursors.set(c.playerId, c.sequence);
     }
     const next = live(this.save());
@@ -55,6 +55,8 @@ export class Simulation {
     integer(ticks, 1, LIMITS.stepTicks, 'step-tick-limit');
     if (ticks > LIMITS.tick - this.nextTick) fail('tick-overflow');
     const save = live(this.save()), events: TraceEvent[] = [];
+    const cell = (p: { x: number; y: number }) => p.y * save.state.width + p.x;
+    const occupiedCells = new Set([...save.state.blocked, ...save.state.entities].map(cell));
     const emit = (phase: TraceEvent['phase'], kind: string, entityId: number, otherId: number | null = null, value: number | null = null) => {
       if (events.length >= LIMITS.trace) fail('trace-limit'); events.push({ tick: save.nextTick, phase, kind, entityId, otherId, value });
     };
@@ -71,7 +73,7 @@ export class Simulation {
           if (!target || target.owner === entity.owner) { emit('command', 'invalid-target', entity.id, p.targetId!); continue; }
           if (Math.abs(target.x - entity.x) + Math.abs(target.y - entity.y) > 4) { emit('command', 'attack-out-of-range', entity.id, target.id); continue; }
           if (save.scheduledWork.length >= LIMITS.work) fail('scheduled-work-limit');
-          if (tick > LIMITS.tick - 2) fail('work-tick-overflow');
+          if (tick > LIMITS.tick - 3) fail('work-tick-overflow');
           const order = state.nextWorkOrder; state.nextWorkOrder = increment(order, 'work-order-overflow');
           save.scheduledWork.push({ dueTick: tick + 2, order, kind: 'impact', payload: { attackerId: entity.id, targetId: target.id } });
           emit('command', 'attack-scheduled', entity.id, target.id, order);
@@ -87,11 +89,11 @@ export class Simulation {
           if (!target) { emit('work', 'impact-target-missing', event.payload.attackerId, event.payload.targetId); continue; }
           const damage = 2 + sampleRandom(save.rngStates.simulation, 4); target.hp -= damage;
           emit('work', 'damage', event.payload.attackerId, target.id, damage);
-          if (target.hp <= 0) { state.entities = state.entities.filter(e => e.id !== target.id); emit('work', 'destroyed', target.id); }
+          if (target.hp <= 0) { occupiedCells.delete(cell(target)); state.entities = state.entities.filter(e => e.id !== target.id); emit('work', 'destroyed', target.id); }
         } else {
-          if (occupied(state, event.payload) || state.entities.length >= LIMITS.entities) { emit('work', 'reinforcement-blocked', 0, null, event.order); continue; }
+          if (occupiedCells.has(cell(event.payload)) || state.entities.length >= LIMITS.entities) { emit('work', 'reinforcement-blocked', 0, null, event.order); continue; }
           const id = state.nextEntityId; state.nextEntityId = increment(id, 'entity-id-overflow');
-          state.entities.push({ id, ...event.payload, destination: null }); emit('work', 'reinforced', id);
+          state.entities.push({ id, ...event.payload, destination: null }); occupiedCells.add(cell(event.payload)); emit('work', 'reinforced', id);
         }
       }
       save.scheduledWork = save.scheduledWork.filter(w => w.dueTick !== tick);
@@ -100,7 +102,8 @@ export class Simulation {
         const destination = entity.destination; if (!destination) continue;
         if (destination.x === entity.x && destination.y === entity.y) { entity.destination = null; emit('movement', 'arrived', entity.id); continue; }
         const target = entity.x !== destination.x ? { x: entity.x + Math.sign(destination.x - entity.x), y: entity.y } : { x: entity.x, y: entity.y + Math.sign(destination.y - entity.y) };
-        if (occupied(state, target)) { emit('movement', 'blocked', entity.id); continue; }
+        if (occupiedCells.has(cell(target))) { emit('movement', 'blocked', entity.id); continue; }
+        occupiedCells.delete(cell(entity)); occupiedCells.add(cell(target));
         entity.x = target.x; entity.y = target.y; emit('movement', 'moved', entity.id, null, entity.y * state.width + entity.x);
         if (entity.x === destination.x && entity.y === destination.y) entity.destination = null;
       }

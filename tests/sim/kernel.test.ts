@@ -68,6 +68,9 @@ test('fatal work/counter/trace bounds roll back the entire multi-tick transactio
   crowded.blocked = Array.from({ length: 64 }, (_, y) => ({ x: 1, y }));
   const tracing = Simulation.create(crowded, content); tracing.admitCommands(crowded.entities.map((_, i) => move(0, 0, i, i + 1, 2, i)));
   const traceBefore = tracing.saveText(); assert.throws(() => tracing.step(512), /trace-limit/); assert.equal(tracing.saveText(), traceBefore);
+  const full = scenario(); full.reinforcements = Array.from({ length: LIMITS.work }, () => ({ dueTick: 5, owner: 0, x: 7, y: 5, hp: 1 }));
+  const scheduling = Simulation.create(full, content); scheduling.admitCommands([attack(0, 0, 0, 1, 2)]); const workBefore = scheduling.saveText();
+  assert.throws(() => scheduling.step(), /scheduled-work-limit/); assert.equal(scheduling.saveText(), workBefore);
 });
 test('strict restore rejects inconsistent state, source identity and old versions without altering an existing simulation', () => {
   const sim = Simulation.create(scenario(), content); const original = sim.saveText();
@@ -78,4 +81,12 @@ test('strict restore rejects inconsistent state, source identity and old version
   ];
   for (const change of cases) { const save = sim.save(); change(save); assert.throws(() => Simulation.restore(save, content)); assert.equal(sim.saveText(), original); }
   for (const expected of [{ ...content, profile: 'yr' as const }, { ...content, rulesSha256: '5'.repeat(64) }, { ...content, orderedModHashes: [...content.orderedModHashes].reverse() }]) assert.throws(() => Simulation.restore(original, expected), /content-mismatch/);
+});
+test('terminal tick boundary cannot admit or schedule work that could never execute', () => {
+  const initial = Simulation.create(scenario(), content).save();
+  const end = Simulation.restore({ ...initial, nextTick: LIMITS.tick - 1, scheduledWork: [] }, content);
+  assert.throws(() => end.admitCommands([move(LIMITS.tick, 0, 0, 1, 1, 0)]), /tick-bounds/);
+  end.step(); const boundary = end.saveText(); assert.equal(end.nextTick, LIMITS.tick); assert.throws(() => end.step(), /tick-overflow/); assert.equal(end.saveText(), boundary);
+  const attackEnd = Simulation.restore({ ...initial, nextTick: LIMITS.tick - 2, scheduledWork: [] }, content);
+  attackEnd.admitCommands([attack(LIMITS.tick - 2, 0, 0, 1, 2)]); const before = attackEnd.saveText(); assert.throws(() => attackEnd.step(), /work-tick-overflow/); assert.equal(attackEnd.saveText(), before);
 });

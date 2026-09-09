@@ -24,14 +24,14 @@ export function position(input: unknown, width: number, height: number): Positio
 }
 export function command(input: unknown, width: number, height: number): CommandEnvelope {
   let c: CommandEnvelope; try { c = orderCommands([input])[0]!; } catch { return fail('invalid-command-envelope'); }
-  integer(c.playerId, 0, LIMITS.players - 1, 'player-bounds'); integer(c.tick, 0, LIMITS.tick, 'tick-bounds');
+  integer(c.playerId, 0, LIMITS.players - 1, 'player-bounds'); integer(c.tick, 0, LIMITS.tick - 1, 'tick-bounds');
   if (c.kind === 'move') { const p = record(c.payload, ['entityId', 'x', 'y']); integer(p.entityId, 1); position({ x: p.x, y: p.y }, width, height); }
   else if (c.kind === 'attack') { const p = record(c.payload, ['entityId', 'targetId']); integer(p.entityId, 1); integer(p.targetId, 1); }
   else fail('unsupported-command-kind');
   return c;
 }
 export function work(input: unknown, width: number, height: number, nextTick: number): ScheduledWork {
-  const r = record(input, ['dueTick', 'order', 'kind', 'payload']); integer(r.dueTick, nextTick, Math.min(LIMITS.tick, nextTick + LIMITS.futureTicks), 'work-tick'); integer(r.order, 1);
+  const r = record(input, ['dueTick', 'order', 'kind', 'payload']); integer(r.dueTick, nextTick, Math.min(LIMITS.tick - 1, nextTick + LIMITS.futureTicks), 'work-tick'); integer(r.order, 1);
   if (r.kind === 'impact') { const p = record(r.payload, ['attackerId', 'targetId']); integer(p.attackerId, 1); integer(p.targetId, 1); }
   else if (r.kind === 'reinforcement') { const p = record(r.payload, ['owner', 'x', 'y', 'hp']); integer(p.owner, 0, LIMITS.players - 1); integer(p.hp, 1, LIMITS.hp); position({ x: p.x, y: p.y }, width, height); }
   else fail('unsupported-work-kind');
@@ -69,7 +69,7 @@ export function validateSave(input: unknown, expectedContent: ContentIdentity): 
   const queue = array(r.queuedCommands, LIMITS.commands).map(c => command(c, width, height));
   let ordered: CommandEnvelope[]; try { ordered = orderCommands(queue); } catch { return fail('duplicate-command'); }
   if (canonicalText(queue) !== canonicalText(ordered)) fail('command-order');
-  for (const c of queue) { integer(c.tick, nextTick, Math.min(LIMITS.tick, nextTick + LIMITS.futureTicks), 'command-horizon'); if ((cursors.get(c.playerId) ?? -1) < c.sequence) fail('missing-admission-cursor'); }
+  for (const c of queue) { integer(c.tick, nextTick, Math.min(LIMITS.tick - 1, nextTick + LIMITS.futureTicks), 'command-horizon'); if ((cursors.get(c.playerId) ?? -1) < c.sequence) fail('missing-admission-cursor'); }
   let previousDue = -1, previousOrder = 0; const orders = new Set<number>();
   for (const item of array(r.scheduledWork, LIMITS.work)) {
     const w = work(item, width, height, nextTick); integer(w.order, 1, nextWorkOrder - 1);
@@ -82,5 +82,4 @@ export function validateSave(input: unknown, expectedContent: ContentIdentity): 
   return { schemaVersion: 1, engineVersion: ENGINE_VERSION, simulationRulesVersion: RULES_VERSION, contentIdentity: content, nextTick, state: state as SimSave['state'], queuedCommands: queue, scheduledWork: r.scheduledWork as ScheduledWork[], rngStates: { simulation: stream as RngState } };
 }
 export function sortedWork(items: ScheduledWork[]): ScheduledWork[] { return items.sort((a, b) => a.dueTick - b.dueTick || a.order - b.order); }
-export function occupied(state: SimSave['state'], p: Position): boolean { return state.blocked.some(b => b.x === p.x && b.y === p.y) || state.entities.some(e => e.x === p.x && e.y === p.y); }
 export function findEntity(entities: Entity[], id: number): Entity | undefined { return entities.find(e => e.id === id); }

@@ -47,3 +47,11 @@ test('rejected admission does not append to the replay or mutate its simulation'
   assert.throws(() => record.admitCommands([move(0, 0, 0, 1, 1, 0), move(0, 0, 0, 1, 2, 0)]));
   assert.equal(canonicalText(record.document()), before);
 });
+test('recording capacity rejects before admitting an otherwise valid bounded command batch', () => {
+  const initial = Simulation.create(scenario(), content);
+  initial.admitCommands(Array.from({ length: 2000 }, (_, sequence) => move(0, 0, sequence, 1, 1, 0)));
+  const record = new ReplayRecorder(initial.save()); record.step();
+  const before = canonicalText(record.document()), state = canonicalText(record.save());
+  assert.throws(() => record.admitCommands(Array.from({ length: 2800 }, (_, index) => move(1, 0, 2000 + index, 1, 2, 0))), /json-structure-limit/);
+  assert.equal(canonicalText(record.save()), state); assert.equal(canonicalText(record.document()), before);
+});

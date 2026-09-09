@@ -28,7 +28,7 @@ export function canonicalText(value: unknown): string {
 export function canonicalBytes(value: unknown): Uint8Array { return new TextEncoder().encode(canonicalText(value)); }
 export async function canonicalHash(value: unknown, digest: Digest): Promise<string> {
   const result = await digest(canonicalBytes(value));
-  if (!/^[a-f0-9]{64}$/.test(result)) throw new SimulationError('invalid-digest-result');
+  if (typeof result !== 'string' || !/^[a-f0-9]{64}$/.test(result)) throw new SimulationError('invalid-digest-result');
   return result;
 }
 
