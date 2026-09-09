@@ -5,6 +5,7 @@ import { inspectMixIntegrity, decideMixImport } from '../../formats/src/mix-inte
 import { MixNameResolver, hashMixName, readXccLocalNames } from '../../formats/src/mix-names.ts';
 import { normalizeAssetPath } from './profile.ts';
 import { createBrowserByteSource, BrowserSourceError, throwIfImportAborted } from './browser-source.ts';
+import { yieldBrowserTask } from './browser-yield.ts';
 import type { BrowserImportArchive, BrowserImportDiagnostic, BrowserImportFile, BrowserImportMember, BrowserImportOptions, BrowserImportReport, BrowserImportRequirement, BrowserProfileStatus, ImportProgress } from './browser-types.ts';
 
 export const BROWSER_IMPORT_LIMITS = Object.freeze({ files: 4096, archives: 512, members: 250_000,
@@ -75,7 +76,7 @@ export async function inspectInstallation(input: readonly File[], options: Brows
   async function checkpoint(phase: ImportProgress['phase'], path?: string, force = false): Promise<void> {
     guard();
     if (force || ++steps >= 32 || performance.now() - lastYield >= 8) {
-      progress(phase, path); await new Promise<void>(resolve => setTimeout(resolve, 0)); guard(); steps = 0; lastYield = performance.now();
+      progress(phase, path); await yieldBrowserTask(signal); guard(); steps = 0; lastYield = performance.now();
     }
   }
   const normalized = selections.map((file, i) => {
@@ -181,7 +182,7 @@ export async function inspectInstallation(input: readonly File[], options: Brows
   // The final pass never reinterprets those names as proof of a verified hash.
   async function metadataCheckpoint(): Promise<void> {
     throwIfImportAborted(signal);
-    if (++steps >= 128 || performance.now() - lastYield >= 8) { await new Promise<void>(resolve => setTimeout(resolve, 0)); throwIfImportAborted(signal); steps = 0; lastYield = performance.now(); }
+    if (++steps >= 128 || performance.now() - lastYield >= 8) { await yieldBrowserTask(signal); throwIfImportAborted(signal); steps = 0; lastYield = performance.now(); }
   }
   for (const archive of archives) for (const member of archive.members) {
     throwIfImportAborted(signal);
