@@ -3,7 +3,7 @@
 export type Locale = 'en' | 'zh-Hant';
 const en = {
   skip: 'Skip to setup', local: 'LOCAL WORKSPACE', tagline: 'Your files. Your battlefield.',
-  practiceNav: 'Practice', setupNav: 'Installation', inspectNav: 'Inspection', aboutNav: 'About this build',
+  terrainNav: 'Terrain', practiceNav: 'Practice', setupNav: 'Installation', inspectNav: 'Inspection', aboutNav: 'About this build',
   deviceOnly: 'ON-DEVICE', shellStage: 'ASSET INSPECTOR', language: 'Language',
   kicker: '01 / PREPARE YOUR INSTALLATION', title: 'Bring your game files.',
   intro: 'Select a game, then choose your installation folder or asset files to inspect them locally.',
@@ -64,7 +64,7 @@ const en = {
 export type TextKey = keyof typeof en;
 const zh: Record<TextKey, string> = {
   skip: '跳至設定', local: '本機工作區', tagline: '你的檔案，你的戰場。',
-  practiceNav: '練習', setupNav: '遊戲檔案', inspectNav: '檢查結果', aboutNav: '關於此版本', deviceOnly: '僅限本機', shellStage: '資產檢查工具', language: '語言',
+  terrainNav: '地形', practiceNav: '練習', setupNav: '遊戲檔案', inspectNav: '檢查結果', aboutNav: '關於此版本', deviceOnly: '僅限本機', shellStage: '資產檢查工具', language: '語言',
   kicker: '01 / 準備遊戲檔案', title: '帶上你的遊戲檔案。', intro: '選擇遊戲，再選取安裝資料夾或資產檔案，即可在本機檢查。',
   profileLegend: '選擇遊戲', ra2: '紅色警戒 2', ra2Sub: '原版遊戲', yr: '尤里的復仇', yrSub: '資料片 · 需要原版資產',
   sourceTitle: '連接你的遊戲檔案', sourceHelp: '可選取現有遊戲資料夾、MIX 封存檔，或支援的個別資產檔案。不需要執行檔。',
