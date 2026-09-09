@@ -6,10 +6,11 @@ import { assembleScenarioDefinitions } from '../../content/src/scenario-construc
 import { createIniSourceView, findIniSourceSections, findIniSourceEntries } from '../../content/src/ini-source-view.ts';
 import { isEntityDefinitions, type EntityDefinitions, type EntityField } from '../../content/src/entity-definitions.ts';
 import { isTerrainTraversal, type TerrainTraversal } from '../../content/src/terrain-traversal.ts';
+import { isFoundationOccupancy, type FoundationOccupancy } from '../../content/src/foundation-occupancy.ts';
 import type { RuntimeIni } from '../../content/src/runtime-ini.ts';
 import { canonicalText } from './canonical.ts';
 import { createNavigationGrid, navigationCell } from './navigation.ts';
-import { createWorldModel, worldAddress, worldHash, worldRecord, worldInteger, WORLD_LIMITS, type WorldModel, type WorldEntityDefinition } from './world-model.ts';
+import { createWorldModel, worldAddress, worldHash, worldRecord, worldInteger, WORLD_LIMITS, type WorldModel, type WorldEntityDefinition, type WorldFootprint } from './world-model.ts';
 
 export const WORLD_CONTENT_POLICY = 'webra2-opening-world-1' as const;
 export const WORLD_CONTENT_LIMITS = Object.freeze({ mapBytes: 16 * 1024 ** 2, entities: WORLD_LIMITS.entities,
@@ -18,6 +19,7 @@ type Limits = { -readonly [K in keyof typeof WORLD_CONTENT_LIMITS]: number };
 export interface WorldContentInput {
   readonly mapBytes: Uint8Array; readonly rules: RuntimeIni;
   readonly definitions: EntityDefinitions; readonly traversal: TerrainTraversal;
+  readonly footprints: FoundationOccupancy;
 }
 export interface WorldPlacement {
   readonly rowId: string; readonly entityId: number; readonly typeId: string | null;
@@ -29,13 +31,14 @@ export interface WorldPlayer { readonly playerId: number; readonly houseId: stri
 export interface WorldContent {
   readonly policy: typeof WORLD_CONTENT_POLICY; readonly sha256: string; readonly model: WorldModel;
   readonly definitionsSha256: string; readonly traversalSha256: string;
+  readonly footprintsSha256: string;
   readonly placements: readonly WorldPlacement[]; readonly players: readonly WorldPlayer[];
   readonly defaultPlayerId: number | null;
-  readonly coverage: Readonly<{ placements: number; mobile: number; stationary: number; passive: number; unavailable: number; sharedAnchors: number }>;
+  readonly coverage: Readonly<{ placements: number; mobile: number; stationary: number; passive: number; unavailable: number; sharedAnchors: number; footprintCells: number }>;
   readonly limitations: readonly string[]; readonly nativeBehaviorVerified: false; readonly canStartCampaign: false;
 }
-export class WorldContentError extends Error { constructor(readonly code: string) { super(`world-content-${code}`); this.name = 'WorldContentError'; } }
-const fail = (code: string): never => { throw new WorldContentError(code); };
+export class WorldContentError extends Error { constructor(readonly code: string, readonly subjectId: string | null = null) { super(`world-content-${code}`); this.name = 'WorldContentError'; } }
+function fail(code: string, subjectId: string | null = null): never { throw new WorldContentError(code, subjectId); }
 const known = <T>(field: EntityField<T>): T | null => field.status === 'unsupported' || field.status === 'not-applicable' ? null : field.value;
 const whole = (n: number | null, low: number, high: number): n is number => n !== null && Number.isSafeInteger(n) && n >= low && n <= high;
 function limits(options: Partial<Limits>): Limits {
@@ -61,10 +64,12 @@ export const isWorldContent = (input: unknown): input is WorldContent => !!input
 
 /** Recompile authentic map geometry/joins; source-authenticated rules remain the import pipeline's responsibility. */
 export function compileWorldContent(input: WorldContentInput, options: Partial<Limits> = {}): WorldContent {
-  worldRecord(input, ['mapBytes', 'rules', 'definitions', 'traversal']); const cap = limits(options);
-  const definitions = input.definitions, traversal = input.traversal;
-  if (!isEntityDefinitions(definitions) || !isTerrainTraversal(traversal)) fail('factory');
+  worldRecord(input, ['mapBytes', 'rules', 'definitions', 'traversal', 'footprints']); const cap = limits(options);
+  const definitions = input.definitions, traversal = input.traversal, occupancy = input.footprints;
+  if (!isEntityDefinitions(definitions) || !isTerrainTraversal(traversal) || !isFoundationOccupancy(occupancy)) fail('factory');
   if (definitions.profile !== traversal.contentIdentity.profile || canonicalText(definitions.source) !== canonicalText(traversal.source)) fail('profile-source');
+  if (occupancy.profile !== definitions.profile || occupancy.definitionsSha256 !== definitions.fingerprint ||
+    canonicalText(occupancy.source) !== canonicalText(definitions.source)) fail('footprint-source');
   const rules = createIniSourceView(input.rules);
   if (rules.profile !== definitions.profile || canonicalText(input.rules.layers) !== canonicalText(definitions.sources.rules) ||
     canonicalText(input.rules.layers) !== canonicalText(traversal.ruleLayers)) fail('rule-sources');
@@ -92,7 +97,8 @@ export function compileWorldContent(input: WorldContentInput, options: Partial<L
   const grids = new Map(navigation.map(b => [b.grid.movementClass, b.grid]));
   const terrain = new Set(traversal.cells.map(c => worldAddress(c.x, c.y)));
   const types = new Map(definitions.definitions.map(d => [d.id, d]));
-  const placements: WorldPlacement[] = [], entities: WorldEntityDefinition[] = [];
+  const masks = new Map(occupancy.types.map(t => [t.typeId, t]));
+  const placements: WorldPlacement[] = [], entities: WorldEntityDefinition[] = [], footprints: WorldFootprint[] = []; let footprintCells = 0;
   for (let i = 0; i < objects.placements.length; i++) {
     const p = objects.placements[i]!, binding = typed.get(p.row.id)!, d = binding.typeId === null ? undefined : types.get(binding.typeId);
     const entityId = i + 1, owner = binding.ownerId === null ? null : owners.get(binding.ownerId) ?? null, reasons: string[] = [];
@@ -119,20 +125,32 @@ export function compileWorldContent(input: WorldContentInput, options: Partial<L
       else if (!navigationCell(grid, { x: p.x, y: p.y })) reasons.push('unavailable-start-cell');
       if (!reasons.length && speed !== null && speed > 0 && initialHealth !== 0) { movementPerTick = speed; navigationClass = c!.id; }
     }
-    // Initial baseline: explicit whole-cell anchors. Native footprint adapter #125 follows.
+    let blocksCell = p.kind !== 'smudge' && p.kind !== 'aircraft';
+    if (p.kind === 'structure' || p.kind === 'terrain') {
+      const mask = binding.typeId === null ? undefined : masks.get(binding.typeId);
+      if (!mask || mask.kind !== p.kind || mask.status !== 'ready') fail('unsupported-required-footprint', p.row.id);
+      blocksCell = false; const cells: { x: number; y: number }[] = [];
+      for (const c of mask.cells) {
+        if (++footprintCells > cap.blocked) fail('footprint-limit');
+        const x = p.x + c.x, y = p.y + c.y;
+        if (x < 0 || x > 511 || y < 0 || y > 511) fail('footprint-bounds', p.row.id);
+        if (x === p.x && y === p.y) blocksCell = true; else cells.push({ x, y });
+      }
+      if (cells.length) footprints.push({ entityId, cells });
+    }
     const status = reasons.length ? 'unavailable' as const : passive ? 'passive' as const : movementPerTick ? 'mobile' as const : 'stationary' as const;
     placements.push(Object.freeze({ rowId: p.row.id, entityId, typeId: binding.typeId, ownerId: binding.ownerId, playerId: owner, status, reasons: Object.freeze(reasons) }));
     entities.push({ id: entityId, rowId: p.row.id, typeId: binding.typeId ?? `unresolved-${entityId}`, owner, kind: p.kind,
-      x: p.x, y: p.y, initialHealth, maximumHealth, movementPerTick, navigationClass, blocksCell: p.kind !== 'smudge' && p.kind !== 'aircraft' });
+      x: p.x, y: p.y, initialHealth, maximumHealth, movementPerTick, navigationClass, blocksCell });
   }
-  const limitations = Object.freeze(['whole-cell-anchor-occupancy', 'native-footprints-pending', 'integer-15hz-motion-not-native-locomotion',
+  const limitations = Object.freeze(['stationary-native-base-masks-with-WebRA2-lifetime', 'gate-wall-conversion-and-occupation-counters-not-executed', 'integer-15hz-motion-not-native-locomotion',
     'MovementZone-special-actions-not-executed', 'no-infantry-subcells', 'no-flight-or-transports', 'no-combat-or-runtime-spawns', 'no-mission-logic-or-campaign-execution']);
-  const metadata = { policy: WORLD_CONTENT_POLICY, definitionsSha256: definitions.fingerprint, traversalSha256: traversal.sha256,
+  const metadata = { policy: WORLD_CONTENT_POLICY, definitionsSha256: definitions.fingerprint, traversalSha256: traversal.sha256, footprintsSha256: occupancy.sha256,
     placements: Object.freeze(placements), players, defaultPlayerId, limitations, nativeBehaviorVerified: false as const, canStartCampaign: false as const };
   const digest = worldHash(metadata), model = createWorldModel({ contentIdentity: traversal.contentIdentity,
-    sourceSha256: definitions.source.sha256, definitionsSha256: digest, entities, navigation, blocked: [] });
+    sourceSha256: definitions.source.sha256, definitionsSha256: digest, entities, navigation, footprints, blocked: [] });
   const coverage = Object.freeze({ placements: placements.length, mobile: placements.filter(p => p.status === 'mobile').length,
     stationary: placements.filter(p => p.status === 'stationary').length, passive: placements.filter(p => p.status === 'passive').length,
-    unavailable: placements.filter(p => p.status === 'unavailable').length, sharedAnchors: model.initialSharedCells });
+    unavailable: placements.filter(p => p.status === 'unavailable').length, sharedAnchors: model.initialSharedCells, footprintCells });
   const result = Object.freeze({ ...metadata, sha256: digest, model, coverage }); results.add(result); return result;
 }

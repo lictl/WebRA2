@@ -10,13 +10,14 @@ build [PR #46](https://github.com/lictl/WebRA2/pull/46), and original practice/s
 UI [PR #85](https://github.com/lictl/WebRA2/pull/85) have merged after their recorded
 reviews and browser acceptance. Verified profile loading, terrain preparation and
 CPU composition are also merged. Both opening terrains now render in actual desktop Chrome, Edge, Firefox and Safari.
-The current work adds object artwork, native scenario construction and persistent
-cinematics. No original mission is playable yet.
+Placed artwork, typed entities and flat terrain traversal are merged. Current work
+connects authoritative movement and save/replay to the browser, then combat and
+mission behavior. No original mission is playable yet.
 
 Current wave: coordinator [authoritative world movement #120 / PR #123](https://github.com/lictl/WebRA2/pull/123);
-browser agent [world orders/save UI #127](https://github.com/lictl/WebRA2/issues/127);
-format agent [native foundation masks #125](https://github.com/lictl/WebRA2/issues/125);
-simulation agent [weapon/projectile/warhead definitions #126](https://github.com/lictl/WebRA2/issues/126).
+browser agent [world orders/save UI #127 / PR #128](https://github.com/lictl/WebRA2/pull/128);
+format agent [native foundation masks #125 / PR #129](https://github.com/lictl/WebRA2/pull/129);
+simulation agent [weapon/projectile/warhead definitions #126 / PR #130](https://github.com/lictl/WebRA2/pull/130).
 Typed entity definitions [PR #122](https://github.com/lictl/WebRA2/pull/122) merged as
 `f172d8db6def090f61b51350dd0b4f29fe8d843e`; placed artwork
 [PR #121](https://github.com/lictl/WebRA2/pull/121) as
@@ -26,9 +27,14 @@ Typed entity definitions [PR #122](https://github.com/lictl/WebRA2/pull/122) mer
 COMMENT reviews and successful checks. Both opening artwork previews pass actual
 Chrome/Firefox/Edge/Safari. World core review at `0ecf8b3` resolved the checkpoint
 overlap/static-relocation finding; the new stationary footprint support and native
-content adapter require another review. Interim private world runs account for all
-811/570 placements and preserve moving restore/replay at tick 122; native footprint
-and actual browser movement integration are pending. No original mission is playable.
+content adapter are under independent review. A revived-footprint checkpoint overlap
+finding was fixed with three collision regressions and original-sharing preservation.
+Final private world runs account for all 811/570 placements, bind 1,108/1,478
+stationary footprint cells and preserve moving restore/replay at tick 122.
+Foundation [PR #129](https://github.com/lictl/WebRA2/pull/129) merged as
+`a97f7b08f05afa943c1bb043713466b1e9a9cb32` after independent split-scope reviews
+and 585 passing checks. The integrated world component now passes 611 checks;
+its final adapter review and actual browser movement integration remain pending. No original mission is playable.
 The media component has complete long-clip playback in Chrome, Edge and Firefox;
 Safari's hidden-page scheduling gap remains [#115](https://github.com/lictl/WebRA2/issues/115),
 and campaign cinematic acceptance remains #12. #103 retains exact-source consumer migrations.
