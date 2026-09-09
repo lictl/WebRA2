@@ -21,8 +21,8 @@ product commands require its integration. Browser syntax targets ES2022; this is
 compilation target, not a minimum browser-support claim. The four actual browser
 families still need application behavior tests after integration.
 
-Build input is restricted to app/package source and the adopted Blowfish runtime
-package, with explicit file extensions and per-input/output caps. Resolved symlinks
+Build input is restricted to app/package source and the adopted Blowfish and @noble/hashes runtime
+packages, with explicit file extensions and per-input/output caps. Resolved symlinks
 cannot bring in `game/`, `local/` or unrelated paths. The build creates a hash/size
 manifest and carries license/provenance notices. The launcher validates all output
 routes and hashes before listening, caches app code only, binds to loopback, validates
