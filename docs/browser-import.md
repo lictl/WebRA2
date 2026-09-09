@@ -155,6 +155,37 @@ repeat the M0 executable-string candidate harvest. The private fact report lives
 ignored `local/native-profile-evidence/browser-import-private.json`; it is a
 component probe, not an actual browser run, checksum verification or campaign test.
 
+## Bounded header reuse
+
+[Issue #69](https://github.com/lictl/WebRA2/issues/69) removes duplicate native reads
+while probing unnamed members. The inspector already reads up to ten bytes to
+exclude known non-archive signatures. The recursive MIX parser now reuses that
+prefix for entirely contained reads, returning independent slices. Larger requests
+forward unchanged to the original bounded source; there is no payload read-ahead,
+installation-wide cache, format shortcut or change to integrity decisions. Only
+the active recursion retains prefixes (at most ten bytes per frame, depth capped
+at four). Abort and source range checks also apply to prefix hits. The 64 MiB
+inspection budget and reported bytes count underlying reads, not reused bytes.
+
+Two new original tests exercise exact native read ranges for a numeric nested
+archive and false candidates, including a six-byte truncated candidate and abort
+after its prefix read. Existing malformed archive, strict ancestry, recursion and
+aggregate budget tests still apply. All 17 importer tests pass.
+
+A private Node File-compatible range probe compared the same recursively selected
+438-file corpus against the pre-reuse implementation. Every report field matched
+after excluding only `summary.bytesRead`; no archive/member/name/policy outcome
+changed. RA2 native requests fell from 20,384 to 8,456 and bytes from 938,416 to
+866,848. YR requests fell from 36,923 to 15,438 and bytes from 1,149,148 to 1,020,238.
+The reports retain 74 / 118 archives and 8,094 / 14,912 member rows respectively.
+The additional editor archive in this recursive corpus explains its difference
+from the flat selection above. This is a request-count measurement, not a browser
+speed claim. Rebuilt browser evidence remains in [the shell PR](https://github.com/lictl/WebRA2/pull/56)
+under [#27](https://github.com/lictl/WebRA2/issues/27) and
+[#64](https://github.com/lictl/WebRA2/issues/64). Private script/aggregate results
+remain in ignored `local/probe-headers.ts` and `local/header-probe-facts.json` in
+the header-probes worktree; no retail payloads are included.
+
 ## Provenance
 
 These new modules and original tests are GPL-3.0-or-later. They compose the existing
