@@ -10,7 +10,7 @@ import { startWebServer } from '../../tools/web/serve.mjs';
 
 async function fixture() {
   const root = await mkdtemp(join(tmpdir(), 'webra2-build-'));
-  for (const name of ['LICENSE', 'LICENSES/GPL-3.0-or-later.txt', 'docs/licensing.md', 'packages/formats/PROVENANCE.md', 'packages/content/PROVENANCE.md', 'packages/vfs/PROVENANCE.md', 'packages/vfs/HASH_PROVENANCE.md', 'node_modules/@noble/hashes/LICENSE', 'node_modules/egoroof-blowfish/LICENSE.md']) {
+  for (const name of ['LICENSE', 'apps/web/PROVENANCE.md', 'LICENSES/GPL-3.0-or-later.txt', 'docs/licensing.md', 'packages/formats/PROVENANCE.md', 'packages/content/PROVENANCE.md', 'packages/vfs/PROVENANCE.md', 'packages/vfs/HASH_PROVENANCE.md', 'node_modules/@noble/hashes/LICENSE', 'node_modules/egoroof-blowfish/LICENSE.md']) {
     await mkdir(dirname(join(root, name)), { recursive: true }); await copyFile(join(repositoryRoot, name), join(root, name));
   }
   await mkdir(join(root, 'apps/web/src'), { recursive: true });

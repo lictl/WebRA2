@@ -61,6 +61,12 @@ The original [synthetic simulation and save/replay foundation](simulation-founda
 and its tests use MIT with no added runtime dependency. That separable license does
 not change GPL obligations for an application combining it with GPL components.
 
+The [application shell](../apps/web/PROVENANCE.md), its original interface text and
+tests are GPL-3.0-or-later. The combined browser bundle retains GPL obligations;
+the build includes the app/component notices, GPL text and adopted runtime dependency
+licenses. System fonts and original HTML/CSS shapes provide the interface; no retail
+artwork, text, font or media is distributed.
+
 ## Initial pinned dependencies
 
 | Component | Version | License / scope |

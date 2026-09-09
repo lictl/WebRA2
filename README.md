@@ -4,12 +4,24 @@ A planned browser-native reimplementation of the Red Alert 2 and Yuri's Revenge
 engines, using assets supplied by the player. Singleplayer campaigns come first;
 complete vanilla engine coverage, broader mods, and multiplayer follow.
 
-**Current state:** M0 evidence and feasibility are complete. The repository includes bounded
-archive/content analysis, native source-selection evidence, opening dependency and
-campaign ledgers, Unicode font coverage, command contracts, and actual four-browser
-media diagnostics and a real sprite/palette proof. Full dependency/behavior and playable-locale compatibility remain
-unverified. See [M0 evidence and remaining work](docs/analysis/m0-exit.md).
-There is no playable game app yet.
+**Current state:** M1 implementation is in progress. An English/Traditional Chinese
+browser app inspects locally selected game folders and asset files, with explicit
+RA2/YR selection and cancellation. The headless synthetic simulation survives
+save/restore and replay. Verified source reads, CSF text lookup and map-pack codecs
+are implemented; original mission gameplay and rendering remain in development.
+See [the current handoff](docs/task.md) for exact evidence and remaining gates.
+
+To run the asset inspector with Node 24.20.0:
+
+```sh
+npm ci
+npm start
+```
+
+Open `http://127.0.0.1:4173`, choose RA2 or Yuri's Revenge, select your game folder
+or asset files, then inspect. Files stay on your device. No executable is needed.
+This build reports asset metadata; campaign play is not available yet.
+`npm run build` creates a code-only build, and `npm run preview` serves it locally.
 
 ## Project documents
 
@@ -72,10 +84,10 @@ Keep extracted content, original-game saves, recordings, and private reference
 material under ignored `local/`. Do not put retail assets in web public directories,
 Git, packages, CI artifacts, or deployments.
 
-The planned app will support importing an installation or asset files and playing
-through a local launcher. The exact browser and localhost behavior is described in
-[the architecture](docs/architecture.md); these are planned features, not commands
-that exist today.
+The local launcher currently serves engine code only. Select assets through the
+browser's file picker; direct local asset serving, ZIP import and persistent save/UI
+flows follow in M1. The architecture describes planned behavior separately from the
+commands implemented above.
 
 ## Licensing
 

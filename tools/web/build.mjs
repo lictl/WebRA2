@@ -52,13 +52,13 @@ export async function buildWeb(root = repositoryRoot) {
     outputs.set(name, file.contents);
   }
   outputs.set('index.html', await boundedFile(resolve(root, 'apps/web/index.html'), 256 * 1024));
-  for (const name of ['LICENSE', 'LICENSES/GPL-3.0-or-later.txt', 'docs/licensing.md', 'packages/formats/PROVENANCE.md', 'packages/content/PROVENANCE.md', 'packages/vfs/PROVENANCE.md', 'packages/vfs/HASH_PROVENANCE.md', 'node_modules/@noble/hashes/LICENSE', 'node_modules/egoroof-blowfish/LICENSE.md']) {
+  for (const name of ['LICENSE', 'apps/web/PROVENANCE.md', 'LICENSES/GPL-3.0-or-later.txt', 'docs/licensing.md', 'packages/formats/PROVENANCE.md', 'packages/content/PROVENANCE.md', 'packages/vfs/PROVENANCE.md', 'packages/vfs/HASH_PROVENANCE.md', 'node_modules/@noble/hashes/LICENSE', 'node_modules/egoroof-blowfish/LICENSE.md']) {
     const target = name === 'LICENSE' ? 'LICENSE.txt' : name === 'LICENSES/GPL-3.0-or-later.txt' ? name :
       name === 'node_modules/egoroof-blowfish/LICENSE.md' ? 'licenses/blowfish.txt' :
       name === 'node_modules/@noble/hashes/LICENSE' ? 'licenses/noble-hashes.txt' : `licenses/${name.replaceAll('/', '-')}.txt`;
     outputs.set(target, await boundedFile(resolve(root, name), 256 * 1024));
   }
-  outputs.set('NOTICES.txt', Buffer.from('WebRA2 development build. Original components: MIT; MIX/content components: GPL-3.0-or-later.\nThis code-only build contains no game assets. Read the included license texts and provenance notices.\nCorresponding source and build instructions: https://github.com/lictl/WebRA2\nThis local development output is not a finalized release distribution.\n'));
+  outputs.set('NOTICES.txt', Buffer.from('WebRA2 development build. Application: GPL-3.0-or-later; separable original components: MIT.\nThis code-only build contains no game assets. Read the included license texts and provenance notices.\nCorresponding source and build instructions: https://github.com/lictl/WebRA2\nThis local development output is not a finalized release distribution.\n'));
   const total = [...outputs.values()].reduce((sum, bytes) => sum + bytes.length, 0);
   if (total > 16 * 1024 * 1024) throw new Error('Browser build exceeds 16 MiB code-output cap');
   // Publish after every input/output has passed; remove only this generated output directory.
