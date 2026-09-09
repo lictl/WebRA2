@@ -49,6 +49,14 @@ The staged typed entity-definition compiler and original fixtures also use GPL-3
 [Entity-definition provenance](../packages/content/ENTITY_DEFINITIONS_PROVENANCE.md)
 records the pinned static field/load evidence and deliberate numeric/runtime boundaries;
 its notice accompanies the development bundle. No retail rule or placement rows are shipped.
+The terrain traversal compiler and original fixtures retain the content GPL terms,
+with native land-table evidence and explicit ground-subset limits in
+[traversal provenance](../packages/content/TERRAIN_TRAVERSAL_PROVENANCE.md).
+The static base-foundation compiler and original fixtures are GPL-3.0-or-later;
+[foundation provenance](../packages/content/FOUNDATION_OCCUPANCY_PROVENANCE.md)
+records the inspected geometry and accompanies the development bundle. No retail
+cell arrays or native bytes are distributed.
+That notice is distributed with the development bundle.
 
 The CPU terrain scene and composing browser viewport are GPL-3.0-or-later;
 [render provenance](../packages/render/PROVENANCE.md) records pinned OpenRA placement
