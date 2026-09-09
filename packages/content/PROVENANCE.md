@@ -1,6 +1,6 @@
 # Content census provenance and boundaries
 
-The research scanners in `src/`, `tools/analysis/campaign-census.ts`, and their
+The research scanners/graphs in `src/`, campaign analysis CLIs, and their
 original synthetic tests use **GPL-3.0-or-later**. Copyright 2026 WebRA2 contributors.
 They compose the existing GPL MIX reader and conservatively retain GPL terms for
 the format references below. See [the GPL text](../../LICENSES/GPL-3.0-or-later.txt)
@@ -33,6 +33,17 @@ and ASCII-compatible bytes without selecting duplicate, override or locale polic
 Its trimmed-line subset is a research tool, not a production INI compatibility
 claim. The CSF scanner emits only counts and raw header fields. Language/script
 classification and duplicate-label resolution remain separate evidence tasks.
+
+The structural graph in `src/campaign-graph.ts`, table census in
+`src/campaign-tables.ts`, graph CLI and original tests retain GPL-3.0-or-later.
+Their field evidence uses the same pinned EA editor revision above, including
+`TeamTypes.cpp`, `TaskForce.cpp`, `Houses.cpp`, `functions.cpp`,
+`TriggerOptionsDlg.cpp`, `MapData.cpp` and `SingleplayerSettings.cpp`.
+[The graph report](../../docs/analysis/campaign-graph.md) records exact source links
+and the supported field/token mappings. No editor implementation body was copied.
+Country/house binding, opcode effects, native progression and effective INI precedence
+remain unimplemented. The pure graph validates hash identity shape; the separate
+MIT verified-source adapter verifies private bytes in the Node CLI.
 
 Tests construct original INI text, CSF records and classic nested archives in code.
 No original mission, string table, translated game value, save, or extracted

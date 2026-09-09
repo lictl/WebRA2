@@ -13,12 +13,23 @@ The full [GPLv3 text](../LICENSES/GPL-3.0-or-later.txt) is included (copied from
 revision `f3ec7f8e1593b482f85fd101652deb740c33dee6`, `COPYING`). Per-component notices
 must accompany future browser/WASM bundles. No retail game assets are licensed here.
 
-The bounded content scanners in `packages/content/`, their original tests and
-`tools/analysis/campaign-census.ts` also use GPL-3.0-or-later. They compose the MIX
-reader and retain the pinned EA editor/XCC reference and adaptation provenance in
+The bounded content scanners and campaign graph modules in `packages/content/`,
+their original tests and campaign analysis CLIs also use GPL-3.0-or-later. They compose
+the MIX reader and retain the pinned EA editor/XCC reference and adaptation provenance in
 [the content component notice](../packages/content/PROVENANCE.md). The CSF adaptation
 credits Olaf van der Spek; no translated game strings or mission/rule payloads are
 part of the published census. No additional runtime dependency was introduced.
+
+The MIX integrity policy, its tests and checksum-domain CLI use GPL-3.0-or-later
+consistently with the format component they compose. The historical EA cache source
+observations in [the integrity report](analysis/checksum-policy.md) establish a
+reference boundary; no new upstream implementation was copied in that slice.
+
+The [VFS profile resolver](../packages/vfs/PROVENANCE.md), its metadata projection and
+original tests use MIT. Its explicit rank policy does not implement the inspected EA
+editor loader. The Node [verified source reader](analysis/verified-source-reader.md)
+and its original tests also use MIT. These separable components do not relicense the
+GPL components with which a future application may combine them.
 
 ## Initial pinned dependencies
 
