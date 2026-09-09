@@ -13,10 +13,10 @@ CPU composition are also merged. Both opening terrains now render in actual desk
 The current work adds object artwork, native scenario construction and persistent
 cinematics. No original mission is playable yet.
 
-Current wave: coordinator [deterministic navigation #116](https://github.com/lictl/WebRA2/issues/116);
+Current wave: coordinator [authoritative world movement #120](https://github.com/lictl/WebRA2/issues/120);
 browser agent [placed-object viewport #111](https://github.com/lictl/WebRA2/issues/111);
-format agent [voxel rasterizer #112 / PR #117](https://github.com/lictl/WebRA2/pull/117);
-simulation agent [typed entity definitions #113](https://github.com/lictl/WebRA2/issues/113).
+format agent [terrain traversal #119](https://github.com/lictl/WebRA2/issues/119);
+simulation agent [typed entity definitions #113 / PR #122](https://github.com/lictl/WebRA2/pull/122).
 Exact staged artwork #110 and persistent media #101 have merged after independent
 reviews and checks. The media component has complete long-clip playback in Chrome,
 Edge and Firefox; Safari's hidden-page scheduling gap remains
@@ -53,14 +53,14 @@ the coordinator after independent exact-head COMMENT review and successful check
 
 | Role | Current work and exclusive paths | Branch / private worktree |
 | --- | --- | --- |
-| Coordinator | #116 deterministic mission-grid navigation; shared identity/configuration/notices/handoff and independent reviews | `codex/116-navigation` at root |
+| Coordinator | #120 authoritative movement/model/save/replay and native adapters; shared configuration/handoff and independent reviews | `codex/120-world-movement` at root |
 | browser_feasibility | #111 mission artwork UI; apps/web/**, tests/browser/**, tests/web-ui/terrain.test.ts, docs/object-viewport.md; sole native UI owner | `codex/111-object-viewport`, `local/worktrees/object-viewport` |
-| mix_reader | #112 voxel renderer PR #117, then independent review of coordinator #116 | `codex/112-voxel-render`, `local/worktrees/voxel-render` |
+| mix_reader | #119 native terrain traversal; #116 and #111 code reviews completed | `codex/119-terrain-traversal`, separate private worktree |
 | bootstrap_review | #113 typed entity definitions; new content compiler/tests/provenance; media native/build review completed | `codex/113-entity-definitions`, `local/worktrees/entity-definitions` |
 
 The shared wire contracts stay unchanged. The browser worker owns the approved
 private terrain protocol v2 and named placed-still preview policy. The coordinator
-owns navigation; the simulation worker owns typed-definition policy. New world
+owns navigation/world motion; the simulation worker owns typed-definition policy. New world
 integration must join those policies deliberately before exposing native orders.
 Past merged research worktrees remain preserved. No worker starts extra agents.
 
@@ -265,12 +265,17 @@ again. Do not push historical unreviewed local branches such as
 | Verified placed-object artwork | [#100 / PR #106](https://github.com/lictl/WebRA2/pull/106), [review](https://github.com/lictl/WebRA2/pull/106#pullrequestreview-5159608146) | 7d9b0b7b8860d77ae03a17ee3989f55dc07b0746 |
 | Exact staged artwork and profile identity | [#110 / PR #114](https://github.com/lictl/WebRA2/pull/114), [review](https://github.com/lictl/WebRA2/pull/114#pullrequestreview-5159809248) | ced32189d045ab7992619d7aaed422817421e871 |
 | Persistent Bink component | [#101 / PR #107 and reviews](https://github.com/lictl/WebRA2/pull/107) | 9d7d35881ca002219af9f900a29a9740e5c4420c |
+| Deterministic navigation | [#116 / PR #118](https://github.com/lictl/WebRA2/pull/118), [review](https://github.com/lictl/WebRA2/pull/118#pullrequestreview-5159968036) | 612f494e8073cb4b093ec950d6e608ed9f1e3664 |
+| Unlit voxel rasterizer | [#112 / PR #117 and scoped reviews](https://github.com/lictl/WebRA2/pull/117) | 14eb89b8abf004ffb9f03e5fda43186f26a5cb62 |
 
 ## Remaining work and exact next action
 
-Finish #116 navigation review, #112 voxel review, #111 browser artwork and #113
-typed entity fields. Then bind entities, navigation and authoritative command/save
-state for actual mission movement and combat. [Navigation](navigation.md) uses
+Navigation #116 and voxel renderer #112 have merged after independent reviews.
+Finish #120 [world movement](world-movement.md), #111 actual browser artwork, #113
+typed entity review and #119 terrain traversal. The first world model/motion/save/
+replay core passes sixteen focused public tests, including partial-edge restores,
+stable reservations, fair planning and atomic rollback. Native adapters remain in
+progress; no original mission movement or combat claim follows. [Navigation](navigation.md) uses
 explicit cell costs/directed edges, stable bounded A* and separate grid/query hashes;
 its original synthetic oracle does not establish native traversal semantics.
 

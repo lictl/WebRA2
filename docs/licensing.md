@@ -102,7 +102,10 @@ attribution; decoded catalogs remain local to the player.
 The original [synthetic simulation and save/replay foundation](simulation-foundation.md)
 and its tests use MIT with no added runtime dependency. The original
 [navigation component](navigation.md) and its fixtures also use MIT; grid/query
-identity hashing uses the already pinned @noble/hashes primitive. That separable license does
+identity hashing uses the already pinned @noble/hashes primitive. The original
+[world model/movement/save/replay core](world-movement.md) also uses MIT and that
+same existing hash primitive; future native-content adapters retain their own
+component attribution. That separable license does
 not change GPL obligations for an application combining it with GPL components.
 
 The [application shell](../apps/web/PROVENANCE.md), its original interface text and
