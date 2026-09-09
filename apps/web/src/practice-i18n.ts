@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import type { Locale } from './i18n.ts';
 const en = {
-  terrain: 'Terrain', nav: 'Practice', installation: 'Installation', workspace: 'Workspace', device: 'ON-DEVICE', stage: 'PRACTICE FIELD',
+  terrain: 'Mission preview', nav: 'Practice', installation: 'Installation', workspace: 'Workspace', device: 'ON-DEVICE', stage: 'PRACTICE FIELD',
   kicker: '02 / ORIGINAL PRACTICE SCENARIOS', title: 'Take command.', intro: 'Try movement, delayed combat and local saves on an original training grid. Game files are not needed. These scenarios use synthetic rules; RA2 and Yuri’s Revenge campaigns remain in development.',
   scenario: 'Scenario', relay: 'Relay yard', crossfire: 'Crossfire · reinforcements', begin: 'Start scenario', restart: 'Restart scenario',
   resume: 'Resume', pause: 'Pause', step: 'Step one tick', paused: 'Paused', running: 'Running', active: 'Eliminate the opposing units.', victory: 'Practice complete · victory', defeat: 'Practice ended · defeat', draw: 'Practice ended · draw', limit: 'Practice tick limit reached. Restart or load an earlier save.',
@@ -16,7 +16,7 @@ const en = {
 } as const;
 export type PracticeText = keyof typeof en;
 const zh: Record<PracticeText, string> = {
-  terrain: '地形', nav: '練習', installation: '遊戲檔案', workspace: '工作區', device: '僅限此裝置', stage: '練習場',
+  terrain: '任務預覽', nav: '練習', installation: '遊戲檔案', workspace: '工作區', device: '僅限此裝置', stage: '練習場',
   kicker: '02 / 原創練習場景', title: '開始指揮。', intro: '在原創訓練方格上嘗試移動、延遲戰鬥與本機存檔。不需要遊戲檔案。這些場景採用模擬規則；《紅色警戒 2》與《尤里的復仇》戰役仍在開發中。',
   scenario: '場景', relay: '中繼站', crossfire: '交叉火線・含增援', begin: '開始場景', restart: '重新開始', resume: '繼續', pause: '暫停', step: '前進一步', paused: '已暫停', running: '進行中', active: '消滅所有敵方單位。', victory: '練習完成・勝利', defeat: '練習結束・失敗', draw: '練習結束・平手', limit: '已達練習步數上限。請重新開始或載入較早的存檔。',
   field: '練習方格', instructions: '選擇友軍單位，再選空格移動或選敵軍攻擊。方向鍵移動焦點，Enter 下達命令。攻擊距離最多四格，兩步後命中。移動先走水平方向；受阻單位會保留原命令。',
