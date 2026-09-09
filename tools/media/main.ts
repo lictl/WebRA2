@@ -57,11 +57,13 @@ async function pump(): Promise<void> {
       if (epoch === undefined && event.kind === 'video') {
         epoch = audio!.currentTime + 0.15 - target; state = 'playing'; status.textContent = 'Playing local decoded video and PCM.';
         metrics.firstFrameReadyMs = performance.now() - started; controls();
+        if (document.hidden) buttons.pause!.click();
       }
     }
   } finally { if (current === generation) pumping = false; }
 }
-function tick(): void {
+function tick(): void { try { tickFrame(); } catch (error) { fail(error); } }
+function tickFrame(): void {
   if (!client) return;
   if (state === 'playing' && audio && epoch !== undefined) {
     const now = playhead(); let latest: MediaEvent | undefined;
