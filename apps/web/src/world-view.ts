@@ -11,10 +11,11 @@ export function mountWorld(root: HTMLElement, controller: TerrainController): ()
   root.querySelector('.terrain-stage')!.before(panel);
   const get = <T extends HTMLElement = HTMLElement>(id: string) => panel.querySelector<T>('#world-' + id)!;
   const click = (id: string, action: () => void) => get(id).addEventListener('click', action);
+  const toggleRunning = () => { if (document.hidden) controller.hidden(); else controller.setRunning(!controller.state.running); };
   get<HTMLSelectElement>('house').addEventListener('change', () => controller.setPlayer(get<HTMLSelectElement>('house').value === '' ? null : Number(get<HTMLSelectElement>('house').value)));
   get<HTMLSelectElement>('unit').addEventListener('change', () => { const value = get<HTMLSelectElement>('unit').value; if (value) controller.selectEntity(Number(value)); });
   get<HTMLSelectElement>('slot').addEventListener('change', () => controller.setSlot(Number(get<HTMLSelectElement>('slot').value) as SaveSlot));
-  click('focus', () => { void controller.focusEntity(); }); click('run', () => controller.setRunning(!controller.state.running)); click('step', () => { controller.setRunning(false); void controller.step(); }); click('stop', () => { void controller.order(); });
+  click('focus', () => { void controller.focusEntity(); }); click('run', toggleRunning); click('step', () => { controller.setRunning(false); void controller.step(); }); click('stop', () => { void controller.order(); });
   const movePicked = () => { const p = controller.state.selection; if (p?.kind === 'terrain') void controller.order(p.cell.x, p.cell.y); };
   click('picked', movePicked);
   get<HTMLFormElement>('target').addEventListener('submit', event => { event.preventDefault(); if (get<HTMLFormElement>('target').reportValidity()) void controller.order(get<HTMLInputElement>('x').valueAsNumber, get<HTMLInputElement>('y').valueAsNumber); });
@@ -31,7 +32,7 @@ export function mountWorld(root: HTMLElement, controller: TerrainController): ()
     }); });
   }
   const canvas = root.querySelector<HTMLCanvasElement>('#terrain-canvas')!;
-  const key = (event: KeyboardEvent) => { if (![' ', 's', 'S', 'm', 'M'].includes(event.key)) return; event.preventDefault(); if (event.key === ' ') controller.setRunning(!controller.state.running); else if (event.key.toLowerCase() === 's') void controller.order(); else movePicked(); };
+  const key = (event: KeyboardEvent) => { if (![' ', 's', 'S', 'm', 'M'].includes(event.key)) return; event.preventDefault(); if (event.key === ' ') toggleRunning(); else if (event.key.toLowerCase() === 's') void controller.order(); else movePicked(); };
   canvas.addEventListener('keydown', key);
   const option = (value: string, text: string) => { const o = document.createElement('option'); o.value = value; o.textContent = text; return o; };
   const details = (element: HTMLElement, values: [string, string][]) => { element.replaceChildren(); for (const [name, value] of values) { const dt = document.createElement('dt'), dd = document.createElement('dd'); dt.textContent = name; dd.textContent = value; element.append(dt, dd); } };

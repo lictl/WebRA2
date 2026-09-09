@@ -2,8 +2,8 @@
 
 [#127](https://github.com/lictl/WebRA2/issues/127) connects authoritative cell
 movement to the existing mission viewport. This slice is **in progress**. The
-worker/controller path has original fixture coverage; the final native footprint
-adapter and actual four-browser acceptance are still pending. No original mission
+worker/controller and final native footprint binding have passed original fixture
+and separately labeled private checks; actual four-browser acceptance is pending. No original mission
 is playable or completed by this checkpoint.
 
 ## Worker and display boundary
@@ -58,14 +58,32 @@ infantry subcells and native movement fidelity remain unsupported.
 ## Current validation
 
 `node --import tsx --test tests/browser/world*.test.ts tests/web-ui/terrain.test.ts`
-passes 19 tests at the initial UI checkpoint: nine new session/worker/controller
-tests plus ten migrated terrain tests. They exercise original obstacle detours,
+passes 24 tests at the integrated binding checkpoint: fourteen map-identity/session/worker/controller
+tests plus ten migrated terrain tests. Adding `tests/browser/object-viewport.test.ts`
+passes 31 focused tests, including a changed-pixel and retained-pick movement test. They exercise original obstacle detours,
 ownership, stop/replacement, moving save continuation, replay hash verification,
 strict malformed messages, duplicate-key/mismatched saves, cancel→new-session
 continuations, storage namespace and scheduler bounds. These tests use original
 fixtures; they are not browser observations or native mission comparisons.
 
-Final acceptance must record the reviewed native adapter/model hashes, actual
+The integrated private application loader, using all 438 selected files, reproduces
+both independently reviewed [world adapter](world-movement.md) model hashes:
+
+| Profile | World model SHA-256 | Mobile / total actors | Occupancy cells |
+| --- | --- | --- | --- |
+| RA2 | `57bb08af8cdafefc5afb18d8d5f2019725f1fd45e31dbda994ea44218d70cda4` | 58 / 811 | 1,108 |
+| YR | `fd4126992c8c896f50766a8240aa69dd48e9d4a8e2ff444fb9f9cd5a020c3dff` | 70 / 570 | 1,478 |
+
+The worker re-reads the exact verified mission locator and compares all root/member
+identity fields before compiling definitions, all eight traversal classes and native
+base footprint masks. Only a genuine `unsupported-required-footprint` error retains
+a static preview with an explicit unavailable explanation. Other failures propagate.
+Private checks retain both initial static viewport hashes, execute an actual movable
+actor's adjacent-cell order, restore its partially completed edge, continue to the
+same terminal state and verify its recorded replay. These are Node File-compatible
+private checks, not native browser input or proof of original mission behavior.
+
+Final acceptance must record the actual
 four-browser input/movement/persistence/lifecycle outcomes and immutable code-only
 bundle identity. Retail files, decoded frames, exported saves/replays and private
 observations remain in ignored `local/` and are never published with this report.
