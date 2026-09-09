@@ -15,4 +15,3 @@ export function syntheticCsf(labels: { label: string; value?: string; extra?: st
   }
   return Buffer.concat(parts);
 }
-
