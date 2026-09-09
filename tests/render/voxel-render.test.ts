@@ -122,3 +122,27 @@ test('empty geometry and off-screen projections preserve background and empty pr
   assert.equal(out.allocations.samples,0);assert.deepEqual(out.rgba,new Uint8Array(16));assert.equal(out.pick(0,0),null);
   assert.throws(()=>out.pick(2,0),/integer/);
 });
+test('shared/resizable/detached storage and reordered binding aliases cannot bypass snapshot or selection checks',()=>{
+  const input=source(vxl().bytes,hva([affine()])),p=input.parts[0]!;
+  assert.throws(()=>createVoxelAtlas({...input,parts:[p,{...p,id:'alias',hva:{section:0,frame:0,layout:'frame-major',assetId:'h'}}]}),/duplicate-selection/);
+  for(const buffer of [new SharedArrayBuffer(1024),Reflect.construct(ArrayBuffer,[1024,{maxByteLength:2048}]) as ArrayBuffer])
+    assert.throws(()=>renderVoxelFrame({...request(),palettes:[{...palette(),rgba:new Uint8Array(buffer)}]}),/byte-limit/);
+  const detached=new Uint8Array(1024);structuredClone(detached,{transfer:[detached.buffer]});
+  assert.throws(()=>renderVoxelFrame({...request(),palettes:[{...palette(),rgba:detached}]}),/byte-limit/);
+  const r=request(),a={...r.instances[0]!,id:'a'};
+  assert.throws(()=>renderVoxelFrame({...r,palettes:[palette(),palette()]}),/duplicate-palette/);
+  assert.throws(()=>renderVoxelFrame({...r,instances:[{...a,modelToView:[1,0,0,1048576,0,-1,0,0,0,0,1,0]}]}),/coordinate/);
+});
+test('explicit parts and independent palettes share a frame without inference or cumulative work bypass',()=>{
+  const base=source(),top=vxl([[0,0,0,2,8]]).bytes;
+  const atlas=createVoxelAtlas({assets:[...base.assets,{id:'upper',kind:'vxl',sha256:sha(top),bytes:top}],
+    parts:[...base.parts,{...base.parts[0]!,id:'upper-part',vxlAssetId:'upper'}]});
+  assert.equal(atlas.allocations.geometryBytes,10);assert.equal(atlas.allocations.sourceVoxels,2);
+  const a={id:'a',partId:'part',paletteId:'colors',modelToView:view(2)},b={id:'b',partId:'upper-part',paletteId:'upper-colors',modelToView:view(2,.25)};
+  const upper={...palette(),id:'upper-colors'};upper.rgba.set([90,80,70,255],8);
+  const r={...request(),atlas,instances:[b,a],palettes:[palette(),upper]};const f=renderVoxelFrame(r);
+  assert.deepEqual([...f.rgba.slice(0,4)],[90,80,70,255]);assert.equal(f.pick(0,0)!.vxlAssetId,'upper');
+  assert.equal(f.allocations.instanceVoxels,2);assert.equal(f.allocations.samples,8);
+  assert.throws(()=>renderVoxelFrame(r,{instanceVoxels:1}),/instance-budget/);
+  assert.throws(()=>renderVoxelFrame(r,{samples:7}),/sample-budget/);
+});

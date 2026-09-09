@@ -21,10 +21,11 @@ export const compare = (a: string, b: string): number => a < b ? -1 : a > b ? 1 
 const typed = Object.getPrototypeOf(Uint8Array.prototype) as object;
 const lengthOf = Object.getOwnPropertyDescriptor(typed, 'byteLength')!.get!;
 const bufferOf = Object.getOwnPropertyDescriptor(typed, 'buffer')!.get!;
+const resizableOf = Object.getOwnPropertyDescriptor(ArrayBuffer.prototype, 'resizable')?.get;
 export function byteSize(input: Uint8Array, minimum: number, maximum: number): number {
   if (!input || Object.getPrototypeOf(input) !== Uint8Array.prototype) fail('voxel-bytes');
   const size = lengthOf.call(input) as number, buffer: unknown = bufferOf.call(input);
-  if (!buffer || Object.getPrototypeOf(buffer) !== ArrayBuffer.prototype || Object.getOwnPropertyDescriptor(ArrayBuffer.prototype, 'resizable')!.get!.call(buffer) || size < minimum || size > maximum) fail('voxel-byte-limit');
+  if (!buffer || Object.getPrototypeOf(buffer) !== ArrayBuffer.prototype || resizableOf?.call(buffer) || size < minimum || size > maximum) fail('voxel-byte-limit');
   return size;
 }
 export function copy(input: Uint8Array, size: number): Uint8Array { const out = new Uint8Array(size); Uint8Array.prototype.set.call(out, input); return out; }
