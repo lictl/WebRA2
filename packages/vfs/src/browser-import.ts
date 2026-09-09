@@ -13,7 +13,7 @@ export const BROWSER_IMPORT_LIMITS = Object.freeze({ files: 4096, archives: 512,
   databaseNames: 8192, nameCandidates: 10_000, namesPerMember: 16, diagnostics: 4096 });
 const identity = Object.freeze({ status: 'unverified' as const, sha256: null });
 const archiveExtension = /\.(mix|mmx|yro)$/;
-const looseExtension = /\.(ini|map|mpr|csf|shp|pal|fnt|aud|wav|bik|vxl|hva|tmp|pcx|bag|idx)$/;
+const looseExtension = /\.(ini|map|mpr|csf|shp|pal|fnt|aud|wav|bik|vxl|hva|tmp|tem|sno|urb|ubn|des|lun|pcx|bag|idx)$/;
 const profileFiles = {
   ra2: ['rules.ini', 'art.ini', 'ai.ini', 'battle.ini', 'mapsel.ini', 'mission.ini', 'sound.ini', 'ra2.csf', 'game.fnt', 'all01t.map'],
   yr: ['rulesmd.ini', 'artmd.ini', 'aimd.ini', 'battlemd.ini', 'mapselmd.ini', 'missionmd.ini', 'soundmd.ini', 'ra2md.csf', 'game.fnt', 'all01umd.map'],

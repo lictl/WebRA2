@@ -177,3 +177,13 @@ test('the shared 64 MiB inspection budget stops before another large metadata al
   assert.equal(report.status, 'limited'); assert.ok(report.summary.bytesRead <= BROWSER_IMPORT_LIMITS.readBytes);
   assert.ok(report.diagnostics.some(row => row.code === 'browser-read-budget')); assert.ok(report.summary.bytesRead > 60 * 1024 * 1024);
 });
+
+test('all six loose theater tile extensions are data inputs while executable siblings remain ignored', async () => {
+  const names = ['original.tem', 'original.sno', 'original.urb', 'original.ubn', 'original.des', 'original.lun', 'engine.exe'];
+  for (const profile of ['ra2', 'yr'] as const) {
+    const report = await inspectInstallation(names.map(name => new File([Uint8Array.of(1, 2, 3)], name)), { profile, policy: 'tolerant' });
+    assert.deepEqual(report.files.filter(f => f.status === 'accepted').map(f => f.path), names.slice(0, 6));
+    assert.equal(report.files.find(f => f.path === 'engine.exe')!.status, 'ignored');
+    assert.equal(report.canStartCampaign, false); assert.equal(report.archives.length, 0);
+  }
+});
