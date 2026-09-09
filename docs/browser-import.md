@@ -22,7 +22,8 @@ const report = await inspectInstallation(selectedFiles, {
 
 The caller supplies a dense array of browser `File` instances, usually copied from
 a file/folder picker. Inputs and option values are captured before asynchronous
-work. A common selected folder prefix is removed; deeper directory namespaces stay
+work. A common selected folder prefix among valid paths is removed; invalid entries
+remain diagnosed without hiding that prefix. Deeper directory namespaces stay
 distinct. Paths use the existing VFS NFC/ASCII-casefold normalization. Unsafe paths
 are rejected, and every duplicate normalized path is blocked instead of selecting
 the first file. EXE/DLL and other program files are ignored and never required.
@@ -127,10 +128,11 @@ npm run check
 git diff --check
 ```
 
-Twenty original synthetic tests cover nested ranges and privacy, strict parent
+Twenty-three original synthetic tests cover nested ranges and privacy, strict parent
 policy propagation, files-only input, unsafe/duplicate paths, explicit profiles,
 malformed archives, filename databases, declared caps, the shared 64-MiB budget,
-input replacement, cancellation races, exact reads and four outstanding operations.
+input replacement, cancellation races, callback reentrancy/cleanup, exact reads and
+four outstanding operations.
 They run in Node's File/Blob implementation and are not browser acceptance evidence.
 
 A separate private read-only probe selected the 129 flat files in the supplied

@@ -82,8 +82,9 @@ export async function inspectInstallation(input: readonly File[], options: Brows
     try { return normalizeAssetPath(file.webkitRelativePath || file.name); }
     catch { diagnostic({ code: 'unsafe-file-path', severity: 'error', sourceId: `file:${i}` }); return null; }
   });
-  const firstFolder = normalized[0]?.split('/')[0];
-  const stripFolder = firstFolder && normalized.every(path => path !== null && path.includes('/') && path.split('/')[0] === firstFolder) ? `${firstFolder}/` : '';
+  const validPaths = normalized.filter((path): path is string => path !== null);
+  const firstFolder = validPaths[0]?.split('/')[0];
+  const stripFolder = firstFolder && validPaths.every(path => path.includes('/') && path.split('/')[0] === firstFolder) ? `${firstFolder}/` : '';
   const paths = normalized.map(path => path && stripFolder ? path.slice(stripFolder.length) : path);
   const pathCounts = new Map<string, number>();
   for (const path of paths) if (path) pathCounts.set(path, (pathCounts.get(path) ?? 0) + 1);

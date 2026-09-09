@@ -71,6 +71,18 @@ test('explicit RA2 selection excludes YR roots and definitions; unknown mod arch
   const yr = await inspectInstallation([md, file('rules.ini')], { ...options, profile: 'yr' });
   assert.equal(requirement(yr, 'rulesmd.ini').status, 'candidate'); assert.equal(yr.files[1]!.profileStatus, 'excluded');
 });
+test('invalid folder entries cannot hide a valid common root; mixed valid roots stay distinct', async () => {
+  const selected = (path: string) => { const value = file(path.split('/').at(-1)!); Object.defineProperty(value, 'webkitRelativePath', { value: path }); return value; };
+  const report = await inspectInstallation([selected('Game/CON.ini'), selected('Game/rules.ini'), selected('Game/mod/art.ini')], options);
+  assert.equal(report.files[0]!.status, 'invalid'); assert.equal(report.files[1]!.path, 'rules.ini');
+  assert.equal(requirement(report, 'rules.ini').status, 'literal');
+  assert.equal(report.files[2]!.path, 'mod/art.ini'); assert.equal(report.files[2]!.profileStatus, 'unassigned');
+  assert.ok(report.diagnostics.some(row => row.code === 'unsafe-file-path'));
+  const mixed = await inspectInstallation([selected('Game/rules.ini'), selected('Other/art.ini'), selected('Game/CON.ini')], options);
+  assert.deepEqual(mixed.files.slice(0, 2).map(row => row.path), ['game/rules.ini', 'other/art.ini']);
+  assert.ok(mixed.files.slice(0, 2).every(row => row.profileStatus === 'unassigned'));
+  assert.equal(requirement(mixed, 'rules.ini').status, 'missing');
+});
 test('malformed named archives and short named nested candidates remain explicit failures', async () => {
   const report = await inspectInstallation([file('ra2.mix', mix([{ name: 'cache.mix', data: text('bad') }])), file('language.mix', Uint8Array.of(1))], options);
   assert.equal(report.archives.length, 3); assert.equal(report.archives.filter(row => row.integrity === 'structural-failure').length, 2);

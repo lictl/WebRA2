@@ -63,3 +63,23 @@ test('short reads and budget callbacks fail without leaving an adapter busy', as
   const source = createBrowserByteSource(new Blob([Uint8Array.of(1)]), { beforeRead() { if (blocked) throw new Error('test-budget'); } });
   await assert.rejects(source.read(0, 1), /test-budget/); blocked = false; assert.equal((await source.read(0, 1))[0], 1);
 });
+test('beforeRead reentrancy cannot create a second underlying operation on the same adapter', async () => {
+  let callbackCalls = 0, nested!: Promise<void>;
+  const source = createBrowserByteSource(new Blob([Uint8Array.of(1, 2)]), { beforeRead() {
+    if (++callbackCalls === 1) nested = assert.rejects(source.read(1, 1), /source-busy/);
+  } });
+  assert.equal((await source.read(0, 1))[0], 1); await nested;
+  assert.equal(callbackCalls, 1); assert.equal((await source.read(1, 1))[0], 2);
+});
+test('callback throws and callback cancellation release reservations before any underlying read', async () => {
+  let slices = 0, calls = 0;
+  class Counted extends Blob { override slice(start?: number, end?: number): Blob { slices++; return super.slice(start, end); } }
+  const source = createBrowserByteSource(new Counted([Uint8Array.of(1)]), { beforeRead() { if (++calls === 1) throw new Error('callback-failure'); } });
+  await assert.rejects(source.read(0, 1), /callback-failure/); assert.equal(slices, 0);
+  assert.equal((await source.read(0, 1))[0], 1); assert.equal(slices, 1);
+  const controller = new AbortController();
+  const aborted = createBrowserByteSource(new Counted([Uint8Array.of(1)]), { signal: controller.signal, beforeRead() { controller.abort(); } });
+  await assert.rejects(aborted.read(0, 1), { name: 'AbortError' }); assert.equal(slices, 1);
+  const waiting = Array.from({ length: 4 }, delayedBlob), pending = waiting.map(item => createBrowserByteSource(item.blob).read(0, 1));
+  waiting.forEach(item => item.release()); assert.equal((await Promise.all(pending)).length, 4);
+});

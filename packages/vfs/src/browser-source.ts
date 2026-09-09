@@ -28,10 +28,12 @@ export function createBrowserByteSource(blob: Blob, options: BrowserSourceOption
       if (length > BROWSER_RANGE_BYTES) throw new BrowserSourceError('browser-range-limit');
       if (active) throw new BrowserSourceError('browser-source-busy');
       if (outstandingBuffers >= 4) throw new BrowserSourceError('browser-buffer-limit');
-      beforeRead?.(length);
-      throwIfImportAborted(signal);
-      if (!length) return new Uint8Array(0);
       active = true; outstandingBuffers++;
+      // Callbacks can synchronously re-enter read(). Reserve ownership first,
+      // then release it if the callback rejects or cancels before I/O starts.
+      try { beforeRead?.(length); throwIfImportAborted(signal); }
+      catch (error) { active = false; outstandingBuffers--; throw error; }
+      if (!length) { active = false; outstandingBuffers--; return new Uint8Array(0); }
       // Blob.arrayBuffer cannot be stopped, so cancellation rejects promptly while
       // its bounded operation keeps the slot until it settles. A cancelled job
       // cannot clear the guard early and start more underlying reads.
