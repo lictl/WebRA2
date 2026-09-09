@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh-Hant">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WebRA2 local feasibility diagnostic</title>
+<link rel="stylesheet" href="probe.css">
+<h1>WebRA2 local feasibility diagnostic</h1>
+<p>This diagnostic reads on-device data. It has no upload endpoint or remote dependencies.</p>
+<section aria-labelledby="cjk-title">
+<h2 id="cjk-title">繁體中文顯示測試</h2>
+<p id="cjk-sample">任務目標：保護基地。建造發電廠，然後選取單位。儲存名稱「測試存檔一」— 進度 50%。</p>
+<label>儲存名稱 <input id="save-name" value="測試存檔一" maxlength="80"></label>
+<p>The text above is original test text. Check glyphs, punctuation, wrapping and keyboard editing visually.</p>
+</section>
+<button id="run">Run synthetic File and storage checks</button>
+<label>Optional local file (read at most 8 MiB) <input id="file" type="file"></label>
+<button id="cancel" disabled>Cancel local read</button>
+<p>No persistent-storage permission is requested. Storage smoke tests create and remove only their own 32-byte record.</p>
+<pre id="results" aria-live="polite">Ready.</pre>
+<script type="module" src="probe.mjs"></script>
+</html>

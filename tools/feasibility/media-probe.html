@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>WebRA2 private Bink decode diagnostic</title>
+<link rel="stylesheet" href="probe.css">
+<h1>Private Bink decode diagnostic</h1>
+<p>Select one authorized local BIK sample, at most 64 MiB. The worker decodes at most 3 seconds to FFmpeg's null sink; no media is displayed, saved or uploaded.</p>
+<p>This uses a separately downloaded, pinned GPL FFmpeg WASM core for research. It does not establish full cinematic playback or distribution readiness.</p>
+<label>Local BIK file <input id="media" type="file" accept=".bik"></label>
+<button id="stop" disabled>Stop decoder</button>
+<pre id="media-results">Ready.</pre>
+<script src="media-probe.mjs" type="module"></script>
+</html>
