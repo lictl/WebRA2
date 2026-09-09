@@ -1,0 +1,230 @@
+{
+  "schemaVersion": 1,
+  "scope": "Two mismatched movie archives and one checksum-matching control; source identity pinned to M0 census",
+  "chunkBytes": 262144,
+  "sourcePolicy": "Read-only; source identity failures stop domain comparisons",
+  "nativeCause": "unresolved",
+  "results": [
+    {
+      "source": "movies01.mix",
+      "size": 357481664,
+      "sourceIdentity": {
+        "status": "verified",
+        "sha256": "b372192bec31af8e1137ed487b55bdb261d7068553d7e465e1bf65b7f56ff0ba"
+      },
+      "format": "encrypted",
+      "flags": 196608,
+      "dataOffset": 620,
+      "dataSize": 357481024,
+      "memberCount": 44,
+      "checksumOffset": 357481644,
+      "expectedSha1": "84721ce911b7d83390693b3f17de2e19b8ddabd4",
+      "checksumStatus": "mismatch",
+      "importPolicy": {
+        "tolerant": {
+          "policy": "tolerant",
+          "allow": true,
+          "reason": "mismatch",
+          "warnings": [
+            "checksum-mismatch"
+          ]
+        },
+        "strict": {
+          "policy": "strict",
+          "allow": false,
+          "reason": "mismatch",
+          "warnings": [
+            "checksum-mismatch"
+          ]
+        }
+      },
+      "gaps": {
+        "count": 36,
+        "bytes": 289,
+        "nonzeroBytes": 279
+      },
+      "binkMembers": 43,
+      "binkLengthMismatches": [],
+      "domains": [
+        {
+          "domain": "declared-payload",
+          "sha1": "973bb16ad5c81c9652c2327ad2d0b06d7dcecfb3",
+          "bytes": 357481024,
+          "matchesStored": false
+        },
+        {
+          "domain": "file-before-trailer",
+          "sha1": "1d8f7f680222a177371a7523c3967ac4bc6e4fd2",
+          "bytes": 357481644,
+          "matchesStored": false
+        },
+        {
+          "domain": "members-in-physical-order",
+          "sha1": "d3e8b2343bae2d59ab0f4a909ca5512f2709428e",
+          "bytes": 357480735,
+          "matchesStored": false
+        },
+        {
+          "domain": "members-in-index-order",
+          "sha1": "d6c5c0abef0d8cada589ce4c5bcbee92155d159c",
+          "bytes": 357480735,
+          "matchesStored": false
+        },
+        {
+          "domain": "logical-index-then-payload",
+          "sha1": "d3904f27fef922f568b53b28134d9a11ad33f974",
+          "bytes": 357481558,
+          "matchesStored": false
+        }
+      ],
+      "payloadMatchesReversedTrailer": false,
+      "payloadMatchesWordSwappedTrailer": false
+    },
+    {
+      "source": "movies02.mix",
+      "size": 304170688,
+      "sourceIdentity": {
+        "status": "verified",
+        "sha256": "24e7f9435a593ee4eac44f8d18191aeaaead639418725397fda134b3c254dd35"
+      },
+      "format": "encrypted",
+      "flags": 196608,
+      "dataOffset": 588,
+      "dataSize": 304170080,
+      "memberCount": 41,
+      "checksumOffset": 304170668,
+      "expectedSha1": "ea30f39bbe4d68d202d99547e14d6f7ca9fd96a4",
+      "checksumStatus": "mismatch",
+      "importPolicy": {
+        "tolerant": {
+          "policy": "tolerant",
+          "allow": true,
+          "reason": "mismatch",
+          "warnings": [
+            "checksum-mismatch"
+          ]
+        },
+        "strict": {
+          "policy": "strict",
+          "allow": false,
+          "reason": "mismatch",
+          "warnings": [
+            "checksum-mismatch"
+          ]
+        }
+      },
+      "gaps": {
+        "count": 31,
+        "bytes": 249,
+        "nonzeroBytes": 244
+      },
+      "binkMembers": 40,
+      "binkLengthMismatches": [],
+      "domains": [
+        {
+          "domain": "declared-payload",
+          "sha1": "12d45210331d16445da3b9f06fe94781316b5b12",
+          "bytes": 304170080,
+          "matchesStored": false
+        },
+        {
+          "domain": "file-before-trailer",
+          "sha1": "3591f465ce2d6ad9044057deee62f3503760dff4",
+          "bytes": 304170668,
+          "matchesStored": false
+        },
+        {
+          "domain": "members-in-physical-order",
+          "sha1": "78737f262d62727b692a44a3393725d7dff38fcb",
+          "bytes": 304169831,
+          "matchesStored": false
+        },
+        {
+          "domain": "members-in-index-order",
+          "sha1": "3d09dea19685e1e3030ab400715f7553bd588cd7",
+          "bytes": 304169831,
+          "matchesStored": false
+        },
+        {
+          "domain": "logical-index-then-payload",
+          "sha1": "39e7951f5fc9910b7ee9418ecb7e273af70f0001",
+          "bytes": 304170578,
+          "matchesStored": false
+        }
+      ],
+      "payloadMatchesReversedTrailer": false,
+      "payloadMatchesWordSwappedTrailer": false
+    },
+    {
+      "source": "movmd03.mix",
+      "size": 394116336,
+      "sourceIdentity": {
+        "status": "verified",
+        "sha256": "26959d790cf1f3fa98b078a6b58a6d6cb3167be4495145b65ad2f853a4a5ef71"
+      },
+      "format": "encrypted",
+      "flags": 196608,
+      "dataOffset": 780,
+      "dataSize": 394115536,
+      "memberCount": 57,
+      "checksumOffset": 394116316,
+      "expectedSha1": "d6dda5e265ef453ea0ea2e86f4dfcd7e73b04468",
+      "checksumStatus": "verified",
+      "importPolicy": {
+        "tolerant": {
+          "policy": "tolerant",
+          "allow": true,
+          "reason": "verified",
+          "warnings": []
+        },
+        "strict": {
+          "policy": "strict",
+          "allow": true,
+          "reason": "verified",
+          "warnings": []
+        }
+      },
+      "gaps": {
+        "count": 43,
+        "bytes": 333,
+        "nonzeroBytes": 308
+      },
+      "binkMembers": 56,
+      "binkLengthMismatches": [],
+      "domains": [
+        {
+          "domain": "declared-payload",
+          "sha1": "d6dda5e265ef453ea0ea2e86f4dfcd7e73b04468",
+          "bytes": 394115536,
+          "matchesStored": true
+        },
+        {
+          "domain": "file-before-trailer",
+          "sha1": "f97c4def03d369d96694be20f5d08a428fa71678",
+          "bytes": 394116316,
+          "matchesStored": false
+        },
+        {
+          "domain": "members-in-physical-order",
+          "sha1": "edfda91c1804005f2b891ecc3745ac8a58b5f0bc",
+          "bytes": 394115203,
+          "matchesStored": false
+        },
+        {
+          "domain": "members-in-index-order",
+          "sha1": "faf51caa6c62a485e639b4a62b1004728d2e53a9",
+          "bytes": 394115203,
+          "matchesStored": false
+        },
+        {
+          "domain": "logical-index-then-payload",
+          "sha1": "c3674b5298a1ac1baa6ae380f29a384ef4be9395",
+          "bytes": 394116226,
+          "matchesStored": false
+        }
+      ],
+      "payloadMatchesReversedTrailer": false,
+      "payloadMatchesWordSwappedTrailer": false
+    }
+  ]
+}
