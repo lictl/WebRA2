@@ -1,7 +1,8 @@
 # Campaign-first implementation and agent collaboration plan
 
-Status: ready for a future implementation session. This session performs initial
-static analysis and planning; it does not start the engine roadmap.
+Status: accepted by the owner; M0 implementation is underway. The first tooling,
+archive, specification and browser/media slices are merged. Read the
+[current handoff](task.md) for completed work, active ownership and remaining gates.
 Read [decisions](decisions.md), [architecture](architecture.md), and
 [static evidence](analysis/static-analysis.md) together with this plan.
 
@@ -50,7 +51,7 @@ work. Gates below still apply; parallel activity must not hide an unmet dependen
 
 ## M0 — Establish the content and behavior baseline
 
-Entry: the current metadata inventory and owner decisions. This is the next work.
+Entry: the current metadata inventory and owner decisions. This milestone is active.
 
 1. **M0-01: content/VFS evidence.** Choose or implement the MIX reader. Identify
    classic/flagged/encrypted indexes, checksums, hashed filenames, nested archives,
