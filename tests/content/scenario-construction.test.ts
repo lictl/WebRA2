@@ -219,3 +219,9 @@ test('placement source sections require exact native case and reject repeated ex
   const objects = Object.freeze({ ...value.objects, placements: Object.freeze([Object.freeze({ ...first, row }), ...value.objects.placements.slice(1)]) });
   assert.throws(() => assembleScenarioDefinitions({ ...value, objects }), /construction-object-origin/);
 });
+test('shared source view rejects an origin moved beyond another header even if its earlier declared header exists', () => {
+  const value = input();
+  const entries = Object.freeze(value.rules.entries.map(e => e.section !== 'inf' || e.key !== 'strength' ? e :
+    Object.freeze({ ...e, selected: Object.freeze({ ...e.selected, line: base.split('\n').length + 1 }) })));
+  assert.throws(() => assembleScenarioDefinitions({ ...value, rules: Object.freeze({ ...value.rules, entries }) }), /construction-entry-origin/);
+});
