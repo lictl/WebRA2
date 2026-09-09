@@ -54,6 +54,7 @@ test('font and CSF identities cannot be replaced by current bytes or duplicated 
     const wrong = structuredClone(fonts); wrong.fonts[0]!.source.sha256 = '0'.repeat(64);
     await assert.rejects(localeDependencyReport(root, campaign, wrong), { code: 'member-hash-mismatch' });
     await assert.rejects(localeDependencyReport(root, campaign, { schemaVersion: 1, fonts: [bitmap, { ...bitmap, candidateNames: ['other.fnt'] }] }), /duplicate-physical-source/);
+    await assert.rejects(localeDependencyReport(root, campaign, { schemaVersion: 1, fonts: [bitmap, { ...bitmap, source: { ...bitmap.source, rootFile: bitmap.source.rootFile.toUpperCase() } }] }), /duplicate-physical-source/);
     await writeFile(join(root, 'strings.bin'), new Uint8Array(csf().length));
     await assert.rejects(localeDependencyReport(root, campaign, fonts), { code: 'root-hash-mismatch' });
   } finally { await rm(root, { recursive: true, force: true }); }
@@ -62,8 +63,11 @@ test('font and CSF identities cannot be replaced by current bytes or duplicated 
 test('invalid manifests reject before opening source roots, and empty evidence never proves a playable locale', async () => {
   const missingRoot = '/nonexistent-webra2-locale-test-root';
   const row = candidate('game.fnt', ['ra2'], { rootFile: 'font.bin', rootSha256: 'a'.repeat(64), sha256: 'b'.repeat(64), absoluteOffset: 0, size: 1, privateExtra: '' });
-  for (const patch of [{ profileCandidates: ['ra2', 'ra2'] }, { candidateNames: ['../game.fnt'] }, { source: { ...row.source, size: '1' } }, { source: { ...row.source, absoluteOffset: -1 } }, { source: { ...row.source, size: 64 * 1024 * 1024 + 1 } }]) {
+  for (const patch of [{ profileCandidates: ['ra2', 'ra2'] }, { candidateNames: ['../game.fnt'] }, { candidateNames: new Array<string>(1) }, { profileCandidates: new Array<string>(1) }, { source: { ...row.source, size: '1' } }, { source: { ...row.source, absoluteOffset: -1 } }, { source: { ...row.source, size: 64 * 1024 * 1024 + 1 } }]) {
     await assert.rejects(localeDependencyReport(missingRoot, { schemaVersion: 1, locales: [] }, { schemaVersion: 1, fonts: [{ ...row, ...patch }] }), /locale-/);
+  }
+  for (const [campaign, fonts] of [[{ schemaVersion: 1, locales: new Array(1) }, { schemaVersion: 1, fonts: [] }], [{ schemaVersion: 1, locales: [] }, { schemaVersion: 1, fonts: new Array(1) }]]) {
+    await assert.rejects(localeDependencyReport(missingRoot, campaign, fonts), /locale-sparse-list/);
   }
   const root = await mkdtemp(join(tmpdir(), 'webra2-locale-empty-'));
   try {

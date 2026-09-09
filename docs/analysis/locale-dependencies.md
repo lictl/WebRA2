@@ -103,8 +103,9 @@ are cached by symbol so shared mappings cannot amplify a bitmap scan quadratical
 [The CLI](../../tools/analysis/locale-dependencies.ts) accepts up to 32 CSFs and
 eight font candidates with a 64 MiB combined member budget. Both input manifests
 are capped before allocation by the shared 4 MiB manifest reader. It copies validated
-metadata before I/O, retains font alternatives by profile, rejects duplicate physical
-identities and verifies roots/members through the bounded reader. Missing font evidence
+metadata before I/O, retains font alternatives by profile, rejects sparse lists and
+duplicate physical ranges (including ASCII case aliases of a root filename), and
+verifies roots/members through the bounded reader. Missing font evidence
 cannot yield a playable-locale claim. Seven original synthetic tests cover malformed
 records, surrogate pairs, one-based coverage, blank/zero-width/control distinctions,
 conflicting font variants, source mutation, unsafe input and metadata privacy.

@@ -13,6 +13,7 @@ function object(value: unknown): RecordValue {
 }
 function list(value: unknown, cap: number): unknown[] {
   if (!Array.isArray(value) || value.length > cap) throw new TypeError('locale-input-list');
+  for (let index = 0; index < value.length; index++) if (!Object.hasOwn(value, index)) throw new TypeError('locale-sparse-list');
   return value;
 }
 function profiles(value: unknown): ('ra2' | 'yr')[] {
@@ -51,7 +52,7 @@ export async function localeDependencyReport(directory: string, campaignInput: u
   let plannedBytes = 0;
   for (const item of [...locales, ...fontCandidates]) {
     const { rootFile, absoluteOffset, size } = item.source;
-    const identity = JSON.stringify([rootFile, absoluteOffset, size]);
+    const identity = JSON.stringify([rootFile.toLowerCase(), absoluteOffset, size]);
     if (identities.has(identity)) throw new TypeError('locale-duplicate-physical-source');
     identities.add(identity); plannedBytes += size;
     if (plannedBytes > 64 * 1024 * 1024) throw new RangeError('locale-read-budget');
