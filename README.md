@@ -6,7 +6,8 @@ complete vanilla engine coverage, broader mods, and multiplayer follow.
 
 **Current state:** M0 implementation is underway. TypeScript tooling/contracts,
 the bounded MIX reader and census, behavior specifications, and browser/media
-diagnostics are merged. Campaign and locale analysis is the next active slice.
+diagnostics, and the bounded campaign/locale census are merged. Effective content
+profiles and campaign dependency selection are the next planned slice.
 There is no playable game app yet.
 
 ## Project documents
@@ -23,6 +24,9 @@ There is no playable game app yet.
   and follow-up analysis.
 - [MIX reader and census](docs/analysis/mix-reader.md): encrypted/nested archive
   results and unresolved names/checksums.
+- [Campaign](docs/analysis/campaign-census.md) and
+  [locale](docs/analysis/locale-census.md) census: mission variants, opcode coverage
+  and string-table metadata.
 - [Browser](docs/analysis/browser-feasibility.md) and
   [media](docs/analysis/media-feasibility.md) probes: measured results and remaining gates.
 - [Behavior specifications](docs/specs/README.md): evidence records and reference probes.
@@ -66,7 +70,7 @@ that exist today.
 
 ## Licensing
 
-Original repository material uses [MIT](LICENSE). The MIX component is licensed
-GPL-3.0-or-later; combined distributions must honor it. See
+Original repository material uses [MIT](LICENSE). The MIX and content census
+components are licensed GPL-3.0-or-later; combined distributions must honor it. See
 [component licenses and notices](docs/licensing.md) before reusing or distributing
 code. Game assets remain separate and are not licensed by this repository.
