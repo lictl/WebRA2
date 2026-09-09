@@ -61,7 +61,20 @@ test('final progress, empty-range progress and final yield cannot change size be
     await assert.rejects(hashByteSource(source, { onProgress(p) { if (p.bytesRead === p.totalBytes) source.size++; } }), /source-size-changed/);
   }
   const source = { size: 32, async read(offset: number, length: number) { return bytes(length); } };
-  await assert.rejects(hashByteSource(source, { chunkBytes: 1, onProgress(p) {
-    if (p.bytesRead === p.totalBytes) setTimeout(() => { source.size++; }, 0);
-  } }), /source-size-changed/);
+  const NativeChannel = globalThis.MessageChannel;
+  class MutatingChannel extends NativeChannel {
+    constructor() {
+      super();
+      const receive = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this.port1), 'onmessage')!;
+      Object.defineProperty(this.port1, 'onmessage', { configurable: true,
+        get: () => receive.get!.call(this.port1),
+        set: handler => receive.set!.call(this.port1, handler === null ? null : (event: MessageEvent) => { source.size++; handler.call(this.port1, event); }),
+      });
+    }
+  }
+  // Timer and MessageChannel task ordering is not guaranteed. Mutate at the
+  // actual cooperative yield's delivery boundary before hashing resumes.
+  globalThis.MessageChannel = MutatingChannel;
+  try { await assert.rejects(hashByteSource(source, { chunkBytes: 1 }), /source-size-changed/); }
+  finally { globalThis.MessageChannel = NativeChannel; }
 });

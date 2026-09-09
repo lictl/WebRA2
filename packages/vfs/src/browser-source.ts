@@ -16,10 +16,23 @@ export interface BrowserSourceOptions {
   readonly beforeRead?: (length: number) => void;
   readonly onRead?: (length: number) => void;
 }
+interface WorkerSyncReader { readAsArrayBuffer(blob: Blob): ArrayBuffer }
+type WorkerSyncReaderConstructor = new () => WorkerSyncReader;
+function dedicatedWorkerReader(): WorkerSyncReaderConstructor | undefined {
+  // Keep the DOM build's types narrow; Worker globals are capability-checked and
+  // never invoked on the main thread, in a shared worker or a service worker.
+  const scope = globalThis as unknown as {
+    DedicatedWorkerGlobalScope?: { new (...args: never[]): object };
+    FileReaderSync?: WorkerSyncReaderConstructor;
+  };
+  return typeof scope.DedicatedWorkerGlobalScope === 'function' && globalThis instanceof scope.DedicatedWorkerGlobalScope &&
+    typeof scope.FileReaderSync === 'function' ? scope.FileReaderSync : undefined;
+}
 /** One in-flight range per adapter, at most four underlying range operations per module. */
 export function createBrowserByteSource(blob: Blob, options: BrowserSourceOptions = {}): ByteSource {
   if (!(blob instanceof Blob) || !Number.isSafeInteger(blob.size)) throw new BrowserSourceError('browser-source-type');
   const size = blob.size, signal = options.signal, beforeRead = options.beforeRead, onRead = options.onRead;
+  const SyncReader = dedicatedWorkerReader(); let syncReader: WorkerSyncReader | undefined;
   let active = false;
   return Object.freeze({ size,
     async read(offset: number, length: number): Promise<Uint8Array> {
@@ -34,6 +47,18 @@ export function createBrowserByteSource(blob: Blob, options: BrowserSourceOption
       try { beforeRead?.(length); throwIfImportAborted(signal); }
       catch (error) { active = false; outstandingBuffers--; throw error; }
       if (!length) { active = false; outstandingBuffers--; return new Uint8Array(0); }
+      if (SyncReader) {
+        try {
+          syncReader ??= new SyncReader();
+          throwIfImportAborted(signal);
+          const range = blob.slice(offset, offset + length);
+          throwIfImportAborted(signal);
+          const bytes = new Uint8Array(syncReader.readAsArrayBuffer(range));
+          if (bytes.length !== length) throw new BrowserSourceError('browser-short-read');
+          onRead?.(bytes.length); throwIfImportAborted(signal);
+          return bytes;
+        } finally { active = false; outstandingBuffers--; }
+      }
       // Blob.arrayBuffer cannot be stopped, so cancellation rejects promptly while
       // its bounded operation keeps the slot until it settles. A cancelled job
       // cannot clear the guard early and start more underlying reads.

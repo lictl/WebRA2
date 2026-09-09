@@ -3,6 +3,7 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import { sha1 } from '@noble/hashes/legacy.js';
 import { assertRange, readExact, DEFAULT_MIX_LIMITS, type ByteSource } from '../../formats/src/mix.ts';
+import { yieldBrowserTask } from './browser-yield.ts';
 
 export type SourceHashAlgorithm = 'sha256' | 'sha1';
 export const SOURCE_HASH_LIMITS = Object.freeze({ defaultBytes: 16 * 1024 * 1024,
@@ -51,7 +52,7 @@ export async function hashByteSource(source: ByteSource, options: SourceHashOpti
       if (source.size !== size) throw new SourceHashError('source-size-changed');
       state.update(bytes); bytesRead += bytes.length; chunks++; progress();
       if (chunks % 32 === 0 || performance.now() - lastYield >= 8) {
-        await new Promise<void>(resolve => setTimeout(resolve, 0)); aborted(signal); lastYield = performance.now();
+        await yieldBrowserTask(signal); aborted(signal); lastYield = performance.now();
       }
     }
     if (source.size !== size) throw new SourceHashError('source-size-changed');
