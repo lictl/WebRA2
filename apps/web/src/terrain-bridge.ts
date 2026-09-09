@@ -17,17 +17,17 @@ export class TerrainBridge implements TerrainPort {
       const message=(event:Event)=>{
         const v:unknown=(event as MessageEvent).data;
         if(!v || typeof v!=='object' || !Object.hasOwn(v,'id') || (v as {id:unknown}).id!==id)return;
-        if(shape(v,['version','id','type','sequence','progress']) && v.version===1 && v.type==='progress' && action.type==='load' && int(v.sequence,1) && v.sequence>lastProgress && validProgress(v.progress)){
-          lastProgress=v.sequence;try{progress?.(v.progress);if(!settled)this.worker.postMessage({version:1,id,type:'ack',sequence:v.sequence});}catch{failed();}return;
+        if(shape(v,['version','id','type','sequence','progress']) && v.version===2 && v.type==='progress' && action.type==='load' && int(v.sequence,1) && v.sequence>lastProgress && validProgress(v.progress)){
+          lastProgress=v.sequence;try{progress?.(v.progress);if(!settled)this.worker.postMessage({version:2,id,type:'ack',sequence:v.sequence});}catch{failed();}return;
         }
-        if(shape(v,['version','id','type','code']) && v.version===1 && v.type==='error' && code(v.code)){finish(new Error(v.code));return;}
-        if(!shape(v,['version','id','type','result']) || v.version!==1 || v.type!=='result' || !validResult(v.result)){finish(new Error('invalid'));return;}
+        if(shape(v,['version','id','type','code']) && v.version===2 && v.type==='error' && code(v.code)){finish(new Error(v.code));return;}
+        if(!shape(v,['version','id','type','result']) || v.version!==2 || v.type!=='result' || !validResult(v.result)){finish(new Error('invalid'));return;}
         const result=v.result;
         if(action.type==='pick'){
           if(result.type!=='pick' || result.frameId!==action.frameId){finish(new Error('invalid'));return;}
         }else{
           if(result.type!=='frame' || result.frameId!==id || (action.type==='load' && (result.summary.profile!==action.profile || result.camera.width!==action.width || result.camera.height!==action.height)) || (action.type==='render' && Object.entries(action.camera).some(([key,value])=>result.camera[key as keyof typeof result.camera]!==value))){finish(new Error('invalid'));return;}
-          const identity=result.summary.profile+':'+result.summary.mapHash;
+          const identity=result.summary.profile+':'+result.summary.mapHash+':'+result.summary.contentHash+':'+result.summary.artwork.presentation;
           if(action.type==='render' && identity!==this.#identity){finish(new Error('invalid'));return;}this.#identity=identity;
         }
         finish(undefined,result);
@@ -35,7 +35,7 @@ export class TerrainBridge implements TerrainPort {
       // Full root hashing can be slow in Safari. Neither timeout promises background execution.
       const timer=setTimeout(()=>finish(new Error('timeout')),action.type==='load'?15*60_000:30_000);
       this.#pending=e=>finish(e);signal.addEventListener('abort',abort,{once:true});this.worker.addEventListener('message',message);this.worker.addEventListener('error',failed);this.worker.addEventListener('messageerror',failed);
-      try{this.worker.postMessage({version:1,id,action});}catch{failed();}
+      try{this.worker.postMessage({version:2,id,action});}catch{failed();}
     });
   }
   dispose():void{if(this.#dead)return;this.#dead=true;this.#pending?.(new DOMException('Cancelled','AbortError'));this.worker.terminate();}
