@@ -149,3 +149,57 @@ test('a completely empty source has a valid empty range', async () => {
     } finally { await reader.close(); }
   });
 });
+
+
+test('discovery derives a canonical member identity after root verification and returns caller-owned bytes', async () => {
+  await fixture(async (root, bytes, identity) => {
+    const { sha256: _expected, ...range } = identity;
+    const reader = await createVerifiedSourceReader(root, { chunkBytes: 113 });
+    try {
+      const found = await reader.discover({ ...range, rootSha256: range.rootSha256.toUpperCase() });
+      assert.deepEqual(found.identity, identity);
+      assert.deepEqual(found.bytes, bytes.subarray(193, 3272));
+      assert.deepEqual(await reader.read(found.identity), found.bytes);
+      found.bytes.fill(0); found.identity.size = 0;
+      assert.deepEqual((await reader.discover(range)).bytes, bytes.subarray(193, 3272));
+      const empty = await reader.discover({ ...range, absoluteOffset: bytes.length, size: 0 });
+      assert.equal(empty.identity.sha256, hash(new Uint8Array())); assert.equal(empty.bytes.length, 0);
+      await assert.rejects(reader.discover(identity), matches('discovery-has-member-hash'));
+    } finally { await reader.close(); }
+  });
+});
+
+test('discovery cannot bypass root identity, path/range/resource gates or staleness', async () => {
+  await fixture(async (root, bytes, identity) => {
+    const { sha256: _expected, ...range } = identity;
+    const reader = await createVerifiedSourceReader(root, { maxMemberBytes: range.size });
+    try {
+      await assert.rejects(reader.discover({ ...range, rootSha256: '0'.repeat(64) }), matches('root-hash-mismatch'));
+      await assert.rejects(reader.discover({ ...range, rootFile: '../fixture.bin' }), matches('unsafe-root-name'));
+      await assert.rejects(reader.discover({ ...range, absoluteOffset: bytes.length }), matches('range-outside-root'));
+      await assert.rejects(reader.discover({ ...range, size: range.size + 1 }), matches('member-limit'));
+      await reader.discover(range);
+      await writeFile(join(root, range.rootFile), bytes);
+      await assert.rejects(reader.discover(range), matches('source-changed'));
+    } finally { await reader.close(); }
+  });
+});
+
+test('read and discovery share concurrency/close guards and snapshot caller ranges', async () => {
+  await fixture(async (root, _bytes, identity) => {
+    const { sha256: _expected, ...range } = identity;
+    const reader = await createVerifiedSourceReader(root, { chunkBytes: 31 });
+    const pending = reader.discover(range);
+    range.absoluteOffset = 0; range.rootSha256 = '0'.repeat(64);
+    await assert.rejects(reader.read(identity), matches('reader-busy'));
+    await assert.rejects(reader.discover(range), matches('reader-busy'));
+    const closing = reader.close();
+    assert.deepEqual((await pending).identity, identity);
+    await closing;
+    await assert.rejects(reader.discover(range), matches('reader-closed'));
+    const second = await createVerifiedSourceReader(root, { chunkBytes: 31 });
+    const read = second.read(identity);
+    await assert.rejects(second.discover(range), matches('reader-busy'));
+    await read; await second.close();
+  });
+});
