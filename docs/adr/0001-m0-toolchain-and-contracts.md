@@ -11,10 +11,13 @@ without changing the user's global runtime. Node 24 is an LTS line according to
 Choose a minimal root package rather than a framework/workspace orchestrator at this
 stage. `npm ci` reproduces dependencies; `npm run check` performs strict type checking,
 synthetic tests, local document links/whitespace and a tracked-path publication guard.
-The public CI template has read-only repository permission, pinned actions and no
-asset upload. Activation is tracked in [#10](https://github.com/lictl/WebRA2/issues/10)
-because the CLI credential currently lacks workflow-write scope. Local checks run
-normally; no remote CI pass is claimed until an actual run succeeds.
+The public CI workflow has read-only repository permission, pinned actions and no
+asset upload. [PR #19](https://github.com/lictl/WebRA2/pull/19) activated the reviewed
+template through the existing authorized owner browser session, resolving the CLI
+scope/integration restriction in [#10](https://github.com/lictl/WebRA2/issues/10)
+without changing credentials or repository rules. The
+[first merged-main run](https://github.com/lictl/WebRA2/actions/runs/34356266462)
+passed all public checks. Subsequent PRs must pass their applicable hosted checks.
 The guard complements manual provenance review; it cannot prove arbitrary text files
 do not contain retail data. Renderer, UI framework, build bundler and WASM tooling
 remain unset until their own evidence warrants adoption.

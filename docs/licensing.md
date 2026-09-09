@@ -13,6 +13,13 @@ The full [GPLv3 text](../LICENSES/GPL-3.0-or-later.txt) is included (copied from
 revision `f3ec7f8e1593b482f85fd101652deb740c33dee6`, `COPYING`). Per-component notices
 must accompany future browser/WASM bundles. No retail game assets are licensed here.
 
+The bounded content scanners in `packages/content/`, their original tests and
+`tools/analysis/campaign-census.ts` also use GPL-3.0-or-later. They compose the MIX
+reader and retain the pinned EA editor/XCC reference and adaptation provenance in
+[the content component notice](../packages/content/PROVENANCE.md). The CSF adaptation
+credits Olaf van der Spek; no translated game strings or mission/rule payloads are
+part of the published census. No additional runtime dependency was introduced.
+
 ## Initial pinned dependencies
 
 | Component | Version | License / scope |
