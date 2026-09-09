@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 
 export const repositoryRoot = fileURLToPath(new URL('../../', import.meta.url));
-const allowedOutput = /^(?:app\.(?:js|css)|chunks\/[a-zA-Z0-9_-]+\.js)$/;
+const allowedOutput = /^(?:app\.(?:js|css)|workers\/import\.js|chunks\/[a-zA-Z0-9_-]+\.js)$/;
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 async function boundedFile(path, limit) {
   if (await realpath(path) !== resolve(path)) throw new Error(`Build input has symlink components: ${path}`);
@@ -23,7 +23,7 @@ export async function buildWeb(root = repositoryRoot) {
   catch (error) { if (error.code !== 'ENOENT') throw error; }
   const inputs = [];
   const result = await build({
-    absWorkingDir: root, entryPoints: { app: 'apps/web/src/main.ts' }, outdir: outputDirectory,
+    absWorkingDir: root, entryPoints: { app: 'apps/web/src/main.ts', 'workers/import': 'apps/web/src/import-worker.ts' }, outdir: outputDirectory,
     bundle: true, platform: 'browser', format: 'esm', target: ['es2022'], splitting: true,
     chunkNames: 'chunks/[name]-[hash]', sourcemap: false, minify: false, legalComments: 'inline',
     write: false, metafile: true, logLevel: 'silent',

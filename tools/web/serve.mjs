@@ -5,7 +5,7 @@ import { resolve, sep, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { repositoryRoot } from './build.mjs';
-const approved = /^(?:index\.html|app\.(?:js|css)|chunks\/[a-zA-Z0-9_-]+\.js|LICENSE\.txt|NOTICES\.txt|LICENSES\/GPL-3\.0-or-later\.txt|licenses\/[a-zA-Z0-9_.-]+\.txt)$/;
+const approved = /^(?:index\.html|app\.(?:js|css)|workers\/import\.js|chunks\/[a-zA-Z0-9_-]+\.js|LICENSE\.txt|NOTICES\.txt|LICENSES\/GPL-3\.0-or-later\.txt|licenses\/[a-zA-Z0-9_.-]+\.txt)$/;
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 
 /** Serve a validated code bundle from memory; no request resolves a filesystem asset. */
@@ -30,7 +30,7 @@ export async function startWebServer({ root = repositoryRoot, port = 4173 } = {}
     if (bytes.length !== item.size || hash(bytes) !== item.sha256) throw new Error(`Stale or changed build: ${item.name}`);
     files.set('/' + item.name, bytes);
   }
-  if (!files.has('/index.html') || !files.has('/app.js')) throw new Error('Missing app entrypoints');
+  if (!files.has('/index.html') || !files.has('/app.js') || !files.has('/workers/import.js')) throw new Error('Missing app entrypoints');
   let authority;
   const server = createServer((request, response) => {
     const host = request.headers.host;
