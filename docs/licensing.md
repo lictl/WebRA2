@@ -56,6 +56,11 @@ The static base-foundation compiler and original fixtures are GPL-3.0-or-later;
 [foundation provenance](../packages/content/FOUNDATION_OCCUPANCY_PROVENANCE.md)
 records the inspected geometry and accompanies the development bundle. No retail
 cell arrays or native bytes are distributed.
+The typed weapon compiler, numeric helper and original fixtures are GPL-3.0-or-later;
+[weapon-definition provenance](../packages/content/WEAPON_DEFINITIONS_PROVENANCE.md)
+records their native/reference scope and accompanies the development bundle.
+Quantized square-root mantissas are generated mathematically; no retail lookup
+tables are shipped.
 That notice is distributed with the development bundle.
 
 The CPU terrain scene and composing browser viewport are GPL-3.0-or-later;
