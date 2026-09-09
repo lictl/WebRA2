@@ -1,6 +1,6 @@
 # WebRA2
 
-A planned browser-native reimplementation of the Red Alert 2 and Yuri's Revenge
+A browser-native reimplementation of the Red Alert 2 and Yuri's Revenge
 engines, using assets supplied by the player. Singleplayer campaigns come first;
 complete vanilla engine coverage, broader mods, and multiplayer follow.
 
@@ -8,7 +8,7 @@ complete vanilla engine coverage, broader mods, and multiplayer follow.
 browser app inspects locally selected game folders and asset files, with explicit
 RA2/YR selection and cancellation. The headless synthetic simulation survives
 save/restore and replay. Verified source reads, CSF text lookup, runtime INI and
-complete opening-map terrain grids are implemented. Inspection runs in a dedicated
+complete opening-map terrain grids and TMP tiles are implemented. Inspection runs in a dedicated
 worker; original mission gameplay and rendering remain in development.
 See [the current handoff](docs/task.md) for exact evidence and remaining gates.
 

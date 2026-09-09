@@ -25,6 +25,13 @@ GPL-3.0-or-later with pinned OpenRA and EA/XCC notices in
 [the sprite provenance](../packages/formats/shp-PROVENANCE.md). The browser probe
 and loopback server are original MIT diagnostics; no retail sprite/palette is shipped.
 
+The map-pack LZO/LCW codecs retain their pinned OpenRA/minilzo attribution in
+[map-pack provenance](../packages/formats/MAP_PACK_PROVENANCE.md). The TMP decoder
+adapts pinned OpenRA and EA/XCC definitions and unpacking under GPL-3.0-or-later;
+[TMP provenance](../packages/formats/TMP_PROVENANCE.md) preserves their notices.
+Original runtime INI, terrain tables and verified profile composition use the
+content component's GPL-3.0-or-later license. No decoded retail map or tile is shipped.
+
 The locale/font coverage scanner and verified analysis CLI retain GPL-3.0-or-later.
 The `fonT` adaptation preserves the MIT copyright and permission notice for Belonit's
 ra2fnt revision `56da5b30fb53eebfaf35e98b2e1c6b3e150f58af` in

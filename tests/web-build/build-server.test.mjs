@@ -10,7 +10,10 @@ import { startWebServer } from '../../tools/web/serve.mjs';
 
 async function fixture() {
   const root = await mkdtemp(join(tmpdir(), 'webra2-build-'));
-  for (const name of ['LICENSE', 'apps/web/PROVENANCE.md', 'LICENSES/GPL-3.0-or-later.txt', 'docs/licensing.md', 'packages/formats/PROVENANCE.md', 'packages/content/PROVENANCE.md', 'packages/vfs/PROVENANCE.md', 'packages/vfs/HASH_PROVENANCE.md', 'node_modules/@noble/hashes/LICENSE', 'node_modules/egoroof-blowfish/LICENSE.md']) {
+  for (const name of ['LICENSE', 'apps/web/PROVENANCE.md', 'LICENSES/GPL-3.0-or-later.txt', 'docs/licensing.md',
+    'packages/formats/PROVENANCE.md', 'packages/formats/MAP_PACK_PROVENANCE.md', 'packages/formats/TMP_PROVENANCE.md', 'packages/formats/shp-PROVENANCE.md',
+    'packages/content/PROVENANCE.md', 'packages/content/LOCALE_PROVENANCE.md', 'packages/vfs/PROVENANCE.md', 'packages/vfs/HASH_PROVENANCE.md',
+    'node_modules/@noble/hashes/LICENSE', 'node_modules/egoroof-blowfish/LICENSE.md']) {
     await mkdir(dirname(join(root, name)), { recursive: true }); await copyFile(join(repositoryRoot, name), join(root, name));
   }
   await mkdir(join(root, 'apps/web/src'), { recursive: true });
@@ -36,6 +39,7 @@ test('build emits portable code and notices with a hash manifest, without retail
     assert.ok(manifest.files.some(row => row.name === 'app.css'));
     assert.ok(manifest.files.some(row => row.name === 'licenses/noble-hashes.txt'));
     assert.ok(manifest.files.some(row => row.name === 'licenses/packages-vfs-HASH_PROVENANCE.md.txt'));
+    for (const component of ['MAP_PACK', 'TMP']) assert.ok(manifest.files.some(row => row.name === `licenses/packages-formats-${component}_PROVENANCE.md.txt`));
     assert.ok(manifest.files.some(row => row.name === 'LICENSES/GPL-3.0-or-later.txt'));
     assert.match(await readFile(join(root, 'dist/app.js'), 'utf8'), /Synthetic app/);
     assert.equal((await buildWeb(root)).files.find(row => row.name === 'app.js').sha256, manifest.files.find(row => row.name === 'app.js').sha256);
@@ -92,8 +96,7 @@ test('build rejects external runtime code and remote CSS resources', async () =>
     await writeFile(join(root, 'apps/web/src/main.ts'), "import 'https://example.com/runtime.js';");
     await assert.rejects(buildWeb(root), /external runtime imports/);
     await writeFile(join(root, 'apps/web/src/main.ts'), "import './style.css';");
-    await writeFile(join(root, 'apps/web/src/import-worker.ts'), 'self.onmessage = () => self.postMessage(42);');
-  await writeFile(join(root, 'apps/web/src/style.css'), 'body { background: url(https://example.com/asset.png); }');
+    await writeFile(join(root, 'apps/web/src/style.css'), 'body { background: url(https://example.com/asset.png); }');
     await assert.rejects(buildWeb(root), /external runtime imports/);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
