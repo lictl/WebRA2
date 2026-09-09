@@ -1,0 +1,21 @@
+{
+  "name": "webra2",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "SEE LICENSE IN docs/licensing.md",
+  "engines": { "node": ">=24.20.0 <25" },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node tools/run-tests.mjs",
+    "check:docs": "node tools/check-docs.mjs",
+    "check:publication": "node tools/check-publication.mjs",
+    "check": "npm run typecheck && npm test && npm run check:docs && npm run check:publication"
+  },
+  "dependencies": { "egoroof-blowfish": "4.0.3" },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "tsx": "4.23.13",
+    "typescript": "7.0.2"
+  }
+}

@@ -4,8 +4,9 @@ A planned browser-native reimplementation of the Red Alert 2 and Yuri's Revenge
 engines, using assets supplied by the player. Singleplayer campaigns come first;
 complete vanilla engine coverage, broader mods, and multiplayer follow.
 
-**Current state:** planning and initial static analysis only. There is no playable
-app, package manager configuration, build command, or production asset decoder yet.
+**Current state:** M0 implementation is underway. The planning bootstrap is merged;
+TypeScript tooling/contracts, MIX analysis and browser feasibility are the active
+first wave. There is no playable game app yet.
 
 ## Project documents
 
@@ -20,6 +21,19 @@ app, package manager configuration, build command, or production asset decoder y
 - [Static analysis](docs/analysis/static-analysis.md): findings, evidence, limitations,
   and follow-up analysis.
 - [Compatibility matrix](docs/compatibility.md): what full support must prove.
+
+## Development checks
+
+Use Node 24.20.0 from `.nvmrc`, then run:
+
+```sh
+npm ci
+npm run check
+```
+
+These checks use original synthetic fixtures and need no game installation. They
+cover types, contract tests, document links and tracked publication paths. See
+[the toolchain decision](docs/adr/0001-m0-toolchain-and-contracts.md) for limits.
 
 ## Inspect a local installation
 
@@ -45,8 +59,7 @@ that exist today.
 
 ## Licensing
 
-Original repository material currently uses [MIT](LICENSE). The owner accepts GPL
-reuse when it materially helps; dependency selection must record applicable licenses
-and update distribution notices before integration. No external implementation code
-has been vendored during this planning pass. Game assets remain separate from the
-engine project and are not licensed by this repository's license.
+Original repository material uses [MIT](LICENSE). The MIX component has a planned
+GPL-3.0-or-later provenance boundary; combined distributions must honor it. See
+[component licenses and notices](docs/licensing.md) before reusing or distributing
+code. Game assets remain separate and are not licensed by this repository.

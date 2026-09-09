@@ -84,8 +84,11 @@ approval, or original-game observations that agents cannot obtain themselves.
 
 ## Verification and handoff
 
-Today the only executable tooling is `python3 tools/static_inventory.py game`.
-Do not invent npm/test commands. Once the toolchain exists, document exact commands.
+Use Node from `.nvmrc` (24.20.0), `npm ci`, then `npm run check` for type checking,
+public synthetic tests, document links and publication-path checks. Run focused
+tests with `node tools/run-tests.mjs tests/<area>`. Installation triage remains
+`python3 tools/static_inventory.py game`; private corpus commands are documented
+with their component. Do not describe public synthetic checks as retail validation.
 For docs, check local links and `git diff --check`. For engine changes, run relevant
 synthetic parser/behavior tests, deterministic save/replay checks, and browser tests
 appropriate to the feature. Private retail-asset tests must be separately labeled;

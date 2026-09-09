@@ -3,3 +3,7 @@
 # Private analysis, extracted assets, and original-game reference evidence.
 /local/
 __pycache__/
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo

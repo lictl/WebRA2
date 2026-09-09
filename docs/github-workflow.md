@@ -101,9 +101,9 @@ coordinator may merge after the recorded agent review and applicable checks pass
 
 ## Bootstrap and resuming
 
-The planning package predates this workflow and is still local/uncommitted. Before
-starting M0 implementation, create/reuse a planning-handoff issue, put the reviewed
-docs/tooling/metadata on a linked PR, record an independent review and merge it.
+The planning bootstrap is complete: [issue #1](https://github.com/lictl/WebRA2/issues/1),
+[PR #3](https://github.com/lictl/WebRA2/pull/3), independent COMMENT review, merge
+`bf241241e44d369d74662b01ccbf6e9b23d24a9f`. Subsequent slices follow the same chain.
 Do not include `game/`, `local/`, or unrelated user changes. Record real URLs as
 operations succeed; no placeholder issue numbers should be mistaken for existing work.
 
