@@ -6,6 +6,8 @@ import { localeFromLanguage } from './i18n.ts';
 import { mountShell } from './view.ts';
 import { PracticeController } from './practice-controller.ts';
 import { mountPractice } from './practice-view.ts';
+import { TerrainController } from './terrain-controller.ts';
+import { mountTerrain } from './terrain-view.ts';
 import './style.css';
 const root = document.querySelector<HTMLElement>('#app');
 if (!root) throw new Error('Missing application root');
@@ -14,16 +16,21 @@ let navigate: (() => void) | null = null;
 function start() {
   const controller = new ImportController(createWorkerInspector(), localeFromLanguage(navigator.language));
   const practice = new PracticeController(localeFromLanguage(navigator.language));
+  const terrain = new TerrainController(localeFromLanguage(navigator.language));
   let unmount: (() => void) | null = null, active = '';
   navigate = () => {
-    const next = location.hash.startsWith('#practice') ? 'practice' : 'installation';
+    const next = location.hash.startsWith('#practice') ? 'practice' : location.hash.startsWith('#terrain') ? 'terrain' : 'installation';
     if (next === active) return;
-    unmount?.(); active = next;
-    if (next === 'practice') { practice.setLocale(controller.snapshot().locale); controller.cancel(); unmount = mountPractice(root!, practice); }
-    else { controller.setLocale(practice.state.locale); practice.hidden(); unmount = mountShell(root!, controller); }
+    const locale = active === 'terrain' ? terrain.state.locale : active === 'practice' ? practice.state.locale : controller.snapshot().locale;
+    unmount?.(); if (active === 'terrain') terrain.leave(); if (active === 'practice') practice.hidden();
+    if (active === 'installation') controller.cancel(); active = next;
+    controller.setLocale(locale); practice.setLocale(locale); terrain.setLocale(locale);
+    if (next === 'practice') unmount = mountPractice(root!, practice);
+    else if (next === 'terrain') unmount = mountTerrain(root!, terrain);
+    else unmount = mountShell(root!, controller);
   };
   navigate();
-  release = () => { controller.dispose(); practice.dispose(); unmount?.(); release = null; navigate = null; };
+  release = () => { controller.dispose(); practice.dispose(); terrain.dispose(); unmount?.(); release = null; navigate = null; };
 }
 start();
 // Release local handles on departure; a back/forward-cache return gets a fresh session.
