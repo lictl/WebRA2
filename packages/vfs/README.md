@@ -41,6 +41,10 @@ playability, original precedence, checksum acceptance or localization readiness.
 Outputs are copied and deeply frozen, with explicit code-unit sorting. Keep
 source IDs stable and unique across layers. Duplicate IDs, contradictory byte
 identities, invalid hashes/ranges and profile inconsistencies fail construction.
+Repeated physical ranges under the same root path/hash are rejected even with
+different source IDs or layers; combine their name evidence in one asset record.
+Distinct root paths retain separate copies. Namespace root paths per imported
+installation/mod directory when separate roots have the same filenames.
 
 Logical paths use NFC, ASCII case folding and slash normalization, including
 Windows backslashes. CJK and well-formed supplementary Unicode are retained.

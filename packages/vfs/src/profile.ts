@@ -179,6 +179,7 @@ export function createProfileResolver(profile: ProfileId, layers: readonly Conte
   if (layers.length > limits.layers) throw new RangeError('Too many layers');
   const layerIds = new Set<string>();
   const sourceIds = new Set<string>();
+  const physicalSources = new Set<string>();
   const contentSizes = new Map<string, number>();
   const physicalHashes = new Map<string, string>();
   const rootIdentities = new Map<string, string>();
@@ -211,6 +212,9 @@ export function createProfileResolver(profile: ProfileId, layers: readonly Conte
         throw new TypeError('Conflicting content hash for one physical range');
       }
       physicalHashes.set(physicalKey, source.sha256);
+      const locator = JSON.stringify([normalizeAssetPath(source.rootPath), source.rootSha256, source.absoluteOffset, source.size]);
+      if (physicalSources.has(locator)) throw new TypeError('Duplicate physical source range; combine its name evidence in one asset');
+      physicalSources.add(locator);
       for (const [sha, size] of [[source.sha256, source.size], [source.rootSha256, source.rootSize]] as const) {
         const previous = contentSizes.get(sha);
         if (previous !== undefined && previous !== size) throw new TypeError('Same SHA-256 has conflicting sizes');

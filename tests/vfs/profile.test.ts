@@ -78,6 +78,19 @@ test('hash-name candidates stay provisional; a distinct-name collision blocks se
   assert.equal(overridden.resolve('other.ini').status, 'ambiguous');
 });
 
+test('splitting one physical member into separate IDs cannot turn name collisions into verified aliases', () => {
+  const first = asset(1);
+  const second = { ...first, source: { ...first.source, id: 'different-id' },
+    names: [{ path: 'other.ini', kind: 'literal' as const, evidence: 'second synthetic identity claim' }] };
+  assert.throws(() => createProfileResolver('ra2', [layer('base', 0, [first, second])]), /Duplicate physical source/);
+  assert.throws(() => createProfileResolver('ra2', [layer('base', 0, [first]), layer('other', 1, [second])]), /Duplicate physical source/);
+  // A separate root filename is a separate physical copy, even if its complete bytes match.
+  const copy = { ...second, source: { ...second.source, rootPath: 'copied.mix' }, names: first.names };
+  assert.equal(createProfileResolver('ra2', [layer('base', 0, [first, copy])]).resolve('rules.ini').selected.length, 2);
+  const nestedCopy = { ...second, source: { ...second.source, absoluteOffset: 40 }, names: first.names };
+  assert.equal(createProfileResolver('ra2', [layer('base', 0, [first, nestedCopy])]).resolve('rules.ini').selected.length, 2);
+});
+
 test('missing and unverified requirements are separate from a successful file lookup', () => {
   const vfs = createProfileResolver('ra2', [layer('base', 0, [asset(1)])]);
   const gate = vfs.require(['missing.ini', 'RULES.INI', 'rules.ini']);
