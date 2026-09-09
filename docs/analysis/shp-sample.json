@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "scope": "one-format2-nonzero-literal-SHP-frame",
+  "spriteSource": {
+    "rootFile": "langmd.mix",
+    "rootSha256": "0290bc3e40c38406e2ec6805dc18ef6c3a9b6feee6db42df717ac920e93294c8",
+    "absoluteOffset": 372322,
+    "size": 481232,
+    "sha256": "cbe28febf98264f0956193e1edb07ab21116bf17e9e8143297d9322dd47b82c7"
+  },
+  "paletteSource": {
+    "rootFile": "langmd.mix",
+    "rootSha256": "0290bc3e40c38406e2ec6805dc18ef6c3a9b6feee6db42df717ac920e93294c8",
+    "absoluteOffset": 853554,
+    "size": 768,
+    "sha256": "64e0d014ae537cb656e03fad9a94ee510ae1e6c7a6440ed1cd4263a193af4f12"
+  },
+  "geometry": {
+    "canvasWidth": 800,
+    "canvasHeight": 600,
+    "frameCount": 1,
+    "ordinal": 0,
+    "headerOffset": 8,
+    "x": 0,
+    "y": 0,
+    "width": 800,
+    "height": 600,
+    "format": 2,
+    "dataOffset": 32,
+    "dataEnd": 481232
+  },
+  "consumedBytes": 481200,
+  "trailingBytes": 0,
+  "pixels": 480000,
+  "paletteExpansion": "six-bit-components-shift-left-two; opaque; native loading-function observation",
+  "indexedPixelSha256": "dc0cffb28e774f9b34c27eb43540449866be869a9db0df6982f9bceb2a85c3d9",
+  "rgbaSha256": "3524b1710d1aeb7a5660f48ad137b257f423e3ecd901032bc011fea9e77654a6",
+  "paletteRgbaSha256": "46ed5a5a4068617c689643f0ec0d919c47168cae100c126dafcf37c36180c3f9",
+  "distinctIndices": 254,
+  "decodedRgbaBytes": 1920000,
+  "compatibility": "Source identity and decoder evidence only; no full sprite/game renderer or native framebuffer comparison"
+}

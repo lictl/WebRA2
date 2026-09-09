@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "method": "bounded static literal and register/stack data flow; no native execution",
+  "image": {
+    "rootFile": "gamemd.exe",
+    "sha256": "3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600",
+    "size": 5286208
+  },
+  "literals": [
+    {
+      "name": "GLSLMD.SHP",
+      "virtualAddress": "0x826898",
+      "rva": 4352152,
+      "fileOffset": 4352152,
+      "sizeIncludingTerminator": 11
+    },
+    {
+      "name": "GLSSMD.SHP",
+      "virtualAddress": "0x8268a4",
+      "rva": 4352164,
+      "fileOffset": 4352164,
+      "sizeIncludingTerminator": 11
+    },
+    {
+      "name": "GLSMD.PAL",
+      "virtualAddress": "0x8268b0",
+      "rva": 4352176,
+      "fileOffset": 4352176,
+      "sizeIncludingTerminator": 10
+    }
+  ],
+  "reviewedRanges": [
+    {
+      "id": "palette-load-shape-selection-draw-call",
+      "virtualAddress": "0x5312a0",
+      "rva": 1249952,
+      "fileOffset": 1249952,
+      "size": 371,
+      "sha256": "3a28e6c3b3501f884aa2ce11a4bc1878ef1519bf0aa8268fde670773637370bf"
+    }
+  ],
+  "observations": {
+    "paletteLiteralUseVA": "0x5312aa",
+    "paletteRgbShiftLoopVA": "0x5312ee",
+    "paletteRgbShiftLoopEndExclusiveVA": "0x531331",
+    "convertConstructorCallVA": "0x53135c",
+    "convertConstructorVA": "0x48e740",
+    "converterStoreVA": "0x531363",
+    "shapeLiteralUseVA": "0x53137a",
+    "shapeLoadCallVA": "0x531381",
+    "shapeLoadHelperVA": "0x5b40b0",
+    "shapeResultStoreVA": "0x531386",
+    "converterArgumentLoadVA": "0x5313f4",
+    "shapeArgumentPushVA": "0x53140d",
+    "drawCallVA": "0x53140e",
+    "drawHelperVA": "0x4aed70",
+    "defaultSelectedShape": "GLSLMD.SHP",
+    "paletteScale": "each of 256 RGB triples shifted left 2 bits",
+    "frameIndex": 0,
+    "brightness": 1000,
+    "selectorLoadVA": "0x531369",
+    "selectorGlobalVA": "0x8a00a4",
+    "selectedShapeWhenSelectorEquals640": "GLSSMD.SHP",
+    "selectorMeaning": "resolution-width interpretation is provisional; pairing proof requires only the observed equal-640 branch"
+  },
+  "membersVerified": [
+    {
+      "candidateName": "GLSLMD.SHP",
+      "rootFile": "langmd.mix",
+      "rootSha256": "0290bc3e40c38406e2ec6805dc18ef6c3a9b6feee6db42df717ac920e93294c8",
+      "ordinal": 1,
+      "absoluteOffset": 372322,
+      "size": 481232,
+      "sha256": "cbe28febf98264f0956193e1edb07ab21116bf17e9e8143297d9322dd47b82c7"
+    },
+    {
+      "candidateName": "GLSMD.PAL",
+      "rootFile": "langmd.mix",
+      "rootSha256": "0290bc3e40c38406e2ec6805dc18ef6c3a9b6feee6db42df717ac920e93294c8",
+      "ordinal": 6,
+      "absoluteOffset": 853554,
+      "size": 768,
+      "sha256": "64e0d014ae537cb656e03fad9a94ee510ae1e6c7a6440ed1cd4263a193af4f12"
+    }
+  ],
+  "primaryAddressReference": {
+    "repository": "Phobos-developers/YRpp",
+    "revision": "9402d7da0fe14d46703ba871ce3e6b3cde855bfc",
+    "paths": [
+      "Surface.h",
+      "ConvertClass.h",
+      "FileSystem.h"
+    ]
+  },
+  "confidence": "high for this direct function data flow and supplied identities; does not prove browser decoding/rendering or a universal palette rule"
+}

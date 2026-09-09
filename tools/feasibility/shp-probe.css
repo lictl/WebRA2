@@ -1,0 +1,6 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+body { margin: 2rem auto; max-width: 56rem; padding: 0 1rem; font: 16px system-ui; color: #152536; background: #f3f5f8; }
+label { display: block; margin: 1rem 0; }
+button { margin: 1rem 0.5rem 1rem 0; }
+canvas { display: block; max-width: 100%; height: auto; background: #111; image-rendering: pixelated; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; }
