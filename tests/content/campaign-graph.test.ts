@@ -31,6 +31,13 @@ test('input document permutation is deterministic and caller arrays are unchange
   assert.equal(JSON.stringify(inputs), before);
 });
 
+test('prototype-shaped imported section names and keys never select inherited schemas', () => {
+  const graph = compileCampaignGraph('ra2', [doc('[Basic]\n[Map]\n[constructor]\n0=X\n[__proto__]\n0=X\n[toString]\n0=X\n[TeamTypes]\n0=T\n[T]\nconstructor=X\n__proto__=X\ntoString=X\n')]);
+  assert.deepEqual(graph.nodes.map(n => n.kind), ['mission', 'team']);
+  assert.deepEqual(graph.edges.map(e => e.relation), ['declares-team']);
+  assert.equal(Object.getPrototypeOf(summarizeCampaignGraph(graph).nodeKinds), null);
+});
+
 test('same-symbol rule variants and duplicate sections remain separate candidate nodes', () => {
   const graph = compileCampaignGraph('ra2', [doc(mission), doc(rules + '[TEST_TYPE]\nImage=OTHER\n', 'rules', 2), doc(rules, 'rules', 3)]);
   const typeEdges = graph.edges.filter(e => e.relation === 'taskforce-type');
@@ -82,6 +89,13 @@ test('empty or malformed mission structure and opcode framing do not pass closur
   assert.equal(graph.structuralClosureComplete, false);
 });
 
+test('country identifiers in owner fields remain selectors, without fabricated missing houses', () => {
+  const graph = compileCampaignGraph('ra2', [doc('[Basic]\n[Map]\n[Countries]\n0=C\n[C]\n[TeamTypes]\n0=T\n[T]\nHouse=C\n[Triggers]\nR=C,<none>,name,0,1,1,1\n[Events]\nR=0\n[Actions]\nR=0\n')]);
+  assert.equal(graph.diagnostics.filter(d => d.code === 'missing-reference').length, 0);
+  assert.equal(graph.diagnostics.filter(d => d.code === 'country-house-selector-unresolved').length, 2);
+  assert.ok(graph.edges.some(e => e.relation === 'trigger-house-country-selector'));
+});
+
 test('campaign tables retain membership evidence, missing and variant hashes without invented progression', () => {
   const battle = { profile: 'ra2' as const, role: 'battle' as const, source: source(10), document: parse('[Battles]\n0=SECOND\n1=FIRST\n2=NO_SCENARIO\n[FIRST]\nScenario=first.map\n[SECOND]\nScenario=second.map\n') };
   const result = censusCampaignTables([battle], [{ profile: 'ra2', filename: 'first.map', sha256: 'a'.repeat(64) }, { profile: 'ra2', filename: 'first.map', sha256: 'b'.repeat(64) }]);
@@ -100,4 +114,18 @@ test('mission-table filename sections, duplicate table keys and cross-profile ca
   assert.doesNotMatch(JSON.stringify(result), /SECRET/);
   assert.equal(censusCampaignTables([], []).tableReferencesComplete, false);
   assert.throws(() => censusCampaignTables([table, table], []), { code: 'campaign-table-identity' });
+});
+
+test('unclassified filename candidates remain distinct from missing or profile-selected scenarios', () => {
+  const table = { profile: 'ra2' as const, role: 'battle' as const, source: source(12), document: parse('[Battles]\n0=TEST\n[TEST]\nScenario=fixture.map\n') };
+  const result = censusCampaignTables([table], [{ profile: 'unclassified', filename: 'fixture.map', sha256: 'f'.repeat(64) }]);
+  assert.deepEqual(result.tables[0]!.references[0]!.hashes, []);
+  assert.equal(result.tables[0]!.references[0]!.unclassifiedHashes.length, 1);
+  assert.deepEqual(result.tables[0]!.diagnostics.map(d => d.code), ['scenario-profile-unclassified']);
+});
+
+test('campaign-table candidate fanout has a hard output budget', () => {
+  const table = { profile: 'ra2' as const, role: 'battle' as const, source: source(12), document: parse(Array.from({ length: 200 }, (_, i) => `[S${i}]\nScenario=fixture.map\n`).join('')) };
+  const candidates = Array.from({ length: 501 }, (_, i) => ({ profile: 'ra2' as const, filename: 'fixture.map', sha256: i.toString(16).padStart(64, '0') }));
+  assert.throws(() => censusCampaignTables([table], candidates), { code: 'campaign-table-link-limit' });
 });

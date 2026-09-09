@@ -1,21 +1,26 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2026 WebRA2 contributors. Structural table evidence only; no native progression algorithm.
 import { censusValue, ContentError, type IniDocument } from './ini.ts';
-import { validateGraphSource, type GraphSource } from './campaign-graph.ts';
+import { copyGraphSource, validateGraphSource, type GraphSource } from './campaign-graph.ts';
 
 export interface CampaignTableInput { profile: 'ra2' | 'yr'; role: 'battle' | 'mission-table'; source: GraphSource; document: IniDocument }
-export interface ScenarioCandidate { profile: 'ra2' | 'yr'; filename: string; sha256: string }
+export interface ScenarioCandidate { profile: 'ra2' | 'yr' | 'unclassified'; filename: string; sha256: string }
 const filename = /^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}\.map$/i;
 const folded = (value: string) => censusValue(value).toLowerCase();
 /** Retains declaration/reference positions, but never converts list order or legacy fields to progression edges. */
 export function censusCampaignTables(tables: CampaignTableInput[], candidates: ScenarioCandidate[]) {
-  if (tables.length > 32 || candidates.length > 10_000 || tables.reduce((n, t) => n + t.document.entries.length, 0) > 100_000) throw new ContentError('campaign-table-limit', 0, 'Campaign table cap');
+  if (tables.length > 32 || candidates.length > 10_000 || tables.reduce((n, t) => n + t.document.entries.length + t.document.sections.length, 0) > 100_000) throw new ContentError('campaign-table-limit', 0, 'Campaign table cap');
+  let codeUnits = 0, referenceLinks = 0;
+  for (const table of tables) for (const row of table.document.entries) {
+    codeUnits += row.section.length + row.key.length + row.value.length;
+    if (codeUnits > 16 * 1024 * 1024) throw new ContentError('campaign-table-text-limit', 0, 'Campaign table text cap');
+  }
   const known = new Map<string, Set<string>>();
   for (const candidate of candidates) {
-    if (!['ra2', 'yr'].includes(candidate.profile) || !filename.test(candidate.filename) || !/^[a-f0-9]{64}$/.test(candidate.sha256)) throw new ContentError('campaign-candidate-identity', 0, 'Invalid candidate identity');
+    if (!['ra2', 'yr', 'unclassified'].includes(candidate.profile) || !filename.test(candidate.filename) || !/^[a-f0-9]{64}$/.test(candidate.sha256)) throw new ContentError('campaign-candidate-identity', 0, 'Invalid candidate identity');
     const key = `${candidate.profile}:${candidate.filename.toLowerCase()}`, hashes = known.get(key) ?? new Set<string>(); hashes.add(candidate.sha256); known.set(key, hashes);
   }
-  const result: { profile: 'ra2' | 'yr'; role: CampaignTableInput['role']; source: GraphSource; declarationCount: number; references: { filename: string; line: number; membershipLines: number[]; hashes: string[] }[]; diagnostics: { code: string; line: number }[] }[] = [];
+  const result: { profile: 'ra2' | 'yr'; role: CampaignTableInput['role']; source: GraphSource; declarationCount: number; references: { filename: string; line: number; membershipLines: number[]; hashes: string[]; unclassifiedHashes: string[] }[]; diagnostics: { code: string; line: number }[] }[] = [];
   const key = (t: CampaignTableInput) => JSON.stringify([t.source.rootFile, t.source.rootSha256, t.source.absoluteOffset, t.source.size, t.source.sha256, t.role]);
   const seen = new Set<string>();
   for (const table of [...tables].sort((a, b) => key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : 0)) {
@@ -33,10 +38,13 @@ export function censusCampaignTables(tables: CampaignTableInput[], candidates: S
     }
     function reference(value: string, line: number, membershipLines: number[]) {
       if (!filename.test(value)) { diagnostics.push({ code: 'unsupported-scenario-filename', line }); return; }
-      const name = value.toLowerCase(), hashes = [...(known.get(`${table.profile}:${name}`) ?? [])].sort();
-      references.push({ filename: name, line, membershipLines, hashes });
-      if (!hashes.length) diagnostics.push({ code: 'missing-scenario-candidate', line });
-      if (hashes.length > 1) diagnostics.push({ code: 'scenario-candidate-variants', line });
+      const name = value.toLowerCase(), hashes = [...(known.get(`${table.profile}:${name}`) ?? [])].sort(), unclassifiedHashes = [...(known.get(`unclassified:${name}`) ?? [])].sort();
+      referenceLinks += hashes.length + unclassifiedHashes.length + membershipLines.length;
+      if (referenceLinks > 100_000) throw new ContentError('campaign-table-link-limit', 0, 'Campaign table reference fanout cap');
+      references.push({ filename: name, line, membershipLines, hashes, unclassifiedHashes });
+      if (!hashes.length && !unclassifiedHashes.length) diagnostics.push({ code: 'missing-scenario-candidate', line });
+      if (unclassifiedHashes.length) diagnostics.push({ code: 'scenario-profile-unclassified', line });
+      if (new Set([...hashes, ...unclassifiedHashes]).size > 1) diagnostics.push({ code: 'scenario-candidate-variants', line });
     }
     if (table.role === 'battle') {
       for (const row of table.document.entries) if (folded(row.key) === 'scenario') {
@@ -48,7 +56,7 @@ export function censusCampaignTables(tables: CampaignTableInput[], candidates: S
       }
     } else for (const section of table.document.sections) if (filename.test(section.name)) reference(section.name, section.line, []);
     for (const issue of table.document.diagnostics) diagnostics.push({ code: 'ini-diagnostic', line: issue.line });
-    result.push({ profile: table.profile, role: table.role, source: { ...table.source }, declarationCount: [...listed.values()].reduce((n, a) => n + a.length, 0), references, diagnostics });
+    result.push({ profile: table.profile, role: table.role, source: copyGraphSource(table.source), declarationCount: [...listed.values()].reduce((n, a) => n + a.length, 0), references, diagnostics });
   }
   return { tables: result, nativeProgression: 'unverified' as const, progressionEdges: [] as never[], tableReferencesComplete: result.length > 0 && result.every(t => t.references.length > 0 && t.diagnostics.length === 0) };
 }

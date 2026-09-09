@@ -1,0 +1,2627 @@
+{
+  "inputManifestSha256": "cdbaafd772bfd9b4d983da1612de00da98fb75f11a4658f7d9a9653d48fbef32",
+  "schemaVersion": 1,
+  "scope": "opening-Allied-candidate-structural-overapproximation",
+  "bytesRead": 3449092,
+  "membersRead": 14,
+  "scenarioCandidateEvidence": "hashes from census; only opening payloads reverified here",
+  "openingGraphs": [
+    {
+      "filename": "all01t.map",
+      "sha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+      "equivalentPhysicalSources": [
+        {
+          "rootFile": "MAPS01.MIX",
+          "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "absoluteOffset": 308,
+          "size": 146240,
+          "sha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c"
+        },
+        {
+          "rootFile": "MAPS02.MIX",
+          "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "absoluteOffset": 103716,
+          "size": 146240,
+          "sha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c"
+        }
+      ],
+      "graph": {
+        "profile": "ra2",
+        "sources": [
+          {
+            "role": "mission",
+            "identity": {
+              "rootFile": "MAPS01.MIX",
+              "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+              "absoluteOffset": 308,
+              "size": 146240,
+              "sha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c"
+            }
+          },
+          {
+            "role": "ai",
+            "identity": {
+              "rootFile": "ra2.mix",
+              "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+              "absoluteOffset": 118221968,
+              "size": 84972,
+              "sha256": "1feac6ddea6886b177ddf7e5f8580b7a99a63f12684f2cbb42831671bb7a8a79"
+            }
+          },
+          {
+            "role": "art",
+            "identity": {
+              "rootFile": "ra2.mix",
+              "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+              "absoluteOffset": 118306944,
+              "size": 245825,
+              "sha256": "b477f861063a9509e87b7836b78190204c73bea5ea5595a842c456f5920ea223"
+            }
+          },
+          {
+            "role": "rules",
+            "identity": {
+              "rootFile": "ra2.mix",
+              "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+              "absoluteOffset": 118552784,
+              "size": 541915,
+              "sha256": "fd1e95cea0306ea78049dc81c8cd816e18c28c496872a1ff02edd50bd082062f"
+            }
+          }
+        ],
+        "nodes": 3006,
+        "edges": 2931,
+        "nodeKinds": {
+          "action-row": 130,
+          "ai-trigger": 113,
+          "art": 1300,
+          "country": 21,
+          "event-row": 130,
+          "house": 8,
+          "media": 1,
+          "missing": 3,
+          "mission": 1,
+          "placement": 249,
+          "script": 90,
+          "tag": 128,
+          "taskforce": 110,
+          "team": 152,
+          "trigger": 130,
+          "type": 440
+        },
+        "reachableNodeKinds": {
+          "action-row": 130,
+          "ai-trigger": 6,
+          "art": 8,
+          "country": 12,
+          "event-row": 130,
+          "house": 8,
+          "media": 1,
+          "missing": 1,
+          "mission": 1,
+          "placement": 249,
+          "script": 38,
+          "tag": 128,
+          "taskforce": 29,
+          "team": 49,
+          "trigger": 130,
+          "type": 90
+        },
+        "edgeRelations": {
+          "ai-condition-type": 102,
+          "ai-owner-country-selector": 16,
+          "ai-primary-team": 113,
+          "ai-secondary-team": 32,
+          "attached-trigger": 2,
+          "cinematic-intro": 1,
+          "country-parentcountry": 8,
+          "declares-country": 8,
+          "declares-house": 8,
+          "declares-row": 524,
+          "declares-script": 38,
+          "declares-taskforce": 29,
+          "declares-team": 49,
+          "house-allies": 41,
+          "house-country": 8,
+          "placement-house": 249,
+          "placement-tag": 50,
+          "placement-type": 283,
+          "places-object": 249,
+          "player-house": 1,
+          "tag-trigger": 128,
+          "taskforce-type": 190,
+          "team-house-country-selector": 49,
+          "team-script": 152,
+          "team-tag": 5,
+          "team-taskforce": 152,
+          "trigger-actions": 130,
+          "trigger-events": 130,
+          "trigger-house-country-selector": 130,
+          "type-image": 54
+        },
+        "reachableEdgeRelations": {
+          "ai-condition-type": 6,
+          "ai-owner-country-selector": 6,
+          "ai-primary-team": 6,
+          "attached-trigger": 2,
+          "cinematic-intro": 1,
+          "country-parentcountry": 8,
+          "declares-country": 8,
+          "declares-house": 8,
+          "declares-row": 524,
+          "declares-script": 38,
+          "declares-taskforce": 29,
+          "declares-team": 49,
+          "house-allies": 41,
+          "house-country": 8,
+          "placement-house": 249,
+          "placement-tag": 50,
+          "placement-type": 283,
+          "places-object": 249,
+          "player-house": 1,
+          "tag-trigger": 128,
+          "taskforce-type": 41,
+          "team-house-country-selector": 49,
+          "team-script": 49,
+          "team-tag": 5,
+          "team-taskforce": 49,
+          "trigger-actions": 130,
+          "trigger-events": 130,
+          "trigger-house-country-selector": 130,
+          "type-image": 11
+        },
+        "diagnostics": {
+          "country-house-selector-unresolved": 195,
+          "duplicate-key": 1,
+          "duplicate-section": 1,
+          "house-selector-sentinel-unresolved": 103,
+          "ini-diagnostic": 15,
+          "legacy-progression-field-not-followed": 2,
+          "media-identifier-unresolved": 1,
+          "missing-reference": 3,
+          "multiple-candidate-definitions": 101,
+          "rule-reference-field-untraced": 1275,
+          "structural-cycle-not-runtime-error": 1
+        },
+        "diagnosticRelations": {
+          "country-house-selector-unresolved:ai-owner": 16,
+          "country-house-selector-unresolved:team-house": 49,
+          "country-house-selector-unresolved:trigger-house": 130,
+          "house-selector-sentinel-unresolved:team-house": 103,
+          "missing-reference:placement-type": 1,
+          "missing-reference:type-image": 2,
+          "multiple-candidate-definitions:ai-condition-type": 29,
+          "multiple-candidate-definitions:placement-type": 34,
+          "multiple-candidate-definitions:taskforce-type": 38,
+          "rule-reference-field-untraced:type-debrisanims": 88,
+          "rule-reference-field-untraced:type-deploysinto": 2,
+          "rule-reference-field-untraced:type-eliteprimary": 34,
+          "rule-reference-field-untraced:type-elitesecondary": 6,
+          "rule-reference-field-untraced:type-explosion": 354,
+          "rule-reference-field-untraced:type-prerequisite": 118,
+          "rule-reference-field-untraced:type-primary": 206,
+          "rule-reference-field-untraced:type-secondary": 156,
+          "rule-reference-field-untraced:type-undeploysinto": 2,
+          "rule-reference-field-untraced:type-voiceattack": 103,
+          "rule-reference-field-untraced:type-voicemove": 103,
+          "rule-reference-field-untraced:type-voiceselect": 103
+        },
+        "reachableDiagnostics": {
+          "country-house-selector-unresolved": 185,
+          "legacy-progression-field-not-followed": 2,
+          "media-identifier-unresolved": 1,
+          "missing-reference": 1,
+          "multiple-candidate-definitions": 38,
+          "rule-reference-field-untraced": 265,
+          "structural-cycle-not-runtime-error": 1
+        },
+        "unresolvedReferenceLocations": [
+          {
+            "code": "legacy-progression-field-not-followed",
+            "at": {
+              "source": 0,
+              "line": 347
+            }
+          },
+          {
+            "code": "legacy-progression-field-not-followed",
+            "at": {
+              "source": 0,
+              "line": 348
+            }
+          },
+          {
+            "code": "media-identifier-unresolved",
+            "at": {
+              "source": 0,
+              "line": 362
+            }
+          },
+          {
+            "code": "missing-reference",
+            "at": {
+              "source": 0,
+              "line": 1833
+            },
+            "relation": "placement-type"
+          },
+          {
+            "code": "missing-reference",
+            "at": {
+              "source": 3,
+              "line": 9113
+            },
+            "relation": "type-image"
+          },
+          {
+            "code": "missing-reference",
+            "at": {
+              "source": 3,
+              "line": 10158
+            },
+            "relation": "type-image"
+          }
+        ],
+        "cycles": [
+          {
+            "nodeCount": 8,
+            "reachable": true,
+            "kinds": {
+              "house": 8
+            }
+          }
+        ],
+        "capabilities": [
+          "action:1",
+          "action:100",
+          "action:101",
+          "action:104",
+          "action:108",
+          "action:11",
+          "action:113",
+          "action:114",
+          "action:115",
+          "action:116",
+          "action:12",
+          "action:14",
+          "action:17",
+          "action:19",
+          "action:2",
+          "action:21",
+          "action:3",
+          "action:36",
+          "action:4",
+          "action:41",
+          "action:46",
+          "action:47",
+          "action:48",
+          "action:5",
+          "action:53",
+          "action:54",
+          "action:55",
+          "action:63",
+          "action:7",
+          "action:74",
+          "action:80",
+          "action:99",
+          "ai-activation-semantics",
+          "art:implicit-image-and-theater-resolution",
+          "campaign-progression",
+          "country-to-house-selector-binding",
+          "effective-content-precedence",
+          "event:1",
+          "event:10",
+          "event:11",
+          "event:13",
+          "event:20",
+          "event:21",
+          "event:32",
+          "event:33",
+          "event:36",
+          "event:4",
+          "event:48",
+          "event:57",
+          "event:6",
+          "event:9",
+          "map-pack-dependencies",
+          "media-file-resolution",
+          "rules:audio-and-animation-references",
+          "rules:prerequisite-and-object-transformations",
+          "rules:weapon-selection-and-elite-variants",
+          "rules:weapon-to-projectile-and-warhead",
+          "script:0",
+          "script:1",
+          "script:11",
+          "script:19",
+          "script:20",
+          "script:3",
+          "script:37",
+          "script:39",
+          "script:46",
+          "script:49",
+          "script:5",
+          "script:50",
+          "script:6",
+          "script:8"
+        ],
+        "structuralClosureComplete": false,
+        "behaviorClosureComplete": false,
+        "effectivePrecedence": "unresolved"
+      }
+    },
+    {
+      "filename": "all01umd.map",
+      "sha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+      "equivalentPhysicalSources": [
+        {
+          "rootFile": "mapsmd03.mix",
+          "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "absoluteOffset": 260,
+          "size": 301077,
+          "sha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0"
+        }
+      ],
+      "graph": {
+        "profile": "yr",
+        "sources": [
+          {
+            "role": "rules",
+            "identity": {
+              "rootFile": "expandmd01.mix",
+              "rootSha256": "0c0a64e741bdecdc3843a0beb6bb1f58aa2df5b86eb3bc4a953821ec98f3d6ec",
+              "absoluteOffset": 2220316,
+              "size": 743215,
+              "sha256": "3d341ef8a13a4b5ab24af2eef48ac94931ac2bb87d950fe3330a07e2d25672ef"
+            }
+          },
+          {
+            "role": "mission",
+            "identity": {
+              "rootFile": "mapsmd03.mix",
+              "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+              "absoluteOffset": 260,
+              "size": 301077,
+              "sha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0"
+            }
+          },
+          {
+            "role": "ai",
+            "identity": {
+              "rootFile": "ra2md.mix",
+              "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d",
+              "absoluteOffset": 6239952,
+              "size": 138538,
+              "sha256": "5df41eaec00a78d0760ef5eecdf27d65ae1cd537309c7eac973318266986f89d"
+            }
+          },
+          {
+            "role": "art",
+            "identity": {
+              "rootFile": "ra2md.mix",
+              "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d",
+              "absoluteOffset": 6378496,
+              "size": 336535,
+              "sha256": "e1f0378394313c04ebbd5073f47785ee3e46f1b3c62d65724e8f3c310ee7ba31"
+            }
+          },
+          {
+            "role": "rules",
+            "identity": {
+              "rootFile": "ra2md.mix",
+              "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d",
+              "absoluteOffset": 6715040,
+              "size": 742958,
+              "sha256": "06761dd7f714e7d9400216ec3c06109ec5c1461f6a0727be7401eb9d8b0f6d05"
+            }
+          }
+        ],
+        "nodes": 5046,
+        "edges": 9051,
+        "nodeKinds": {
+          "action-row": 334,
+          "ai-trigger": 165,
+          "art": 1582,
+          "country": 45,
+          "event-row": 334,
+          "house": 45,
+          "media": 1,
+          "missing": 4,
+          "mission": 1,
+          "placement": 263,
+          "script": 182,
+          "tag": 132,
+          "taskforce": 223,
+          "team": 265,
+          "trigger": 334,
+          "type": 1136
+        },
+        "reachableNodeKinds": {
+          "action-row": 334,
+          "art": 10,
+          "country": 45,
+          "event-row": 334,
+          "house": 45,
+          "media": 1,
+          "mission": 1,
+          "placement": 263,
+          "script": 94,
+          "tag": 132,
+          "taskforce": 91,
+          "team": 102,
+          "trigger": 334,
+          "type": 242
+        },
+        "edgeRelations": {
+          "ai-condition-type": 226,
+          "ai-owner": 30,
+          "ai-owner-country-selector": 30,
+          "ai-primary-team": 165,
+          "ai-secondary-team": 49,
+          "attached-trigger": 202,
+          "cinematic-intro": 1,
+          "country-parentcountry": 9,
+          "declares-country": 3,
+          "declares-house": 45,
+          "declares-row": 1134,
+          "declares-script": 94,
+          "declares-taskforce": 91,
+          "declares-team": 102,
+          "declares-type": 8,
+          "house-allies": 471,
+          "house-country": 45,
+          "placement-house": 727,
+          "placement-tag": 130,
+          "placement-type": 547,
+          "places-object": 263,
+          "player-house": 3,
+          "tag-trigger": 132,
+          "taskforce-type": 683,
+          "team-house": 297,
+          "team-house-country-selector": 300,
+          "team-script": 265,
+          "team-taskforce": 265,
+          "trigger-actions": 334,
+          "trigger-events": 334,
+          "trigger-house": 951,
+          "trigger-house-country-selector": 968,
+          "type-image": 147
+        },
+        "reachableEdgeRelations": {
+          "attached-trigger": 202,
+          "cinematic-intro": 1,
+          "country-parentcountry": 9,
+          "declares-country": 3,
+          "declares-house": 45,
+          "declares-row": 1134,
+          "declares-script": 94,
+          "declares-taskforce": 91,
+          "declares-team": 102,
+          "declares-type": 8,
+          "house-allies": 471,
+          "house-country": 45,
+          "placement-house": 727,
+          "placement-tag": 130,
+          "placement-type": 547,
+          "places-object": 263,
+          "player-house": 3,
+          "tag-trigger": 132,
+          "taskforce-type": 221,
+          "team-house": 297,
+          "team-house-country-selector": 300,
+          "team-script": 102,
+          "team-taskforce": 102,
+          "trigger-actions": 334,
+          "trigger-events": 334,
+          "trigger-house": 951,
+          "trigger-house-country-selector": 968,
+          "type-image": 27
+        },
+        "diagnostics": {
+          "country-house-selector-unresolved": 446,
+          "duplicate-key": 2,
+          "duplicate-section": 3,
+          "house-selector-sentinel-unresolved": 163,
+          "ini-diagnostic": 26,
+          "legacy-progression-field-not-followed": 2,
+          "media-identifier-unresolved": 1,
+          "missing-reference": 4,
+          "multiple-candidate-definitions": 1944,
+          "rule-reference-field-untraced": 3026,
+          "structural-cycle-not-runtime-error": 3
+        },
+        "diagnosticRelations": {
+          "country-house-selector-unresolved:ai-owner": 10,
+          "country-house-selector-unresolved:team-house": 102,
+          "country-house-selector-unresolved:trigger-house": 334,
+          "house-selector-sentinel-unresolved:team-house": 163,
+          "missing-reference:type-image": 4,
+          "multiple-candidate-definitions:ai-condition-type": 109,
+          "multiple-candidate-definitions:ai-owner": 10,
+          "multiple-candidate-definitions:ai-owner-country-selector": 10,
+          "multiple-candidate-definitions:country-parentcountry": 3,
+          "multiple-candidate-definitions:declares-house": 14,
+          "multiple-candidate-definitions:house-allies": 152,
+          "multiple-candidate-definitions:house-country": 14,
+          "multiple-candidate-definitions:placement-house": 232,
+          "multiple-candidate-definitions:placement-type": 255,
+          "multiple-candidate-definitions:player-house": 1,
+          "multiple-candidate-definitions:taskforce-type": 312,
+          "multiple-candidate-definitions:team-house": 99,
+          "multiple-candidate-definitions:team-house-country-selector": 99,
+          "multiple-candidate-definitions:trigger-house": 317,
+          "multiple-candidate-definitions:trigger-house-country-selector": 317,
+          "rule-reference-field-untraced:type-debrisanims": 332,
+          "rule-reference-field-untraced:type-deploysinto": 8,
+          "rule-reference-field-untraced:type-eliteprimary": 104,
+          "rule-reference-field-untraced:type-elitesecondary": 22,
+          "rule-reference-field-untraced:type-explosion": 976,
+          "rule-reference-field-untraced:type-prerequisite": 338,
+          "rule-reference-field-untraced:type-primary": 243,
+          "rule-reference-field-untraced:type-secondary": 107,
+          "rule-reference-field-untraced:type-undeploysinto": 8,
+          "rule-reference-field-untraced:type-voiceattack": 296,
+          "rule-reference-field-untraced:type-voicemove": 296,
+          "rule-reference-field-untraced:type-voiceselect": 296
+        },
+        "reachableDiagnostics": {
+          "country-house-selector-unresolved": 436,
+          "legacy-progression-field-not-followed": 2,
+          "media-identifier-unresolved": 1,
+          "multiple-candidate-definitions": 1602,
+          "rule-reference-field-untraced": 704,
+          "structural-cycle-not-runtime-error": 3
+        },
+        "unresolvedReferenceLocations": [
+          {
+            "code": "legacy-progression-field-not-followed",
+            "at": {
+              "source": 1,
+              "line": 437
+            }
+          },
+          {
+            "code": "legacy-progression-field-not-followed",
+            "at": {
+              "source": 1,
+              "line": 438
+            }
+          },
+          {
+            "code": "media-identifier-unresolved",
+            "at": {
+              "source": 1,
+              "line": 452
+            }
+          },
+          {
+            "code": "missing-reference",
+            "at": {
+              "source": 0,
+              "line": 16358
+            },
+            "relation": "type-image"
+          },
+          {
+            "code": "missing-reference",
+            "at": {
+              "source": 0,
+              "line": 17801
+            },
+            "relation": "type-image"
+          },
+          {
+            "code": "missing-reference",
+            "at": {
+              "source": 4,
+              "line": 16350
+            },
+            "relation": "type-image"
+          },
+          {
+            "code": "missing-reference",
+            "at": {
+              "source": 4,
+              "line": 17793
+            },
+            "relation": "type-image"
+          }
+        ],
+        "cycles": [
+          {
+            "nodeCount": 1,
+            "reachable": true,
+            "kinds": {
+              "house": 1
+            }
+          },
+          {
+            "nodeCount": 3,
+            "reachable": true,
+            "kinds": {
+              "house": 3
+            }
+          },
+          {
+            "nodeCount": 13,
+            "reachable": true,
+            "kinds": {
+              "house": 13
+            }
+          }
+        ],
+        "capabilities": [
+          "action:0",
+          "action:1",
+          "action:10",
+          "action:100",
+          "action:104",
+          "action:11",
+          "action:111",
+          "action:112",
+          "action:113",
+          "action:116",
+          "action:117",
+          "action:118",
+          "action:119",
+          "action:120",
+          "action:121",
+          "action:122",
+          "action:125",
+          "action:127",
+          "action:129",
+          "action:130",
+          "action:131",
+          "action:137",
+          "action:139",
+          "action:14",
+          "action:16",
+          "action:17",
+          "action:18",
+          "action:19",
+          "action:2",
+          "action:21",
+          "action:24",
+          "action:28",
+          "action:3",
+          "action:32",
+          "action:4",
+          "action:41",
+          "action:46",
+          "action:47",
+          "action:48",
+          "action:5",
+          "action:51",
+          "action:53",
+          "action:54",
+          "action:55",
+          "action:56",
+          "action:57",
+          "action:60",
+          "action:63",
+          "action:68",
+          "action:7",
+          "action:80",
+          "action:99",
+          "ai-activation-semantics",
+          "art:implicit-image-and-theater-resolution",
+          "campaign-progression",
+          "country-to-house-selector-binding",
+          "effective-content-precedence",
+          "event:1",
+          "event:11",
+          "event:13",
+          "event:26",
+          "event:28",
+          "event:30",
+          "event:32",
+          "event:33",
+          "event:36",
+          "event:37",
+          "event:44",
+          "event:47",
+          "event:48",
+          "event:57",
+          "event:58",
+          "event:59",
+          "event:6",
+          "event:61",
+          "event:9",
+          "map-pack-dependencies",
+          "media-file-resolution",
+          "rules:audio-and-animation-references",
+          "rules:prerequisite-and-object-transformations",
+          "rules:weapon-selection-and-elite-variants",
+          "rules:weapon-to-projectile-and-warhead",
+          "script:0",
+          "script:1",
+          "script:11",
+          "script:14",
+          "script:16",
+          "script:19",
+          "script:3",
+          "script:37",
+          "script:39",
+          "script:42",
+          "script:46",
+          "script:49",
+          "script:5",
+          "script:50",
+          "script:59",
+          "script:6",
+          "script:64",
+          "script:8",
+          "script:9"
+        ],
+        "structuralClosureComplete": false,
+        "behaviorClosureComplete": false,
+        "effectivePrecedence": "unresolved"
+      }
+    }
+  ],
+  "campaignTables": {
+    "tables": [
+      {
+        "profile": "ra2",
+        "role": "battle",
+        "source": {
+          "rootFile": "ra2.mix",
+          "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+          "absoluteOffset": 121822384,
+          "size": 4054,
+          "sha256": "a5752a8d49e1c3823fe01a55e0057f91f2996d8b4a78804f197251a79b552a1d"
+        },
+        "declarationCount": 28,
+        "references": [
+          {
+            "filename": "e31.map",
+            "line": 67,
+            "membershipLines": [
+              24
+            ],
+            "hashes": [],
+            "unclassifiedHashes": [
+              "dce4cd2b88f39c7738680e3d3a2f6cbfa81aec6d10199b5aa121b9d2cf3bed3c"
+            ]
+          },
+          {
+            "filename": "e32.map",
+            "line": 73,
+            "membershipLines": [
+              25
+            ],
+            "hashes": [],
+            "unclassifiedHashes": [
+              "88c6c39431548ebb8f276f7c7809c76dd139e39706a0307420019e4eb1ea8a2b"
+            ]
+          },
+          {
+            "filename": "trn01t.map",
+            "line": 80,
+            "membershipLines": [
+              19
+            ],
+            "hashes": [],
+            "unclassifiedHashes": [
+              "4dcec9e12f2541e4c15bf1e7da78c6ff74932c794837c35029a02de5bf43cd71"
+            ]
+          },
+          {
+            "filename": "all01t.map",
+            "line": 86,
+            "membershipLines": [
+              20
+            ],
+            "hashes": [
+              "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov01t.map",
+            "line": 92,
+            "membershipLines": [
+              21
+            ],
+            "hashes": [
+              "7f4492961d30b5799367aa840ba007932057b19a22a77f95475a18ca1407b99f"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "trn02t.map",
+            "line": 104,
+            "membershipLines": [
+              26
+            ],
+            "hashes": [],
+            "unclassifiedHashes": [
+              "35f7b531a8d0312ca7e44fa1da33f88dde1af48ac3781841bc74d3122c498445"
+            ]
+          },
+          {
+            "filename": "all02s.map",
+            "line": 111,
+            "membershipLines": [
+              27
+            ],
+            "hashes": [
+              "5ebd7a3aaa60215a6da1f63e87a53c4ebf8cb28378b09f7128953ab05e6425fc"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all03u.map",
+            "line": 118,
+            "membershipLines": [
+              28
+            ],
+            "hashes": [
+              "186e317d4be77eaeec8e0b09e5c813f6ff95aa01e4e206f4b4c82178bf679a61"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all04u.map",
+            "line": 125,
+            "membershipLines": [
+              29
+            ],
+            "hashes": [
+              "09e52db16946a330c032e988679ef61ff7745670ddad5e9bfcf96f916d18d093"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all05s.map",
+            "line": 132,
+            "membershipLines": [
+              30
+            ],
+            "hashes": [
+              "d09cebddc1f4009098dfa48b18bf4022e6e4d00801f1ca8efd99917f185bb225"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all06u.map",
+            "line": 139,
+            "membershipLines": [
+              31
+            ],
+            "hashes": [
+              "9e02b8fa4c570000c2bb34c9b0e702b143e2e93ae529faa36556e1f43af0f922"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all07t.map",
+            "line": 146,
+            "membershipLines": [
+              32
+            ],
+            "hashes": [
+              "3925c1211d86938a7137ff0df11cba85c59d3ae75742221d5e2d4d502d33c103"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all08u.map",
+            "line": 153,
+            "membershipLines": [
+              33
+            ],
+            "hashes": [
+              "71a119187bd8f78a1c7677636e20a18a258f24dc94add2ac2b108a3dae9df8ea"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all09t.map",
+            "line": 160,
+            "membershipLines": [
+              34
+            ],
+            "hashes": [
+              "89a243ea0d9ccc802bd6e1d7da4d271d0077f86c3883802e27be7840364ac279"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all10s.map",
+            "line": 167,
+            "membershipLines": [
+              35
+            ],
+            "hashes": [
+              "ac0ea14ec650256a014626db7c78135bb74168ba86d4eb863d987f04b07d1593"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all11t.map",
+            "line": 174,
+            "membershipLines": [
+              36
+            ],
+            "hashes": [
+              "08456515dd5e258f5a9ff73b8961491883eccaa3635a8f008dcb1f9369d43887"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all12s.map",
+            "line": 181,
+            "membershipLines": [
+              37
+            ],
+            "hashes": [
+              "e6d31134742f8566a425a252113fa6b8e3f3eb178b00e34124deec4f7e11250b"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov02t.map",
+            "line": 188,
+            "membershipLines": [
+              38
+            ],
+            "hashes": [
+              "ea3aff6876f7e81e76284a2c9b41ee693c71f0f27e1ae45542e8f5ea95c96ae7"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov03u.map",
+            "line": 195,
+            "membershipLines": [
+              39
+            ],
+            "hashes": [
+              "a0ec1cd648f2b1f5cd122713d405b514634941977289080e22990021f8719c05"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov04s.map",
+            "line": 202,
+            "membershipLines": [
+              40
+            ],
+            "hashes": [
+              "a0a95b26639cc1d4d916dea3a264a18e409bef3d2b84c245e67cd250defc2100"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov05u.map",
+            "line": 209,
+            "membershipLines": [
+              41
+            ],
+            "hashes": [
+              "31c6883ce678c0bcede293c571a610d355319a7cd729d45560183ced152a5629"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov06t.map",
+            "line": 216,
+            "membershipLines": [
+              42
+            ],
+            "hashes": [
+              "bea4548cca589aa1caf6fbc4e69700f8b408d650b700b71c65242f0df9eeeb83"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov07s.map",
+            "line": 223,
+            "membershipLines": [
+              43
+            ],
+            "hashes": [
+              "0ad2fde5c76f17085065f7b43cb76045935774092b2498badc44fe91e7793171"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov08u.map",
+            "line": 230,
+            "membershipLines": [
+              44
+            ],
+            "hashes": [
+              "91817fa1585e631cd929b6356ccc29c99f1dfb8144c52cd225e3eeb924370b7e"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov09u.map",
+            "line": 237,
+            "membershipLines": [
+              45
+            ],
+            "hashes": [
+              "ef2dd5c5280d20f5759c02cebf860111280dc0f091c322f21b42eeae6b53c8b6"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov10t.map",
+            "line": 244,
+            "membershipLines": [
+              46
+            ],
+            "hashes": [
+              "5c3d8b26e05a0a73530630db8353637fa9ed7072144d5360e1ab994869428449"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov11s.map",
+            "line": 251,
+            "membershipLines": [
+              47
+            ],
+            "hashes": [
+              "2f51c08a063f3c4d648bd486672eacc50d3f32903aa14e9566bfd2030464fc7f"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov12s.map",
+            "line": 258,
+            "membershipLines": [
+              48
+            ],
+            "hashes": [
+              "f69c18a54ce5915c9cdc08c2f10113853bc8656cf3e5f1392a64818a700d2720"
+            ],
+            "unclassifiedHashes": []
+          }
+        ],
+        "diagnostics": [
+          {
+            "code": "scenario-profile-unclassified",
+            "line": 67
+          },
+          {
+            "code": "scenario-profile-unclassified",
+            "line": 73
+          },
+          {
+            "code": "scenario-profile-unclassified",
+            "line": 80
+          },
+          {
+            "code": "scenario-profile-unclassified",
+            "line": 104
+          }
+        ]
+      },
+      {
+        "profile": "ra2",
+        "role": "mission-table",
+        "source": {
+          "rootFile": "ra2.mix",
+          "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+          "absoluteOffset": 121826448,
+          "size": 9756,
+          "sha256": "49eb674e46058d67a08e0cf4ba31c99b1948d3d2072b10beced873f62226c54e"
+        },
+        "declarationCount": 0,
+        "references": [
+          {
+            "filename": "sov01t.map",
+            "line": 12,
+            "membershipLines": [],
+            "hashes": [
+              "7f4492961d30b5799367aa840ba007932057b19a22a77f95475a18ca1407b99f"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov02t.map",
+            "line": 24,
+            "membershipLines": [],
+            "hashes": [
+              "ea3aff6876f7e81e76284a2c9b41ee693c71f0f27e1ae45542e8f5ea95c96ae7"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov03u.map",
+            "line": 36,
+            "membershipLines": [],
+            "hashes": [
+              "a0ec1cd648f2b1f5cd122713d405b514634941977289080e22990021f8719c05"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov04s.map",
+            "line": 48,
+            "membershipLines": [],
+            "hashes": [
+              "a0a95b26639cc1d4d916dea3a264a18e409bef3d2b84c245e67cd250defc2100"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov05u.map",
+            "line": 60,
+            "membershipLines": [],
+            "hashes": [
+              "31c6883ce678c0bcede293c571a610d355319a7cd729d45560183ced152a5629"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov06t.map",
+            "line": 72,
+            "membershipLines": [],
+            "hashes": [
+              "bea4548cca589aa1caf6fbc4e69700f8b408d650b700b71c65242f0df9eeeb83"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov07s.map",
+            "line": 84,
+            "membershipLines": [],
+            "hashes": [
+              "0ad2fde5c76f17085065f7b43cb76045935774092b2498badc44fe91e7793171"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov08u.map",
+            "line": 96,
+            "membershipLines": [],
+            "hashes": [
+              "91817fa1585e631cd929b6356ccc29c99f1dfb8144c52cd225e3eeb924370b7e"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov09u.map",
+            "line": 108,
+            "membershipLines": [],
+            "hashes": [
+              "ef2dd5c5280d20f5759c02cebf860111280dc0f091c322f21b42eeae6b53c8b6"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov10t.map",
+            "line": 120,
+            "membershipLines": [],
+            "hashes": [
+              "5c3d8b26e05a0a73530630db8353637fa9ed7072144d5360e1ab994869428449"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov11s.map",
+            "line": 132,
+            "membershipLines": [],
+            "hashes": [
+              "2f51c08a063f3c4d648bd486672eacc50d3f32903aa14e9566bfd2030464fc7f"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov12s.map",
+            "line": 144,
+            "membershipLines": [],
+            "hashes": [
+              "f69c18a54ce5915c9cdc08c2f10113853bc8656cf3e5f1392a64818a700d2720"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all01t.map",
+            "line": 156,
+            "membershipLines": [],
+            "hashes": [
+              "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all02s.map",
+            "line": 168,
+            "membershipLines": [],
+            "hashes": [
+              "5ebd7a3aaa60215a6da1f63e87a53c4ebf8cb28378b09f7128953ab05e6425fc"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all03u.map",
+            "line": 180,
+            "membershipLines": [],
+            "hashes": [
+              "186e317d4be77eaeec8e0b09e5c813f6ff95aa01e4e206f4b4c82178bf679a61"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all04u.map",
+            "line": 192,
+            "membershipLines": [],
+            "hashes": [
+              "09e52db16946a330c032e988679ef61ff7745670ddad5e9bfcf96f916d18d093"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all05s.map",
+            "line": 204,
+            "membershipLines": [],
+            "hashes": [
+              "d09cebddc1f4009098dfa48b18bf4022e6e4d00801f1ca8efd99917f185bb225"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all06u.map",
+            "line": 216,
+            "membershipLines": [],
+            "hashes": [
+              "9e02b8fa4c570000c2bb34c9b0e702b143e2e93ae529faa36556e1f43af0f922"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all07t.map",
+            "line": 228,
+            "membershipLines": [],
+            "hashes": [
+              "3925c1211d86938a7137ff0df11cba85c59d3ae75742221d5e2d4d502d33c103"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all08u.map",
+            "line": 240,
+            "membershipLines": [],
+            "hashes": [
+              "71a119187bd8f78a1c7677636e20a18a258f24dc94add2ac2b108a3dae9df8ea"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all09t.map",
+            "line": 252,
+            "membershipLines": [],
+            "hashes": [
+              "89a243ea0d9ccc802bd6e1d7da4d271d0077f86c3883802e27be7840364ac279"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all10s.map",
+            "line": 264,
+            "membershipLines": [],
+            "hashes": [
+              "ac0ea14ec650256a014626db7c78135bb74168ba86d4eb863d987f04b07d1593"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all11t.map",
+            "line": 276,
+            "membershipLines": [],
+            "hashes": [
+              "08456515dd5e258f5a9ff73b8961491883eccaa3635a8f008dcb1f9369d43887"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all12s.map",
+            "line": 288,
+            "membershipLines": [],
+            "hashes": [
+              "e6d31134742f8566a425a252113fa6b8e3f3eb178b00e34124deec4f7e11250b"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "trn01t.map",
+            "line": 300,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": [
+              "4dcec9e12f2541e4c15bf1e7da78c6ff74932c794837c35029a02de5bf43cd71"
+            ]
+          },
+          {
+            "filename": "trn02t.map",
+            "line": 307,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": [
+              "35f7b531a8d0312ca7e44fa1da33f88dde1af48ac3781841bc74d3122c498445"
+            ]
+          },
+          {
+            "filename": "c1m1a.map",
+            "line": 325,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c1m1b.map",
+            "line": 328,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c1m1c.map",
+            "line": 331,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c1m2a.map",
+            "line": 334,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c1m2b.map",
+            "line": 337,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c1m2c.map",
+            "line": 340,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c1m3a.map",
+            "line": 343,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c1m3b.map",
+            "line": 346,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c1m3c.map",
+            "line": 349,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c1m4a.map",
+            "line": 352,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c1m4b.map",
+            "line": 355,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c1m4c.map",
+            "line": 358,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c1m5a.map",
+            "line": 361,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c1m5b.map",
+            "line": 364,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c1m5c.map",
+            "line": 367,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c2m1a.map",
+            "line": 375,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c2m1b.map",
+            "line": 378,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c2m1c.map",
+            "line": 381,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c2m2a.map",
+            "line": 384,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c2m2b.map",
+            "line": 387,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c2m2c.map",
+            "line": 390,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c2m3a.map",
+            "line": 393,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c2m3b.map",
+            "line": 396,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c2m3c.map",
+            "line": 399,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c2m4a.map",
+            "line": 402,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c2m4b.map",
+            "line": 405,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c2m4c.map",
+            "line": 408,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c2m5a.map",
+            "line": 411,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c2m5b.map",
+            "line": 414,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c2m5c.map",
+            "line": 417,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c3m1a.map",
+            "line": 425,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c3m1b.map",
+            "line": 428,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c3m1c.map",
+            "line": 431,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c3m2a.map",
+            "line": 434,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c3m2b.map",
+            "line": 437,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c3m2c.map",
+            "line": 440,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c3m3a.map",
+            "line": 443,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c3m3b.map",
+            "line": 446,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c3m3c.map",
+            "line": 449,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c3m4a.map",
+            "line": 452,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c3m4b.map",
+            "line": 455,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c3m4c.map",
+            "line": 458,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c3m5a.map",
+            "line": 461,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c3m5b.map",
+            "line": 464,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c3m5c.map",
+            "line": 467,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c4m1a.map",
+            "line": 475,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c4m1b.map",
+            "line": 478,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c4m1c.map",
+            "line": 481,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c4m2a.map",
+            "line": 484,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c4m2b.map",
+            "line": 487,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c4m2c.map",
+            "line": 490,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c4m3a.map",
+            "line": 493,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c4m3b.map",
+            "line": 496,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c4m3c.map",
+            "line": 499,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c4m4a.map",
+            "line": 502,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c4m4b.map",
+            "line": 505,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c4m4c.map",
+            "line": 508,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c4m5a.map",
+            "line": 511,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c4m5b.map",
+            "line": 514,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c4m5c.map",
+            "line": 517,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c5m1a.map",
+            "line": 524,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c5m1b.map",
+            "line": 527,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c5m1c.map",
+            "line": 530,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c5m2a.map",
+            "line": 533,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c5m2b.map",
+            "line": 536,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c5m2c.map",
+            "line": 539,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c5m3a.map",
+            "line": 542,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c5m3b.map",
+            "line": 545,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c5m3c.map",
+            "line": 548,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c5m4a.map",
+            "line": 551,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c5m4b.map",
+            "line": 554,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c5m4c.map",
+            "line": 557,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c5m5a.map",
+            "line": 560,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c5m5b.map",
+            "line": 563,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c5m5c.map",
+            "line": 566,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          }
+        ],
+        "diagnostics": [
+          {
+            "code": "scenario-profile-unclassified",
+            "line": 300
+          },
+          {
+            "code": "scenario-profile-unclassified",
+            "line": 307
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 325
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 328
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 331
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 334
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 337
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 340
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 343
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 346
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 349
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 352
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 355
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 358
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 361
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 364
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 367
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 375
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 378
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 381
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 384
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 387
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 390
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 393
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 396
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 399
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 402
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 405
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 408
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 411
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 414
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 417
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 425
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 428
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 431
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 434
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 437
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 440
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 443
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 446
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 449
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 452
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 455
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 458
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 461
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 464
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 467
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 475
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 478
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 481
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 484
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 487
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 490
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 493
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 496
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 499
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 502
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 505
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 508
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 511
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 514
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 517
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 524
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 527
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 530
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 533
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 536
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 539
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 542
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 545
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 548
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 551
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 554
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 557
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 560
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 563
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 566
+          }
+        ]
+      },
+      {
+        "profile": "yr",
+        "role": "battle",
+        "source": {
+          "rootFile": "ra2md.mix",
+          "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d",
+          "absoluteOffset": 7825072,
+          "size": 2733,
+          "sha256": "7e40691a3480b1e5ffe6d1cdfccb83f67da4447157607ec3ecb5d2278acf0791"
+        },
+        "declarationCount": 14,
+        "references": [
+          {
+            "filename": "all01umd.map",
+            "line": 49,
+            "membershipLines": [
+              19
+            ],
+            "hashes": [
+              "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov01umd.map",
+            "line": 55,
+            "membershipLines": [
+              20
+            ],
+            "hashes": [
+              "498b989a4b6f579dee0904a77f1fabf982c14786db21a46c41900fc8344ec72b"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all02umd.map",
+            "line": 65,
+            "membershipLines": [
+              23
+            ],
+            "hashes": [
+              "168ed42024991b6c2af4de0e5a667e9c2bf15767741efe99dac975721460b303",
+              "e761d28ce43401308ca4532d65479b1cf4a309d74fd4f996fafa92a0a06f8b65"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all03umd.map",
+            "line": 72,
+            "membershipLines": [
+              24
+            ],
+            "hashes": [
+              "b84a2e689cc00f0be064ecbfcd385635ac037f28bf8f72c02b426a0e52ff1547"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all04dmd.map",
+            "line": 79,
+            "membershipLines": [
+              25
+            ],
+            "hashes": [
+              "f1621a21e7221c1e475a52dccd4a04bb3125f8a095377c917e2122019f2157b2"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all05umd.map",
+            "line": 86,
+            "membershipLines": [
+              26
+            ],
+            "hashes": [
+              "7ee8148ad4b0092b7970588d9b064ddd6b753fc7bfb352bcc043affeb72c6aed"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all06umd.map",
+            "line": 93,
+            "membershipLines": [
+              27
+            ],
+            "hashes": [
+              "cfd2b50c5448fd84ab3647ff3a95f96b45e8dccd6a72b2601c0bb603cddeeb63"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all07smd.map",
+            "line": 100,
+            "membershipLines": [
+              28
+            ],
+            "hashes": [
+              "0ec687c320382e4c02cf66eec0153b713e56c4449fab7d29b5a19b61bf10e4f3"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov02smd.map",
+            "line": 107,
+            "membershipLines": [
+              29
+            ],
+            "hashes": [
+              "139a7f17a17cefc20d12c21e9221d94ff6e1e8894ac09ab716fc9f6975d5a665"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov03umd.map",
+            "line": 114,
+            "membershipLines": [
+              30
+            ],
+            "hashes": [
+              "df69d0f63f982823bb5818d3d49776028a719a2c20ced2526fab8f5cecb49fe6"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov04dmd.map",
+            "line": 121,
+            "membershipLines": [
+              31
+            ],
+            "hashes": [
+              "702bd788efbd08ae5b7591a1dfc240684e73faedace2ffaac68baefdfd0fb12a"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov05umd.map",
+            "line": 128,
+            "membershipLines": [
+              32
+            ],
+            "hashes": [
+              "22518e8b4a86331a9172048e10de13b45c2826ea4fdf4d2203b58994b897761b"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov06lmd.map",
+            "line": 135,
+            "membershipLines": [
+              33
+            ],
+            "hashes": [
+              "f55b65fd33a53dd03f61b48259d7732d260a4f97170e6dcf0767a61af82403a4"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov07tmd.map",
+            "line": 142,
+            "membershipLines": [
+              34
+            ],
+            "hashes": [
+              "eacf89952cb6e8eacd762f97895a062e0b6bfa16c8f916b901c1e667def266d4"
+            ],
+            "unclassifiedHashes": []
+          }
+        ],
+        "diagnostics": [
+          {
+            "code": "scenario-candidate-variants",
+            "line": 65
+          }
+        ]
+      },
+      {
+        "profile": "yr",
+        "role": "mission-table",
+        "source": {
+          "rootFile": "ra2md.mix",
+          "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d",
+          "absoluteOffset": 7827808,
+          "size": 5034,
+          "sha256": "ce170ec97fc28589ee971792a31d135e0f0510f878acde3fd0d79a7b7896a775"
+        },
+        "declarationCount": 0,
+        "references": [
+          {
+            "filename": "sov01umd.map",
+            "line": 12,
+            "membershipLines": [],
+            "hashes": [
+              "498b989a4b6f579dee0904a77f1fabf982c14786db21a46c41900fc8344ec72b"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov02smd.map",
+            "line": 25,
+            "membershipLines": [],
+            "hashes": [
+              "139a7f17a17cefc20d12c21e9221d94ff6e1e8894ac09ab716fc9f6975d5a665"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov03umd.map",
+            "line": 38,
+            "membershipLines": [],
+            "hashes": [
+              "df69d0f63f982823bb5818d3d49776028a719a2c20ced2526fab8f5cecb49fe6"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov04dmd.map",
+            "line": 51,
+            "membershipLines": [],
+            "hashes": [
+              "702bd788efbd08ae5b7591a1dfc240684e73faedace2ffaac68baefdfd0fb12a"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov05umd.map",
+            "line": 64,
+            "membershipLines": [],
+            "hashes": [
+              "22518e8b4a86331a9172048e10de13b45c2826ea4fdf4d2203b58994b897761b"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov06lmd.map",
+            "line": 77,
+            "membershipLines": [],
+            "hashes": [
+              "f55b65fd33a53dd03f61b48259d7732d260a4f97170e6dcf0767a61af82403a4"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "sov07tmd.map",
+            "line": 90,
+            "membershipLines": [],
+            "hashes": [
+              "eacf89952cb6e8eacd762f97895a062e0b6bfa16c8f916b901c1e667def266d4"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all01umd.map",
+            "line": 104,
+            "membershipLines": [],
+            "hashes": [
+              "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all02umd.map",
+            "line": 117,
+            "membershipLines": [],
+            "hashes": [
+              "168ed42024991b6c2af4de0e5a667e9c2bf15767741efe99dac975721460b303",
+              "e761d28ce43401308ca4532d65479b1cf4a309d74fd4f996fafa92a0a06f8b65"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all03umd.map",
+            "line": 130,
+            "membershipLines": [],
+            "hashes": [
+              "b84a2e689cc00f0be064ecbfcd385635ac037f28bf8f72c02b426a0e52ff1547"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all04dmd.map",
+            "line": 143,
+            "membershipLines": [],
+            "hashes": [
+              "f1621a21e7221c1e475a52dccd4a04bb3125f8a095377c917e2122019f2157b2"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all05umd.map",
+            "line": 156,
+            "membershipLines": [],
+            "hashes": [
+              "7ee8148ad4b0092b7970588d9b064ddd6b753fc7bfb352bcc043affeb72c6aed"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all06umd.map",
+            "line": 169,
+            "membershipLines": [],
+            "hashes": [
+              "cfd2b50c5448fd84ab3647ff3a95f96b45e8dccd6a72b2601c0bb603cddeeb63"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "all07smd.map",
+            "line": 182,
+            "membershipLines": [],
+            "hashes": [
+              "0ec687c320382e4c02cf66eec0153b713e56c4449fab7d29b5a19b61bf10e4f3"
+            ],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c1a01md.map",
+            "line": 205,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c1a02md.map",
+            "line": 208,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c1a03md.map",
+            "line": 211,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c2s01md.map",
+            "line": 218,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c2s02md.map",
+            "line": 221,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c2s03md.map",
+            "line": 224,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c3y01md.map",
+            "line": 231,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c3y02md.map",
+            "line": 234,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c3y03md.map",
+            "line": 237,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          },
+          {
+            "filename": "c4w01md.map",
+            "line": 244,
+            "membershipLines": [],
+            "hashes": [],
+            "unclassifiedHashes": []
+          }
+        ],
+        "diagnostics": [
+          {
+            "code": "scenario-candidate-variants",
+            "line": 117
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 205
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 208
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 211
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 218
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 221
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 224
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 231
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 234
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 237
+          },
+          {
+            "code": "missing-scenario-candidate",
+            "line": 244
+          }
+        ]
+      }
+    ],
+    "nativeProgression": "unverified",
+    "progressionEdges": [],
+    "tableReferencesComplete": false
+  },
+  "diagnostics": [],
+  "effectiveProfilePolicy": "unresolved",
+  "dependencyClosureComplete": false,
+  "nativeProgressionVerified": false
+}
