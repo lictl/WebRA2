@@ -1,8 +1,8 @@
 # Current task and refreshed-session handoff
 
-State: **WORKING** — M0 evidence and feasibility. The first implementation wave,
-hosted CI and bounded campaign/opcode/locale census are merged. The next content
-slice is #18; no worker implementation remains active. Date: 2026-09-09.
+State: **WORKING** — the owner asked to continue M0 on 2026-09-09. The next wave is
+active under #18: profile resolution #22, campaign graphs #23 and shared verified
+source reads #24, alongside checksum investigation #11. Baseline main is `09b0c95`.
 The owner accepted the plan and authorized commits, GitHub issues/PRs/reviews/merges,
 autonomous blocker resolution and implementation. This is not a playable engine yet.
 
@@ -56,7 +56,22 @@ an unpublished historical workflow attempt; it is not the reviewed foundation br
 
 ## Active ownership
 
-- Coordinator: `codex/4-m0-handoff`, shared docs/config/contracts and merge gates.
+- Coordinator: `codex/24-verified-source-reader`, owns the Node analysis source helper,
+  its tests/API docs and shared configuration/contracts/handoff/merge gates.
+- Worker `browser_feasibility`: [#22](https://github.com/lictl/WebRA2/issues/22),
+  `codex/22-profile-resolver`, `local/worktrees/profiles`; owns `packages/vfs/`,
+  `tests/vfs/`, `tools/analysis/profile-*` and `docs/analysis/profile-*`.
+- Worker `bootstrap_review`: [#23](https://github.com/lictl/WebRA2/issues/23),
+  `codex/23-campaign-graph`, `local/worktrees/graph`; owns new campaign/dependency graph
+  modules/tests and focused graph reports/CLI, as listed in the issue.
+- Worker `mix_reader`: [#11](https://github.com/lictl/WebRA2/issues/11),
+  `codex/11-checksum-policy`, `local/worktrees/checksum`; owns new `mix-integrity`
+  module/tests and `checksum-*` research tooling/reports. Coordinate before changing
+  the existing MIX parser/census. Do not claim the unexplained retail cause resolved
+  merely because a WebRA2 integrity policy is implemented.
+
+The previous wave remains preserved:
+
 - Worker `bootstrap_review`: [campaign census #16](https://github.com/lictl/WebRA2/issues/16)
   complete on `codex/16-campaign-census`, worktree `local/worktrees/campaign`.
   Its bounded INI/CSF/opcode scanners and factual reports are merged. No uncommitted
