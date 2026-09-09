@@ -1,0 +1,232 @@
+{
+  "schemaVersion": 1,
+  "images": [
+    {
+      "rootFile": "game.exe",
+      "rootSha256": "73288c03b58d370be268ca6d156b4e33bfdb2066dc980359467d8852ff3b00df",
+      "absoluteOffset": 0,
+      "size": 5077312,
+      "sha256": "73288c03b58d370be268ca6d156b4e33bfdb2066dc980359467d8852ff3b00df",
+      "ranges": [
+        {
+          "id": "numbered-expansion-loop",
+          "virtualAddress": 5332137,
+          "absoluteOffset": 1137833,
+          "size": 214,
+          "sha256": "5af3465bae14bdd0c750e1419fff575327151ae16af803a4c81e1af6d8e52023"
+        },
+        {
+          "id": "base-after-expansions",
+          "virtualAddress": 5332368,
+          "absoluteOffset": 1138064,
+          "size": 24,
+          "sha256": "85810f0c0cf3868009978ede375e81a03c7631c911cf685c14370dd3e0e5673d"
+        },
+        {
+          "id": "mix-tail-insertion",
+          "virtualAddress": 5854386,
+          "absoluteOffset": 1660082,
+          "size": 33,
+          "sha256": "55307f9fa43acc859583af1317d3016afd2fc7fc84e6ea5126260833247542bf"
+        },
+        {
+          "id": "mix-first-match",
+          "virtualAddress": 5855969,
+          "absoluteOffset": 1661665,
+          "size": 208,
+          "sha256": "1ab3d991354b743d6c706ff9f555299aad6ec0f6dda633fe8b9ba1bb8541544d"
+        },
+        {
+          "id": "read-open-loose-first",
+          "virtualAddress": 4624928,
+          "absoluteOffset": 430624,
+          "size": 297,
+          "sha256": "2e64e39ce60e2ecd6db7b6f81f38028b8b7a1d6b71112046426665e6c13f0b59"
+        },
+        {
+          "id": "win-transition-branches",
+          "virtualAddress": 6675177,
+          "absoluteOffset": 2480873,
+          "size": 214,
+          "sha256": "f5779523cafdf3abda760a9fab583c384349ef049ea689500126918ee3744af2"
+        },
+        {
+          "id": "basic-control-read",
+          "virtualAddress": 6691732,
+          "absoluteOffset": 2497428,
+          "size": 90,
+          "sha256": "a963f357f6da80f098a9bd33e650ed99ed86f43ca1a878c750d04a6f799b68f4"
+        },
+        {
+          "id": "mapsel-open",
+          "virtualAddress": 5963824,
+          "absoluteOffset": 1769520,
+          "size": 131,
+          "sha256": "85dec14fdd0ac8d91ea0a9d90c81bde1e53e0aff1f90b6f744258eebe7b6f6b0"
+        },
+        {
+          "id": "map-selection-next-call",
+          "virtualAddress": 5829956,
+          "absoluteOffset": 1635652,
+          "size": 48,
+          "sha256": "98265944a683e65175b57d21ecca846abc5d0fc21f0a87dc4aec134caa79456f"
+        }
+      ]
+    },
+    {
+      "rootFile": "gamemd.exe",
+      "rootSha256": "3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600",
+      "absoluteOffset": 0,
+      "size": 5286208,
+      "sha256": "3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600",
+      "ranges": [
+        {
+          "id": "numbered-expansion-loop",
+          "virtualAddress": 5439930,
+          "absoluteOffset": 1245626,
+          "size": 214,
+          "sha256": "198ceb0dd6be31efeb1c8790587e73218bf22ee9a175eb08778f4f6eeb85fafe"
+        },
+        {
+          "id": "bases-after-expansions",
+          "virtualAddress": 5440158,
+          "absoluteOffset": 1245854,
+          "size": 57,
+          "sha256": "971d979f696e6247d8aea6777654f07527fbf5cd79da761efa4b761ef700e7d4"
+        },
+        {
+          "id": "localmd-before-local",
+          "virtualAddress": 5440456,
+          "absoluteOffset": 1246152,
+          "size": 61,
+          "sha256": "18d21f4b70ac6b91e7bbbcc6fbbf466fac9295927151c95e6bd27bc507617709"
+        },
+        {
+          "id": "maps-wildcards-after-expansions",
+          "virtualAddress": 5441456,
+          "absoluteOffset": 1247152,
+          "size": 344,
+          "sha256": "e614283f66876315a6b61a2d828a7a15b7a69550db54e75e71ef9da46545b9a6"
+        },
+        {
+          "id": "list-sentinels",
+          "virtualAddress": 5418208,
+          "absoluteOffset": 1223904,
+          "size": 105,
+          "sha256": "2ec6ce96a74211a9f0e89b13c4eea620be88eb89117a54a43164b632520756dc"
+        },
+        {
+          "id": "mix-tail-insertion",
+          "virtualAddress": 5979618,
+          "absoluteOffset": 1785314,
+          "size": 33,
+          "sha256": "c6fb7f74458164573314ac45ec69e492ef4ea4001c1d316a1c81d874fe95c47a"
+        },
+        {
+          "id": "mix-first-match",
+          "virtualAddress": 5981345,
+          "absoluteOffset": 1787041,
+          "size": 220,
+          "sha256": "290f6e0f35de51b1e2cee3c875c3d9bf651505df51dc8f67082b924bacd809a4"
+        },
+        {
+          "id": "read-open-loose-first",
+          "virtualAddress": 4668688,
+          "absoluteOffset": 474384,
+          "size": 316,
+          "sha256": "1ed4f403dd267b90c42090beed49af2cd91fbd406a9f24021fc7909f63e8570e"
+        },
+        {
+          "id": "loose-existence-delegate",
+          "virtualAddress": 4398864,
+          "absoluteOffset": 204560,
+          "size": 22,
+          "sha256": "faa0829e2cfa7306cb5cce41a5597fe3c401bb4270a7a2252ac61fc5cf210888"
+        },
+        {
+          "id": "basic-continuation-read",
+          "virtualAddress": 6856640,
+          "absoluteOffset": 2662336,
+          "size": 57,
+          "sha256": "e885c98b9393f6c598f7448698cdcd6f43658833c61bd5eec64ad271b68e945e"
+        },
+        {
+          "id": "basic-control-read",
+          "virtualAddress": 6856937,
+          "absoluteOffset": 2662633,
+          "size": 316,
+          "sha256": "19e520e535bca591f117929e324b3cbde2350729832180c033f95b03923aa85f"
+        },
+        {
+          "id": "win-transition-branches",
+          "virtualAddress": 6838699,
+          "absoluteOffset": 2644395,
+          "size": 217,
+          "sha256": "7f25011a8688335c0e384ccccdcd5c46667e50f0482e6e0f98874488d89788e4"
+        },
+        {
+          "id": "map-selection-next-call",
+          "virtualAddress": 5954884,
+          "absoluteOffset": 1760580,
+          "size": 48,
+          "sha256": "91282ef972e245a0820362f9008f80892ca57007f5f574137b9a1c6fae33bc13"
+        },
+        {
+          "id": "map-selection-transition",
+          "virtualAddress": 5955865,
+          "absoluteOffset": 1761561,
+          "size": 255,
+          "sha256": "ef8725e7a12d730c2b9010661581dabe8afd05518bb37b8573b2f8d35b5c04f2"
+        },
+        {
+          "id": "mapsel-open-and-stage-enumeration",
+          "virtualAddress": 6090590,
+          "absoluteOffset": 1896286,
+          "size": 295,
+          "sha256": "1eb7a4ad5eaec30a2df1f3c38dc6e9b9c224ff40365a26b72c0337858c9842e0"
+        },
+        {
+          "id": "stage-scenario-read",
+          "virtualAddress": 6093247,
+          "absoluteOffset": 1898943,
+          "size": 99,
+          "sha256": "bbe15f86626f590b2a0984d88614727f7b1854b2be123247a9675a11438c885f"
+        },
+        {
+          "id": "cache-success-stub",
+          "virtualAddress": 5981152,
+          "absoluteOffset": 1786848,
+          "size": 3,
+          "sha256": "e18aacce29affcdddaa5f641ac1ec12552e0fe9d066e6408941b1792818b8619"
+        },
+        {
+          "id": "cache-success-stub-argument",
+          "virtualAddress": 5981168,
+          "absoluteOffset": 1786864,
+          "size": 5,
+          "sha256": "f4c6d7ae520f88aecb3ea65952e885437fa4a6ce4b5c3439a161d1c5d8e42863"
+        }
+      ]
+    }
+  ],
+  "mapSelectionSources": [
+    {
+      "name": "mapsel.ini",
+      "rootFile": "ra2.mix",
+      "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+      "archivePath": "ra2.mix/#3:a8548fd9",
+      "absoluteOffset": 119095600,
+      "size": 7875,
+      "sha256": "f4bcbb678d182c35a4331d69c92150a719d73fc0c95fae36cc52e65d74923982"
+    },
+    {
+      "name": "mapselmd.ini",
+      "rootFile": "ra2md.mix",
+      "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d",
+      "archivePath": "ra2md.mix/#14:fbe0d09d",
+      "absoluteOffset": 7458896,
+      "size": 5573,
+      "sha256": "074ccccd9e156d586d0ed099ceab78b3d72384c808725d8b5bee2c9799691d52"
+    }
+  ]
+}
