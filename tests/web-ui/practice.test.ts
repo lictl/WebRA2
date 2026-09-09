@@ -59,6 +59,20 @@ test('protocol refuses oversized, sparse, boxed and payload-bearing messages', a
   assert.equal(validSnapshot({ ...snapshot, outcome: new String('active') }), false);
   assert.equal(validSnapshot({ ...snapshot, width: 400 }), false);
 });
+test('ordinary practice orders reach victory; idle opponents cause defeat without bypassing pending work', async () => {
+  for (const fight of [false, true]) {
+    const model = new PracticeModel(digest); let state = (await model.act({ type: 'init', scenario: 'relay' })).snapshot;
+    for (let tick = 0; tick < 100 && state.outcome === 'active'; tick++) {
+      if (fight) for (const unit of state.units.filter(u => u.owner === 0)) {
+        const target = state.units.filter(u => u.owner === 1).sort((a, b) => (Math.abs(a.x - unit.x) + Math.abs(a.y - unit.y)) - (Math.abs(b.x - unit.x) + Math.abs(b.y - unit.y)) || a.id - b.id)[0];
+        if (target) await model.act(Math.abs(target.x - unit.x) + Math.abs(target.y - unit.y) <= 4 ? { type: 'attack', entityId: unit.id, targetId: target.id } : { type: 'move', entityId: unit.id, x: target.x, y: target.y });
+      }
+      state = (await model.act({ type: 'step', ticks: 1 })).snapshot;
+    }
+    assert.equal(state.outcome, fight ? 'victory' : 'defeat'); assert.equal(state.nextTick, fight ? 12 : 59); assert.equal(state.pending, 0);
+    assert.equal((await model.act({ type: 'verify' })).verified, true);
+  }
+});
 test('controller cancellation ignores stale completion and restores only the last acknowledged checkpoint', async () => {
   let delayed: ((value: PracticeResult) => void) | undefined, pendingAction: PracticeAction | undefined; let calls = 0;
   const initialPort = port(), recovered: PracticeAction[] = [];
