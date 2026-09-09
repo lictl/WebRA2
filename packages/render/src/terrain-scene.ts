@@ -2,6 +2,7 @@
 // Copyright 2026 WebRA2 contributors; OpenRA Developers and Contributors.
 // Slot-relative TMP placement/composition references: ../../../docs/terrain-scene.md.
 import { sha256 } from '@noble/hashes/sha2.js';
+import { prepareSpriteBatch, SPRITE_LAYER_POLICY, type SpriteBatch, type SpriteTerrainFrame } from './sprite-layer.ts';
 import type { ScenarioTerrain } from '../../content/src/scenario-terrain.ts';
 import { decodeTmpTile, parseTmpIndex, TMP_LIMITS, type DecodedTmpTile, type TmpIndex } from '../../formats/src/tmp.ts';
 
@@ -44,6 +45,7 @@ export interface TerrainScene {
   readonly allocations: Readonly<{ sourceSnapshotBytes: number; temporarySourceBytesMax: number; decodedPlaneBytes: number;
     paletteBytes: number; cells: number; decodedSlots: number }>;
   render(viewport: TerrainViewport): TerrainFrame;
+  renderSprites(viewport: TerrainViewport, batch: SpriteBatch): SpriteTerrainFrame;
 }
 export class TerrainSceneError extends Error {
   constructor(readonly code: string) { super(code); this.name = 'TerrainSceneError'; }
@@ -231,9 +233,7 @@ export function createTerrainScene(input: TerrainSceneInput, options: Partial<Li
   const allocations = Object.freeze({ sourceSnapshotBytes: sourceBytes, temporarySourceBytesMax, decodedPlaneBytes: decodedBytes, paletteBytes: 1024, cells: count, decodedSlots });
   // Source snapshots/index tables become collectible; the scene retains selected planes and bounded placement metadata only.
   parsed.clear(); snapshots.clear(); assetInputs.clear(); selected.clear();
-  return Object.freeze({ policy: TERRAIN_SCENE_POLICY, nativeBehaviorVerified: false as const, source, assets: Object.freeze(assets), projection, bounds,
-    diagnostics: Object.freeze(diagnostics), allocations,
-    render(request: TerrainViewport): TerrainFrame {
+  function renderFrame(request: TerrainViewport, batch?: SpriteBatch): TerrainFrame | SpriteTerrainFrame {
       fields(request, ['cameraX', 'cameraY', 'zoom', 'width', 'height', 'backgroundRgba']);
       const { cameraX, cameraY, zoom, width, height } = request;
       if (typeof cameraX !== 'number' || typeof cameraY !== 'number' || !Number.isFinite(cameraX) || !Number.isFinite(cameraY) ||
@@ -244,7 +244,8 @@ export function createTerrainScene(input: TerrainSceneInput, options: Partial<Li
       for (const component of request.backgroundRgba) integer(component, 0, 255, 'scene-background');
       const backgroundRgba = Object.freeze([...request.backgroundRgba]) as unknown as TerrainViewport['backgroundRgba'];
       const viewport = Object.freeze({ cameraX, cameraY, zoom, width, height, backgroundRgba });
-      const visible: { placement: Placement; x0: number; y0: number; x1: number; y1: number }[] = []; let samples = 0;
+      const sprites = batch === undefined ? null : prepareSpriteBatch(batch, viewport, cap.coordinate, cap.samples);
+      const visible: { placement: Placement; x0: number; y0: number; x1: number; y1: number }[] = []; let samples = sprites?.samples ?? 0;
       for (const placement of placements) {
         const s = placement.sprite;
         const x0 = Math.max(0, Math.ceil((placement.left + s.left - cameraX) * zoom - 0.5)), y0 = Math.max(0, Math.ceil((placement.top + s.top - cameraY) * zoom - 0.5));
@@ -254,6 +255,7 @@ export function createTerrainScene(input: TerrainSceneInput, options: Partial<Li
         visible.push({ placement, x0, y0, x1, y1 });
       }
       const rgba = new Uint8Array(pixels * 4), depth = new Int32Array(pixels), owner = new Int32Array(pixels); owner.fill(-1); depth.fill(-2147483648);
+      const objectOwner = sprites ? new Int32Array(pixels) : null; objectOwner?.fill(-1);
       for (let i = 0; i < pixels; i++) rgba.set(backgroundRgba, i * 4);
       for (const { placement: p, x0, y0, x1, y1 } of visible) {
         const { decoded: d, extraX, extraY } = p.sprite;
@@ -279,17 +281,43 @@ export function createTerrainScene(input: TerrainSceneInput, options: Partial<Li
           }
         }
       }
-      return Object.freeze({ rgba, viewport,
-        allocations: Object.freeze({ rgbaBytes: rgba.byteLength, depthBytes: depth.byteLength, ownerBytes: owner.byteLength, totalPixelBytes: pixels * 12, samples }),
-        pick(viewX: number, viewY: number): TerrainPick | null {
+      const pick = (viewX: number, viewY: number): TerrainPick | null => {
+        if (!Number.isFinite(viewX) || !Number.isFinite(viewY) || viewX < 0 || viewY < 0 || viewX >= width || viewY >= height) return null;
+        const px = Math.floor(viewX), py = Math.floor(viewY), at = py * width + px, record = owner[at]!;
+        if (record < 0) return null;
+        const p = placements[record]!;
+        return Object.freeze({ sourceRecord: record, x: p.cell.x, y: p.cell.y, assetId: p.assetId, subtile: p.cell.subtile,
+          worldX: Math.floor(cameraX + (px + 0.5) / zoom), worldY: Math.floor(cameraY + (py + 0.5) / zoom), depth: depth[at]! });
+      };
+      const pixelAllocations = { rgbaBytes: rgba.byteLength, depthBytes: depth.byteLength, ownerBytes: owner.byteLength, totalPixelBytes: pixels * 12, samples };
+      if (!sprites || !objectOwner) return Object.freeze({ rgba, viewport, allocations: Object.freeze(pixelAllocations), pick });
+      sprites.paint((at, candidateDepth, object, front, r, g, b) => {
+        const priorObject = objectOwner[at]!;
+        if (candidateDepth < depth[at]!) return;
+        if (candidateDepth === depth[at]!) {
+          if (priorObject >= 0 && priorObject < object) return;
+          if (priorObject < 0 && owner[at]! >= 0 && !front) return;
+        }
+        depth[at] = candidateDepth; objectOwner[at] = object;
+        rgba[at * 4] = r; rgba[at * 4 + 1] = g; rgba[at * 4 + 2] = b; rgba[at * 4 + 3] = 255;
+      });
+      return Object.freeze({ rgba, viewport, policy: SPRITE_LAYER_POLICY,
+        allocations: Object.freeze({ ...pixelAllocations, totalPixelBytes: pixels * 16, objectOwnerBytes: objectOwner.byteLength,
+          spriteSamples: sprites.samples, paletteBytes: sprites.paletteBytes, objects: sprites.objects }),
+        pick(viewX: number, viewY: number) {
           if (!Number.isFinite(viewX) || !Number.isFinite(viewY) || viewX < 0 || viewY < 0 || viewX >= width || viewY >= height) return null;
-          const px = Math.floor(viewX), py = Math.floor(viewY), at = py * width + px, record = owner[at]!;
-          if (record < 0) return null;
-          const p = placements[record]!;
-          return Object.freeze({ sourceRecord: record, x: p.cell.x, y: p.cell.y, assetId: p.assetId, subtile: p.cell.subtile,
-            worldX: Math.floor(cameraX + (px + 0.5) / zoom), worldY: Math.floor(cameraY + (py + 0.5) / zoom), depth: depth[at]! });
+          const px = Math.floor(viewX), py = Math.floor(viewY), at = py * width + px, object = objectOwner[at]!;
+          if (object >= 0) return sprites.pick(object, Math.floor(cameraX + (px + 0.5) / zoom), Math.floor(cameraY + (py + 0.5) / zoom), depth[at]!);
+          const terrain = pick(viewX, viewY); return terrain ? Object.freeze({ kind: 'terrain' as const, ...terrain }) : null;
         },
       });
+  }
+  return Object.freeze({ policy: TERRAIN_SCENE_POLICY, nativeBehaviorVerified: false as const, source, assets: Object.freeze(assets), projection, bounds,
+    diagnostics: Object.freeze(diagnostics), allocations,
+    render: (request: TerrainViewport): TerrainFrame => renderFrame(request) as TerrainFrame,
+    renderSprites: (request: TerrainViewport, batch: SpriteBatch): SpriteTerrainFrame => {
+      if (batch === undefined) fail('scene-sprite-batch');
+      return renderFrame(request, batch) as SpriteTerrainFrame;
     },
   });
 }
