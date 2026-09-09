@@ -136,6 +136,11 @@ physical copies, and both rulesmd alternatives. Existing root hashes, ranges and
 member hashes all matched. Public synthetic tests cover explicit choice edges,
 duplicates, missing/invalid choices, privacy projection, controls without guessed
 defaults, prototype-shaped names, resource limits, span mutation and range bounds.
+The CLI copies validated fields across every input source/image/table boundary;
+unknown extra fields never appear in the report. Malformed/sparse arrays, duplicate
+physical identities, invalid profiles and unexpected arguments fail explicitly.
+Synthetic CLI tests cover injected payload fields and stale sources. The stricter
+projection reproduces the original reviewed real metadata without any byte changes.
 
 Using Node 24.20.0 and locked dependencies from the repository root:
 
