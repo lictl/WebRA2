@@ -67,10 +67,10 @@ technical diagnostic codes remain optional details, populated with textContent.
 
 ## Validation
 
-`node --import tsx --test tests/web-ui/terrain.test.ts` passes nine original
+`node --import tsx --test tests/web-ui/terrain.test.ts` passes ten original
 application tests: strict envelopes/buffers, progress backpressure, worker frame
 ownership, cancellation/stale results, coalesced camera/picks, resize during load,
-failed preparation/retry, profile/selection replacement and localized states.
+failed preparation/retry, profile/selection replacement, fast second-click marker admission and localized states.
 The injected tiny pixel scene tests plumbing only; actual renderer/codec tests and
 private browser images are separate gates. `npm run check` and the browser results
 will be recorded at the committed tested revision before readiness.

@@ -4,6 +4,7 @@ import { TerrainBridge,type TerrainPort } from './terrain-bridge.ts';
 import { centered,VIEW_LIMIT,validCamera,type Camera,type FrameResult,type TerrainProfile,type TerrainProgress,type CellPick,type Zoom } from './terrain-protocol.ts';
 import type { Locale } from './i18n.ts';
 export type TerrainState={locale:Locale;profile:TerrainProfile;phase:'empty'|'selected'|'loading'|'ready'|'cancelled'|'failed';files:number;bytes:number;busy:boolean;progress:TerrainProgress|null;frame:FrameResult|null;cell:CellPick|null;notice:string;error:string|null};
+export function canPick(state:TerrainState,x:number,y:number):boolean {const f=state.frame;return !!f && !state.busy && state.phase==='ready' && Number.isInteger(x) && Number.isInteger(y) && x>=0 && y>=0 && x<f.camera.width && y<f.camera.height;}
 export class TerrainController{
   #files:File[]=[];#port:TerrainPort|null=null;#active:AbortController|null=null;#generation=0;#desired:Camera|null=null;#listeners=new Set<(s:TerrainState)=>void>();#width=960;#height=640;
   state:TerrainState;
@@ -51,7 +52,7 @@ export class TerrainController{
     }catch(e){this.#failure(e,generation);}
   }
   async pick(x:number,y:number):Promise<void>{
-    const frame=this.state.frame;if(!frame||this.state.busy||!this.#port||!Number.isInteger(x)||!Number.isInteger(y)||x<0||y<0||x>=frame.camera.width||y>=frame.camera.height)return;
+    const frame=this.state.frame;if(!frame||!this.#port||!canPick(this.state,x,y))return;
     const generation=this.#generation,active=new AbortController();this.#active=active;this.#update({busy:true,notice:'picking'});
     try{
       const result=await this.#port.request({type:'pick',frameId:frame.frameId,x,y},active.signal);if(generation!==this.#generation)return;if(result.type!=='pick'||result.frameId!==this.state.frame?.frameId)throw new Error('invalid');

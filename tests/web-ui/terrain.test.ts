@@ -2,7 +2,7 @@
 // Original metadata/pixel fixtures test application plumbing; real codec pixels have separate component/private gates.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { TerrainController } from '../../apps/web/src/terrain-controller.ts';
+import { TerrainController, canPick } from '../../apps/web/src/terrain-controller.ts';
 import { TerrainBridge,type TerrainPort } from '../../apps/web/src/terrain-bridge.ts';
 import { attachTerrainWorker,type TerrainScope } from '../../apps/web/src/terrain-worker-runtime.ts';
 import { centered,validResult,validAction,validProgress,type SceneSummary,type TerrainAction,type TerrainResult,type FrameResult,type TerrainReply,type Camera } from '../../apps/web/src/terrain-protocol.ts';
@@ -81,4 +81,12 @@ test('worker rejects malformed actions and failed preparation without exposing e
 test('every original terrain UI state has English and Traditional Chinese copy, including prototype-name fallback',()=>{
   for(const locale of ['en','zh-Hant'] as const)for(const key of ['choose','selected','loading','ready','rendering','picking','picked','background','cancelled','failure','tooMany','scan','verify','definitions','mission','theater','tiles','compose','constructor','__proto__'])assert.equal(typeof terrainText(locale,key),'string');
   assert.match(terrainText('zh-Hant','cancelled'),/取消/);assert.match(terrainText('en','scope'),/mission behavior/);
+});
+
+test('a fast second click cannot move the marker while the first pick owns the request',async()=>{
+  const p=port(),controller=new TerrainController('en',()=>p.value);controller.resize(120,45);controller.select(selected());const loading=controller.load();p.calls[0]!.response.resolve(frame());await loading;
+  let marker:[number,number]|null=null;const click=(x:number,y:number)=>{if(!canPick(controller.state,x,y))return;marker=[x,y];void controller.pick(x,y);};
+  click(10,10);click(60,20);assert.deepEqual(marker,[10,10]);assert.equal(p.calls.length,2);assert.equal(canPick(controller.state,60,20),false);
+  p.calls[1]!.response.resolve({type:'pick',frameId:1,cell:{sourceRecord:0,x:1,y:2,assetId:'tile',subtile:0,worldX:10,worldY:10,depth:0}});await tick();assert.deepEqual(marker,[10,10]);assert.equal(controller.state.cell!.worldX,10);
+  click(-1,10);assert.deepEqual(marker,[10,10]);controller.dispose();
 });

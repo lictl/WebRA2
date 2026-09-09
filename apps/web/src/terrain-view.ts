@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2026 WebRA2 contributors. Original viewport UI; no retail persistence.
-import { TerrainController } from './terrain-controller.ts';
+import { TerrainController, canPick } from './terrain-controller.ts';
 import { terrainText } from './terrain-i18n.ts';
 import { formatBytes,type Locale } from './i18n.ts';
 import type { Zoom } from './terrain-protocol.ts';
@@ -23,7 +23,7 @@ export function mountTerrain(root:HTMLElement,controller:TerrainController):()=>
   const zoom=(delta:number)=>{const current=Number(get<HTMLSelectElement>('zoom').value),levels:Zoom[]=[0.5,1,2,4];controller.zoom(levels[Math.max(0,Math.min(3,levels.indexOf(current as Zoom)+delta))]!);};
   click('zoom-in',()=>zoom(1));click('zoom-out',()=>zoom(-1));click('reset',()=>controller.reset());
   click('left',()=>controller.pan(-128,0));click('right',()=>controller.pan(128,0));click('up',()=>controller.pan(0,-128));click('down',()=>controller.pan(0,128));
-  const pick=(x:number,y:number)=>{marker.style.left=`${x/canvas.width*100}%`;marker.style.top=`${y/canvas.height*100}%`;void controller.pick(x,y);};
+  const pick=(x:number,y:number)=>{if(!canPick(controller.state,x,y))return;marker.style.left=`${x/canvas.width*100}%`;marker.style.top=`${y/canvas.height*100}%`;void controller.pick(x,y);};
   click('pick',()=>pick(Math.floor(canvas.width/2),Math.floor(canvas.height/2)));
   canvas.addEventListener('keydown',event=>{const pan:Record<string,[number,number]>={ArrowLeft:[-64,0],ArrowRight:[64,0],ArrowUp:[0,-64],ArrowDown:[0,64]};if(Object.hasOwn(pan,event.key)){event.preventDefault();controller.pan(...pan[event.key]!);}else if(['+','=','-','Home','Enter'].includes(event.key)){event.preventDefault();if(event.key==='Home')controller.reset();else if(event.key==='Enter')pick(Math.floor(canvas.width/2),Math.floor(canvas.height/2));else zoom(event.key==='-'?-1:1);}});
   let drag:{id:number;x:number;y:number;distance:number}|null=null;
