@@ -5,19 +5,20 @@ now authorizes continuing toward a fully playable UI and original RA2/YR campaig
 until essential human input is needed. This supersedes the previous M0 stopping
 point. M0 integration [PR #42](https://github.com/lictl/WebRA2/pull/42) merged as
 `d590992382d1ce1526942e12b0c5dc51796da1a2`; its evidence remains the baseline.
-The [UI #27 / PR #56](https://github.com/lictl/WebRA2/pull/56) has merged after actual
-four-browser import acceptance. The localhost build/launcher
-[#45 / PR #46](https://github.com/lictl/WebRA2/pull/46) is merged. Current coordinator
-work is [terrain resource preparation #86](https://github.com/lictl/WebRA2/issues/86);
-[profile loading #79 / PR #84](https://github.com/lictl/WebRA2/pull/84) has merged.
-The first simulation, browser inspector, CSF runtime, incremental hashing and verified
-browser source sessions have merged, along with effective INI, map-pack codecs,
-terrain geometry, worker file reads, verified profile composition, runtime catalog
-and TMP/SHP decoding, object placements and theater tile mappings. Parallel work is
-[practice/save UI #75](https://github.com/lictl/WebRA2/issues/75),
-[terrain compositor #83](https://github.com/lictl/WebRA2/issues/83) and coordinator
-resource preparation. [Mission logic #82](https://github.com/lictl/WebRA2/issues/82)
-has merged; opcode execution remains required.
+The import shell [PR #56](https://github.com/lictl/WebRA2/pull/56), localhost
+build [PR #46](https://github.com/lictl/WebRA2/pull/46), and original practice/save
+UI [PR #85](https://github.com/lictl/WebRA2/pull/85) have merged after their recorded
+reviews and browser acceptance. Verified profile loading, terrain preparation and
+CPU composition are also merged. Both opening maps now render privately from the
+player's assets; the actual browser viewport is the next integration.
+
+Current wave: coordinator [object bindings #93](https://github.com/lictl/WebRA2/issues/93)
+and shared viewport infrastructure; browser agent
+[terrain UI #92](https://github.com/lictl/WebRA2/issues/92); format agent
+[VXL/HVA #90](https://github.com/lictl/WebRA2/issues/90); simulation agent
+[mission trigger runtime #91](https://github.com/lictl/WebRA2/issues/91).
+[Native registry/house construction #94](https://github.com/lictl/WebRA2/issues/94)
+is the coordinator's next bounded runtime slice after #93. No mission is playable yet.
 Build/import decisions are recorded in [ADR 0003](adr/0003-browser-build-and-import-boundary.md).
 No essential human input is currently needed. Finish each reviewed slice and continue
 through the accepted milestones; do not stop simply because this first wave merges.
@@ -48,10 +49,10 @@ the coordinator after independent exact-head COMMENT review and successful check
 
 | Role | Current work and exclusive paths | Branch / private worktree |
 | --- | --- | --- |
-| Coordinator | #86 terrain resource preparation; shared configuration/handoff/licensing; #75 review | `codex/86-terrain-preview` at root; preserved #79 worktree |
-| browser_feasibility | #75 practice/save UI; apps/web/**, tests/web-ui/** and docs/sandbox-ui.md; sole browser UI owner | `codex/75-sandbox-ui`, `local/worktrees/sandbox-ui` |
-| mix_reader | #76 complete;  #83 bounded terrain compositor | Preserved `codex/76-theater-tiles`; review checkout under local/reviews |
-| bootstrap_review | #72/#78/#82 complete; independent #86 preparation review | Preserved `codex/82-scenario-logic`, `local/worktrees/scenario-logic` |
+| Coordinator | #93 structural object bindings; #92 shared build/server/licensing; independent reviews | `codex/93-scenario-bindings` at root; shared files in #92 worktree |
+| browser_feasibility | #92 browser terrain viewport; apps/web/**, tests/web-ui/**, docs/terrain-viewport.md; sole native UI owner | `codex/92-terrain-viewport`, `local/worktrees/terrain-viewport` |
+| mix_reader | #90 VXL/HVA decoders and provenance; then #93 review | `codex/90-runtime-voxel`, `local/worktrees/runtime-voxel`; preserved #83 tree |
+| bootstrap_review | #91 deterministic mission trigger runtime; #86 review complete | `codex/91-mission-logic`, `local/worktrees/mission-logic` |
 
 The current wire contracts stay unchanged. The simulation worker owns its internal
 synthetic state policy; importer/UI shared types are coordinated before integration.
@@ -64,14 +65,12 @@ branch/worktree. Never stage a private dependency symlink as node_modules; use
 
 ## Evidence and checks
 
-Merged #45 integration passed **307 public tests** and the actual app/worker build
-(20 code/license files from 19 approved inputs). Final independent review covered
-`e8849549ee7076150cb65a1511443dc11aa3fcfb`; exact-head hosted checks passed. The next
-#79 integration includes object/SHP/theater merges, an additional runtime SHP notice
-and the profile loader. Its counts are recorded in its linked PR after final checks;
-revision-specific counts must not be added across branches. The completed #79
-checks passed 348 tests. Current #86 checks pass **369 public tests**, strict types,
-67 Markdown files/330 links, publication/evidence and the 21-file/19-input build.
+Revision-specific validation counts are recorded in each PR; do not add counts
+across branches. Merged #86 passed 369 tests and both independent private terrain
+resource comparisons. Merged #75 passed 370 tests on its integrated head and actual
+four-browser persistence/replay evidence. Merged #83 passed 348 tests on its branch,
+with independent private CPU composition of both openings. Current #93 final check
+counts are recorded with its PR; all earlier claims remain scoped to their revisions.
 
 All four actual browsers completed the worker's full-folder YR/tolerant import:
 438 files, 118 archives / 14,912 entries, 158 accepted / 280 ignored, 91 named entries,
@@ -97,8 +96,8 @@ The new map-pack codecs independently decode both openings' six terrain/overlay
 packs; LZO agrees with liblzo2 2.10, LCW with a separate Python grammar implementation.
 PR #58 merged after independent review. Terrain PR #65 additionally compiles 6,336
 RA2 and 15,480 YR cells; all decoded fields and full rectangular overlay arrays
-match independent checks. Unknown tile words/sentinels remain explicit. No cells
-have been rendered or mission played.
+match independent checks. Unknown tile words/sentinels remain explicit. Those parser checks alone did not render cells or play a mission. The later
+CPU composition described below renders terrain; original gameplay remains absent.
 
 Merged PR #68 privately assembles all ten verified definition groups in each profile,
 including local CSF catalogs, map-overridden rules and separate other namespaces.
@@ -116,7 +115,8 @@ request-count/control-flow improvements, not a controlled performance benchmark.
 
 TMP PR #73 decodes both supported diamond sizes and optional extra color/depth
 planes; an independent private Python interpreter matches all 1,821 plane hashes
-across 485 present subtiles in 64 members. No actual map has been composited yet.
+across 485 present subtiles in 64 members. The later #83/#86 private composition
+uses the complete selected base-tile closure.
 
 Final integrated baseline: **154 public tests pass**, strict types,
 Markdown links, publication paths and whitespace checks. The new public M0 metadata
@@ -245,55 +245,62 @@ again. Do not push historical unreviewed local branches such as
 | Theater tile candidate mapping | [#76 / PR #81](https://github.com/lictl/WebRA2/pull/81), [review](https://github.com/lictl/WebRA2/pull/81#pullrequestreview-5158152506) | 7fe3459fb4242e2df144bab7c582864e7fe106ab |
 | Catalog-to-profile loading | [#79 / PR #84](https://github.com/lictl/WebRA2/pull/84), [review](https://github.com/lictl/WebRA2/pull/84#pullrequestreview-5158255110) | 4a2ab46fc945486fb4ae4ed80ed9470ba9159479 |
 | Scenario logic compilation | [#82 / PR #87](https://github.com/lictl/WebRA2/pull/87), [review](https://github.com/lictl/WebRA2/pull/87#pullrequestreview-5158394712) | fd28eb974a82bd40798e6d13756f44f00e6ec7c0 |
+| Verified terrain preparation | [#86 / PR #89](https://github.com/lictl/WebRA2/pull/89), [review](https://github.com/lictl/WebRA2/pull/89#pullrequestreview-5158520499) | 78d31e423cbbe16bce1bbae1bebe96762ecc47bb |
+| Original practice/save UI | [#75 / PR #85](https://github.com/lictl/WebRA2/pull/85), [review](https://github.com/lictl/WebRA2/pull/85#pullrequestreview-5158554385) | 2d5b012e02d6d1fe45e0d5323e2a2eb00fb5a235 |
+| CPU terrain scene | [#83 / PR #88](https://github.com/lictl/WebRA2/pull/88), [review](https://github.com/lictl/WebRA2/pull/88#pullrequestreview-5158554593) | efecb03d9a494826996e8ce4256200a13e1b3454 |
 
 ## Remaining work and exact next action
 
-Finish independent review/CI and merge #86, then connect its prepared resources to
-the #83 terrain compositor and a real map viewport. The #79 loader has merged. Its Node
-private full-selection probe selects all ten pinned M0 groups in both profiles:
-11 RA2 and 12 YR candidates, retaining equivalent/shadowed alternatives; the resulting
-manifest/rules hashes exactly reproduce #62. See [the loader report](installation-profile.md).
-The #86 private full-selection probe prepares 188/242 base TMP sources for all
-6,336/15,480 terrain cells, plus 811/570 object rows, and verifies both explicit
-palettes. Every base root/member and sourceRecord/slot join matches the independent
-#76 closure. See [terrain preparation](terrain-preview.md). Review corrected a
-strict resolver input-shape mismatch and extended definition name/root identity
-consistency across the entire resource operation; regressions cover these joins.
-Rendering and browser presentation are still pending #83 and its UI consumer.
+Finish #93 independent review and merge; then implement the native type-registry
+and house construction policy in #94. [Structural bindings](scenario-bindings.md)
+match all 811/570 opening placements and 2,207/2,805 effective entries/provenance
+against an independent Python parser. They intentionally retain one/three undeclared
+placed types, zero/174 ambiguous owners and zero/three missing house-country
+references. Eight/ten overwritten registry origins are retained. Do not treat a
+final INI key table as proof of the native incremental registry or allocate a
+country as a runtime house. No essential human input is needed now.
 
-A review found a mutable adapter identity could change during hashing; the loader
-now detaches all validated identity scalars before the await, with an original
-mutation regression. This does not change the frozen genuine-catalog results.
+Integrate #92's actual browser terrain view with its separate worker, fixed maximum
+960x640 frame, coalesced requests/progress and frame-bound picking. The coordinator
+has added `apps/web/src/terrain-worker.ts` -> `/workers/terrain.js` to build/server
+allowlists plus the fixture and renderer notice in the #92 worktree. Seven focused
+infrastructure checks passed; an independent reviewer must cover those
+coordinator-authored files before merge. The UI agent owns actual browser actions.
 
-#75 is implementing two original practice scenarios, worker-owned deterministic
-state, bounded integer stepping, three fixed IndexedDB slots and canonical
-save/restore/replay checks. The app-private simulation entry exists at
-`apps/web/src/simulation-worker.ts` → `/workers/simulation.js`. The coordinator
-added that explicit build/server entry and synthetic route fixture in the #75
-worktree; seven infrastructure checks passed. The UI author may include those
-coordinator-owned files in its PR, with separate infrastructure review. Actual
-four-browser practice UI acceptance is still pending. Practice remains visibly
-separate from original campaign play.
+Merged #86 [terrain preparation](terrain-preview.md) prepares 188/242 base TMP
+sources for all 6,336/15,480 cells and 811/570 object rows. Every source/choice join
+matches the independent theater closure and both palette hashes match Python.
+Merged #83 [CPU scene](terrain-scene.md) privately rendered both openings with the
+explicit 60x30/elevation-step-15/opaque-palette baseline. It retained 658/803 unique
+slots and 3,811,888/4,673,096 decoded-plane bytes. Repeated 960x640 frames were equal;
+9,600 sampled visible picks per profile matched sourceRecord coordinates. Private
+images visibly contain terrain, including unresolved filler colors and omitted
+object/overlay layers. This is not native image fidelity or browser acceptance.
+Private scripts/images/facts are in `local/terrain-preview/`.
 
-#72 object placements, #78 SHP decoding and #76 theater mapping have merged after
-independent reviews. Both openings have candidate/slot coverage; no variant winner
-or rendered map is implied. #82 / PR #87 has merged: it compiles raw/provenanced trigger, event, action,
-tag, team, task-force and script definitions with explicit unimplemented semantics.
-Both opening outputs matched the independent Python parser across all INI fields,
-logic instructions and structural references. Then implement common runtime
-interpretation and required gameplay mechanics.
-#86 adds loose theater extensions plus verified terrain resource preparation; ZIP import, large loose-asset
-catalogs, content/mod selection, palettes/elevation/camera/picking and full runtime
-asset closure remain needed. Continue through the authorized milestones while
-required mechanics/opcodes are implemented and verified.
+Merged #75 [practice UI](sandbox-ui.md) uses two original scenarios, a dedicated
+simulation worker and three IndexedDB save slots. Chrome/Firefox/Safari restored a
+tick-3 pending-impact save and identical tick-5 continuation; Edge imported Safari's
+save, persisted/restored tick 5 and matched tick 6/replay. Chrome reached ordinary
+victory at tick 12, Firefox idle defeat at tick 59. Safari export/import/malformed
+recovery and final Chrome slot deletion/empty recovery passed. Exact source/build
+hashes and Edge paint/accessibility limitations are in the report and private
+`local/sandbox-ui/`. These checks do not establish original campaign play.
 
-[#18](https://github.com/lictl/WebRA2/issues/18) retains full effective-content,
-packed/opcode/default and locale behavior work; [#12](https://github.com/lictl/WebRA2/issues/12)
-retains persistent cinematic decoding and campaign release evidence; [#11](https://github.com/lictl/WebRA2/issues/11)
-retains mismatch-cause investigation. Original comparison recipes exist and no
-observation is needed now. Full runtime dependencies, minimal asset subsets, native
-branch/defeat/save behavior, fonts/voice/subtitles and universal mod/theater order
-must remain unverified until implemented and tested.
+#90 adds voxel/span and HVA transforms before vehicle rendering. #91 implements a
+bounded common mission trigger machine, grounded in static operand/timer/tag/order
+evidence, with explicit WebRA2 polling policy and unsupported retail closure. Do not
+silently skip unknown actions, teams, scripts or object mechanics to start a map.
+Entity movement/occupancy, production/combat and actual mission execution remain.
 
-For the final integration PR, look up its merge SHA live; do not create an endless
-commit whose only purpose is recording its own merge SHA.
+[#18](https://github.com/lictl/WebRA2/issues/18) retains full effective-content and
+runtime dependency closure; [#12](https://github.com/lictl/WebRA2/issues/12) retains
+persistent cinematic decoding/playback; [#11](https://github.com/lictl/WebRA2/issues/11)
+retains two movie checksum causes. ZIP/large loose-asset import, mod selection,
+SHP/VXL object rendering, native palettes/lighting/overlays, fonts/audio/media and
+full original gameplay still need implementation and evidence. Continue through
+the accepted milestones; a rendered map or synthetic victory is not a completed
+campaign, and completion of this wave is not a stopping point.
+
+For final integration PRs, look up merge SHAs live. Do not create an endless commit
+whose only purpose is recording its own merge SHA.
