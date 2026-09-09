@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (c) The OpenRA Developers and Contributors
+// Copyright 2026 WebRA2 contributors
 // Filename hash and XCC database adaptation; see ../PROVENANCE.md.
 import { MixError } from './mix.ts';
 export type MixHashKind = 'classic' | 'crc32';

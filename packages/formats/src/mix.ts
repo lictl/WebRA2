@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (c) The OpenRA Developers and Contributors
+// Copyright 2026 WebRA2 contributors
 // MIX format/crypto adaptation: OpenRA contributors; see ../PROVENANCE.md.
 import { Blowfish } from 'egoroof-blowfish';
 
