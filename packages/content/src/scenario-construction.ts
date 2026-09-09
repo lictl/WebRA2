@@ -12,6 +12,8 @@ type Limits = { -readonly [K in keyof typeof SCENARIO_CONSTRUCTION_LIMITS]: numb
 const registries: Readonly<Record<PlacementKind, string>> = Object.freeze({ infantry: 'InfantryTypes', unit: 'VehicleTypes',
   aircraft: 'AircraftTypes', structure: 'BuildingTypes', terrain: 'TerrainTypes', smudge: 'SmudgeTypes' });
 const kinds = Object.keys(registries) as PlacementKind[];
+const placementSections: Readonly<Record<PlacementKind, string>> = Object.freeze({ infantry: 'Infantry', unit: 'Units',
+  aircraft: 'Aircraft', structure: 'Structures', terrain: 'Terrain', smudge: 'Smudge' });
 // Native Read_General visits these known BuildingType FindOrAllocate fields in this fixed order.
 const generalBuildings = ['GDIGateOne', 'GDIGateTwo', 'NodGateOne', 'NodGateTwo'] as const;
 const fold = (s: string): string => s.replace(/[A-Z]/g, c => c.toLowerCase());
@@ -166,8 +168,11 @@ export function assembleScenarioDefinitions(input: { readonly objects: ScenarioO
   function originMatches(row: ScenarioRow): void {
     const original = map!.lines.get(row.origin.line);
     if (!original || row.origin.sourceSha256 !== objects.source.sha256 || row.origin.rawValue !== original.rawValue ||
-        fold(row.origin.sectionSpelling) !== fold(original.sectionSpelling) || fold(row.origin.keySpelling) !== fold(original.keySpelling)) fail('construction-object-origin');
+        row.origin.sectionSpelling !== original.sectionSpelling || row.origin.keySpelling !== original.keySpelling ||
+        row.origin.sectionOccurrence !== original.sectionOccurrence || row.origin.keyOccurrence !== original.keyOccurrence) fail('construction-object-origin');
   }
+  // ScenarioObjects is intentionally folded; this native view must recheck exact source framing.
+  for (const kind of kinds) unique(map.sections.get(placementSections[kind]));
   const catalogs = new Map<PlacementKind, MutableDefinition[]>(), typeMaps = new Map<PlacementKind, Map<string, MutableDefinition>>();
   for (const kind of kinds) { catalogs.set(kind, []); typeMaps.set(kind, new Map()); }
   const countries: MutableDefinition[] = [], countryIds = new Map<string, MutableDefinition>();
@@ -262,6 +267,8 @@ export function assembleScenarioDefinitions(input: { readonly objects: ScenarioO
   for (const placement of placementRows) {
     budget(); originMatches(placement.row);
     if (!kinds.includes(placement.kind) || seenRows.has(placement.row.id)) fail('construction-placement'); seenRows.add(placement.row.id);
+    if (placement.row.origin.sectionSpelling !== placementSections[placement.kind] ||
+        placement.row.section !== fold(placementSections[placement.kind])) fail('construction-placement-section');
     const ownerless = placement.kind === 'terrain' || placement.kind === 'smudge';
     if (placement.type !== placement.row.values[ownerless ? 0 : 1] || placement.owner !== (ownerless ? null : placement.row.values[0])) fail('construction-placement-fields');
     const validType = identifier(placement.type, 24) && !special(placement.type), ids = typeMaps.get(placement.kind)!;

@@ -210,3 +210,12 @@ test('later Countries key replacement preserves earlier allocation and Name upda
   assert.equal(result.houses[0]!.country.index, 0); assert.equal(result.identityComplete, true);
   assert.equal(result.countries[2]!.definitionStages.length, 1);
 });
+
+test('placement source sections require exact native case and reject repeated exact sections before identity closure', () => {
+  assert.throws(() => assembleScenarioDefinitions(input(mission.replace('[Units]', '[units]'))), /construction-placement-section/);
+  assert.throws(() => assembleScenarioDefinitions(input(mission + '[Units]\n1=BlueHouse,TANK,256,2,2,0,Guard,None\n')), /construction-repeated-section/);
+  const value = input(), first = value.objects.placements[0]!;
+  const row = Object.freeze({ ...first.row, origin: Object.freeze({ ...first.row.origin, sectionSpelling: first.row.origin.sectionSpelling.toLowerCase() }) });
+  const objects = Object.freeze({ ...value.objects, placements: Object.freeze([Object.freeze({ ...first, row }), ...value.objects.placements.slice(1)]) });
+  assert.throws(() => assembleScenarioDefinitions({ ...value, objects }), /construction-object-origin/);
+});

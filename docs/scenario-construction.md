@@ -93,7 +93,9 @@ with constructor identity, without retrospectively loading its definition.
 No house list creates one house per existing country, named by country ID rather
 than its Name alias.
 
-Placement owner lookup is case-sensitive against actual allocated house names.
+Placement source sections must use the exact native six-family spelling; repeated
+exact placement sections reject. Folded object-compiler rows cannot authorize a
+differently cased native section. Placement owner lookup is case-sensitive against actual allocated house names.
 Country IDs/aliases and arbitrary matching sections are not owner fallbacks.
 Five placed-type families require existing case-insensitive type IDs. Terrain's
 traced loader may allocate a missing type at placement time, retaining the source
