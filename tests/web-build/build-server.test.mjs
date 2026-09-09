@@ -12,7 +12,7 @@ async function fixture() {
   const root = await mkdtemp(join(tmpdir(), 'webra2-build-'));
   for (const name of ['LICENSE', 'apps/web/PROVENANCE.md', 'LICENSES/GPL-3.0-or-later.txt', 'docs/licensing.md',
     'packages/formats/PROVENANCE.md', 'packages/formats/MAP_PACK_PROVENANCE.md', 'packages/formats/TMP_PROVENANCE.md', 'packages/formats/shp-PROVENANCE.md', 'packages/formats/SHP_RUNTIME_PROVENANCE.md',
-    'packages/content/PROVENANCE.md', 'packages/content/LOCALE_PROVENANCE.md', 'packages/vfs/PROVENANCE.md', 'packages/vfs/HASH_PROVENANCE.md',
+    'packages/render/PROVENANCE.md', 'packages/content/PROVENANCE.md', 'packages/content/LOCALE_PROVENANCE.md', 'packages/vfs/PROVENANCE.md', 'packages/vfs/HASH_PROVENANCE.md',
     'node_modules/@noble/hashes/LICENSE', 'node_modules/egoroof-blowfish/LICENSE.md']) {
     await mkdir(dirname(join(root, name)), { recursive: true }); await copyFile(join(repositoryRoot, name), join(root, name));
   }
@@ -20,6 +20,7 @@ async function fixture() {
   await writeFile(join(root, 'apps/web/src/main.ts'), "import './style.css'; const title: string = 'Synthetic app'; document.body.dataset.title = title;\n");
   await writeFile(join(root, 'apps/web/src/import-worker.ts'), 'self.onmessage = () => self.postMessage(42);');
   await writeFile(join(root, 'apps/web/src/simulation-worker.ts'), 'self.onmessage = () => self.postMessage(43);');
+  await writeFile(join(root, 'apps/web/src/terrain-worker.ts'), 'self.onmessage = () => self.postMessage(44);');
   await writeFile(join(root, 'apps/web/src/style.css'), 'body { color: #f0f0f0; }');
   await writeFile(join(root, 'apps/web/index.html'), '<!doctype html><html><head><link rel="stylesheet" href="/app.css"></head><body><script type="module" src="/app.js"></script></body></html>');
   return root;
@@ -36,9 +37,10 @@ test('build emits portable code and notices with a hash manifest, without retail
   const root = await fixture();
   try {
     const manifest = await buildWeb(root);
-    assert.deepEqual(manifest.inputs, ['apps/web/src/import-worker.ts', 'apps/web/src/main.ts', 'apps/web/src/simulation-worker.ts', 'apps/web/src/style.css']);
+    assert.deepEqual(manifest.inputs, ['apps/web/src/import-worker.ts', 'apps/web/src/main.ts', 'apps/web/src/simulation-worker.ts', 'apps/web/src/style.css', 'apps/web/src/terrain-worker.ts']);
     assert.ok(manifest.files.some(row => row.name === 'app.css'));
     assert.ok(manifest.files.some(row => row.name === 'licenses/noble-hashes.txt'));
+    assert.ok(manifest.files.some(row => row.name === 'licenses/packages-render-PROVENANCE.md.txt'));
     assert.ok(manifest.files.some(row => row.name === 'licenses/packages-vfs-HASH_PROVENANCE.md.txt'));
     for (const component of ['MAP_PACK', 'TMP', 'SHP_RUNTIME']) assert.ok(manifest.files.some(row => row.name === `licenses/packages-formats-${component}_PROVENANCE.md.txt`));
     assert.ok(manifest.files.some(row => row.name === 'LICENSES/GPL-3.0-or-later.txt'));
@@ -72,7 +74,7 @@ test('launcher serves only validated app routes with no asset or upload endpoint
   const root = await fixture(); let app;
   try {
     await buildWeb(root); app = await startWebServer({ root, port: 0 });
-    for (const path of ['/', '/index.html', '/app.js', '/app.css', '/workers/import.js', '/workers/simulation.js', '/NOTICES.txt', '/LICENSES/GPL-3.0-or-later.txt']) assert.equal((await http(app.url, path)).status, 200);
+    for (const path of ['/', '/index.html', '/app.js', '/app.css', '/workers/import.js', '/workers/simulation.js', '/workers/terrain.js', '/NOTICES.txt', '/LICENSES/GPL-3.0-or-later.txt']) assert.equal((await http(app.url, path)).status, 200);
     const page = await http(app.url, '/'); assert.match(page.headers['content-security-policy'], /connect-src 'none'/); assert.match(page.headers['content-security-policy'], /frame-ancestors 'none'/);
     const head = await http(app.url, '/app.js', { method: 'HEAD' }); assert.equal(head.status, 200); assert.equal(head.body, '');
     for (const path of ['/game/ra2.mix', '/local/secret', '/../game/ra2.mix', '/%2e%2e/game/ra2.mix', '//app.js', '/app.js?asset=1', '/manifest.json', '/workers/arbitrary.js']) assert.equal((await http(app.url, path)).status, 404);
@@ -97,7 +99,8 @@ test('build rejects external runtime code and remote CSS resources', async () =>
     await writeFile(join(root, 'apps/web/src/main.ts'), "import 'https://example.com/runtime.js';");
     await assert.rejects(buildWeb(root), /external runtime imports/);
     await writeFile(join(root, 'apps/web/src/main.ts'), "import './style.css';");
-    await writeFile(join(root, 'apps/web/src/style.css'), 'body { background: url(https://example.com/asset.png); }');
+    await writeFile(join(root, 'apps/web/src/terrain-worker.ts'), 'self.onmessage = () => self.postMessage(44);');
+  await writeFile(join(root, 'apps/web/src/style.css'), 'body { background: url(https://example.com/asset.png); }');
     await assert.rejects(buildWeb(root), /external runtime imports/);
   } finally { await rm(root, { recursive: true, force: true }); }
 });

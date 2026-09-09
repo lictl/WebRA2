@@ -35,6 +35,10 @@ notice also accompanies the development bundle.
 Original runtime INI, terrain/object/mission-logic tables, theater mappings, terrain preview and verified catalog
 profile composition use the content component's GPL-3.0-or-later license. No decoded retail map or tile is shipped.
 
+The CPU terrain scene and composing browser viewport are GPL-3.0-or-later;
+[render provenance](../packages/render/PROVENANCE.md) records pinned OpenRA placement
+and composition references. This notice accompanies the development bundle.
+
 The locale/font coverage scanner and verified analysis CLI retain GPL-3.0-or-later.
 The `fonT` adaptation preserves the MIT copyright and permission notice for Belonit's
 ra2fnt revision `56da5b30fb53eebfaf35e98b2e1c6b3e150f58af` in
