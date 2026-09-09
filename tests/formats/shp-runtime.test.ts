@@ -135,12 +135,44 @@ test('geometry, signature, frame/byte/pixel limits and ordinal checks reject', (
   }
 });
 
-test('unknown compression is preserved then rejected, including high-word flags', () => {
-  for (const format of [4, 259, 0xffffffff]) {
+test('unknown mode bytes are preserved then rejected without masking their low-byte bits', () => {
+  for (const format of [4, 7, 0x80, 0xabcd1204, 0xffffffff]) {
     const decoder = createRuntimeShp(shp([{ width: 3, height: 1, format, data: row(1, 2, 3) }]));
     assert.equal(decoder.frames[0]!.compressionWord, format);
+    assert.equal(decoder.frames[0]!.compressionByte, format & 255);
     code(() => decoder.decodeFrame(0), 'shp-unsupported-compression');
   }
+});
+
+test('compression dispatch reads the mode byte and preserves all higher flag bytes independently', () => {
+  for (const mode of [0, 1, 2, 3]) {
+    const format = 0xabcd1200 + mode, data = mode < 2 ? [1, 2, 3] : row(1, 2, 3);
+    const decoder = createRuntimeShp(shp([{ width: 3, height: 1, format, data }]));
+    assert.equal(decoder.frames[0]!.compressionWord, format); assert.equal(decoder.frames[0]!.compressionByte, mode);
+    assert.deepEqual(decoder.frames[0]!.auxiliaryBytes, [0x12, 0xcd, 0xab]); assert.ok(Object.isFrozen(decoder.frames[0]!.auxiliaryBytes));
+    assert.deepEqual([...decoder.decodeFrame(0).copyPixels()], [1, 2, 3]);
+    assert.throws(() => { (decoder.frames[0]!.auxiliaryBytes as unknown as number[])[0] = 0; }, TypeError);
+  }
+});
+
+test('shared payloads compare decode mode and dimensions while retaining different per-frame flag bytes', () => {
+  const decoder = createRuntimeShp(shp([{ width: 3, height: 1, format: 0xabcd1203, data: row(1, 2, 3) },
+    { width: 3, height: 1, format: 0x54321003, share: 0, x: 2, y: 3 }]));
+  assert.deepEqual(decoder.frames.map(f => f.auxiliaryBytes), [[0x12, 0xcd, 0xab], [0x10, 0x32, 0x54]]);
+  assert.equal(decoder.frames[1]!.payloadOwner, 0); assert.equal(decoder.frames[0]!.sharedFrameCount, 2);
+  assert.deepEqual([...decoder.decodeFrame(0).copyPixels()], [...decoder.decodeFrame(1).copyPixels()]);
+  code(() => createRuntimeShp(shp([{ width: 3, height: 1, format: 0xabcd1203, data: row(1, 2, 3) },
+    { width: 3, height: 1, format: 0xabcd1201, share: 0 }])), 'shp-shared-layout');
+});
+
+test('auxiliary bytes do not bypass truncation, empty mode validation or the format2 zero restriction', () => {
+  const empty = createRuntimeShp(shp([{ width: 0, height: 0, format: 0xabcd1203 }]));
+  assert.equal(empty.decodeFrame(0).pixelCount, 0); assert.deepEqual(empty.frames[0]!.auxiliaryBytes, [0x12, 0xcd, 0xab]);
+  const invalidEmpty = createRuntimeShp(shp([{ width: 0, height: 0, format: 0xabcd1204 }]));
+  code(() => invalidEmpty.decodeFrame(0), 'shp-unsupported-compression');
+  code(() => selected(0xabcd1201, [1], 3), 'shp-truncated-raw');
+  code(() => selected(0xabcd1203, [5, 0, 1], 3), 'shp-truncated-row');
+  code(() => selected(0xabcd1202, row(1, 0, 3), 3), 'shp-format2-ambiguous');
 });
 
 test('fixed input snapshot and output copies cannot mutate future frames', () => {
