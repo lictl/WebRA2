@@ -29,6 +29,12 @@ rules with matching names. CSF text remains in an immutable catalog with duplica
 labels surfaced as ambiguity. The font is read and verified for its content
 identity but is not parsed or retained by this component.
 
+Policy 2 additionally exposes `sourceViews` for rules, mission, art, AI, battle,
+mapsel, briefing and sound. These factory-produced exact retained-source views
+remain in their originating realm, beside the unchanged folded tables. They preserve
+all source stages, exact names and raw RHS provenance; they do not choose native
+duplicate winners. See [the source view](ini-source-view.md).
+
 Before asynchronous work, the assembler validates and detaches the plan. It caps
 128 files, 32 MiB aggregate member bytes, 16 MiB per member and 32 ordered mods.
 INI layer limits also apply. Cross-profile sources, conflicting role/path choices,
@@ -45,12 +51,15 @@ Bounded synchronous INI/CSF compilation should run in the application worker.
 
 ## Identity and provenance
 
-The policy is `webra2-profile-content-1`. SHA-256 fingerprints encode JSON with
-explicit stable key order: policy, INI policy, CSF policy, engine compatibility
+The policy is `webra2-profile-content-2`. SHA-256 fingerprints encode JSON with
+explicit stable key order: policy, INI policy, source-view policy, scenario
+construction policy, object-art policy, CSF policy, engine compatibility
 version, profile, ordered mod hashes, and files sorted by declared order. Each
 semantic file contains path, role, order, kind, member size and member SHA-256.
 The manifest fingerprint covers every selected role; the rules fingerprint covers
 rules plus the selected mission. Changing semantic choices changes the identity.
+The added policy fields deliberately invalidate policy-1 content fingerprints;
+this is a compatibility migration, not a claim that old native saves can be read.
 
 Opaque picker IDs, physical root hashes and archive offsets remain in output
 provenance but are excluded from semantic fingerprints. Equivalent loose and
@@ -73,7 +82,7 @@ Traditional Chinese lookup, independent Node SHA-256 calculation, equivalent
 physical representations, order/profile/mod changes, detached plans, malformed
 plans, substituted bytes, cancellation and realms without SharedArrayBuffer.
 
-A separate private probe read the ten selected definition groups in each
+The original policy-1 private probe read the ten selected definition groups in each
 [M0 reference profile](analysis/m0-reference-profile.json) through genuine Node
 `fs.openAsBlob` and the verified browser-session API. It used roles in the order
 rules, art, AI, battle, mapsel, briefing, sound, strings, font, mission; map kind for
@@ -91,7 +100,7 @@ not evidence of browser timing or native mission behavior.
 | Standalone mission entries | 4,583 | 8,974 |
 | CSF records | 4,479 | 5,211 |
 
-Manifest fingerprints for that explicit plan are RA2
+Historical **policy-1** manifest fingerprints for that explicit plan are RA2
 `9b438f71a503d13c8e678f0b723afc7f2055f21116e5c3d12c28f7f9f5d9303d`
 and YR `b822fc49daccba5b7d91d7fb453bb6c497c9a89dd8a1f6947a63d5036939a116`.
 Rules fingerprints are RA2
@@ -100,6 +109,12 @@ and YR `1955d7570080eed19f46f3b804190d921756b845665ca2287a4b7ceaf691e980`.
 Private reproduction and aggregate results remain under the worker checkout's
 ignored `local/probe-profile-content.mjs` and `local/profile-content-facts.json`.
 Missing retail assets skip the private gate, not pass it.
+
+Policy-2 assembly is also exercised by both full opening artwork preparations in
+[the artwork report](object-art.md). Both retain all ten authenticated source groups
+and existing folded tables; exact source views and revised fingerprints are added.
+Public tests independently calculate the new fingerprint envelope and verify that
+its source-view lookups preserve case and namespace isolation.
 
 This original composition module and its tests are GPL-3.0-or-later because they
 compose the existing GPL VFS/content modules; see [licensing](licensing.md).

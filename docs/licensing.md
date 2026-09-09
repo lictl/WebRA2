@@ -42,7 +42,9 @@ references and explicit preview limitations in
 [object-art provenance](../packages/content/OBJECT_ART_PROVENANCE.md). Native
 scenario construction retains its static evidence in
 [construction provenance](../packages/content/CONSTRUCTION_PROVENANCE.md); both
-notices accompany the development bundle.
+notices accompany the development bundle. The exact retained-source view uses
+the same GPL terms and includes [its provenance](../packages/content/INI_SOURCE_PROVENANCE.md)
+in the bundle.
 
 The CPU terrain scene and composing browser viewport are GPL-3.0-or-later;
 [render provenance](../packages/render/PROVENANCE.md) records pinned OpenRA placement
