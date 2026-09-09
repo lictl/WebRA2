@@ -22,8 +22,8 @@ part of the published census. No additional runtime dependency was introduced.
 
 The bounded SHP format-2 decoder, analysis CLI and original tests retain
 GPL-3.0-or-later with pinned OpenRA and EA/XCC notices in
-[the sprite provenance](../packages/formats/shp-PROVENANCE.md). The browser probe
-and loopback server are original MIT diagnostics; no retail sprite/palette is shipped.
+[the sprite provenance](../packages/formats/shp-PROVENANCE.md). The composing browser
+probe and loopback server also use GPL-3.0-or-later; no retail sprite/palette is shipped.
 
 The map-pack LZO/LCW codecs retain their pinned OpenRA/minilzo attribution in
 [map-pack provenance](../packages/formats/MAP_PACK_PROVENANCE.md). The TMP decoder
