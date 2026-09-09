@@ -8,7 +8,7 @@ import { ImportController } from '../../apps/web/src/controller.ts';
 import type { ImportReply } from '../../apps/web/src/import-protocol.ts';
 import type { BrowserImportReport, BrowserImportOptions, ImportProgress } from '../../packages/vfs/src/browser-types.ts';
 const progress: ImportProgress = { phase: 'archives', totalFiles: 1, filesProcessed: 0, archives: 1, members: 2, bytesRead: 30 };
-function report(): BrowserImportReport { return { schemaVersion: 1, profile: 'ra2', policy: 'tolerant', status: 'inspected', files: [], archives: [], requirements: [], diagnostics: [], summary: { selectedFiles: 1, acceptedFiles: 1, ignoredFiles: 0, archives: 0, members: 0, namedMembers: 0, bytesRead: 0 }, canStartCampaign: false }; }
+function report(): BrowserImportReport { return { schemaVersion: 1, profile: 'ra2', policy: 'tolerant', status: 'inspected', files: [], archives: [], requirements: [], diagnostics: [], summary: { selectedFiles: 0, acceptedFiles: 0, ignoredFiles: 0, archives: 0, members: 0, namedMembers: 0, bytesRead: 0 }, canStartCampaign: false }; }
 class FakeWorker implements ImportWorkerPort {
   onmessage: Worker['onmessage'] = null; onerror: Worker['onerror'] = null; onmessageerror: Worker['onmessageerror'] = null;
   sent: unknown[] = []; terminations = 0;
@@ -47,7 +47,8 @@ test('pre-abort avoids worker creation; dispose terminates a running job; no mai
 });
 test('worker errors and invalid messages fail closed without exposing arbitrary payloads', async () => {
   for (const message of [{ version: 2, type: 'report', jobId: 1 }, { version: 1, type: 'progress', jobId: 1, sequence: 1, progress: { ...progress, bytesRead: 2 ** 30 } },
-    { version: 1, type: 'report', jobId: 1, report: { ...report(), canStartCampaign: true } }, { version: 1, type: 'error', jobId: 1, name: 'PRIVATE CONTENT' }]) {
+    { version: 1, type: 'report', jobId: 1, report: { ...report(), canStartCampaign: true } },
+    { version: 1, type: 'report', jobId: 1, report: { ...report(), files: [null], summary: {} } }, { version: 1, type: 'error', jobId: 1, name: 'PRIVATE CONTENT' }]) {
     const worker = new FakeWorker(); const done = createWorkerInspector(() => worker)(files(), { profile: 'ra2', policy: 'tolerant' }); worker.emit(message);
     await assert.rejects(done, error => error instanceof Error && error.name === 'Error' && !error.message.includes('PRIVATE')); assert.equal(worker.terminations, 1);
   }
@@ -91,4 +92,21 @@ test('runtime rejects wrong profiles, over-cap and non-File inputs before inspec
   }
   const worker = runtime(async () => { throw { name: 'SECRET', message: 'private payload' }; }); worker.receive(request()); await Promise.resolve();
   assert.deepEqual(worker.sent, [{ version: 1, type: 'error', jobId: 7, name: 'Error' }]);
+});
+
+test('real synthetic importer reports cross validation; malformed nested metadata fails before the UI', async () => {
+  const { inspectInstallation } = await import('../../packages/vfs/src/browser-import.ts');
+  const { validImportReport } = await import('../../apps/web/src/import-report-validation.ts');
+  // One classic member and one loose requirement are original synthetic bytes.
+  const bytes = new Uint8Array(24), view = new DataView(bytes.buffer);
+  view.setUint16(0, 1, true); view.setUint32(2, 6, true); view.setUint32(6, 123, true); view.setUint32(14, 6, true);
+  const value = await inspectInstallation([new File([bytes], 'ra2.mix'), new File(['original'], 'rules.ini')], { profile: 'ra2', policy: 'tolerant' });
+  assert.equal(validImportReport(value), true);
+  for (const corrupt of [
+    (r: any) => { r.unexpected = new Blob(['must not propagate']); }, (r: any) => { r.files[0].payload = new Uint8Array(1); },
+    (r: any) => { r.summary.bytesRead = -1; }, (r: any) => { r.files[0].size = Infinity; }, (r: any) => { r.files[0].kind = 'executable-code'; },
+    (r: any) => { r.archives[0].nameCandidates = [null]; }, (r: any) => { r.archives[0].members[0].names = [null]; },
+    (r: any) => { r.archives[0].members[0].nameEvidence = [{ name: 'x', source: null, hashKind: 'classic' }]; },
+    (r: any) => { r.requirements[0].matches[0].sourceId = 'missing'; }, (r: any) => { r.diagnostics.push({ code: 'x', severity: 'unknown' }); },
+  ]) { const changed = structuredClone(value); corrupt(changed); assert.equal(validImportReport(changed), false); }
 });

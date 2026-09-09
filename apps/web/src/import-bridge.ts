@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2026 WebRA2 contributors.
 import type { Inspector } from './controller.ts';
+import { validImportReport } from './import-report-validation.ts';
 import { IMPORT_PROTOCOL, MAX_WORKER_FILES, MAX_WORKER_PATH, errorName, positiveInteger, record, validProgress, type ImportRequest, type ProgressAck } from './import-protocol.ts';
 import type { BrowserImportReport } from '../../../packages/vfs/src/browser-types.ts';
 export type ImportWorkerPort = Pick<Worker, 'postMessage' | 'terminate' | 'onmessage' | 'onerror' | 'onmessageerror'>;
@@ -42,11 +43,8 @@ export function createWorkerInspector(createWorker: () => ImportWorkerPort = () 
             lastSequence = value.sequence;
             options.onProgress?.(value.progress);
             if (!finished) worker!.postMessage({ version: IMPORT_PROTOCOL, type: 'ack', jobId, sequence: lastSequence } satisfies ProgressAck);
-          } else if (value.type === 'report' && record(value.report) && value.report.schemaVersion === 1 && value.report.profile === options.profile &&
-            value.report.policy === options.policy && value.report.canStartCampaign === false && ['inspected', 'limited'].includes(String(value.report.status)) &&
-            Array.isArray(value.report.files) && value.report.files.length <= MAX_WORKER_FILES && Array.isArray(value.report.archives) && value.report.archives.length <= 512 &&
-            Array.isArray(value.report.requirements) && value.report.requirements.length <= 10 && Array.isArray(value.report.diagnostics) && value.report.diagnostics.length <= 4096 && record(value.report.summary)) {
-            finish(value.report as unknown as BrowserImportReport);
+          } else if (value.type === 'report' && validImportReport(value.report) && value.report.profile === options.profile && value.report.policy === options.policy) {
+            finish(value.report);
           } else if (value.type === 'error') finish(undefined, failure(errorName(value.name)));
           else finish();
         } catch { finish(); }
