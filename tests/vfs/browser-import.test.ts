@@ -36,6 +36,42 @@ test('nested numeric MIX metadata preserves ranges and candidate provenance with
   assert.equal(report.files[0]!.identity.sha256, null); assert.equal(report.canStartCampaign, false);
   assert.doesNotMatch(JSON.stringify(report), /DO_NOT_PUBLISH|arrayBuffer/); assert.ok(Object.isFrozen(nested.members[0]!.nameEvidence));
 });
+test('numeric candidate probes reuse only ten header bytes while valid nested indexes still read their exact ranges', async () => {
+  const child = mix([{ name: 'rules.ini', data: text('NOT_AN_ARCHIVE_HEADER') }]);
+  const bad = text('NOT_AN_ARCHIVE_HEADER');
+  const root = mix([{ id: 0x12345678, data: child }, { id: 0x23456789, data: bad }]);
+  const ranges: [number, number][] = [];
+  class CountedFile extends File {
+    override slice(start = 0, end = this.size, type?: string): Blob { ranges.push([start, end - start]); return super.slice(start, end, type); }
+  }
+  const report = await inspectInstallation([new CountedFile([new Uint8Array(root)], 'ra2.mix')], options);
+  assert.equal(report.archives.length, 2); assert.equal(report.summary.members, 3);
+  assert.equal(report.archives[1]!.identification, 'structural-probe');
+  assert.equal(requirement(report, 'rules.ini').status, 'candidate');
+  const childStart = 30, payloadStart = childStart + 18, badStart = childStart + child.length;
+  assert.deepEqual(ranges, [[0, 6], [0, 6], [0, 30], [childStart, 10], [childStart, 18], [payloadStart, 10], [badStart, 10]]);
+  assert.equal(report.summary.bytesRead, ranges.reduce((n, [, size]) => n + size, 0));
+  assert.equal(report.summary.bytesRead, 90);
+});
+test('short structural prefixes and cancellation after a prefix read do not trigger additional native reads', async () => {
+  const short = Uint8Array.of(255, 255, 0, 0, 0, 0);
+  const root = mix([{ id: 0x12345678, data: short }]);
+  const ranges: [number, number][] = [];
+  const controller = new AbortController(); let cancel = false;
+  class CountedFile extends File {
+    override slice(start = 0, end = this.size): Blob {
+      ranges.push([start, end - start]);
+      if (cancel && start === 18) controller.abort();
+      return super.slice(start, end);
+    }
+  }
+  const source = new CountedFile([new Uint8Array(root)], 'ra2.mix');
+  const report = await inspectInstallation([source], options);
+  assert.equal(report.archives.length, 1); assert.deepEqual(ranges, [[0, 6], [0, 6], [0, 18], [18, 6]]);
+  cancel = true; ranges.length = 0;
+  await assert.rejects(inspectInstallation([source], { ...options, signal: controller.signal }), { name: 'AbortError' });
+  assert.deepEqual(ranges, [[0, 6], [0, 6], [0, 18], [18, 6]]);
+});
 test('strict blocks unverified checksum ancestry while tolerant inspection retains explicit warnings', async () => {
   const root = file('ra2.mix', mix([{ name: 'cache.mix', data: mix([{ name: 'rules.ini', data: text('synthetic') }]) }], true));
   const strict = await inspectInstallation([root], { ...options, policy: 'strict' });

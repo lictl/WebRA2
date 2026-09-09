@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2026 WebRA2 contributors. Uses GPL MIX/name/integrity components; see docs/browser-import.md.
-import { MixError, readExact, mixMemberSource, type ByteSource } from '../../formats/src/mix.ts';
+import { MixError, assertRange, readExact, mixMemberSource, type ByteSource } from '../../formats/src/mix.ts';
 import { inspectMixIntegrity, decideMixImport } from '../../formats/src/mix-integrity.ts';
 import { MixNameResolver, hashMixName, readXccLocalNames } from '../../formats/src/mix-names.ts';
 import { normalizeAssetPath } from './profile.ts';
@@ -157,9 +157,19 @@ export async function inspectInstallation(input: readonly File[], options: Brows
     for (const entry of mix.entries) {
       const candidates = [...new Set(resolver.resolve(entry.id).map(name => name.name))].sort(compare);
       const nestedNames = candidates.filter(name => archiveExtension.test(name));
-      const memberSource = mixMemberSource(source, mix, entry);
+      const uncachedSource = mixMemberSource(source, mix, entry);
+      let memberSource = uncachedSource;
       if (entry.size < 6 && !nestedNames.length) continue;
-      if (!nestedNames.length && isKnownNonArchive(await readExact(memberSource, 0, Math.min(10, entry.size)))) continue;
+      if (!nestedNames.length) {
+        const prefix = await readExact(uncachedSource, 0, Math.min(10, entry.size));
+        if (isKnownNonArchive(prefix)) continue;
+        // Structural MIX probes immediately request the same header again. Retain
+        // only these already-read bytes for this visit, without payload read-ahead.
+        memberSource = { size: uncachedSource.size, async read(start, length) {
+          guard(); assertRange(uncachedSource.size, start, length);
+          return start <= prefix.length && length <= prefix.length - start ? prefix.slice(start, start + length) : readExact(uncachedSource, start, length);
+        } };
+      }
       if (depth >= BROWSER_IMPORT_LIMITS.depth) {
         if (nestedNames.length) { limited = true; diagnostic({ code: 'archive-depth-limit', severity: 'warning', sourceId: file.id, archiveId: id }); }
         continue;
