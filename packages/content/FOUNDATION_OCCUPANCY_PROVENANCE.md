@@ -69,7 +69,7 @@ failure, arbitrary DLL hooks and non-returning native errors are outside its sco
 | RA2 / building getter | `0x4588c0–0x458913` | 362688 / 83 | `640b37b41cbd5b52a133effe0a8b276529774cc114072f5a960070bb408f7d1b` |
 | RA2 / Building accepted-load path to pointer | `0x459a00–0x45ae0c` | 367104 / 5132 | `9fa4ce38123733f997e0297daa99efa3a6d2c7e2e74e9ab79bd8d77cec73462c` |
 | RA2 / building list binding | `0x45adf1–0x45ae0c` | 372209 / 27 | `155c3f7e137d5d05993b641a1ce0e4df909c61aec88207930b9bccb29d2df120` |
-| RA2 / empty element constructor | `0x45ecf0–0x45ecf1` | 388336 / 1 | `3ebe1b59762a1c8020c1efe3747dd07f0e30617ed60b4e6a5bee16b6ea421dd0` |
+| RA2 / empty element constructor | `0x45ecf0–0x45ecf3` | 388336 / 3 | `58367ffa2a0179375018fa0f5c26da24391e42ebe0ed8fdda35a21fc7bdc396f` |
 | RA2 / bounded cell list copy | `0x482e10–0x482e57` | 536080 / 71 | `d0cb5ff71bf0c06636d4933ff5528cdbf868a99025191dde2001c3fa8780854c` |
 | RA2 / attachment list caller | `0x54ab70–0x54aca1` | 1354608 / 305 | `a2e99abcf2f14bd70524d903d925d842d2f7975848b0d6c8c8a8ed7032d7cd60` |
 | RA2 / object getter delegation | `0x5d4470–0x5d44e5` | 1918064 / 117 | `5ec0bb0a25ab73879e30e0eb5a5769b54dfce6bad287fcce744fa7e6d664ddf7` |
@@ -97,7 +97,7 @@ failure, arbitrary DLL hooks and non-returning native errors are outside its sco
 | YR / building getter | `0x45ec20–0x45ec73` | 388128 / 83 | `b1bde6a4dc71a61f1207563d3d3eb09719ed24e0cd5ea82e038e447473c80a8f` |
 | YR / Building accepted-load path to pointer | `0x45fe50–0x461547` | 392784 / 5879 | `b81ffc806d6437ba54cdbdca05aafb6ec4eed270969b9e50ff0834f3add5589e` |
 | YR / building list binding | `0x46152c–0x461547` | 398636 / 27 | `d525a0b2e3262815d984f4f31939dd0bee08ee4f1b93b0b676445a41e1305aa3` |
-| YR / empty element constructor | `0x465d80–0x465d81` | 417152 / 1 | `3ebe1b59762a1c8020c1efe3747dd07f0e30617ed60b4e6a5bee16b6ea421dd0` |
+| YR / empty element constructor | `0x465d80–0x465d83` | 417152 / 3 | `58367ffa2a0179375018fa0f5c26da24391e42ebe0ed8fdda35a21fc7bdc396f` |
 | YR / cell object attachment | `0x47e8a0–0x47ea89` | 518304 / 489 | `eb9ffd7283e75be8b62aa245ddef363ac3f8073d97508ee350d39903b5a9f198` |
 | YR / bounded cell list copy | `0x48dee0–0x48df27` | 581344 / 71 | `d0cb5ff71bf0c06636d4933ff5528cdbf868a99025191dde2001c3fa8780854c` |
 | YR / attachment list caller | `0x5683c0–0x568510` | 1475520 / 336 | `a2759398a27d61ed11573261abd98b704cedc37d433243b6957b3d54fb0e8fc1` |

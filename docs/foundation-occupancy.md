@@ -141,8 +141,12 @@ same rules/art/opening maps as #113, and compares the result to original Python
 static propagation of the native initializer assignments. The propagation reads
 PE bytes, uses Capstone 5.0.6 for instruction decoding and applies bounded scalar
 assignment/call summaries. It never executes a game program. Constructor helper
-clobbers and the empty element constructor are explicitly checked. Raw cell lists,
-INI files, output placements and native listings stay in ignored `local/`.
+clobbers and the complete three-byte empty element constructor are explicitly
+checked. For a positive count, the vector helper leaves the final element address
+in both scalar return and receiver registers. Correcting that private summary and
+rerunning all four initializers leaves every initialized slot and both result
+digests unchanged. Raw cell lists, INI files, output placements and native listings
+stay in ignored `local/`.
 
 | Measurement | RA2 opening | YR opening |
 | --- | ---: | ---: |
