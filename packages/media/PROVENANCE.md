@@ -45,3 +45,27 @@ The verification gate is for the reference build, not a prohibition on recipient
 modification. Consult [FFmpeg's license guidance](https://ffmpeg.org/legal.html).
 Root/coordinator owns eventual production distribution/security updates; this
 slice ships a local diagnostic and reusable source component, not a campaign claim.
+
+## Actual linked inventory and reconstruction limit
+
+The measured link map contains the five enabled FFmpeg static libraries plus
+Emscripten `libc.a`, `libclang_rt.builtins.a` and `libdlmalloc.a`. The source bundle
+retains their actual configuration/link map and runtime sources/notices: musl and
+its per-file permissive notices, compiler-rt's LLVM exception, and the dlmalloc
+public-domain notice. The runtime notice file also includes an LLVM libc notice;
+that inclusion does not claim LLVM libc was linked.
+
+An independent clean rebuild of the pinned source/recipe succeeds and matches
+all decoded RGBA bytes, sample counts and numeric PCM errors for both reviewed
+RA2 and YR samples. The generated JavaScript is byte-identical, but exact WASM
+binary reproducibility is **not established**. The measured artifact is 1,158,821
+bytes, SHA-256 `478039151c027121f8caa09274f4ed29d6254a23bf5ca0e0af68cad32553492e`;
+the clean rebuild is 1,158,751 bytes,
+`b9986d357c9355ff02279055c969e83272b87909a0180b67dd959fd470ccc8f3`.
+The recorded configuration's `SRC_PATH`/`SRC_LINK` spelling uses `./src`, whereas
+the fresh configure uses an absolute source path / `src`. Thirty-five printable
+assertion paths differ by the `./` prefix. Both configuration headers match;
+normalized binary equivalence has not been proved. The archive includes the
+actual measured configuration as well as the rebuild recipe. Source-bundle
+assembly is deterministic for the same recorded inputs; that separate property
+does not imply bit-reproducible compiler output.
