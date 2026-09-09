@@ -25,7 +25,7 @@ and YR rows where they differ. Required R1 rows cannot be silently deferred.
 | Fixed ticks, commands, ordering, RNG, state hashes | IMPLEMENTED command JSON validation and batch ordering only; deterministic behavior SPECIFIED | M1 | Tick loop, RNG and canonical state hashes still required; repeatable headless and cross-browser command→state traces |
 | Save/replay/export/import and migration | NOT_STARTED runtime; envelope types and behavior SPECIFIED | M1/R1 | Mid-event/AI/combat save equivalence, corruption/version/content mismatch, atomic writes |
 | World coordinates, elevation, occupancy and terrain changes | NOT_STARTED | M2–M5 | Correct placement/movement/interactions on slopes, cliffs, bridges and destroyed terrain |
-| Pathfinding and locomotion families | NOT_STARTED | M3–M5 | Deterministic ties/replanning, blocked goals, multiple unit types and transports |
+| Pathfinding and locomotion families | IMPLEMENTED bounded WebRA2 routing substrate; native terrain/locomotion integration NOT_STARTED | M3–M5 | Deterministic ties/replanning, blocked goals, multiple unit types and transports |
 | Selection/camera/orders/groups/hotkeys/sidebar/minimap | NOT_STARTED | M2–M3 | Mouse/keyboard actions produce correct commands and visible state |
 | Economy/harvest/production/prerequisites/build/deploy | NOT_STARTED | M3–M5 | Queue/resource transitions, footprints, cancel/refund, deployment and power behavior |
 | Combat/projectiles/armor/warheads/death/veterancy | NOT_STARTED | M3–M5 | Isolated damage/timing probes, interactions, death ordering and real mission use |
