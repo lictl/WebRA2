@@ -9,16 +9,18 @@ The import shell [PR #56](https://github.com/lictl/WebRA2/pull/56), localhost
 build [PR #46](https://github.com/lictl/WebRA2/pull/46), and original practice/save
 UI [PR #85](https://github.com/lictl/WebRA2/pull/85) have merged after their recorded
 reviews and browser acceptance. Verified profile loading, terrain preparation and
-CPU composition are also merged. Both opening maps now render privately from the
-player's assets; the actual browser viewport is the next integration.
+CPU composition are also merged. Both opening terrains now render in actual desktop Chrome, Edge, Firefox and Safari.
+The current work adds object artwork, native scenario construction and persistent
+cinematics. No original mission is playable yet.
 
-Current wave: coordinator [object bindings #93](https://github.com/lictl/WebRA2/issues/93)
-and shared viewport infrastructure; browser agent
-[terrain UI #92](https://github.com/lictl/WebRA2/issues/92); format agent
-[VXL/HVA #90](https://github.com/lictl/WebRA2/issues/90); simulation agent
-[mission trigger runtime #91](https://github.com/lictl/WebRA2/issues/91).
-[Native registry/house construction #94](https://github.com/lictl/WebRA2/issues/94)
-is the coordinator's next bounded runtime slice after #93. No mission is playable yet.
+Current wave: coordinator [object artwork #100](https://github.com/lictl/WebRA2/issues/100);
+browser agent [persistent media #101](https://github.com/lictl/WebRA2/issues/101);
+format agent independently reviews #100; simulation agent
+[exact INI source view #103](https://github.com/lictl/WebRA2/issues/103) has opened
+[PR #109](https://github.com/lictl/WebRA2/pull/109) and is reviewing the media core.
+Scenario construction #94, sprite composition #99 and SHP header fields #104 have
+merged. The #104 software blocker is resolved; both full #100 private preparations
+and independent source/pixel comparisons now pass.
 Build/import decisions are recorded in [ADR 0003](adr/0003-browser-build-and-import-boundary.md).
 No essential human input is currently needed. Finish each reviewed slice and continue
 through the accepted milestones; do not stop simply because this first wave merges.
@@ -49,10 +51,10 @@ the coordinator after independent exact-head COMMENT review and successful check
 
 | Role | Current work and exclusive paths | Branch / private worktree |
 | --- | --- | --- |
-| Coordinator | #93 structural object bindings; #92 shared build/server/licensing; independent reviews | `codex/93-scenario-bindings` at root; shared files in #92 worktree |
-| browser_feasibility | #92 browser terrain viewport; apps/web/**, tests/web-ui/**, docs/terrain-viewport.md; sole native UI owner | `codex/92-terrain-viewport`, `local/worktrees/terrain-viewport` |
-| mix_reader | #90 VXL/HVA decoders and provenance; then #93 review | `codex/90-runtime-voxel`, `local/worktrees/runtime-voxel`; preserved #83 tree |
-| bootstrap_review | #91 deterministic mission trigger runtime; #86 review complete | `codex/91-mission-logic`, `local/worktrees/mission-logic` |
+| Coordinator | #100 object-art plan/resources; shared configuration/notices/handoff; independent reviews | `codex/100-object-art` at root |
+| browser_feasibility | #101 retained Bink decoder/player; packages/media/**, tests/media/**, tools/media/**, docs/persistent-media.md; sole native UI owner | `codex/101-persistent-media`, `local/worktrees/persistent-media` |
+| mix_reader | Independent #100 final review; #104 merged | `codex/104-shp-header-fields`; preserved `local/worktrees/sprite-layer` |
+| bootstrap_review | #103 exact source view/extraction (PR #109); independent #101 native/build review | `codex/103-ini-source-view`, `local/worktrees/ini-source-view` |
 
 The current wire contracts stay unchanged. The simulation worker owns its internal
 synthetic state policy; importer/UI shared types are coordinated before integration.
@@ -248,59 +250,62 @@ again. Do not push historical unreviewed local branches such as
 | Verified terrain preparation | [#86 / PR #89](https://github.com/lictl/WebRA2/pull/89), [review](https://github.com/lictl/WebRA2/pull/89#pullrequestreview-5158520499) | 78d31e423cbbe16bce1bbae1bebe96762ecc47bb |
 | Original practice/save UI | [#75 / PR #85](https://github.com/lictl/WebRA2/pull/85), [review](https://github.com/lictl/WebRA2/pull/85#pullrequestreview-5158554385) | 2d5b012e02d6d1fe45e0d5323e2a2eb00fb5a235 |
 | CPU terrain scene | [#83 / PR #88](https://github.com/lictl/WebRA2/pull/88), [review](https://github.com/lictl/WebRA2/pull/88#pullrequestreview-5158554593) | efecb03d9a494826996e8ce4256200a13e1b3454 |
+| Structural object binding | [#93 / PR #96 and review](https://github.com/lictl/WebRA2/pull/96) | 2cd4b9e07560fa7aa8a0da6000f5ca0f56d5b881 |
+| VXL/HVA decoding | [#90 / PR #97 and review](https://github.com/lictl/WebRA2/pull/97) | 47e6cb0fe251ca2ac32b7beab6e6bad8d0e4f61f |
+| Bounded mission trigger runtime | [#91 / PR #98 and review](https://github.com/lictl/WebRA2/pull/98) | d9bb13b478cf261a6bdd167a5cc3235121d84179 |
+| Four-browser terrain viewport | [#92 / PR #95 and reviews](https://github.com/lictl/WebRA2/pull/95) | 524754571beaa13be9cdaa1ed5e662919dfff9d4 |
+| SHP sprite layer | [#99 / PR #102 and scoped reviews](https://github.com/lictl/WebRA2/pull/102) | f22c8b33f7f608b8021ab65234600c6efe126be4 |
+
+| Native scenario construction | [#94 / PR #105 and reviews](https://github.com/lictl/WebRA2/pull/105) | c0049272a6bd3a9f9ec92db1443988a7d908f1f8 |
+| SHP compression byte/auxiliary fields | [#104 / PR #108 and review](https://github.com/lictl/WebRA2/pull/108) | f822914b44d19c9ec9b7832ae761b2d1f71f77bc |
 
 ## Remaining work and exact next action
 
-Finish #93 independent review and merge; then implement the native type-registry
-and house construction policy in #94. [Structural bindings](scenario-bindings.md)
-match all 811/570 opening placements and 2,207/2,805 effective entries/provenance
-against an independent Python parser. They intentionally retain one/three undeclared
-placed types, zero/174 ambiguous owners and zero/three missing house-country
-references. Eight/ten overwritten registry origins are retained. Do not treat a
-final INI key table as proof of the native incremental registry or allocate a
-country as a runtime house. No essential human input is needed now.
+Finish independent final review and merge #100. Its twelve focused tests cover
+both profiles, all six placement families, bounded resource loading and metadata
+ownership across asynchronous discovery. Private preparation now readies 110/138
+SHP types using 107/131 unique images and 3/2 palettes; 10/5 voxel types remain
+explicit. An independent raw-source and pixel oracle matches every plan/row join
+and all 2,578,276 selected pixels. Evidence and scripts are under `local/object-art/`;
+[the report](object-art.md) records exact scope and comparison hashes.
 
-Integrate #92's actual browser terrain view with its separate worker, fixed maximum
-960x640 frame, coalesced requests/progress and frame-bound picking. The coordinator
-has added `apps/web/src/terrain-worker.ts` -> `/workers/terrain.js` to build/server
-allowlists plus the fixture and renderer notice in the #92 worktree. Seven focused
-infrastructure checks passed; an independent reviewer must cover those
-coordinator-authored files before merge. The UI agent owns actual browser actions.
+Merged #94's staged registry/property/country/house/placement model passed 444 tests
+and independent raw-source/native-range checks. The private oracle reproduces all
+811/570 placements, but modeled allocation order is not complete native runtime
+indices or implemented statistics. #103 PR #109 exposes exact source occurrences
+and extracts construction's repeated walk without changing its private hashes;
+review it and then migrate artwork and runtime property consumers. General
+RuntimeIni remains ASCII-case-folded. Neither a resolved ID nor a typed outcome
+request is an executable mission. The merged #91 interpreter supports bounded
+timer/flag and trigger controls; teams, scripts, object conditions and many actions
+remain.
 
-Merged #86 [terrain preparation](terrain-preview.md) prepares 188/242 base TMP
-sources for all 6,336/15,480 cells and 811/570 object rows. Every source/choice join
-matches the independent theater closure and both palette hashes match Python.
-Merged #83 [CPU scene](terrain-scene.md) privately rendered both openings with the
-explicit 60x30/elevation-step-15/opaque-palette baseline. It retained 658/803 unique
-slots and 3,811,888/4,673,096 decoded-plane bytes. Repeated 960x640 frames were equal;
-9,600 sampled visible picks per profile matched sourceRecord coordinates. Private
-images visibly contain terrain, including unresolved filler colors and omitted
-object/overlay layers. This is not native image fidelity or browser acceptance.
-Private scripts/images/facts are in `local/terrain-preview/`.
+#101 replaces repeated cinematic restarts with a narrow retained FFmpeg decoder.
+Its exact source/toolchain/build configuration and native sample oracle must be
+reviewed before adoption, followed by actual four-browser playback and source/queue
+memory evidence. The private original 72-second decode currently reads input once;
+that component observation does not close campaign playback #12.
 
-Merged #75 [practice UI](sandbox-ui.md) uses two original scenarios, a dedicated
-simulation worker and three IndexedDB save slots. Chrome/Firefox/Safari restored a
-tick-3 pending-impact save and identical tick-5 continuation; Edge imported Safari's
-save, persisted/restored tick 5 and matched tick 6/replay. Chrome reached ordinary
-victory at tick 12, Firefox idle defeat at tick 59. Safari export/import/malformed
-recovery and final Chrome slot deletion/empty recovery passed. Exact source/build
-hashes and Edge paint/accessibility limitations are in the report and private
-`local/sandbox-ui/`. These checks do not establish original campaign play.
+Merged #92 terrain UI passed actual four-browser file import, rendering, pan/zoom,
+picking, cancellation/retry and locale checks. The exact tested source/build hashes
+and scope are in [the viewport report](terrain-viewport.md). Safari observations
+remain slower and timing includes tool scheduling. An old Edge process displayed
+stale paint; a normal quit/relaunch resolved it with no security/settings changes.
+Merged #99 sprite atlas/compositor passed 444 tests at its integrated head and an
+independent private comparison of 84,925 selected indices and 725,000 combined
+color/depth/pick pixels. Its anchors/remaps/depth remain explicit caller policies.
 
-#90 adds voxel/span and HVA transforms before vehicle rendering. #91 implements a
-bounded common mission trigger machine, grounded in static operand/timer/tag/order
-evidence, with explicit WebRA2 polling policy and unsupported retail closure. Do not
-silently skip unknown actions, teams, scripts or object mechanics to start a map.
-Entity movement/occupancy, production/combat and actual mission execution remain.
+Next integration connects verified artwork and native object definitions to the
+browser scene, then entity movement/occupancy/combat and mission logic. Preserve
+unsupported semantics visibly while implementing their behavior; do not bypass
+unknown actions or hardcode a mission path to claim a campaign. The original
+practice scenarios remain separately playable with saves/replays.
 
-[#18](https://github.com/lictl/WebRA2/issues/18) retains full effective-content and
-runtime dependency closure; [#12](https://github.com/lictl/WebRA2/issues/12) retains
-persistent cinematic decoding/playback; [#11](https://github.com/lictl/WebRA2/issues/11)
-retains two movie checksum causes. ZIP/large loose-asset import, mod selection,
-SHP/VXL object rendering, native palettes/lighting/overlays, fonts/audio/media and
-full original gameplay still need implementation and evidence. Continue through
-the accepted milestones; a rendered map or synthetic victory is not a completed
-campaign, and completion of this wave is not a stopping point.
+[#18](https://github.com/lictl/WebRA2/issues/18) retains full content/runtime closure;
+[#12](https://github.com/lictl/WebRA2/issues/12) retains campaign cinematics;
+[#11](https://github.com/lictl/WebRA2/issues/11) retains two movie checksum causes.
+No essential human input is currently needed. Continue through accepted milestones;
+completion of a worker wave or a rendered map is not a stopping point.
 
-For final integration PRs, look up merge SHAs live. Do not create an endless commit
-whose only purpose is recording its own merge SHA.
+For final integration PRs, verify merge SHAs live. Record a PR's own final merge SHA
+in GitHub until the next substantive handoff update, avoiding metadata-only cycles.
