@@ -24,6 +24,33 @@ rejects more than 4,096 files before copying handles. Progress updates preserve 
 main controls; pagination restores keyboard focus. Page departure releases handles;
 a back/forward-cache return creates a fresh session. No local storage is used.
 
+## Dedicated import worker
+
+The app-local protocol in `import-protocol.ts` is version 1. Every inspection creates
+one dedicated module worker at `/workers/import.js`; `main.ts` has no main-thread
+fallback. The request contains a positive job ID, explicit RA2/YR profile and policy,
+and at most 4,096 selected File handles with separate relative-path metadata. Each
+path/name is capped at 4,096 code units before dispatch. File structured cloning is
+an on-device browser operation; it does not send file bytes to the localhost server.
+The worker restores the explicit folder path on its cloned File before the existing
+importer's path validation and normalization. The kernel's byte/member/archive limits
+remain in force; the bridge does not verify content identities.
+
+Replies contain the same protocol/job ID and progress, a metadata report, or a
+whitelisted error name. One progress message may be outstanding until acknowledged;
+the worker coalesces further updates into the latest pending state. A terminal reply
+can follow that one outstanding progress message. Invalid envelope versions, invalid
+progress bounds and worker loading/cloning failures fail closed. Different job IDs
+and late replies cannot become the current report. Errors never carry arbitrary
+exception messages or retail payloads.
+
+Completion, errors, cancellation, replacement, profile/policy changes and page
+departure terminate the worker and remove its event handlers. Termination is the
+cancellation mechanism: a synchronous worker file read does not need to process a
+cancel message before the UI can stop the job. There is no uploaded JavaScript,
+`eval`, network decoder or worker reuse across selections. The coordinator-owned
+build bundles an explicit worker entry and serves only its validated code path.
+
 [Application provenance](../apps/web/PROVENANCE.md) records original WebRA2
 attribution and GPL-3.0-or-later composition with the importer/reader. No retail
 content is present in app files, fixtures or build outputs.
@@ -33,6 +60,8 @@ content is present in app files, fixtures or build outputs.
 `node --import tsx --test tests/web-ui/controller.test.ts` passes nine synthetic
 state/job tests, including cancellation races, profile isolation, malformed adapter
 results, unreadable files, selection caps and localization. Two further synthetic tests cover actionable diagnostic ordering and translated recovery.
+Seven worker tests cover termination, stale messages, folder metadata, bounded progress,
+invalid messages/inputs, clone/load failures and error sanitization.
 Explicit strict app TypeScript checking passes. Browser checks use privately selected retail files;
 these are separate from public synthetic checks and are not campaign tests.
 
