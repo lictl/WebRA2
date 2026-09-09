@@ -13,6 +13,8 @@ import { validArtworkSummary, validObjectPick } from '../../apps/web/src/object-
 import { TerrainBridge } from '../../apps/web/src/terrain-bridge.ts';
 import { validResult, type FrameResult, type TerrainAction } from '../../apps/web/src/terrain-protocol.ts';
 import { terrainText, artworkStatusText } from '../../apps/web/src/terrain-i18n.ts';
+import { createWorldViewport } from '../../apps/web/src/world-viewport.ts';
+import type { WorldSummary, WorldSnapshot } from '../../apps/web/src/world-protocol.ts';
 function packed(bytes:Uint8Array, lzo:boolean):string {
   if(lzo){const data=Buffer.from([bytes.length+17,...bytes,17,0,0]),b=Buffer.alloc(data.length+4);b.writeUInt16LE(data.length);b.writeUInt16LE(bytes.length,2);b.set(data,4);return b.toString('base64');}
   const chunks:Buffer[]=[];for(let at=0;at<bytes.length;at+=8192){const n=Math.min(8192,bytes.length-at),b=Buffer.from([5,0,n&255,n>>8,254,n&255,n>>8,bytes[at]!,128]);chunks.push(b);}return Buffer.concat(chunks).toString('base64');
@@ -77,4 +79,14 @@ test('object replies require bounded exact records, joined totals, fixed buffers
 test('object status and family labels have original EN and Traditional Chinese text with own-key fallback',()=>{
   for(const locale of ['en','zh-Hant'] as const){for(const key of ['artwork','sprites','shown','unavailable','infantry','unit','aircraft','structure','terrain','smudge','omittedTypes','truncatedFields'])assert.ok(terrainText(locale,key));for(const s of ['ready','missing','blocked','conflict','unsupported-mount','name-collision','voxel','unsupported-plan','constructor','__proto__'])assert.equal(typeof artworkStatusText(locale,s),'string');}
   assert.match(artworkStatusText('zh-Hant','voxel'),/立體/);assert.match(terrainText('en','scope'),/full mission behavior is not running/);
+});
+test('world snapshot cells move owned original artwork while each frame retains its own pick identity',async()=>{
+  const m=mission.slice(0,mission.indexOf('[Units]')),f=await fixture({mission:m}),still=createPlacedStill(f.terrain,f.objects,f.preview),info=[...still.objects.values()][0]!,id=Number(info.id.slice(7))+1;
+  const summary:WorldSummary={policy:'webra2-world-ui-1',modelHash:'f'.repeat(64),motionPolicy:'webra2-cell-motion-1',defaultPlayerId:0,players:[{id:0,houseId:'original',name:'Original'}],actors:[{id,rowId:f.objects.placements[0]!.row.id,objectId:info.id,typeId:info.typeId,owner:0,kind:'infantry',movable:true,maximumHealth:100,reasons:[],omittedReasons:0}],limitations:[],omittedLimitations:0,truncatedFields:0};
+  const snapshot=(x:number,y:number):WorldSnapshot=>({modelHash:summary.modelHash,revision:0,nextTick:0,stateHash:'a'.repeat(64),queuedCommands:0,actors:[{id,x,y,health:100,goalX:null,goalY:null,nextX:null,nextY:null,routeLength:0,progress:0,edgeCost:null,waitTicks:0}],events:[],omittedEvents:0});
+  const scene=createWorldViewport(terrainScene(f.terrain),f.terrain,still,summary),view={...camera,backgroundRgba:[0,0,0,255] as const};
+  const first=scene.render(view,snapshot(2,2)),second=scene.render(view,snapshot(3,2));
+  const a=first.pick(90,29),b=second.pick(120,44);assert.equal(a?.kind,'object');assert.equal(b?.kind,'object');
+  if(a?.kind!=='object'||b?.kind!=='object')assert.fail();assert.deepEqual([a.object.x,a.object.y],[2,2]);assert.deepEqual([b.object.x,b.object.y],[3,2]);assert.equal(first.pick(90,29)?.kind,'object');assert.notDeepEqual(first.rgba,second.rgba);
+  assert.deepEqual(scene.locate!(3,2),{x:120,y:15});assert.throws(()=>scene.render(view,{...snapshot(2,2),modelHash:'b'.repeat(64)}),/snapshot/);
 });

@@ -6,9 +6,9 @@ import type { SpriteObject } from '../../../packages/render/src/sprite-layer.ts'
 import type { PlacedStill } from './placed-still.ts';
 import type { ObjectInfo } from './object-protocol.ts';
 import type { ViewportScene } from './terrain-worker-runtime.ts';
-import type { WorldSummary } from './world-protocol.ts';
+type WorldArtJoin = { modelHash:string; actors:readonly {objectId:string;id:number;rowId:string}[] };
 /** Source cells and initial art descriptors are captured before an asynchronous request can mutate inputs. */
-export function createWorldViewport(scene: TerrainScene, terrain: ScenarioTerrain, still: PlacedStill, summary: WorldSummary): ViewportScene {
+export function createWorldViewport(scene: TerrainScene, terrain: ScenarioTerrain, still: PlacedStill, summary: WorldArtJoin): ViewportScene {
   const ground = new Map(terrain.cells.map(c => [c.x + c.y * 512, { column: c.projectedColumn, row: c.projectedRow, elevation: c.elevation }]));
   const actors = new Map(summary.actors.map(a => [a.objectId, { id: a.id, rowId: a.rowId }]));
   const initial = still.batch.objects.map(o => {
