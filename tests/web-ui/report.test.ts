@@ -18,4 +18,6 @@ test('diagnostic explanations provide translated recovery without reflecting arb
   assert.match(diagnosticText('zh-Hant', 'archive-unverified'), /嚴格模式/);
   assert.match(diagnosticText('zh-Hant', 'browser-read-budget'), /較少的檔案/);
   assert.doesNotMatch(diagnosticText('en', '<svg onload=attack()>'), /svg|attack/);
+  for (const code of ['constructor', '__proto__', 'toString']) for (const locale of ['en', 'zh-Hant'] as const)
+    assert.equal(diagnosticText(locale, code), diagnosticText(locale, 'unknown-diagnostic'));
 });

@@ -46,7 +46,7 @@ test('pre-abort avoids worker creation; dispose terminates a running job; no mai
   await assert.rejects(createWorkerInspector(() => { throw new DOMException('private URL', 'SecurityError'); })(files(), { profile: 'ra2', policy: 'tolerant' }), error => error instanceof Error && error.name === 'SecurityError' && !error.message.includes('private URL'));
 });
 test('worker errors and invalid messages fail closed without exposing arbitrary payloads', async () => {
-  for (const message of [{ version: 2, type: 'report', jobId: 1 }, { version: 1, type: 'progress', jobId: 1, sequence: 1, progress: { ...progress, bytesRead: 2 ** 30 } },
+  for (const message of [{ version: 1, type: 'progress', jobId: 1, sequence: 1, progress: { ...progress, phase: Object.assign(new String('archives'), { payload: new Blob(['hidden']) }) } }, { version: 2, type: 'report', jobId: 1 }, { version: 1, type: 'progress', jobId: 1, sequence: 1, progress: { ...progress, bytesRead: 2 ** 30 } },
     { version: 1, type: 'report', jobId: 1, report: { ...report(), canStartCampaign: true } },
     { version: 1, type: 'report', jobId: 1, report: { ...report(), files: [null], summary: {} } }, { version: 1, type: 'error', jobId: 1, name: 'PRIVATE CONTENT' }]) {
     const worker = new FakeWorker(); const done = createWorkerInspector(() => worker)(files(), { profile: 'ra2', policy: 'tolerant' }); worker.emit(message);
