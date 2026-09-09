@@ -1,0 +1,483 @@
+{
+  "schemaVersion": 1,
+  "origin": "original-webra2-synthetic",
+  "representation": "abstract-research-probes-not-wire-schemas",
+  "runtimeExecuted": false,
+  "probes": [
+    {
+      "id": "PROBE-01",
+      "basis": "unresolved-original",
+      "purpose": "Discriminate repeat semantics with a predicate held true.",
+      "input": {
+        "evaluationIndices": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "predicateTruth": [
+          false,
+          true,
+          true,
+          false,
+          true
+        ]
+      },
+      "acceptance": [
+        "Record every effect, including repeated true evaluations.",
+        "Do not choose a mode from the editor label alone."
+      ],
+      "referenceRecipe": "OBS-02",
+      "limits": "Evaluation indices are abstract samples, not identified original ticks.",
+      "candidateOutcomes": [
+        {
+          "policy": "once",
+          "effectIndices": [
+            1
+          ]
+        },
+        {
+          "policy": "rising-edge",
+          "effectIndices": [
+            1,
+            4
+          ]
+        },
+        {
+          "policy": "each-true-evaluation",
+          "effectIndices": [
+            1,
+            2,
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PROBE-02",
+      "basis": "unresolved-original",
+      "purpose": "Discriminate visibility of enabling a linked trigger.",
+      "input": {
+        "initialEnabled": {
+          "A": true,
+          "B": false
+        },
+        "predicates": {
+          "A": true,
+          "B": true
+        },
+        "AEffect": "enable B",
+        "BEffect": "append marker B",
+        "ordersToCompare": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "B",
+            "A"
+          ]
+        ]
+      },
+      "acceptance": [
+        "Compare both source orders and an unlinked control.",
+        "Record whether B acts in the first pass, the next pass or neither."
+      ],
+      "referenceRecipe": "OBS-03",
+      "limits": "A pass is an abstract diagnostic boundary; no engine phase or linked-trigger rule is asserted.",
+      "candidateOutcomes": [
+        {
+          "policy": "writes-visible-to-later-entries",
+          "firstPassMarkersByOrder": [
+            [
+              "B"
+            ],
+            []
+          ]
+        },
+        {
+          "policy": "writes-visible-next-pass",
+          "firstPassMarkersByOrder": [
+            [],
+            []
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PROBE-03",
+      "basis": "unresolved-original",
+      "purpose": "Discriminate one-shot state shared by two attachments.",
+      "input": {
+        "objects": [
+          "A",
+          "B"
+        ],
+        "tag": "tag-shared",
+        "mode": "candidate-once",
+        "activationOrder": [
+          "A",
+          "B"
+        ],
+        "separateTagControl": [
+          "tag-A",
+          "tag-B"
+        ]
+      },
+      "acceptance": [
+        "Count effects for A and B separately.",
+        "Repeat with reversed activation order and separate tags."
+      ],
+      "referenceRecipe": "OBS-02",
+      "limits": "A shared latch may reside on tag, trigger, event or action; this probe alone may not distinguish those locations.",
+      "candidateOutcomes": [
+        {
+          "policy": "one-shared-latch",
+          "effectObjects": [
+            "A"
+          ]
+        },
+        {
+          "policy": "one-latch-per-attachment",
+          "effectObjects": [
+            "A",
+            "B"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PROBE-04",
+      "basis": "unresolved-original",
+      "purpose": "Observe a waiting team when ownership changes.",
+      "input": {
+        "teamId": 30,
+        "ownerId": 1,
+        "memberIds": [
+          40,
+          41
+        ],
+        "scriptId": "fixture-route",
+        "programCounter": 1,
+        "wait": {
+          "kind": "until-tick",
+          "dueTick": 12
+        },
+        "intervention": {
+          "kind": "owner-change",
+          "newOwnerId": 2
+        },
+        "nextStep": "append marker route-complete"
+      },
+      "acceptance": [
+        "Run baseline, ownership-change, member-loss and target-loss cases separately.",
+        "Save wait/program counter/member ownership explicitly in WebRA2."
+      ],
+      "referenceRecipe": "OBS-04",
+      "limits": "Object and script identifiers and steps are invented. No original opcode or owner-change mechanism is mapped.",
+      "candidateOutcomes": [
+        {
+          "policy": "continue",
+          "laterStep": "route-complete"
+        },
+        {
+          "policy": "cancel",
+          "laterStep": null
+        },
+        {
+          "policy": "restart-or-recruit",
+          "laterStep": "requires-further-observation"
+        }
+      ]
+    },
+    {
+      "id": "PROBE-05",
+      "basis": "proposed-webra2-policy",
+      "purpose": "Order already queued work deterministically at equal due ticks.",
+      "input": {
+        "nextTick": 10,
+        "scheduledWork": [
+          {
+            "dueTick": 10,
+            "order": 7,
+            "kind": "fixture-mark",
+            "payload": {
+              "marker": "later"
+            }
+          },
+          {
+            "dueTick": 10,
+            "order": 2,
+            "kind": "fixture-mark",
+            "payload": {
+              "marker": "first"
+            }
+          }
+        ]
+      },
+      "acceptance": [
+        "Consume both due entries once in ascending order.",
+        "Preserve order and the next allocation counter through save/replay."
+      ],
+      "referenceRecipe": "OBS-01",
+      "limits": "Only the proposed WebRA2 ordering of existing due work is covered; insertion during dispatch remains a separate policy decision.",
+      "expectedMarkers": [
+        "first",
+        "later"
+      ]
+    },
+    {
+      "id": "PROBE-06",
+      "basis": "proposed-webra2-policy",
+      "purpose": "Checkpoint state before the next tick preserves pending work and team waits.",
+      "input": {
+        "checkpoint": {
+          "nextTick": 10,
+          "state": {
+            "nextEntityId": 42,
+            "nextScheduledOrder": 8,
+            "admissionCursors": [
+              {
+                "playerId": 1,
+                "lastSequence": 3
+              }
+            ],
+            "variables": {
+              "fixtureGate": true
+            },
+            "triggerInstances": [
+              {
+                "id": "fixture-once",
+                "fired": true
+              }
+            ],
+            "teams": [
+              {
+                "id": 30,
+                "ownerId": 2,
+                "memberIds": [
+                  40,
+                  41
+                ],
+                "scriptId": "fixture-route",
+                "programCounter": 1,
+                "wait": {
+                  "kind": "until-tick",
+                  "dueTick": 12
+                }
+              }
+            ]
+          },
+          "queuedCommands": [
+            {
+              "schemaVersion": 1,
+              "tick": 11,
+              "playerId": 1,
+              "sequence": 3,
+              "kind": "fixture-mark",
+              "payload": {
+                "marker": "command"
+              }
+            }
+          ],
+          "scheduledWork": [
+            {
+              "dueTick": 10,
+              "order": 7,
+              "kind": "fixture-mark",
+              "payload": {
+                "marker": "scheduled"
+              }
+            }
+          ],
+          "rngStates": {
+            "simulation": {
+              "algorithm": "fixture-opaque-v1",
+              "state": [
+                17,
+                23
+              ],
+              "position": 4
+            }
+          }
+        },
+        "compareAtNextTicks": [
+          11,
+          12,
+          13
+        ]
+      },
+      "acceptance": [
+        "Restored, replayed and uninterrupted states/events must match at each comparison boundary.",
+        "The action due at tick 10 is not already consumed in checkpoint nextTick 10.",
+        "Changing a queue, RNG state, admission cursor or fired latch must change the authoritative projection."
+      ],
+      "referenceRecipe": "OBS-05",
+      "limits": "This is an original state-completeness vector, not an executable save format or valid selected RNG implementation."
+    },
+    {
+      "id": "PROBE-07",
+      "basis": "proposed-webra2-policy",
+      "purpose": "Unsupported required semantics stop mission startup.",
+      "input": {
+        "profiles": [
+          "ra2",
+          "yr"
+        ],
+        "row": {
+          "namespace": "fixture-action",
+          "rawOpcode": "unsupported-999",
+          "source": {
+            "missionId": "fixture-only",
+            "section": "FixtureActions",
+            "key": "A",
+            "occurrence": 0
+          }
+        },
+        "availableCapabilities": []
+      },
+      "acceptance": [
+        "Fail preflight with profile and exact source row before tick 0.",
+        "Never skip the action or convert it to a default numeric opcode.",
+        "Reject save content identity changes in profile or ordered mods before mutation."
+      ],
+      "referenceRecipe": "OBS-07",
+      "limits": "All IDs and sections are invented. This tests WebRA2 policy, not original malformed-input behavior."
+    },
+    {
+      "id": "PROBE-08",
+      "basis": "editor-format",
+      "purpose": "Frame synthetic counted event records with a discriminator.",
+      "input": {
+        "validTokens": [
+          "2",
+          "900",
+          "2",
+          "31",
+          "41",
+          "901",
+          "0",
+          "51"
+        ],
+        "shortTokens": [
+          "2",
+          "900",
+          "2",
+          "31",
+          "41",
+          "901",
+          "0"
+        ],
+        "declaredCountMismatchTokens": [
+          "3",
+          "900",
+          "2",
+          "31",
+          "41",
+          "901",
+          "0",
+          "51"
+        ]
+      },
+      "acceptance": [
+        "For this editor-framing candidate, consume the first four-token event before the next three-token event.",
+        "Reject the short and count-mismatch inputs with token location; never report a shifted opcode census.",
+        "Check decoded real members in both profiles before promoting the format claim."
+      ],
+      "referenceRecipe": "OBS-07",
+      "limits": "Opcodes 900 and 901 and parameters are invented only to test framing; their original validity or meaning is not asserted.",
+      "expectedCandidateRecords": [
+        {
+          "startToken": 1,
+          "tokens": [
+            "900",
+            "2",
+            "31",
+            "41"
+          ]
+        },
+        {
+          "startToken": 5,
+          "tokens": [
+            "901",
+            "0",
+            "51"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PROBE-09",
+      "basis": "proposed-webra2-policy",
+      "purpose": "Command ordering is numeric and identity is unique across ticks.",
+      "input": {
+        "nextTick": 5,
+        "commands": [
+          {
+            "schemaVersion": 1,
+            "tick": 5,
+            "playerId": 10,
+            "sequence": 1,
+            "kind": "fixture-mark",
+            "payload": {
+              "marker": "p10"
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "tick": 5,
+            "playerId": 2,
+            "sequence": 1,
+            "kind": "fixture-mark",
+            "payload": {
+              "marker": "p2"
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "tick": 6,
+            "playerId": 2,
+            "sequence": 2,
+            "kind": "fixture-mark",
+            "payload": {
+              "marker": "next"
+            }
+          }
+        ],
+        "invalidVariants": [
+          {
+            "reason": "duplicate-identity",
+            "tick": 7,
+            "playerId": 2,
+            "sequence": 1
+          },
+          {
+            "reason": "late",
+            "tick": 4,
+            "playerId": 3,
+            "sequence": 1
+          },
+          {
+            "reason": "unsafe-tick",
+            "tick": 9007199254740992,
+            "playerId": 3,
+            "sequence": 1
+          }
+        ]
+      },
+      "acceptance": [
+        "Admit valid commands before comparing order; player 2 precedes player 10 numerically.",
+        "Reject each invalid variant independently without modifying prior accepted state.",
+        "Run with shuffled input order that preserves per-player admission ordering."
+      ],
+      "referenceRecipe": "OBS-07",
+      "limits": "The invalid variants are mutation descriptions for the base envelope. No network transport or command-kind implementation is supplied.",
+      "expectedMarkers": [
+        "p2",
+        "p10",
+        "next"
+      ]
+    }
+  ]
+}
