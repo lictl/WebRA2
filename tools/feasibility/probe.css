@@ -1,0 +1,7 @@
+body { margin: 2rem auto; max-width: 62rem; padding: 0 1rem; color: #17202a; background: #f7f9fa; font: 16px/1.6 system-ui, "PingFang TC", "Microsoft JhengHei", sans-serif; }
+section { padding: 1rem; margin-block: 1rem; background: white; border: 1px solid #b7c6d1; }
+#cjk-sample { max-width: 24rem; font-size: 22px; line-height: 1.7; }
+button, input { font: inherit; margin: .4rem; }
+label { display: block; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; }
+pre > span { display: block; }
