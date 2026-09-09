@@ -9,9 +9,9 @@ import { centered,validResult,validAction,validProgress,type SceneSummary,type T
 import { terrainText } from '../../apps/web/src/terrain-i18n.ts';
 import type { ViewportScene } from '../../apps/web/src/terrain-worker-runtime.ts';
 const artwork={policy:'webra2-object-still-2' as const,presentation:'webra2-placed-still-1' as const,types:0,rendered:0,unavailable:0,assets:0,palettes:0,sourceBytes:0,decodedBytes:0,indexedFrames:0,rows:[],omittedTypes:0,omittedPlacements:0,omittedRendered:0,truncatedFields:0,unplaced:0};
-const summary:SceneSummary={contentHash:'c'.repeat(64),artwork,profile:'ra2',mission:'all01t.map',mapHash:'a'.repeat(64),paletteHash:'b'.repeat(64),cells:3,objects:0,assets:1,verifiedBytes:100,sourceBytes:100,decodedBytes:50,decodedSlots:1,bounds:{x:0,y:0,width:120,height:45},diagnostics:[{code:'native-composition-unverified',count:1}]};
+const summary:SceneSummary={world:null,contentHash:'c'.repeat(64),artwork,profile:'ra2',mission:'all01t.map',mapHash:'a'.repeat(64),paletteHash:'b'.repeat(64),cells:3,objects:0,assets:1,verifiedBytes:100,sourceBytes:100,decodedBytes:50,decodedSlots:1,bounds:{x:0,y:0,width:120,height:45},diagnostics:[{code:'native-composition-unverified',count:1}]};
 const view:Camera={cameraX:0,cameraY:0,zoom:1,width:120,height:45};
-function frame(frameId=1,camera=view):FrameResult{const bytes=camera.width*camera.height*4;return {type:'frame',frameId,camera,summary:structuredClone(summary),allocations:{rgbaBytes:bytes,depthBytes:bytes,ownerBytes:bytes,totalPixelBytes:bytes*4,samples:1,objectOwnerBytes:bytes,spriteSamples:0,paletteBytes:0,objects:0},rgba:new ArrayBuffer(bytes)};}
+function frame(frameId=1,camera=view):FrameResult{const bytes=camera.width*camera.height*4;return {type:'frame',world:null,frameId,camera,summary:structuredClone(summary),allocations:{rgbaBytes:bytes,depthBytes:bytes,ownerBytes:bytes,totalPixelBytes:bytes*4,samples:1,objectOwnerBytes:bytes,spriteSamples:0,paletteBytes:0,objects:0},rgba:new ArrayBuffer(bytes)};}
 const selected=()=>[new File(['original asset bytes'],'sample.mix')];
 const load:TerrainAction={type:'load',profile:'ra2',files:[{file:selected()[0]!,relativePath:'game/sample.mix'}],width:120,height:45};
 const tick=async()=>{await new Promise<void>(resolve=>setImmediate(resolve));};
@@ -33,14 +33,14 @@ test('metadata validation rejects sparse/extra/boxed data, oversized buffers and
 test('bridge admits one request, validates progress and binds result/pick to exact request and displayed frame',async()=>{
   const worker=new FakeWorker(),bridge=new TerrainBridge(worker),signal=new AbortController().signal,progress:number[]=[];
   const first=bridge.request(load,signal,p=>progress.push(p.completed));await assert.rejects(bridge.request(load,signal),/unavailable/);
-  worker.emit({version:2,id:99,type:'result',result:frame(99)});worker.emit({version:2,id:1,type:'progress',sequence:1,progress:{phase:'scan',completed:1,total:2,bytes:10}});
-  assert.equal(worker.sent.length,2);assert.deepEqual(progress,[1]);worker.emit({version:2,id:1,type:'result',result:frame(1)});assert.equal((await first).type,'frame');
-  const picking=bridge.request({type:'pick',frameId:1,x:2,y:2},signal);worker.emit({version:2,id:2,type:'result',result:{type:'pick',frameId:1,selection:null}});assert.deepEqual(await picking,{type:'pick',frameId:1,selection:null});
-  const rendering=bridge.request({type:'render',camera:{...view,cameraX:32}},signal);worker.emit({version:2,id:3,type:'result',result:frame(3)});await assert.rejects(rendering,/invalid/);assert.equal(worker.terminated,1);
+  worker.emit({version:3,id:99,type:'result',result:frame(99)});worker.emit({version:3,id:1,type:'progress',sequence:1,progress:{phase:'scan',completed:1,total:2,bytes:10}});
+  assert.equal(worker.sent.length,2);assert.deepEqual(progress,[1]);worker.emit({version:3,id:1,type:'result',result:frame(1)});assert.equal((await first).type,'frame');
+  const picking=bridge.request({type:'pick',frameId:1,x:2,y:2},signal);worker.emit({version:3,id:2,type:'result',result:{type:'pick',frameId:1,selection:null}});assert.deepEqual(await picking,{type:'pick',frameId:1,selection:null});
+  const rendering=bridge.request({type:'render',camera:{...view,cameraX:32}},signal);worker.emit({version:3,id:3,type:'result',result:frame(3)});await assert.rejects(rendering,/invalid/);assert.equal(worker.terminated,1);
 });
 test('bridge rejects cross-profile metadata, stale pick identity and malformed terminal shape; abort terminates promptly',async()=>{
-  for(const invalid of [{...frame(),frameId:2},{...frame(),summary:{...summary,profile:'yr',mission:'all01umd.map'}},{...frame(),summary:{...summary,diagnostics:[null]}}]){const worker=new FakeWorker(),bridge=new TerrainBridge(worker),promise=bridge.request(load,new AbortController().signal);worker.emit({version:2,id:1,type:'result',result:invalid});await assert.rejects(promise,/invalid/);assert.equal(worker.terminated,1);}
-  const worker=new FakeWorker(),bridge=new TerrainBridge(worker),abort=new AbortController();const promise=bridge.request(load,abort.signal);abort.abort();await assert.rejects(promise,{name:'AbortError'});worker.emit({version:2,id:1,type:'result',result:frame()});assert.equal(worker.terminated,1);
+  for(const invalid of [{...frame(),frameId:2},{...frame(),summary:{...summary,profile:'yr',mission:'all01umd.map'}},{...frame(),summary:{...summary,diagnostics:[null]}}]){const worker=new FakeWorker(),bridge=new TerrainBridge(worker),promise=bridge.request(load,new AbortController().signal);worker.emit({version:3,id:1,type:'result',result:invalid});await assert.rejects(promise,/invalid/);assert.equal(worker.terminated,1);}
+  const worker=new FakeWorker(),bridge=new TerrainBridge(worker),abort=new AbortController();const promise=bridge.request(load,abort.signal);abort.abort();await assert.rejects(promise,{name:'AbortError'});worker.emit({version:3,id:1,type:'result',result:frame()});assert.equal(worker.terminated,1);
 });
 test('controller cancels long preparation, retains selection, ignores late completion and retries with a fresh worker',async()=>{
   const ports:ReturnType<typeof port>[]=[];const controller=new TerrainController('en',()=>{const p=port();ports.push(p);return p.value;});controller.select(selected());const loading=controller.load();controller.cancel();assert.equal(controller.state.phase,'cancelled');assert.equal(controller.state.files,1);assert.ok(ports[0]!.calls[0]!.signal.aborted);
@@ -66,18 +66,18 @@ test('worker retains scene/picking, transfers only bounded RGBA, preserves expli
   const messages:TerrainReply[]=[],ready=deferred<{scene:ViewportScene;summary:SceneSummary}>();let inheritedPath='';
   const scope:TerrainScope={onmessage:null,postMessage(message,transfer){messages.push(structuredClone(message,{transfer:transfer??[]}));}};
   attachTerrainWorker(scope,async(files,_profile,progress)=>{inheritedPath=files[0]!.webkitRelativePath;progress({phase:'scan',completed:1,total:3,bytes:10});progress({phase:'scan',completed:2,total:3,bytes:20});progress({phase:'scan',completed:3,total:3,bytes:30});return ready.promise;});
-  scope.onmessage!({data:structuredClone({version:2,id:1,action:load})});assert.equal(inheritedPath,'game/sample.mix');assert.equal(messages.length,1);
-  scope.onmessage!({data:{version:2,id:1,type:'ack',sequence:1}});assert.equal(messages.length,2);assert.equal((messages[1] as {progress:{completed:number}}).progress.completed,3);
+  scope.onmessage!({data:structuredClone({version:3,id:1,action:load})});assert.equal(inheritedPath,'game/sample.mix');assert.equal(messages.length,1);
+  scope.onmessage!({data:{version:3,id:1,type:'ack',sequence:1}});assert.equal(messages.length,2);assert.equal((messages[1] as {progress:{completed:number}}).progress.completed,3);
   ready.resolve({scene:fakeScene(),summary});await tick();const result=messages.at(-1)!;assert.equal(result.type,'result');if(result.type!=='result'||result.result.type!=='frame')assert.fail();assert.ok(validResult(result.result));assert.equal(result.result.rgba.byteLength,120*45*4);
-  scope.onmessage!({data:{version:2,id:2,action:{type:'pick',frameId:1,x:30,y:10}}});await tick();assert.equal(messages.at(-1)!.type,'result');
-  scope.onmessage!({data:{version:2,id:3,action:{type:'render',camera:view}}});await tick();scope.onmessage!({data:{version:2,id:4,action:{type:'pick',frameId:1,x:30,y:10}}});await tick();assert.deepEqual(messages.at(-1),{version:2,id:4,type:'error',code:'stale-frame'});
+  scope.onmessage!({data:{version:3,id:2,action:{type:'pick',frameId:1,x:30,y:10}}});await tick();assert.equal(messages.at(-1)!.type,'result');
+  scope.onmessage!({data:{version:3,id:3,action:{type:'render',camera:view}}});await tick();scope.onmessage!({data:{version:3,id:4,action:{type:'pick',frameId:1,x:30,y:10}}});await tick();assert.deepEqual(messages.at(-1),{version:3,id:4,type:'error',code:'stale-frame'});
 });
 test('worker rejects malformed actions and failed preparation without exposing exception text or partial scene',async()=>{
   const messages:TerrainReply[]=[],scope:TerrainScope={onmessage:null,postMessage(m){messages.push(m);}};let attempts=0;
   attachTerrainWorker(scope,async()=>{attempts++;throw new Error('/private/path with data');});
-  scope.onmessage!({data:{version:2,id:1,action:{...load,width:961}}});await tick();assert.equal(attempts,0);assert.equal(messages.at(-1)!.type,'error');
-  scope.onmessage!({data:{version:2,id:2,action:load}});await tick();assert.deepEqual(messages.at(-1),{version:2,id:2,type:'error',code:'unavailable'});
-  scope.onmessage!({data:{version:2,id:3,action:{type:'render',camera:view}}});await tick();assert.equal(messages.at(-1)!.type,'error');
+  scope.onmessage!({data:{version:3,id:1,action:{...load,width:961}}});await tick();assert.equal(attempts,0);assert.equal(messages.at(-1)!.type,'error');
+  scope.onmessage!({data:{version:3,id:2,action:load}});await tick();assert.deepEqual(messages.at(-1),{version:3,id:2,type:'error',code:'unavailable'});
+  scope.onmessage!({data:{version:3,id:3,action:{type:'render',camera:view}}});await tick();assert.equal(messages.at(-1)!.type,'error');
 });
 test('every original terrain UI state has English and Traditional Chinese copy, including prototype-name fallback',()=>{
   for(const locale of ['en','zh-Hant'] as const)for(const key of ['choose','selected','loading','ready','rendering','picking','picked','background','cancelled','failure','tooMany','scan','verify','definitions','mission','theater','tiles','compose','constructor','__proto__'])assert.equal(typeof terrainText(locale,key),'string');
