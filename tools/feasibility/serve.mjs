@@ -15,7 +15,8 @@ if (args.length) {
   if (args.length !== 2 || args[0] !== '--media-core' || !isAbsolute(args[1])) {
     throw new Error('Usage: node tools/feasibility/serve.mjs [--media-core /absolute/core/dist/esm]');
   }
-  for (const name of ['media-probe.html', 'media-probe.mjs', 'media-worker.mjs', 'bink-header.mjs']) {
+  for (const name of ['media-probe.html', 'media-probe.mjs', 'media-worker.mjs', 'bink-header.mjs',
+    'media-presentation.html', 'media-presentation.mjs', 'media-presentation-worker.mjs', 'media-presentation-queue.mjs']) {
     files.set(`/${name}`, [new URL(name, import.meta.url), name.endsWith('.html') ? 'text/html; charset=utf-8' : 'text/javascript; charset=utf-8']);
   }
   files.set('/media-core/ffmpeg-core.js', [join(args[1], 'ffmpeg-core.js'), 'text/javascript; charset=utf-8']);

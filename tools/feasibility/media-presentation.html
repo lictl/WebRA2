@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WebRA2 private media presentation diagnostic</title>
+<link rel="stylesheet" href="/probe.css">
+<main>
+  <h1>Local cinematic diagnostic · 本機影片測試</h1>
+  <p>Choose a local Bink file. Frames and audio stay on this device. Diagnostic only; no campaign engine.</p>
+  <label>Local Bink · 本機影片 <input id="media" type="file" accept=".bik"></label>
+  <label>Duration · 播放時間 <select id="duration"><option value="8">8 seconds</option><option value="30">30 seconds</option><option value="180">Full clip, up to 180 seconds</option></select></label>
+  <button id="start" disabled>Play · 播放</button>
+  <button id="stop" disabled>Stop and release · 停止</button>
+  <p>Audio output gain is 0.15. Hiding the page cancels playback.</p>
+  <canvas id="video" width="800" height="600" aria-label="Decoded local video"></canvas>
+  <div id="summary" aria-live="polite"></div>
+<pre id="results" aria-live="polite">Waiting for a local file.</pre>
+</main>
+<script type="module" src="/media-presentation.mjs"></script>
+</html>
