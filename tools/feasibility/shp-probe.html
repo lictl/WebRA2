@@ -1,0 +1,12 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WebRA2 private sprite diagnostic</title>
+<link rel="stylesheet" href="/shp-probe.css">
+<main><h1>Local sprite diagnostic · 本機圖像測試</h1>
+<p>Select an authorized SHP and its matching PAL. Both stay on-device. This diagnostic supports only format-2 nonzero literal rows; other records fail explicitly.</p>
+<label>SHP <input id="sprite" type="file" accept=".shp"></label>
+<label>PAL <input id="palette" type="file" accept=".pal"></label>
+<button id="decode" disabled>Decode · 解碼</button><button id="release">Release · 清除</button>
+<canvas id="canvas" width="1" height="1" aria-label="Decoded private sprite"></canvas>
+<pre id="results">Waiting for local files.</pre></main><script type="module" src="/shp-probe.mjs"></script></html>

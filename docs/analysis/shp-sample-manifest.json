@@ -1,0 +1,16 @@
+{
+  "sprite": {
+    "rootFile": "langmd.mix",
+    "rootSha256": "0290bc3e40c38406e2ec6805dc18ef6c3a9b6feee6db42df717ac920e93294c8",
+    "absoluteOffset": 372322,
+    "size": 481232,
+    "sha256": "cbe28febf98264f0956193e1edb07ab21116bf17e9e8143297d9322dd47b82c7"
+  },
+  "palette": {
+    "rootFile": "langmd.mix",
+    "rootSha256": "0290bc3e40c38406e2ec6805dc18ef6c3a9b6feee6db42df717ac920e93294c8",
+    "absoluteOffset": 853554,
+    "size": 768,
+    "sha256": "64e0d014ae537cb656e03fad9a94ee510ae1e6c7a6440ed1cd4263a193af4f12"
+  }
+}
