@@ -1,112 +1,88 @@
 # Current task and refreshed-session handoff
 
-State: **WORKING** — commit/review/merge the planning package, then execute M0.
-Date: 2026-09-09.
-Task: inspect the supplied game statically, ask product questions, write the
-multi-agent implementation plan and `AGENTS.md`. Engine implementation is not part
-of this session's task. No workers were launched for this planning pass.
-Follow-up: require issues, PRs, recorded reviews and merges through GitHub integration
-or `gh`, with traceable agent ownership and evidence. The owner has now accepted
-the plan and authorized committing and proceeding, with autonomous execution and
-GitHub issues for blockers. Begin M0 after the planning bootstrap merges.
+State: **WORKING** — M0 evidence and feasibility, first implementation wave.
+Date: 2026-09-09. The owner accepted the plan and authorized commits, GitHub
+issues/PRs/reviews/merges, autonomous blocker resolution and implementation.
 
-## Confirmed product context
+## Product decisions
 
-- Reimplement RA2 and Yuri's Revenge in a browser, TypeScript first; vetted codecs
-  and measured WASM use. GPL reuse is acceptable when useful.
-- All original campaigns in both games at campaign release. Preserve mission/rule
-  behavior and playability. Cinematics and WebRA2 saves required; native save import
-  is best effort. Full remaining vanilla engine and multiplayer follow.
-- Vanilla map/INI/asset mods first; extension mods later. Desktop Chrome, Edge,
-  Firefox, Safari and keyboard/mouse. All actual playable locale packs present in
-  the supplied installation, with Traditional Chinese tested from early milestones.
-- `game/` comes from Steam, Traditional Chinese, exact build unknown. Owner can
-  provide observations/recordings/saves from a working original game later.
-- On-device import, no server asset upload, plus a localhost launcher. Agreed team:
-  one coordinator and three workers, incremental milestones, no fixed finish date.
-- GitHub integration or `gh` must create/reuse issues, open linked PRs, record actual
-  reviews and perform validated merges. This applies to docs/research as well as code;
-  record URLs and commit identities. See `docs/github-workflow.md` and decision D15.
+Read `docs/decisions.md` (D01–D16). Both RA2/YR campaigns, cinematics, WebRA2 saves,
+installed playable locales (Steam Traditional Chinese reference), browser-local
+assets/localhost, desktop Chrome/Edge/Firefox/Safari, vanilla mods first, TypeScript
+and vetted GPL reuse. One coordinator plus three workers; original save import is
+best effort. Owner can provide original-game observations when actually needed.
 
-## Work completed
+## GitHub history
 
-- Repository baseline: initial commit `1c6bdf4`, MIT `LICENSE`, user-provided ignored
-  `game/`, previously untracked `.gitignore`; no preexisting engine or root guidance.
-- Read-only triage: 438 files, 1,961,556,205 bytes; 69 top-level archive containers,
-  66 encrypted indexes. Three plaintext indexes have valid declared member bounds.
-- PE metadata/imports and version-string candidates collected. `1.08` / `1.11`
-  metadata is not an identified gameplay patch. Source/build still needs fingerprint
-  investigation; do not assume pristine retail 1.006 / 1.001.
-- Campaign map section structure scanned; counts are not deduplicated mission counts.
-  Editor source ZIP listed; no archive assets or source extracted or copied.
-- Twelve product questions answered in `docs/decisions.md`.
-- Wrote README, concise AGENTS, analysis, architecture, phased agent plan,
-  compatibility seed and reproducible metadata script/snapshot.
-- Preserved `/game` ignore and added `/local/` for private research; retained MIT
-  pending actual dependency adoption. No game binary run, engine built, or deployment.
-- Added the GitHub issue/PR/review/merge workflow, issue and PR templates, agent
-  responsibilities, shared-account review handling, and handoff trace fields.
-- Verified origin is `https://github.com/lictl/WebRA2.git`; `gh repo view` confirms
-  `lictl/WebRA2` with default branch `main`. The CLI is available (2.100.0).
+| Work | Issue / PR / review | Status |
+| --- | --- | --- |
+| Planning bootstrap | [#1](https://github.com/lictl/WebRA2/issues/1), [PR #3](https://github.com/lictl/WebRA2/pull/3), [review](https://github.com/lictl/WebRA2/pull/3#pullrequestreview-5154276388) | Merged bf241241e44d369d74662b01ccbf6e9b23d24a9f; reviewed head c2910ea1f3eb0b90bd095903fea3e28b2b4996da |
+| Git credential mismatch | [#2](https://github.com/lictl/WebRA2/issues/2) | Resolved without human input; gh login lictl has access, osxkeychain used another account |
+| Hosted CI activation | [#10](https://github.com/lictl/WebRA2/issues/10) | CLI token lacks workflow scope; preserve template and run checks locally while evaluating authorized integration |
+| M0 tracker | [#4](https://github.com/lictl/WebRA2/issues/4) | Open; full exit criteria not yet complete |
+| MIX reader/census | [#5](https://github.com/lictl/WebRA2/issues/5) | Worker mix_reader, codex/5-mix-reader, PR pending |
+| Behavior/reference specs | [#6](https://github.com/lictl/WebRA2/issues/6) | Worker bootstrap_review reassigned to specs, codex/6-behavior-specs, PR pending |
+| Browser/media probe | [#7](https://github.com/lictl/WebRA2/issues/7) | Worker browser_feasibility, codex/7-browser-feasibility, PR pending |
+| Toolchain/contracts | [#8](https://github.com/lictl/WebRA2/issues/8) | Coordinator, codex/8-foundation, PR pending |
 
-## GitHub bootstrap status
+Use per-command Git credentials if the host keychain selects the wrong account:
 
-Bootstrap issue: https://github.com/lictl/WebRA2/issues/1.
-Branch: `codex/1-planning-bootstrap`. PR creation/review is pending this commit.
-Commit the docs/tooling/metadata, obtain an independent agent review and merge via
-`docs/github-workflow.md`. Then start the selected M0 work issues and branches.
+```sh
+git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push
+```
 
-## Verification
+Do not change global credentials or expose tokens. GitHub work uses `gh` or the
+integration; each genuine blocker needs a linked issue with evidence/attempts.
 
-- `python3 tools/static_inventory.py game > docs/analysis/installation-inventory.json`
-  completed; no archive/PE parse errors; all three readable indexes within bounds.
-- Recomputed inventory from `game/` and compared parsed JSON with the snapshot:
-  identical. Snapshot is 36,585 bytes of reviewed metadata; no game payloads.
-- Six inline standard-library synthetic checks passed: classic index, flagged index
-  with checksum trailer, member out of bounds, truncated header, encrypted-index
-  detection and unknown flags. These verify triage behavior, not production codecs.
-- Checked all eight Markdown files and 20 local links: passed. Checked whitespace
-  with `git diff --check` and `git diff --no-index --check /dev/null <file>` for new
-  files, because ordinary Git diff does not include untracked files: passed.
-- `git ls-files game` returns no paths. No retail assets are tracked; new public
-  outputs are original docs/tooling and structural metadata. All changes remain
-  uncommitted. No app tests exist yet and no game runtime validation was performed.
-- Follow-up verification: all 11 Markdown files and 24 local links passed; issue
-  template metadata and PR template checked; `git diff --check` and per-file
-  whitespace checks including untracked files passed. No app changes or new app
-  tests were needed for this documentation-only update.
+## Active ownership and worktrees
 
-## Exact next bounded implementation slice (queued, not started)
+Coordinator owns root configuration/lockfiles, `packages/contracts/`, CI and shared
+docs. Workers own their issue-assigned paths, in `local/worktrees/mix`, `specs`, and
+`browser`. These are ignored isolated Git worktrees based on the merged bootstrap.
+They read the original `/Users/lucus/Projects/WebRA2/game` only; no copy is required.
+Independent agent reviews and coordinator merges remain mandatory. Do not merge
+another worker's changes or mutate their files without coordination.
 
-**M0 / evidence and feasibility.** When the user requests implementation/continuation:
+## Foundation and validation
 
-1. Re-read `AGENTS.md`, this file and `docs/decisions.md`; inspect current Git status.
-   Complete the planning-package GitHub bootstrap above before M0 work begins.
-2. Create/reuse linked M0 work issues and record M0 as WORKING with explicit tasks
-   and write ownership, issue URLs and branch/PR state. Use at most three
-   workers plus coordinator according to `docs/plan.md`; separate their write paths.
-3. Start **M0-01 MIX reader and content census**, alongside **M0-03 behavior/evidence
-   contracts** and **M0-04 media/browser/CJK feasibility** where independent. Campaign
-   member enumeration M0-02 depends on M0-01; do not fabricate it from raw scans.
-4. Compare a narrow licensed decoder reuse path with a new reader. Pin versions/
-   provenance and handle license changes/notices with the actual chosen dependency.
-5. Deliver metadata-only nested member manifests, honest unresolved names/checksums,
-   candidate media path, small shared contracts, and an original-game observation
-   recipe. Choose real RA2/YR first-mission IDs after manifests are resolved.
+Node 24.20.0, TypeScript 7.0.2, tsx 4.23.13, node:test, locked npm dependencies.
+Local Node 24 is under ignored `local/toolchain/node_modules/node/bin`; the user's
+global Node was left unchanged. Use `.nvmrc` in new environments, then `npm ci` and
+`npm run check`. Focused tests: `node tools/run-tests.mjs tests/<area>`.
 
-Do not start M1–M8 merely because they appear in the plan. No technical stack
-dependencies, browser test harness, Node version or npm scripts have been selected.
-There is no existing app command to run. Avoid expanding this first slice into
-whole-engine implementation before the evidence and feasibility gates close.
+The foundation adds command validation/order and save/replay/evidence types;
+original tick/RNG/phase semantics and actual save loading remain unimplemented.
+Six public contract tests passed before the final publication/CI pass. Record PR
+and subsequent validation/review results as the wave finishes. The CI template uses
+synthetic fixtures only, pinned actions and read-only permission; activation is
+tracked in #10, and local results are not reported as remote CI passes. The publication
+guard checks paths/extensions, not arbitrary payload provenance; manual review is
+still needed. GPL MIX provenance and combined distribution requirements are explicit
+in `docs/licensing.md`, preserving MIT terms for original separable material.
 
-## Remaining unknowns
+Initial triage remains reproducible: 438 files, 1,961,556,205 bytes, 69 top-level
+archives, 66 encrypted index flags. Its metadata snapshot was independently
+reproduced in PR #3 review; eight synthetic header checks, 24 links and whitespace
+passed. Raw map section counts are not unique mission counts. No original game
+binary was run and no retail assets/private evidence were published.
 
-Exact Steam build/patch precedence; complete playable locale and mission manifests;
-encrypted index/nested content decode; opcode semantics; cinema codec path and
-dependency licensing; measured browser memory/performance; reference observations;
-native save feasibility. These are research tasks, not unanswered product questions.
+## Next bounded actions
 
-For later handoffs, replace the completed-work/validation sections with the actual
-active slice's files, branch/contract revisions, commands/results, evidence paths,
-issue/PR/review URLs, reviewed head and merge SHA/status, blockers, and next step.
-Preserve the product decisions and their source.
+1. Finish, commit and independently review each M0 PR; match reviewed heads on merge.
+2. Integrate root toolchain before validating dependent worker branches on main.
+3. Run the MIX reader against synthetic vectors and the private local corpus; record
+   unresolved names/checksums/nested archives. Use member boundaries for later census.
+4. Integrate behavior specs and measured browser reports. Open linked issues for
+   real-codec or unavailable-browser evidence gaps; do not claim static research as
+   a passing browser test or solicit human input for routine implementation choices.
+5. Update #4 and this handoff with actual PR/review/merge links, results and remaining
+   M0 criteria. Do not close M0 merely because its first PRs merged. Continue the next
+   dependent M0 slice once its inputs are available; M1–M8 gates remain in the plan.
+
+## Remaining evidence
+
+Effective Steam build/patch precedence, complete playable locale/mission manifests,
+verified encrypted/nested index decode, actual original trigger/AI semantics,
+measured cinematic browser path, full four-browser evidence, memory/performance
+budgets and native save feasibility. These are tracked M0/later research tasks,
+not unanswered initial product questions.
