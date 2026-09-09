@@ -2,6 +2,7 @@
 // Copyright 2026 WebRA2 contributors. Verified static artwork, without entity simulation.
 import type { BrowserAssetCandidate, BrowserCatalog } from '../../vfs/src/browser-catalog.ts';
 import { BROWSER_CATALOG_POLICY } from '../../vfs/src/browser-catalog.ts';
+import { BROWSER_IMPORT_LIMITS } from '../../vfs/src/browser-import.ts';
 import type { BrowserMemberIdentity } from '../../vfs/src/browser-verified.ts';
 import { hashByteSource } from '../../vfs/src/hash-source.ts';
 import { throwIfImportAborted } from '../../vfs/src/browser-source.ts';
@@ -41,6 +42,42 @@ export class ObjectPreviewError extends Error {
 function fail(code: string, path = ''): never { throw new ObjectPreviewError(code, path); }
 function plain(value: unknown): asserts value is Record<string, unknown> {
   if (!value || typeof value !== 'object' || ![Object.prototype, null].includes(Object.getPrototypeOf(value))) fail('object-preview-options');
+}
+function data(value: unknown, key: string): unknown {
+  plain(value); const d = Object.getOwnPropertyDescriptor(value, key);
+  if (!d || !('value' in d) || !d.enumerable) fail('object-preview-metadata'); return d.value;
+}
+function string(value: unknown, maximum = 4096): string {
+  if (typeof value !== 'string' || !value.length || value.length > maximum) fail('object-preview-metadata'); return value;
+}
+function natural(value: unknown): number {
+  if (!Number.isSafeInteger(value) || Object.is(value, -0) || (value as number) < 0) fail('object-preview-metadata'); return value as number;
+}
+function dense(value: unknown, maximum: number): readonly unknown[] {
+  if (!Array.isArray(value) || Object.getPrototypeOf(value) !== Array.prototype || value.length > maximum || Reflect.ownKeys(value).length !== value.length + 1) fail('object-preview-metadata');
+  for (let i = 0; i < value.length; i++) {
+    const d = Object.getOwnPropertyDescriptor(value, String(i));
+    if (!d || !('value' in d) || !d.enumerable) fail('object-preview-metadata');
+  }
+  return value;
+}
+function rootIdentity(value: unknown): BrowserMemberIdentity['root'] {
+  const sourceId = string(data(value, 'sourceId'), 128), size = natural(data(value, 'size')), sha256 = string(data(value, 'sha256'), 64);
+  if (!/^[a-f0-9]{64}$/.test(sha256)) fail('object-preview-root-identity');
+  return Object.freeze({ sourceId, size, sha256 });
+}
+function memberIdentity(value: unknown): BrowserMemberIdentity {
+  const root = rootIdentity(data(value, 'root')), absoluteOffset = natural(data(value, 'absoluteOffset')), size = natural(data(value, 'size')), sha256 = string(data(value, 'sha256'), 64);
+  if (absoluteOffset > root.size || size > root.size - absoluteOffset || !/^[a-f0-9]{64}$/.test(sha256)) fail('object-preview-source-identity');
+  return Object.freeze({ root, absoluteOffset, size, sha256 });
+}
+function candidateSnapshot(value: unknown): BrowserAssetCandidate {
+  const id = string(data(value, 'id')), sourceId = string(data(value, 'sourceId'), 128), rootPath = string(data(value, 'rootPath'));
+  const archive = data(value, 'archiveId'), ordinalValue = data(value, 'ordinal'), archiveId = archive === null ? null : string(archive), ordinal = ordinalValue === null ? null : natural(ordinalValue);
+  const absoluteOffset = natural(data(value, 'absoluteOffset')), size = natural(data(value, 'size')), kind = data(value, 'kind'), allowed = data(value, 'allowed'), ambiguousName = data(value, 'ambiguousName');
+  if ((kind !== 'literal' && kind !== 'hash-candidate') || typeof allowed !== 'boolean' || typeof ambiguousName !== 'boolean') fail('object-preview-metadata');
+  const knownNames = dense(data(value, 'knownNames'), BROWSER_IMPORT_LIMITS.namesPerMember).map(name => string(name));
+  return Object.freeze({ id, sourceId, rootPath, archiveId, ordinal, absoluteOffset, size, kind, allowed, ambiguousName, knownNames: Object.freeze(knownNames) });
 }
 function limits(value: Partial<Limits>): Limits {
   plain(value); const cap: Limits = { ...OBJECT_PREVIEW_LIMITS };
@@ -83,7 +120,11 @@ export async function prepareObjectPreview(catalog: BrowserCatalog, plan: Object
   try {
     const guard = () => throwIfImportAborted(signal); guard();
     if (catalog.policy !== BROWSER_CATALOG_POLICY || catalog.report.profile !== plan.profile || catalog.report.status !== 'inspected') fail('object-preview-catalog');
-    const roots = new Map(catalog.report.files.map(f => [f.id, f])), knownRoots = new Map<string, Readonly<BrowserMemberIdentity['root']>>(), reserved = new Set<string>();
+    const roots = new Map<string, Readonly<{ id: string; path: string; size: number }>>(), knownRoots = new Map<string, Readonly<BrowserMemberIdentity['root']>>(), reserved = new Set<string>();
+    for (const f of dense(catalog.report.files, BROWSER_IMPORT_LIMITS.files)) {
+      const id = string(data(f, 'id'), 128), path = string(data(f, 'path')), size = natural(data(f, 'size'));
+      if (roots.has(id)) fail('object-preview-root'); roots.set(id, Object.freeze({ id, path, size }));
+    }
     let rootBytes = 0;
     const reserve = (sourceId: string) => {
       const root = roots.get(sourceId); if (!root) fail('object-preview-root');
@@ -103,7 +144,7 @@ export async function prepareObjectPreview(catalog: BrowserCatalog, plan: Object
       // Only root facts are used, so no unverified member hash/range claim is made about anchors.
       plain(anchor); const r = Object.getOwnPropertyDescriptor(anchor, 'root'); if (!r || !('value' in r)) fail('object-preview-anchors');
       plain(r.value); for (const key of ['sourceId', 'size', 'sha256']) { const f = Object.getOwnPropertyDescriptor(r.value, key); if (!f || !('value' in f)) fail('object-preview-anchors'); }
-      bindRoot({ sourceId: r.value.sourceId as string, size: r.value.size as number, sha256: r.value.sha256 as string });
+      bindRoot(rootIdentity(r.value));
     }
     type Pending = { path: string; status: ResourceStatus | 'pending'; candidates: { candidate: BrowserAssetCandidate; priority: number | null; source: BrowserMemberIdentity | null }[]; selected: string[] };
     const resources = new Map<string, Pending>(), unique = new Map<string, { candidate: BrowserAssetCandidate; path: string }>(), names = new Map<string, string>();
@@ -112,8 +153,13 @@ export async function prepareObjectPreview(catalog: BrowserCatalog, plan: Object
       if (++references > cap.references) fail('object-preview-reference-limit');
       const existing = resources.get(path); if (existing) return existing;
       const found = catalog.lookup(path);
-      if (found.candidates.length > cap.candidates - candidates) fail('object-preview-candidate-limit'); candidates += found.candidates.length;
-      const rows = found.candidates.map(candidate => {
+      const foundCandidates = dense(found.candidates, BROWSER_IMPORT_LIMITS.nameCandidates);
+      if (foundCandidates.length > cap.candidates - candidates) fail('object-preview-candidate-limit'); candidates += foundCandidates.length;
+      const ids = new Set<string>();
+      const rows = foundCandidates.map(value => {
+        const candidate = candidateSnapshot(value), file = roots.get(candidate.sourceId);
+        if (ids.has(candidate.id)) fail('object-preview-candidate-identity', path); ids.add(candidate.id);
+        if (!file || file.path !== candidate.rootPath || candidate.absoluteOffset > file.size || candidate.size > file.size - candidate.absoluteOffset) fail('object-preview-source-identity', path);
         if (names.has(candidate.id) && names.get(candidate.id) !== path) fail('object-preview-name-collision', path); names.set(candidate.id, path);
         const rank = priority(candidate, plan.profile);
         if (!unique.has(candidate.id)) {
@@ -139,7 +185,7 @@ export async function prepareObjectPreview(catalog: BrowserCatalog, plan: Object
     const cache = new Map<string, { source: BrowserMemberIdentity; bytes: Uint8Array }>(); let completed = 0, verifiedSourceBytes = 0;
     for (const id of needed) {
       const { candidate, path } = unique.get(id)!; guard(); const found = await catalog.discover(id); guard();
-      const r = found.identity, source = Object.freeze({ root: Object.freeze({ sourceId: r.root.sourceId, size: r.root.size, sha256: r.root.sha256 }), absoluteOffset: r.absoluteOffset, size: r.size, sha256: r.sha256 });
+      const source = memberIdentity(found.identity);
       if (source.root.sourceId !== candidate.sourceId || source.absoluteOffset !== candidate.absoluteOffset || source.size !== candidate.size || !/^[a-f0-9]{64}$/.test(source.sha256)) fail('object-preview-source-identity', path);
       bindRoot(source.root);
       if (!found.bytes || Object.getPrototypeOf(found.bytes) !== Uint8Array.prototype) fail('object-preview-bytes', path);

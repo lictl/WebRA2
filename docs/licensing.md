@@ -39,7 +39,10 @@ Original runtime INI, terrain/object/mission-logic tables, structural object bin
 profile composition use the content component's GPL-3.0-or-later license. No decoded retail map or tile is shipped. The original object-art planner and
 verified still-resource adapter use the same GPL terms, with pinned editor
 references and explicit preview limitations in
-[object-art provenance](../packages/content/OBJECT_ART_PROVENANCE.md).
+[object-art provenance](../packages/content/OBJECT_ART_PROVENANCE.md). Native
+scenario construction retains its static evidence in
+[construction provenance](../packages/content/CONSTRUCTION_PROVENANCE.md); both
+notices accompany the development bundle.
 
 The CPU terrain scene and composing browser viewport are GPL-3.0-or-later;
 [render provenance](../packages/render/PROVENANCE.md) records pinned OpenRA placement

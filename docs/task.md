@@ -15,11 +15,12 @@ cinematics. No original mission is playable yet.
 
 Current wave: coordinator [object artwork #100](https://github.com/lictl/WebRA2/issues/100);
 browser agent [persistent media #101](https://github.com/lictl/WebRA2/issues/101);
-format agent [SHP header fields #104](https://github.com/lictl/WebRA2/issues/104);
-simulation agent [scenario construction #94](https://github.com/lictl/WebRA2/issues/94).
-The latter discovered exact-case INI semantics; [#103](https://github.com/lictl/WebRA2/issues/103)
-tracks remaining consumers. Sprite composition #99 is merged. #104 is a software
-blocker for #100 private decoding; its worker can investigate without human input.
+format agent independently reviews #100; simulation agent
+[exact INI source view #103](https://github.com/lictl/WebRA2/issues/103) has opened
+[PR #109](https://github.com/lictl/WebRA2/pull/109) and is reviewing the media core.
+Scenario construction #94, sprite composition #99 and SHP header fields #104 have
+merged. The #104 software blocker is resolved; both full #100 private preparations
+and independent source/pixel comparisons now pass.
 Build/import decisions are recorded in [ADR 0003](adr/0003-browser-build-and-import-boundary.md).
 No essential human input is currently needed. Finish each reviewed slice and continue
 through the accepted milestones; do not stop simply because this first wave merges.
@@ -52,8 +53,8 @@ the coordinator after independent exact-head COMMENT review and successful check
 | --- | --- | --- |
 | Coordinator | #100 object-art plan/resources; shared configuration/notices/handoff; independent reviews | `codex/100-object-art` at root |
 | browser_feasibility | #101 retained Bink decoder/player; packages/media/**, tests/media/**, tools/media/**, docs/persistent-media.md; sole native UI owner | `codex/101-persistent-media`, `local/worktrees/persistent-media` |
-| mix_reader | #104 SHP header field evidence/decoder; then #100 review | `codex/104-shp-header-fields`; preserved `local/worktrees/sprite-layer` |
-| bootstrap_review | #94 native scenario definitions/ownership; focused content source/tests/provenance/report | `codex/94-scenario-construction`, `local/worktrees/scenario-construction` |
+| mix_reader | Independent #100 final review; #104 merged | `codex/104-shp-header-fields`; preserved `local/worktrees/sprite-layer` |
+| bootstrap_review | #103 exact source view/extraction (PR #109); independent #101 native/build review | `codex/103-ini-source-view`, `local/worktrees/ini-source-view` |
 
 The current wire contracts stay unchanged. The simulation worker owns its internal
 synthetic state policy; importer/UI shared types are coordinated before integration.
@@ -255,22 +256,29 @@ again. Do not push historical unreviewed local branches such as
 | Four-browser terrain viewport | [#92 / PR #95 and reviews](https://github.com/lictl/WebRA2/pull/95) | 524754571beaa13be9cdaa1ed5e662919dfff9d4 |
 | SHP sprite layer | [#99 / PR #102 and scoped reviews](https://github.com/lictl/WebRA2/pull/102) | f22c8b33f7f608b8021ab65234600c6efe126be4 |
 
+| Native scenario construction | [#94 / PR #105 and reviews](https://github.com/lictl/WebRA2/pull/105) | c0049272a6bd3a9f9ec92db1443988a7d908f1f8 |
+| SHP compression byte/auxiliary fields | [#104 / PR #108 and review](https://github.com/lictl/WebRA2/pull/108) | f822914b44d19c9ec9b7832ae761b2d1f71f77bc |
+
 ## Remaining work and exact next action
 
-Finish #104 header interpretation with primary/native evidence; integrate its reviewed
-fix and rerun both #100 private full preparations plus independent source/pixel checks.
-The object-art planner currently passes ten focused tests, with both profiles and
-all six families. Its private initial plans have 110/138 SHP and 10/5 voxel types;
-these counts are not a passing decoded scene or campaign. Private research is under
-`local/object-art/`. Review and merge #100 only after its acceptance gates pass.
+Finish independent final review and merge #100. Its twelve focused tests cover
+both profiles, all six placement families, bounded resource loading and metadata
+ownership across asynchronous discovery. Private preparation now readies 110/138
+SHP types using 107/131 unique images and 3/2 palettes; 10/5 voxel types remain
+explicit. An independent raw-source and pixel oracle matches every plan/row join
+and all 2,578,276 selected pixels. Evidence and scripts are under `local/object-art/`;
+[the report](object-art.md) records exact scope and comparison hashes.
 
-Independently review #94's staged registry/property/country/house/placement model
-against both native images and the separate raw-INI oracle. Its initial private
-oracle resolves all 811/570 placed identities, but modeled allocation order is not
-complete native runtime indices. General RuntimeIni remains ASCII-case-folded;
-#103 tracks exact-case consumers. Neither a resolved ID nor a typed outcome request
-is an executable mission. The merged #91 interpreter supports bounded timer/flag
-and trigger controls; teams, scripts, object conditions and many actions remain.
+Merged #94's staged registry/property/country/house/placement model passed 444 tests
+and independent raw-source/native-range checks. The private oracle reproduces all
+811/570 placements, but modeled allocation order is not complete native runtime
+indices or implemented statistics. #103 PR #109 exposes exact source occurrences
+and extracts construction's repeated walk without changing its private hashes;
+review it and then migrate artwork and runtime property consumers. General
+RuntimeIni remains ASCII-case-folded. Neither a resolved ID nor a typed outcome
+request is an executable mission. The merged #91 interpreter supports bounded
+timer/flag and trigger controls; teams, scripts, object conditions and many actions
+remain.
 
 #101 replaces repeated cinematic restarts with a narrow retained FFmpeg decoder.
 Its exact source/toolchain/build configuration and native sample oracle must be

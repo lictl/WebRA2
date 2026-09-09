@@ -28,8 +28,9 @@ stem beginning G/N/C/Y, try its second character replaced with the requested
 letter, then G. Finally try the unchanged `.shp` stem. No other theater is searched.
 RA2 accepts temperate/snow/urban; YR additionally accepts new urban/desert/lunar.
 Terrain, smudges, `Theater` or `TerrainPalette` use the theater iso palette; other
-stills use its unit palette. Explicit `Palette` selects a literal basename with
-`.pal`. This is a preview policy, not a native custom-palette prefix rule.
+stills use its unit palette. Explicit `Palette` is a bounded prefix followed by the current theater suffix and
+`.pal`, as observed in both pinned native palette loaders. A value with an explicit
+extension is unsupported rather than silently stripping it.
 Rectangular structure `Foundation` metadata is retained without placing the sprite.
 Missing definitions, unsupported booleans/names/foundations and repeated consulted
 fields within a layer produce reasons instead of a usable plan for that type.
@@ -50,7 +51,9 @@ anchor already-verified root size/hash facts, captured before the first await.
 They do not authenticate arbitrary member facts supplied by a caller.
 
 The first path with candidates ends filename fallback, even if blocked, conflicting,
-ambiguous or unsupported. All candidate metadata remains in the result. Loose
+ambiguous or unsupported. Candidate and report-root fields are validated as primitive values and captured before
+the first asynchronous discovery. Returned candidate metadata is frozen; later
+caller mutation cannot change the checked budgets or identities. Loose
 files rank 200; explicit profile expansion NN archives rank 1+NN; recognized base
 roots rank zero. This finite policy deliberately does not invent nested archive
 ordering. All highest-ranked copies must have identical verified size/hash.
@@ -85,7 +88,8 @@ source/root/reference limits precede discovery; index/pixel checks precede decod
 Public original fixtures cover all six families and both profiles, image overrides
 with provenance, filename fallback, source/profile isolation, owned mutable outputs,
 equivalent duplicates, loose/expansion selection, unresolved conflicts/mounts,
-corruption, decoder failure paths, cancellation/retry and allocation limits.
+corruption, decoder failure paths, cancellation/retry, metadata mutation across
+asynchronous discovery, boxed scalar/getter rejection and allocation limits.
 
 ```sh
 node --import tsx --test tests/content/object-art.test.ts tests/content/object-preview.test.ts
@@ -94,13 +98,25 @@ npm run check
 
 Private `local/object-art/{probe,compile,prepare}.mjs` creates genuine File objects
 from the read-only installation, inspects the catalog, loads the pinned opening
-profile and compiles the plan. The initial planning pass finds 120 RA2 placed types
-(110 SHP, 10 voxel) and 143 YR types (138 SHP, 5 voxel), without unsupported plan
-reasons. These are candidate counts, not completed decoding or native fidelity.
-The first full preparation exposed an unsupported SHP header field; implementation
-blocker [#104](https://github.com/lictl/WebRA2/issues/104) owns its evidence and fix.
-Do not record the private resource gate as passing until both preparations and an
-independent raw-source/pixel comparison complete. Missing retail files skip that gate.
+profile and compiles the plan. After the reviewed [SHP header fix](shp-runtime.md),
+both complete preparations pass. The general native palette-prefix rule also
+resolves the remaining RA2 palette without a hardcoded object name.
+
+| Opening | Placed types / rows | Ready SHP types / unique assets | Voxel types | Palettes | Decoded frame-zero pixels | Indexed headers |
+| --- | --- | --- | --- | --- | --- | --- |
+| RA2 | 120 / 811 | 110 / 107 | 10 | 3 | 980,819 | 3,442 |
+| YR | 143 / 570 | 138 / 131 | 5 | 2 | 1,597,457 | 3,594 |
+
+The separate private Python `oracle.py` reads and hashes five original roots and
+276 member ranges, parses raw INI definitions independently for this explicit
+preview policy, and compares every type/placement join, candidate selection,
+selected SHP frame index and palette RGBA byte. It matches all 238 selected frames
+and 2,578,276 pixels. Canonical comparison projections are
+`063bb06744acf8489ba8297529efc39a2fac46bcd25e37fd8768f36f49f41e61`
+(RA2) and `15a7ff25a6bc2ad4ec4f330fa003b00557ebe0834f2fae6fe147065f80f5f510`
+(YR). These checks verify still-resource preparation, not native placement,
+case-sensitive allocation or campaign behavior. Missing retail files skip this
+private gate; no source bytes, decoded pixels or original INI values are published.
 
 The [component notice](../packages/content/OBJECT_ART_PROVENANCE.md) records source
 attribution and separates editor observations from these WebRA2 preview choices.

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { inspectBrowserCatalog, type BrowserCatalog } from '../../packages/vfs/src/browser-catalog.ts';
+import { inspectBrowserCatalog, type BrowserAssetCandidate, type BrowserCatalog } from '../../packages/vfs/src/browser-catalog.ts';
 import { prepareObjectPreview } from '../../packages/content/src/object-preview.ts';
 import { plan, assets, file, mix, shp, sha } from './object-art.fixture.ts';
 
@@ -70,6 +70,62 @@ test('source budgets precede I/O and aggregate SHP work gates precede selected-p
     }
     for (const limits of [{ assets: 1 }, { indexedFrames: 1 }, { decodedPixels: 1 }]) await assert.rejects(prepareObjectPreview(counted, plan(), { limits }), /limit/);
     await assert.rejects(prepareObjectPreview(counted, plan(), { limits: { assets: 1025 } }), /limit/);
+  } finally { await catalog.dispose(); }
+});
+
+test('candidate and root metadata are captured before asynchronous discovery can mutate budget facts', async () => {
+  const catalog = await inspectBrowserCatalog(Object.entries(assets()).map(([n, b]) => file(n, b)), { profile: 'ra2', policy: 'tolerant' });
+  try {
+    const candidates: { size: number }[] = [], roots = catalog.report.files.map(row => ({ ...row }));
+    const mutable: BrowserCatalog = { ...catalog, report: { ...catalog.report, files: roots },
+      lookup(path) { const found = catalog.lookup(path); return { ...found, candidates: found.candidates.map(candidate => {
+        const copy = { ...candidate, knownNames: [...candidate.knownNames] }; candidates.push(copy); return copy;
+      }) }; },
+      async discover(id) {
+        for (const candidate of candidates) candidate.size = 0;
+        for (const root of roots) { root.size = 0; root.path = 'changed.mix'; }
+        return catalog.discover(id);
+      } };
+    const prepared = await prepareObjectPreview(mutable, plan());
+    assert.equal(prepared.allocations.verifiedSourceBytes, Object.values(assets()).reduce((sum, bytes) => sum + bytes.length, 0));
+    for (const resource of prepared.resources) for (const row of resource.candidates) {
+      assert.equal(row.candidate.size, row.source!.size); assert.ok(Object.isFrozen(row.candidate)); assert.ok(Object.isFrozen(row.candidate.knownNames));
+    }
+    const claimed = new Map<string, { candidate: { size: number }; actualSize: number }>();
+    const undersized: BrowserCatalog = { ...catalog,
+      lookup(path) { const found = catalog.lookup(path); return { ...found, candidates: found.candidates.map(candidate => {
+        const copy = { ...candidate, size: 1 }; claimed.set(candidate.id, { candidate: copy, actualSize: candidate.size }); return copy;
+      }) }; },
+      async discover(id) { for (const row of claimed.values()) row.candidate.size = row.actualSize; return catalog.discover(id); } };
+    await assert.rejects(prepareObjectPreview(undersized, plan(), { limits: { sourceBytes: 10 } }), /source-identity/);
+  } finally { await catalog.dispose(); }
+});
+
+test('metadata identities require primitive scalar values and candidate getters never execute', async () => {
+  const catalog = await inspectBrowserCatalog(Object.entries(assets()).map(([n, b]) => file(n, b)), { profile: 'ra2', policy: 'tolerant' });
+  try {
+    const source = (await catalog.discover(catalog.lookup('actor.shp').candidates[0]!.id)).identity;
+    const boxed = Object.assign(new String(source.root.sha256), { payload: new Uint8Array(1) }) as unknown as string;
+    await assert.rejects(prepareObjectPreview(catalog, plan(), { anchors: [{ ...source, root: { ...source.root, sha256: boxed } }] }), /metadata/);
+    for (const field of ['root', 'member']) {
+      const corrupt: BrowserCatalog = { ...catalog, async discover(id) {
+        const found = await catalog.discover(id), identity = field === 'root' ? { ...found.identity, root: { ...found.identity.root, sha256: boxed } } :
+          { ...found.identity, sha256: new String(found.identity.sha256) as unknown as string };
+        return { ...found, identity };
+      } };
+      await assert.rejects(prepareObjectPreview(corrupt, plan()), /metadata/);
+    }
+    let invoked = false, reads = 0;
+    const getter: BrowserCatalog = { ...catalog,
+      lookup(path) { const found = catalog.lookup(path); return { ...found, candidates: found.candidates.map(candidate =>
+        Object.defineProperty({ ...candidate }, 'size', { enumerable: true, get() { invoked = true; return 1; } }) as BrowserAssetCandidate) }; },
+      async discover(id) { reads++; return catalog.discover(id); } };
+    await assert.rejects(prepareObjectPreview(getter, plan()), /metadata/); assert.equal(invoked, false); assert.equal(reads, 0);
+    const duplicate: BrowserCatalog = { ...catalog,
+      lookup(path) { const found = catalog.lookup(path), first = found.candidates[0]; return { ...found,
+        candidates: first ? [...found.candidates, { ...first, absoluteOffset: first.absoluteOffset + 1, size: first.size - 1 }] : found.candidates }; },
+      async discover(id) { reads++; return catalog.discover(id); } };
+    await assert.rejects(prepareObjectPreview(duplicate, plan()), /candidate-identity/); assert.equal(reads, 0);
   } finally { await catalog.dispose(); }
 });
 

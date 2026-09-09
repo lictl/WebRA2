@@ -26,8 +26,10 @@ test('map Image override preserves prior origin while declaration order and obje
   assert.equal(image.selected.layerId, 'original-map'); assert.equal(image.shadowed[0]!.layerId, 'rules');
   const reversed = Object.freeze({ ...source.objects, placements: Object.freeze([...source.objects.placements].reverse()) });
   assert.deepEqual(compileObjectArt({ ...source, objects: reversed }), p);
-  const custom = compileObjectArt(input({ art: art + '[TRACE]\nPalette=OriginalPalette.pal\n' }));
-  assert.equal(custom.types.find(t => t.kind === 'smudge')!.palettePath, 'originalpalette.pal');
+  const custom = compileObjectArt(input({ art: art + '[TRACE]\nPalette=OriginalPalette\n' }));
+  assert.equal(custom.types.find(t => t.kind === 'smudge')!.palettePath, 'originalpaletteurb.pal');
+  const explicitExtension = compileObjectArt(input({ art: art + '[TRACE]\nPalette=OriginalPalette.pal\n' }));
+  assert.ok(explicitExtension.types.find(t => t.kind === 'smudge')!.reasons.includes('unsupported-palette'));
 });
 test('unsafe names, unsupported flags, absent definitions and duplicate source fields remain explicit', () => {
   for (const [changed, reason] of [
@@ -44,6 +46,7 @@ test('profile/source boundaries and immutable graph limits reject before retaini
   assert.throws(() => compileObjectArt({ ...value, art: input({ profile: 'yr' }).art }), /art-profile/);
   assert.throws(() => compileObjectArt({ ...value, rules: input({ mission: mission + '; new source\n' }).rules }), /art-map-identity/);
   assert.throws(() => compileObjectArt({ ...value, theater: 'NEWURBAN' }), /art-profile/);
+  assert.throws(() => compileObjectArt({ ...value, theater: new String('URBAN') as unknown as 'URBAN' }), /art-profile/);
   assert.throws(() => compileObjectArt({ ...value, art: { ...value.art } }), /art-immutable/);
   const getter = Object.freeze({ ...value.art, get unwanted(): never { throw Error('must not execute'); } });
   assert.throws(() => compileObjectArt({ ...value, art: getter }), /art-property/);

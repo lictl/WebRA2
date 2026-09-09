@@ -93,7 +93,7 @@ export function compileObjectArt(input: ObjectArtInput, options: Partial<Limits>
   })) fail('art-input');
   const { objects, rules, art, theater } = input;
   immutable([objects, rules, art], cap);
-  if (input.policy !== OBJECT_ART_POLICY || !Object.hasOwn(presets, theater) ||
+  if (input.policy !== OBJECT_ART_POLICY || typeof theater !== 'string' || !Object.hasOwn(presets, theater) ||
     objects.policy !== 'webra2-objects-1' || !objects.placementsComplete || objects.schemaVersion !== 1 ||
     (objects.profile !== 'ra2' && objects.profile !== 'yr') || objects.source.profile !== objects.profile ||
     rules.profile !== objects.profile || art.profile !== objects.profile ||
@@ -143,7 +143,8 @@ export function compileObjectArt(input: ObjectArtInput, options: Partial<Limits>
       const palette = read(artIndex, rulesImage, 'palette');
       let palettePath: string | null = isTheater || terrainPalette || p.kind === 'terrain' || p.kind === 'smudge' ? `iso${paletteSuffix}.pal` : `unit${paletteSuffix}.pal`;
       if (palette !== undefined) {
-        if (/^[A-Za-z0-9_-]{1,48}(?:\.pal)?$/i.test(palette)) palettePath = fold(palette).replace(/\.pal$/, '') + '.pal';
+        // Native custom Palette is a prefix, followed by the current theater suffix and .PAL.
+        if (/^[A-Za-z0-9_-]{1,31}$/.test(palette)) palettePath = fold(palette) + paletteSuffix + '.pal';
         else { reasons.push('unsupported-palette'); palettePath = null; }
       }
       let foundation: { width: number; height: number } | null = null;
