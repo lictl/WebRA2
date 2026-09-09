@@ -1,7 +1,7 @@
 # Application shell provenance
 
 The HTML, CSS, TypeScript, interface text and tests in `apps/web/` and
-`tests/web-ui/` are original WebRA2 contributor work, Copyright 2026.
+`tests/web-ui/` and `tests/browser/object-viewport.test.ts` are original WebRA2 contributor work, Copyright 2026.
 They are licensed under **GPL-3.0-or-later** because this application composes
 the GPL browser importer and MIX reader. See the repository GPL license text,
 `packages/vfs/PROVENANCE.md` and the formats provenance for upstream components.
