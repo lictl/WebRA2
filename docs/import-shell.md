@@ -14,7 +14,7 @@ inspection, bounded progress, cancellation, replacement, clearing and reinspecti
 Strict-mode text explains that this index-only pass does not verify advertised
 checksums. Reports distinguish literal files, archive candidates, ambiguity, missing
 and blocked requirements; identities and campaign readiness remain unverified.
-Source tables are paginated at 25 rows; diagnostic and provenance lists disclose
+Source tables are paginated at 25 rows; diagnostics put errors and warnings first; diagnostic and provenance lists disclose
 when presentation is truncated. Imported names and technical codes use `textContent`.
 
 The DOM-independent controller owns selected handles and a monotonically increasing
@@ -32,8 +32,8 @@ content is present in app files, fixtures or build outputs.
 
 `node --import tsx --test tests/web-ui/controller.test.ts` passes nine synthetic
 state/job tests, including cancellation races, profile isolation, malformed adapter
-results, unreadable files, selection caps and localization. Explicit strict app
-TypeScript checking passes. Browser checks use privately selected retail files;
+results, unreadable files, selection caps and localization. Two further synthetic tests cover actionable diagnostic ordering and translated recovery.
+Explicit strict app TypeScript checking passes. Browser checks use privately selected retail files;
 these are separate from public synthetic checks and are not campaign tests.
 
 Current actual Firefox 151.0.1 full-folder YR inspection completed: 438 selected
