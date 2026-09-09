@@ -203,7 +203,8 @@ Web Audio RMS is measured before the diagnostic's 0.15 output gain and is not an
 acoustic recording or an original-game lip-sync comparison. Parent #12 retains
 complete campaign integration, subtitle/language selection, all movie variants,
 worst-case hardware and original-runtime A/V gates. The unresolved Safari native
-presentation gate must be closed before claiming complete browser support.
+presentation gate is tracked by [#115](https://github.com/lictl/WebRA2/issues/115)
+and must be closed before claiming complete browser support.
 
 ## Distributed diagnostic artifact identities
 
