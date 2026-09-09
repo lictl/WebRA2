@@ -55,3 +55,17 @@ test('recording capacity rejects before admitting an otherwise valid bounded com
   assert.throws(() => record.admitCommands(Array.from({ length: 2800 }, (_, index) => move(1, 0, 2000 + index, 1, 2, 0))), /json-structure-limit/);
   assert.equal(canonicalText(record.save()), state); assert.equal(canonicalText(record.document()), before);
 });
+test('recording enforces cumulative replay trace capacity atomically across individually bounded steps', async () => {
+  const record = new ReplayRecorder(Simulation.create({ width: 2, height: 128, seed: 0, reinforcements: [],
+    blocked: Array.from({ length: 128 }, (_, y) => ({ x: 1, y })),
+    entities: Array.from({ length: 128 }, (_, y) => ({ owner: 0, x: 0, y, hp: 1 })),
+  }, content).save());
+  record.admitCommands(Array.from({ length: 128 }, (_, y) => move(0, 0, y, y + 1, 1, y)));
+  const first = record.step(128), second = record.step(127);
+  assert.equal(first.events.length + second.events.length, 32768);
+  const document = canonicalText(record.document()), state = canonicalText(record.save());
+  assert.throws(() => record.step(), /replay-trace-limit/);
+  assert.equal(canonicalText(record.save()), state); assert.equal(canonicalText(record.document()), document);
+  const result = await replay(document, content, digest);
+  assert.equal(result.events.length, 32768); assert.equal(canonicalText(result.simulation.save()), state);
+});

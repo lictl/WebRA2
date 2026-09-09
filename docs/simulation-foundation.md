@@ -124,6 +124,9 @@ a hash after all admissions for that tick boundary. A completed checkpoint forbi
 further admission at the same tick; advance before admitting again. Hashing reserves
 the recorder so racing calls cannot change the captured state. Failed hashing leaves
 it reusable. Recording capacity is checked before committing a new admission.
+The recorder also counts trace events across all steps in the segment, so individually
+valid steps cannot produce a document exceeding replay's total trace budget. A step
+that exceeds this budget leaves both the simulation and recording unchanged.
 
 `replay(documentOrTextOrBytes, expectedContent, digest)` validates the wrapper,
 reconstructs the initial checkpoint, applies each subsequent admission at its saved

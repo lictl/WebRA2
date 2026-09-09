@@ -12,6 +12,7 @@ export class ReplayRecorder {
   #commands: CommandEnvelope[] = [];
   #admissions: ReplayDocument['admissions'] = [];
   #checkpoints: { nextTick: number; stateSha256: string }[] = [];
+  #traceCount = 0;
   #hashing = false;
   constructor(initial: SimSave) { const copy = detached(initial) as SimSave; this.#simulation = Simulation.restore(copy, copy.contentIdentity); this.#initial = this.#simulation.save(); this.document(); }
   get nextTick(): number { return this.#simulation.nextTick; }
@@ -36,7 +37,10 @@ export class ReplayRecorder {
   step(ticks = 1): StepResult {
     this.#ready(); integer(ticks, 1, LIMITS.stepTicks, 'step-tick-limit'); if (this.nextTick + ticks - this.#initial.nextTick > LIMITS.replayTicks) fail('replay-tick-limit');
     canonicalText(this.#raw(this.#commands, this.#admissions, this.#checkpoints, this.nextTick + ticks));
-    return this.#simulation.step(ticks);
+    const candidate = Simulation.restore(this.save(), this.#initial.contentIdentity), result = candidate.step(ticks);
+    if (result.events.length > LIMITS.trace - this.#traceCount) fail('replay-trace-limit');
+    this.#simulation = candidate; this.#traceCount += result.events.length;
+    return result;
   }
   /** Call after this boundary's admissions. No later admission at the same checkpoint tick is allowed. */
   async checkpoint(digest: Digest): Promise<string> {
