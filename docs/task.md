@@ -1,6 +1,6 @@
 # Current task and refreshed-session handoff
 
-State: **WORKING — M1 runtime/UI and M2 map presentation.** The owner
+State: **WORKING — M2 presentation and M3 gameplay foundations.** The owner
 now authorizes continuing toward a fully playable UI and original RA2/YR campaigns
 until essential human input is needed. This supersedes the previous M0 stopping
 point. M0 integration [PR #42](https://github.com/lictl/WebRA2/pull/42) merged as
@@ -13,15 +13,16 @@ CPU composition are also merged. Both opening terrains now render in actual desk
 The current work adds object artwork, native scenario construction and persistent
 cinematics. No original mission is playable yet.
 
-Current wave: coordinator [exact staged artwork #110](https://github.com/lictl/WebRA2/issues/110);
-browser agent finishes [persistent media #101](https://github.com/lictl/WebRA2/issues/101)
-then [placed-object viewport #111](https://github.com/lictl/WebRA2/issues/111);
-format agent finishes #100 review then [voxel rasterizer #112](https://github.com/lictl/WebRA2/issues/112);
-simulation agent reviews media core then [typed entity definitions #113](https://github.com/lictl/WebRA2/issues/113).
-Scenario construction #94, sprite composition #99, SHP header fields #104 and exact
-source view #109 have merged. #100 passed final independent review; both private
-opening resource preparations and source/pixel comparisons pass. #103 stays open
-for deliberate exact-source consumer migrations. #100 is now merged as recorded below.
+Current wave: coordinator [deterministic navigation #116](https://github.com/lictl/WebRA2/issues/116);
+browser agent [placed-object viewport #111](https://github.com/lictl/WebRA2/issues/111);
+format agent [voxel rasterizer #112 / PR #117](https://github.com/lictl/WebRA2/pull/117);
+simulation agent [typed entity definitions #113](https://github.com/lictl/WebRA2/issues/113).
+Exact staged artwork #110 and persistent media #101 have merged after independent
+reviews and checks. The media component has complete long-clip playback in Chrome,
+Edge and Firefox; Safari's hidden-page scheduling gap remains
+[#115](https://github.com/lictl/WebRA2/issues/115), and campaign cinematic acceptance
+remains #12. #103 retains the remaining exact-source consumer migrations. No
+original campaign is playable yet.
 Build/import decisions are recorded in [ADR 0003](adr/0003-browser-build-and-import-boundary.md).
 No essential human input is currently needed. Finish each reviewed slice and continue
 through the accepted milestones; do not stop simply because this first wave merges.
@@ -52,13 +53,15 @@ the coordinator after independent exact-head COMMENT review and successful check
 
 | Role | Current work and exclusive paths | Branch / private worktree |
 | --- | --- | --- |
-| Coordinator | #110 exact staged artwork; shared profile identity/configuration/notices/handoff; independent reviews | `codex/110-native-art` at root |
-| browser_feasibility | #101 retained Bink decoder/player; packages/media/**, tests/media/**, tools/media/**, docs/persistent-media.md; sole native UI owner | `codex/101-persistent-media`, `local/worktrees/persistent-media` |
-| mix_reader | Independent #100 final review, then #112 voxel rasterizer | New #112 worktree after #100 review; preserved earlier worktrees |
-| bootstrap_review | Independent #101 native/build review, then #113 typed entity definitions | Preserved `local/worktrees/ini-source-view`; new #113 worktree after media review |
+| Coordinator | #116 deterministic mission-grid navigation; shared identity/configuration/notices/handoff and independent reviews | `codex/116-navigation` at root |
+| browser_feasibility | #111 mission artwork UI; apps/web/**, tests/browser/**, tests/web-ui/terrain.test.ts, docs/object-viewport.md; sole native UI owner | `codex/111-object-viewport`, `local/worktrees/object-viewport` |
+| mix_reader | #112 voxel renderer PR #117, then independent review of coordinator #116 | `codex/112-voxel-render`, `local/worktrees/voxel-render` |
+| bootstrap_review | #113 typed entity definitions; new content compiler/tests/provenance; media native/build review completed | `codex/113-entity-definitions`, `local/worktrees/entity-definitions` |
 
-The current wire contracts stay unchanged. The simulation worker owns its internal
-synthetic state policy; importer/UI shared types are coordinated before integration.
+The shared wire contracts stay unchanged. The browser worker owns the approved
+private terrain protocol v2 and named placed-still preview policy. The coordinator
+owns navigation; the simulation worker owns typed-definition policy. New world
+integration must join those policies deliberately before exposing native orders.
 Past merged research worktrees remain preserved. No worker starts extra agents.
 
 Earlier `local/worktrees/{mix,specs,browser,campaign,checksum,profiles,graph}` and
@@ -259,13 +262,20 @@ again. Do not push historical unreviewed local branches such as
 | Native scenario construction | [#94 / PR #105 and reviews](https://github.com/lictl/WebRA2/pull/105) | c0049272a6bd3a9f9ec92db1443988a7d908f1f8 |
 | SHP compression byte/auxiliary fields | [#104 / PR #108 and review](https://github.com/lictl/WebRA2/pull/108) | f822914b44d19c9ec9b7832ae761b2d1f71f77bc |
 | Exact retained INI source view | [#103 / PR #109 and review](https://github.com/lictl/WebRA2/pull/109) | 4f4e1c92fe58e41316fa3b03dabfb3f195859c56 |
-
 | Verified placed-object artwork | [#100 / PR #106](https://github.com/lictl/WebRA2/pull/106), [review](https://github.com/lictl/WebRA2/pull/106#pullrequestreview-5159608146) | 7d9b0b7b8860d77ae03a17ee3989f55dc07b0746 |
+| Exact staged artwork and profile identity | [#110 / PR #114](https://github.com/lictl/WebRA2/pull/114), [review](https://github.com/lictl/WebRA2/pull/114#pullrequestreview-5159809248) | ced32189d045ab7992619d7aaed422817421e871 |
+| Persistent Bink component | [#101 / PR #107 and reviews](https://github.com/lictl/WebRA2/pull/107) | 9d7d35881ca002219af9f900a29a9740e5c4420c |
 
 ## Remaining work and exact next action
 
-Finish #110 exact staged artwork/native evidence review. The new policy passes
-15 focused artwork/resource tests and the complete private source/pixel comparison
+Finish #116 navigation review, #112 voxel review, #111 browser artwork and #113
+typed entity fields. Then bind entities, navigation and authoritative command/save
+state for actual mission movement and combat. [Navigation](navigation.md) uses
+explicit cell costs/directed edges, stable bounded A* and separate grid/query hashes;
+its original synthetic oracle does not establish native traversal semantics.
+
+Merged #110 passed 496 full tests, 15 focused artwork/resource tests, eight
+independently checked native ranges and the complete private source/pixel comparison
 for both openings. Policy-2 source/field metadata changes while selected assets
 remain 107/131 SHPs and 3/2 palettes; 10/5 voxel types remain explicit. All 2,578,276
 selected pixels match. Private scripts/reports are under `local/native-art/`;
@@ -278,17 +288,23 @@ and independent raw-source/native-range checks. The private oracle reproduces al
 811/570 placements, but modeled allocation order is not complete native runtime
 indices or implemented statistics. Merged #103 PR #109 exposes exact source occurrences
 and extracts construction's repeated walk without changing its private hashes.
-#110 now migrates artwork; #113 will compile typed native entity fields. General
+#110 migrated artwork and profile policy identities; #113 compiles typed native entity fields. General
 RuntimeIni remains ASCII-case-folded. Neither a resolved ID nor a typed outcome
 request is an executable mission. The merged #91 interpreter supports bounded
 timer/flag and trigger controls; teams, scripts, object conditions and many actions
 remain.
 
-#101 replaces repeated cinematic restarts with a narrow retained FFmpeg decoder.
-Its exact source/toolchain/build configuration and native sample oracle must be
-reviewed before adoption, followed by actual four-browser playback and source/queue
-memory evidence. The private original 72-second decode currently reads input once;
-that component observation does not close campaign playback #12.
+Merged #101 replaces repeated cinematic restarts with a narrow retained FFmpeg
+component. Final head passed 454 public tests, independent native/build/source
+review and three full long-clip browser runs, each with 1,084 frames and no dropped
+frames or PCM trimming. Final telemetry also passed Chrome RA2/silent/hash-retry
+checks. The independent source rebuild matches decoded data but exact WASM byte
+reproducibility is not established; measured/rebuilt hashes are retained in the
+[component report](persistent-media.md). Safari authenticates/decodes/cancels but
+reports hidden+focused with no animation callbacks or presentation: #115 retains
+that gate. No human input is needed while software/environment diagnosis and
+other gameplay work continue. Parent #12 retains campaign, synchronization,
+variant/localization, attributable memory and complete release acceptance.
 
 Merged #92 terrain UI passed actual four-browser file import, rendering, pan/zoom,
 picking, cancellation/retry and locale checks. The exact tested source/build hashes

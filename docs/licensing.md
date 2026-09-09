@@ -51,7 +51,11 @@ The CPU terrain scene and composing browser viewport are GPL-3.0-or-later;
 and composition references. The selected-frame SHP compositor uses the same license;
 [sprite layer provenance](../packages/render/SPRITE_PROVENANCE.md) records its
 OpenRA references and explicit WebRA2 anchor, depth and remap policies. These
-notices accompany the development bundle.
+notices accompany the development bundle. The unlit VXL/HVA rasterizer also uses
+GPL-3.0-or-later, with its pinned OpenRA transform policy, composed decoder
+attributions and original CPU rasterization described in
+[voxel render provenance](../packages/render/VOXEL_PROVENANCE.md). Its notice is
+included in the code-only development bundle.
 
 The original bounded mission trigger interpreter and fixtures are GPL-3.0-or-later;
 [mission runtime provenance](../packages/sim/MISSION_LOGIC_PROVENANCE.md) separates
@@ -67,9 +71,14 @@ retail font, glyph image or translated string is shipped; no dependency was adde
 The transitive dependency and native-profile research modules/CLIs/tests are also
 GPL-3.0-or-later; pinned YRpp/EA/XCC references and the audio-index framing attribution
 are recorded in [content provenance](../packages/content/PROVENANCE.md). The browser
-presentation diagnostics are original MIT code. Their privately evaluated FFmpeg
-core remains a separately pinned GPL research reference, not a shipped dependency;
-[the media report](analysis/media-presentation.md) records the build/notice boundary.
+presentation diagnostics are original MIT code. Their earlier privately evaluated FFmpeg
+core remains a historical GPL research reference;
+[the media report](analysis/media-presentation.md) records that boundary. The new
+[persistent media component](persistent-media.md) uses an exact narrow LGPL-2.1-or-later
+FFmpeg build with GPL/nonfree/version3 features disabled. Its independently
+rebuildable source recipe, runtime libraries and diagnostic corresponding-source
+distribution are recorded in [media provenance](../packages/media/PROVENANCE.md).
+Generated codec artifacts remain private and are not yet part of the main app build.
 
 The MIX integrity policy, its tests and checksum-domain CLI use GPL-3.0-or-later
 consistently with the format component they compose. The historical EA cache source
@@ -91,7 +100,9 @@ The runtime CSF lookup also retains the content component's GPL license and sour
 attribution; decoded catalogs remain local to the player.
 
 The original [synthetic simulation and save/replay foundation](simulation-foundation.md)
-and its tests use MIT with no added runtime dependency. That separable license does
+and its tests use MIT with no added runtime dependency. The original
+[navigation component](navigation.md) and its fixtures also use MIT; grid/query
+identity hashing uses the already pinned @noble/hashes primitive. That separable license does
 not change GPL obligations for an application combining it with GPL components.
 
 The [application shell](../apps/web/PROVENANCE.md), its original interface text and
