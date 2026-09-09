@@ -66,3 +66,4 @@ test('boxed/extra metadata fields and invalid output payloads fail the explicit 
  const p=new FakePort(),c=new MediaClient(p);const ready=c.request('open');p.onmessage?.({data:{version:1,id:1,type:'ready',header,identity:'a'.repeat(64),loadMs:1,heap:33554432,io:{bytes:1,reads:1,maximumRequest:1,seeks:0}}} as MessageEvent);await ready;
  const next=c.request('next');p.onmessage?.({data:{version:1,id:2,type:'event',event:{...video(),payload:new Blob()},decodeMs:1,heap:33554432,io:{bytes:1,reads:1,maximumRequest:1,seeks:0}}} as MessageEvent);await assert.rejects(next);assert.equal(p.stopped,1);
 });
+test('unreduced header frame rate normalizes to FFmpeg rational timestamps',()=>{const b=fixture(),d=new DataView(b.buffer);d.setUint32(28,225,true);d.setUint32(32,15,true);assert.deepEqual(binkHeader(b,100),header);});

@@ -10,7 +10,9 @@ export function binkHeader(bytes: Uint8Array, size: number): Header {
   const frames = d.getUint32(8, true), width = d.getUint32(20, true), height = d.getUint32(24, true), fpsNum = d.getUint32(28, true), fpsDen = d.getUint32(32, true), tracks = d.getUint32(40, true);
   const duration = frames * fpsDen / fpsNum;
   if (!frames || !width || !height || width > MEDIA_LIMITS.width || height > MEDIA_LIMITS.height || !fpsNum || !fpsDen || fpsNum / fpsDen > MEDIA_LIMITS.fps || duration > MEDIA_LIMITS.seconds || tracks > MEDIA_LIMITS.tracks) throw new RangeError('header-limit');
-  return { width, height, frames, fpsNum, fpsDen, duration, tracks };
+  let a = fpsNum, b = fpsDen; while (b) {const next = a % b; a = b; b = next;}
+  const normalizedNum = fpsNum / a, normalizedDen = fpsDen / a;
+  return { width, height, frames, fpsNum: normalizedNum, fpsDen: normalizedDen, duration: frames * normalizedDen / normalizedNum, tracks };
 }
 export type RangeStats = { reads: number; bytes: number; maximumRequest: number; seeks: number };
 /** Every read remains inside the authorized immutable Blob subrange. Hash reads are separate telemetry. */

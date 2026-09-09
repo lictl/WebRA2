@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+import { pauseMedia, resumeMedia, seekMedia, closeMedia } from '../../packages/media/src/actions.ts';
 import { MediaClient } from '../../packages/media/src/client.ts';
 import { audioWindow, MediaQueue, type Header, type MediaEvent } from '../../packages/media/src/session.ts';
 const el = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -23,14 +24,20 @@ function update(): void {
   Object.assign(metrics, { state, position: Number(playhead().toFixed(4)), displayed, dropped, scheduledSamplesPerChannel: scheduled, trimmedSamplesPerChannel: trimmed,
     peakOwnedQueueBytes: queue.peakBytes, peakQueueItems: queue.peakItems, retainedQueueBytes: queue.bytes, retainedQueueItems: queue.length, peakScheduledAudioSources: peakSources, activeAudioSources: sources.size,
     peakScheduledAudioBytes: peakScheduledBytes, scheduledAudioBytes: scheduledBytes, maxVideoClockLagMs: maxLag, rmsPeak, audioState: audio?.state ?? 'absent' });
-  report.textContent = JSON.stringify(metrics, null, 2); controls();
+  report.replaceChildren(...Object.entries(metrics).map(([key, value]) => {
+    const row = document.createElement('div'), term = document.createElement('dt'), detail = document.createElement('dd');
+    row.className = 'metric'; term.textContent = key; detail.textContent = JSON.stringify(value); row.append(term, detail); return row;
+  })); controls();
 }
 async function cleanup(next: string): Promise<void> {
-  generation++; state = next; client?.stop(); client = undefined; pumping = false; cancelAnimationFrame(frameId);
+  const current = ++generation, oldAudio = audio;
+  state = next; client?.stop(); client = undefined; pumping = false; cancelAnimationFrame(frameId);
   for (const source of sources) { source.onended = null; try { source.stop(); } catch { /* Already ended. */ } source.disconnect(); }
   sources.clear(); scheduledBytes = 0; queue.clear(); metrics.workerTerminated = true;
-  if (audio && audio.state !== 'closed') await audio.close();
-  status.textContent = `${next}. Local buffers released.`; update();
+  status.textContent = `${next}. Releasing local audio resources…`; update();
+  const done = () => { status.textContent = `${next}. Local buffers released.`; update(); };
+  if (oldAudio) await closeMedia({audio:oldAudio,current:()=>generation === current}, done, error => {metrics.closeError = error instanceof Error ? error.name : 'audio-close'; done();});
+  else if (generation === current) done();
 }
 function fail(error: unknown): void { metrics.error = error instanceof Error ? error.message : 'playback-failure'; void cleanup('failed'); }
 function requestPump(): void { const current = generation; if (!pumping) void pump().catch(error => { if (current === generation) fail(error); }); }
@@ -89,31 +96,45 @@ buttons.play!.onclick = async () => {
   const selected = file.files[0]; generation++; state = 'loading'; target = 0; epoch = undefined; eof = false; queue = new MediaQueue();
   displayed = dropped = scheduled = trimmed = peakSources = scheduledBytes = peakScheduledBytes = maxLag = rmsPeak = 0;
   metrics = { schemaVersion: 1, selectedBytes: selected.size, sourceIdentity: 'pending', hashingReadBytes: selected.size, headerReadBytes: 44, maxDecodeMs: 0 };
-  audio = new AudioContext(); analyser = audio.createAnalyser(); analyser.fftSize = 1024;
-  const gain = audio.createGain(); gain.gain.value = 0.15; analyser.connect(gain); gain.connect(audio.destination);
-  client = new MediaClient(new Worker('/worker.js', { type: 'module' })); const current = generation; started = performance.now();
+  const current = generation; started = performance.now();
   status.textContent = 'Authenticating local bytes and loading the narrow decoder…'; update();
   try {
-    await audio.resume();
-    const result = await client.request('open', { file: selected, track: Number(track.value), expected: identity.value.trim() || null });
-    if (generation !== current) return;
+    const context = audio = new AudioContext(); analyser = context.createAnalyser(); analyser.fftSize = 1024;
+    const gain = context.createGain(); gain.gain.value = 0.15; analyser.connect(gain); gain.connect(context.destination);
+    const job = client = new MediaClient(new Worker('/worker.js', { type: 'module' })); controls();
+    await context.resume(); if (generation !== current || audio !== context || client !== job) return;
+    const result = await job.request('open', { file: selected, track: Number(track.value), expected: identity.value.trim() || null });
+    if (generation !== current || audio !== context || client !== job) return;
     header = result.header!; canvas.width = header.width; canvas.height = header.height;
     Object.assign(metrics, { sourceIdentity: result.identity, identityCheck: identity.value.trim() ? 'expected-match' : 'locally-computed', header, selectedTrack: Number(track.value), loadMs: result.loadMs, io: result.io, wasmBytes: result.heap });
     frameId = requestAnimationFrame(tick); requestPump();
   } catch (error) { if (generation === current) fail(error); }
 };
-buttons.pause!.onclick = async () => { if (state === 'playing' && audio) { state = 'paused'; await audio.suspend(); status.textContent = 'Paused. Audio clock and presentation are frozen.'; update(); } };
-buttons.resume!.onclick = async () => { if (state === 'paused' && audio) { await audio.resume(); state = 'playing'; status.textContent = 'Playing local decoded video and PCM.'; update(); requestPump(); } };
+function actionScope() {
+  const current = generation, context = audio!, job = client!;
+  return { audio: context, job, current: () => current === generation && audio === context && client === job };
+}
+buttons.pause!.onclick = async () => {
+  if (state !== 'playing' || !audio || !client) return;
+  const scope = actionScope(); state = 'pausing'; controls();
+  await pauseMedia(scope, () => {state = 'paused'; status.textContent = 'Paused. Audio clock and presentation are frozen.'; update();}, fail);
+};
+buttons.resume!.onclick = async () => {
+  if (state !== 'paused' || !audio || !client) return;
+  const scope = actionScope(); state = 'resuming'; controls();
+  await resumeMedia(scope, () => {state = 'playing'; status.textContent = 'Playing local decoded video and PCM.'; update(); requestPump();}, fail);
+};
 buttons.seek!.onclick = async () => {
-  if (!client || buttons.seek!.disabled) return;
-  state = 'seeking'; controls(); status.textContent = 'Seeking: resetting decoder and discarding preroll…';
-  while (pumping && client) await new Promise(resolve => setTimeout(resolve, 0));
-  if (!client) return;
-  try {
-    for (const source of sources) { source.onended = null; source.stop(); source.disconnect(); } sources.clear();
-    queue.clear(); scheduledBytes = 0; target = 10; epoch = undefined; eof = false; started = performance.now();
-    await audio!.resume(); await client.request('seek', { seconds: target }); state = 'loading'; requestPump();
-  } catch (error) { fail(error); }
+  if (!client || !audio || buttons.seek!.disabled) return;
+  const scope = actionScope(); state = 'seeking'; controls(); status.textContent = 'Seeking: resetting decoder and discarding preroll…';
+  await seekMedia(scope,
+    async () => {while (pumping && scope.current()) await new Promise(resolve => setTimeout(resolve, 0));},
+    () => {
+      for (const source of sources) {source.onended = null; source.stop(); source.disconnect();} sources.clear();
+      queue.clear(); scheduledBytes = 0; target = 10; epoch = undefined; eof = false; started = performance.now();
+    },
+    () => scope.job.request('seek', {seconds:10}),
+    () => {state = 'loading'; requestPump();}, fail);
 };
 buttons.skip!.onclick = () => { void cleanup('skipped'); }; buttons.cancel!.onclick = () => { void cleanup('cancelled'); };
 document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'playing') buttons.pause!.click(); });
