@@ -102,6 +102,12 @@ function validateSave(model: WorldModel, input: unknown): LiveSave {
     if (d.blocksCell && e.health !== 0 && (counts.get(at) ?? 0) > 1 &&
       (d.initialHealth === 0 || at !== worldAddress(d.x, d.y))) worldFail('world-save-anchor-overlap');
   }
+  // Extra cells are occupants too. Reviving an initially absent stationary
+  // footprint cannot create sharing even when every other anchor is unchanged.
+  const stateById = new Map(entities.map(e => [e.id, e]));
+  const definitionById = new Map(model.entities.map(e => [e.id, e]));
+  for (const p of model.footprints) if (definitionById.get(p.entityId)!.initialHealth === 0 &&
+    stateById.get(p.entityId)!.health !== 0 && p.cells.some(at => (counts.get(at) ?? 0) > 1)) worldFail('world-save-footprint-overlap');
   // Shared initial anchor cells are allowed, but an active edge must own its destination reservation.
   for (let i = 0; i < entities.length; i++) if (entities[i]!.progress && model.entities[i]!.blocksCell && counts.get(entities[i]!.route[1]!) !== 1) worldFail('world-save-reservation');
   const save: LiveSave = { schemaVersion: 1, engineVersion: WORLD_ENGINE_VERSION, simulationRulesVersion: WORLD_MOTION_POLICY,

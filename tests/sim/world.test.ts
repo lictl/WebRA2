@@ -179,6 +179,25 @@ test('footprint factory rejects mobile owners, aliases, forged empty input and d
   assert.notEqual(createWorldModel({ ...a, footprints: p }).sha256, createWorldModel(a).sha256);
 });
 
+test('restore rejects new sharing from revived footprints and preserves originally shared masks', () => {
+  const fixed = { movementPerTick: 0, navigationClass: null, kind: 'structure' as const };
+  for (const overlap of ['mobile', 'footprint', 'static'] as const) {
+    const a = input([actor(1, 2, 2, overlap === 'mobile' ? {} : fixed), actor(2, 6, 4, { ...fixed, initialHealth: 0 })]);
+    const first = overlap === 'footprint' ? [{ entityId: 1, cells: [{ x: 3, y: 2 }] }] : [];
+    const model = createWorldModel({ ...a, blocked: overlap === 'static' ? [{ x: 3, y: 2 }] : [],
+      footprints: [...first, { entityId: 2, cells: [{ x: overlap === 'mobile' ? 2 : 3, y: 2 }] }] });
+    assert.equal(model.initialSharedCells, 0);
+    const save = WorldSimulation.create(model).save(); save.state.entities[1]!.health = 100;
+    assert.throws(() => WorldSimulation.restore(model, save), error('world-save-footprint-overlap'));
+  }
+  const a = input([actor(1, 0, 0, fixed), actor(2, 6, 4, fixed)]);
+  const model = createWorldModel({ ...a, footprints: [1, 2].map(entityId => ({ entityId, cells: [{ x: 3, y: 2 }] })) });
+  assert.equal(model.initialSharedCells, 1);
+  const save = WorldSimulation.create(model).save(); save.state.entities[1]!.health = 0;
+  const restored = WorldSimulation.restore(model, save).save(); restored.state.entities[1]!.health = 100;
+  assert.doesNotThrow(() => WorldSimulation.restore(model, restored));
+});
+
 test('world replay preserves admission timing, pending future orders, motion and terminal hashes', () => {
   const model = createWorldModel(input([actor(), actor(2, 6, 4)])), recorder = new WorldReplayRecorder(model);
   recorder.admitCommands([move(0, 6, 2), move(1, 4, 4, 2, 8)]); recorder.step(3);
