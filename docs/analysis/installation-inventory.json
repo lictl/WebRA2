@@ -1,0 +1,1182 @@
+{
+  "editor_source_archive": {
+    "member_count": 405,
+    "path": "FinalAlert2/Source Code/TS_RA2_Mission_Editor_SourceCode.zip",
+    "scope": "ZIP directory inspection only; no source extracted or copied",
+    "selected_members_present": [
+      "LICENSE.md",
+      "3rdParty/xcc/COPYING",
+      "3rdParty/xcc/misc/mix_file.cpp",
+      "MissionEditor/MapData.cpp",
+      "MissionEditor/MapValidator.cpp"
+    ],
+    "sha256": "8e1d02a63f7a06463e5878b0c8b7fa1df7081478e2c41d2d413d16ef4e5d750b"
+  },
+  "executables": [
+    {
+      "bytes": 742152,
+      "import_dlls": [
+        "KERNEL32.dll",
+        "USER32.dll",
+        "GDI32.dll",
+        "ADVAPI32.dll",
+        "SHELL32.dll",
+        "COMCTL32.dll"
+      ],
+      "machine_hex": "0x014c",
+      "optional_header": "PE32",
+      "path": "RA2MD.exe",
+      "sections": [
+        {
+          "name": ".text",
+          "raw_offset": 4096,
+          "raw_size": 61440,
+          "rva": 4096,
+          "virtual_size": 57922
+        },
+        {
+          "name": ".rdata",
+          "raw_offset": 65536,
+          "raw_size": 12288,
+          "rva": 65536,
+          "virtual_size": 10300
+        },
+        {
+          "name": ".data",
+          "raw_offset": 77824,
+          "raw_size": 8192,
+          "rva": 77824,
+          "virtual_size": 10584
+        },
+        {
+          "name": ".rsrc",
+          "raw_offset": 86016,
+          "raw_size": 475136,
+          "rva": 90112,
+          "virtual_size": 472174
+        },
+        {
+          "name": ".bind",
+          "raw_offset": 561152,
+          "raw_size": 170712,
+          "rva": 565248,
+          "virtual_size": 170712
+        }
+      ],
+      "sha256": "a1fa31ca184db8d7c59ac9e300076a27a02495591e60753e99c58b3d1aad4e65",
+      "version_string_candidates": {}
+    },
+    {
+      "bytes": 893704,
+      "import_dlls": [
+        "KERNEL32.DLL",
+        "USER32.DLL",
+        "GDI32.DLL",
+        "ADVAPI32.DLL",
+        "SHELL32.DLL",
+        "COMCTL32.DLL"
+      ],
+      "machine_hex": "0x014c",
+      "optional_header": "PE32",
+      "path": "Ra2.exe",
+      "sections": [
+        {
+          "name": ".text",
+          "raw_offset": 4096,
+          "raw_size": 65536,
+          "rva": 4096,
+          "virtual_size": 61480
+        },
+        {
+          "name": ".rdata",
+          "raw_offset": 69632,
+          "raw_size": 12288,
+          "rva": 69632,
+          "virtual_size": 10474
+        },
+        {
+          "name": ".data",
+          "raw_offset": 81920,
+          "raw_size": 16384,
+          "rva": 81920,
+          "virtual_size": 18648
+        },
+        {
+          "name": ".rsrc",
+          "raw_offset": 98304,
+          "raw_size": 589824,
+          "rva": 102400,
+          "virtual_size": 586726
+        },
+        {
+          "name": "stxt774",
+          "raw_offset": 692224,
+          "raw_size": 4096,
+          "rva": 692224,
+          "virtual_size": 443
+        },
+        {
+          "name": "stxt371",
+          "raw_offset": 696320,
+          "raw_size": 14336,
+          "rva": 696320,
+          "virtual_size": 14180
+        },
+        {
+          "name": ".bind",
+          "raw_offset": 712704,
+          "raw_size": 170712,
+          "rva": 712704,
+          "virtual_size": 170712
+        }
+      ],
+      "sha256": "82862ca6a2aecc50ff2b9fd8adf63bb6ed6e5bbccdc1eadf5f4c88906ad0ddf9",
+      "version_string_candidates": {}
+    },
+    {
+      "bytes": 5077312,
+      "import_dlls": [
+        "KERNEL32.dll",
+        "USER32.dll",
+        "GDI32.dll",
+        "ADVAPI32.dll",
+        "SHELL32.dll",
+        "ole32.dll",
+        "OLEAUT32.dll",
+        "WINMM.dll",
+        "WSOCK32.dll",
+        "DDRAW.dll",
+        "DSOUND.dll",
+        "VERSION.dll",
+        "COMCTL32.dll",
+        "IMM32.dll",
+        "binkw32.dll"
+      ],
+      "machine_hex": "0x014c",
+      "optional_header": "PE32",
+      "path": "game.exe",
+      "sections": [
+        {
+          "name": ".text",
+          "raw_offset": 4096,
+          "raw_size": 3772416,
+          "rva": 4096,
+          "virtual_size": 3769805
+        },
+        {
+          "name": ".rdata",
+          "raw_offset": 3776512,
+          "raw_size": 192512,
+          "rva": 3776512,
+          "virtual_size": 191542
+        },
+        {
+          "name": ".data",
+          "raw_offset": 3969024,
+          "raw_size": 425984,
+          "rva": 3969024,
+          "virtual_size": 3553732
+        },
+        {
+          "name": ".rsrc",
+          "raw_offset": 4395008,
+          "raw_size": 671744,
+          "rva": 7524352,
+          "virtual_size": 671020
+        }
+      ],
+      "sha256": "73288c03b58d370be268ca6d156b4e33bfdb2066dc980359467d8852ff3b00df",
+      "version_string_candidates": {
+        "FileVersion": "1.08",
+        "OriginalFilename": "Sun.exe",
+        "ProductName": "Command & Conquer : Red Alert 2",
+        "ProductVersion": "1.08"
+      }
+    },
+    {
+      "bytes": 5286208,
+      "import_dlls": [
+        "KERNEL32.dll",
+        "USER32.dll",
+        "GDI32.dll",
+        "ADVAPI32.dll",
+        "SHELL32.dll",
+        "ole32.dll",
+        "OLEAUT32.dll",
+        "WINMM.dll",
+        "WSOCK32.dll",
+        "DDRAW.dll",
+        "DSOUND.dll",
+        "VERSION.dll",
+        "COMCTL32.dll",
+        "IMM32.dll",
+        "binkw32.dll"
+      ],
+      "machine_hex": "0x014c",
+      "optional_header": "PE32",
+      "path": "gamemd.exe",
+      "sections": [
+        {
+          "name": ".text",
+          "raw_offset": 4096,
+          "raw_size": 4063232,
+          "rva": 4096,
+          "virtual_size": 4060045
+        },
+        {
+          "name": ".rdata",
+          "raw_offset": 4067328,
+          "raw_size": 200704,
+          "rva": 4067328,
+          "virtual_size": 196724
+        },
+        {
+          "name": ".data",
+          "raw_offset": 4268032,
+          "raw_size": 442368,
+          "rva": 4268032,
+          "virtual_size": 3570660
+        },
+        {
+          "name": ".rsrc",
+          "raw_offset": 4710400,
+          "raw_size": 565248,
+          "rva": 7839744,
+          "virtual_size": 563868
+        }
+      ],
+      "sha256": "3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600",
+      "version_string_candidates": {
+        "FileVersion": "1.11",
+        "OriginalFilename": "Sun.exe",
+        "ProductName": "Command & Conquer : Yuri's Revenge",
+        "ProductVersion": "1.11"
+      }
+    }
+  ],
+  "extensions": {
+    "(none)": 41,
+    ".016": 1,
+    ".256": 1,
+    ".bat": 2,
+    ".bin": 1,
+    ".bmp": 3,
+    ".cfg": 1,
+    ".dat": 2,
+    ".deu": 1,
+    ".dll": 10,
+    ".doc": 3,
+    ".dsk": 3,
+    ".eng": 1,
+    ".exe": 7,
+    ".fscript": 18,
+    ".gif": 4,
+    ".htm": 4,
+    ".ico": 3,
+    ".ini": 8,
+    ".jpg": 9,
+    ".key": 1,
+    ".lcf": 2,
+    ".md": 1,
+    ".mix": 17,
+    ".mmp": 90,
+    ".mmx": 40,
+    ".pdf": 35,
+    ".tlb": 2,
+    ".txt": 31,
+    ".vdf": 1,
+    ".war": 1,
+    ".wav": 80,
+    ".yro": 13,
+    ".zip": 1
+  },
+  "file_count": 438,
+  "map_archive_structure": {
+    "MAPS01.MIX": {
+      "method": "raw payload section-header scan, without member boundaries",
+      "section_occurrences": {
+        "AITriggerTypes": 13,
+        "AITriggerTypesEnable": 17,
+        "Actions": 16,
+        "Aircraft": 0,
+        "Basic": 17,
+        "CellTags": 15,
+        "Events": 16,
+        "Infantry": 16,
+        "IsoMapPack5": 17,
+        "Map": 17,
+        "OverlayDataPack": 17,
+        "OverlayPack": 17,
+        "ScriptTypes": 17,
+        "Structures": 17,
+        "Tags": 16,
+        "TaskForces": 16,
+        "TeamTypes": 16,
+        "Triggers": 16,
+        "Units": 17,
+        "VariableNames": 16
+      },
+      "warning": "occurrences are not unique missions or proof of decoded maps"
+    },
+    "MAPS02.MIX": {
+      "method": "raw payload section-header scan, without member boundaries",
+      "section_occurrences": {
+        "AITriggerTypes": 11,
+        "AITriggerTypesEnable": 17,
+        "Actions": 16,
+        "Aircraft": 0,
+        "Basic": 17,
+        "CellTags": 12,
+        "Events": 16,
+        "Infantry": 16,
+        "IsoMapPack5": 17,
+        "Map": 17,
+        "OverlayDataPack": 17,
+        "OverlayPack": 17,
+        "ScriptTypes": 17,
+        "Structures": 17,
+        "Tags": 16,
+        "TaskForces": 16,
+        "TeamTypes": 16,
+        "Triggers": 16,
+        "Units": 17,
+        "VariableNames": 14
+      },
+      "warning": "occurrences are not unique missions or proof of decoded maps"
+    },
+    "expandmd01.mix": {
+      "method": "raw payload section-header scan, without member boundaries",
+      "section_occurrences": {
+        "AITriggerTypes": 9,
+        "AITriggerTypesEnable": 13,
+        "Actions": 13,
+        "Aircraft": 1,
+        "Basic": 13,
+        "CellTags": 3,
+        "Events": 13,
+        "Infantry": 8,
+        "IsoMapPack5": 13,
+        "Map": 13,
+        "OverlayDataPack": 13,
+        "OverlayPack": 13,
+        "ScriptTypes": 9,
+        "Structures": 13,
+        "Tags": 13,
+        "TaskForces": 9,
+        "TeamTypes": 9,
+        "Triggers": 13,
+        "Units": 8,
+        "VariableNames": 7
+      },
+      "warning": "occurrences are not unique missions or proof of decoded maps"
+    },
+    "mapsmd03.mix": {
+      "method": "raw payload section-header scan, without member boundaries",
+      "section_occurrences": {
+        "AITriggerTypes": 12,
+        "AITriggerTypesEnable": 14,
+        "Actions": 14,
+        "Aircraft": 1,
+        "Basic": 14,
+        "CellTags": 10,
+        "Events": 14,
+        "Infantry": 14,
+        "IsoMapPack5": 14,
+        "Map": 14,
+        "OverlayDataPack": 14,
+        "OverlayPack": 14,
+        "ScriptTypes": 14,
+        "Structures": 14,
+        "Tags": 14,
+        "TaskForces": 14,
+        "TeamTypes": 14,
+        "Triggers": 14,
+        "Units": 14,
+        "VariableNames": 14
+      },
+      "warning": "occurrences are not unique missions or proof of decoded maps"
+    }
+  },
+  "schema_version": 1,
+  "scope": "static installation triage; no game execution or asset extraction",
+  "top_level_archives": [
+    {
+      "bytes": 139288,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Arena.mmx",
+      "sha256": "ed5fa0d7ec4b5e2d8a7110a0fff6cad413ae0437c62521c3c75fd9bc7422c874"
+    },
+    {
+      "bytes": 122664,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Barrel.mmx",
+      "sha256": "85af2e2b92d7e7b5adec060dd8d4f2e86deca04a3036b4a7f70e55b576ac3545"
+    },
+    {
+      "bytes": 368568,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "BayOPigs.mmx",
+      "sha256": "c97cd03221b5e8da3e752293892876f9babe9d154d1a6f00ab1129e3e3cc3587"
+    },
+    {
+      "bytes": 144696,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Bermuda.mmx",
+      "sha256": "d78ff21a424b98cc657eab788f2947a61b16864fd1f8f4ba510939a98fb69e75"
+    },
+    {
+      "bytes": 177608,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Break.mmx",
+      "sha256": "dfa3f2b820865a747a2afb5f9106506dda9e10a42d508d966b9ff7ecca7c741c"
+    },
+    {
+      "bytes": 146616,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Carville.mmx",
+      "sha256": "3268fd2dd00e0d572497f3ce1540b204929232d92e1a21eec8179be6d6a74796"
+    },
+    {
+      "bytes": 188536,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "CrctBrd.yro",
+      "sha256": "039eb0a5f40aaf33ab3b308123b84ed277456a2846e9f527d8de32eb5728a58f"
+    },
+    {
+      "bytes": 108936,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Deadman.mmx",
+      "sha256": "8d17f1937e7215ae2bd210506640172e954cc00efa2e620a64717b4da132890d"
+    },
+    {
+      "bytes": 357608,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Death.mmx",
+      "sha256": "e8174e8ff5fae62b40da452efcb112d21762db5491de96eeac7f5202f7febd43"
+    },
+    {
+      "bytes": 239496,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "DeepFrze.yro",
+      "sha256": "1904d7337ed2eae8ac321e2b31fbbe6b7e3117dd8c99c3c911dbed09931f8b8a"
+    },
+    {
+      "bytes": 205512,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Disaster.mmx",
+      "sha256": "a8d50554b42940deed6f1d3aefb09d9dcecf929e809e9a73dffce185147a0582"
+    },
+    {
+      "bytes": 125288,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Dustbowl.mmx",
+      "sha256": "46b07f8968be4c267cbdec5b99cf36e9bde98f4ac0d23b7d634abf86e9165a79"
+    },
+    {
+      "bytes": 84776,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "EB1.mmx",
+      "sha256": "ad8fe28176c00d2a007045ebcf81870c24f94c4619640c60272d54d880713b3b"
+    },
+    {
+      "bytes": 221784,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "EB2.mmx",
+      "sha256": "3f13fce5b69bf0c924730fce66eb65ffc9e3ff65d17be95e7c374b40a3fb5ece"
+    },
+    {
+      "bytes": 192376,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "EB3.mmx",
+      "sha256": "89ebe3f58975c975950e3e781679e48c089fc8317affb10fb3e6e1f2641fac47"
+    },
+    {
+      "bytes": 157784,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "EB4.mmx",
+      "sha256": "919f74c5595171883a348fcfdc35e0f9e4d780d7b712234691b12cfa1ecef82f"
+    },
+    {
+      "bytes": 99016,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "EB5.mmx",
+      "sha256": "4742cbc66c6a6ab8167709c4409b49ac11fbf99a3944fa1ab4f3376ff5095d0c"
+    },
+    {
+      "bytes": 192104,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "GoldSt.mmx",
+      "sha256": "846a51b4d2f98f751f3e1550712def3ee20de56c39f69d751f619a7add124c24"
+    },
+    {
+      "bytes": 195544,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Grinder.mmx",
+      "sha256": "fb3059207b036e6236dbbc4254d5ae28e2614f5d01094c61cb823151ed81503c"
+    },
+    {
+      "bytes": 147096,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "HailMary.mmx",
+      "sha256": "5bef8191a9991481a71b7029963c789c6e2c954228966484bb6e50f93e8d830d"
+    },
+    {
+      "bytes": 120088,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "HighExpR.yro",
+      "sha256": "7e91a094d647047bed7bc7c7b1795afb3679de48a3566c915c28611ca52c99de"
+    },
+    {
+      "bytes": 144760,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Hills.mmx",
+      "sha256": "96de259a741f1fc4d0d4bc4de1a1582755e90a77c2404978814149113fc42f22"
+    },
+    {
+      "bytes": 243352,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Ice_Age.yro",
+      "sha256": "2405488285323f671fbf3da2c706f803b08fa721c8e147c65baa04388faf31cc"
+    },
+    {
+      "bytes": 218792,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "IrvineCa.yro",
+      "sha256": "086def8929b6e65e9e13704e908de189bb189c1bd9bb27d3b99e2f3ad2867767"
+    },
+    {
+      "bytes": 162216,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "IsleLand.yro",
+      "sha256": "426c969e7dda4ff26d533a5ae4c36df20af2479b6146f500ca2c8275c3a5ff85"
+    },
+    {
+      "bytes": 152712,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Kaliforn.mmx",
+      "sha256": "3da7ebe513ae2e6a78ac6b8343ff3d3c6d3e33bb7f518fe4e37d3e87a1e64497"
+    },
+    {
+      "bytes": 186648,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Killer.mmx",
+      "sha256": "423c7a997d80f964b4490910da17124efb3b42d49e14b191bbb281d3ae565845"
+    },
+    {
+      "bytes": 210392,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Lostlake.mmx",
+      "sha256": "39ae274e92a64ca1d5534876de81dffaf7153a696900b22a288d3edb52c81143"
+    },
+    {
+      "bytes": 3823604,
+      "checksum_flag": false,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00020000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "MAPS01.MIX",
+      "sha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74"
+    },
+    {
+      "bytes": 3170324,
+      "checksum_flag": false,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00020000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "MAPS02.MIX",
+      "sha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f"
+    },
+    {
+      "bytes": 18666588,
+      "checksum_flag": false,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00020000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "MULTI.MIX",
+      "sha256": "c040bcede176677d0faba2f868be6d527ffa2d47e0fff2e048025c0aea629cfc"
+    },
+    {
+      "bytes": 131448,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "MojoSprt.yro",
+      "sha256": "85478c26eeeda91a413fa913a792b0b313f1a09c67a18adb1b8877aaccf2784b"
+    },
+    {
+      "bytes": 134008,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "MonsterM.yro",
+      "sha256": "c52d5bde53596b5c22e19bbfc1723aa7dff9a4390c05d7c4d8ff39196bbb1ef9"
+    },
+    {
+      "bytes": 103576,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "MoonPatr.yro",
+      "sha256": "580a1d2e9c941189c36ba03ee61ac51c82e7616594762e8c3b77e5e19a9a8580"
+    },
+    {
+      "bytes": 64376,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "NewHghts.mmx",
+      "sha256": "058df813b54f353d8a1afe5f2a7e2dbb668acee1abc51f76b232901698b38452"
+    },
+    {
+      "bytes": 175896,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Oceansid.mmx",
+      "sha256": "f7b2cae8316c09754e2f6017b0674ee7f18427ab213efff67e233c133dc03b71"
+    },
+    {
+      "bytes": 191432,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Pacific.mmx",
+      "sha256": "dc0d0637aca768bdf361a5485a2ac547c73ae93f94148339c2da8029dde0a62c"
+    },
+    {
+      "bytes": 184392,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Potomac.mmx",
+      "sha256": "f5f1075e6c338517baaf375db2ea13c6f7c0527cefbe9bee3e62b84cc38e83bc"
+    },
+    {
+      "bytes": 324408,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "PowdrKeg.mmx",
+      "sha256": "8080a0795dceeb7bfb7947c193ee2a372c292c01660b1c42cce90f5829f837f8"
+    },
+    {
+      "bytes": 74136,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "RiverRam.yro",
+      "sha256": "d28f18e16e37a80e30d12bbb3a24f01232cb1d3b2c81109ea104c1c0d061c3a1"
+    },
+    {
+      "bytes": 220680,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Rockets.mmx",
+      "sha256": "a1f2fc982b1f3f49306be29150a1729b1e3a5be80d262c645af4b0b3d72f1f66"
+    },
+    {
+      "bytes": 300168,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Roulette.mmx",
+      "sha256": "cc969df0c92aed82d5512cef31240b557b57098cac9807dac4ee1888ff0651fb"
+    },
+    {
+      "bytes": 109880,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Round.mmx",
+      "sha256": "d9459f5b328061a2929d8f0954fe59e5bd3201b5dfd0a9d9df3c2265336a6d8b"
+    },
+    {
+      "bytes": 151176,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "SeaofIso.mmx",
+      "sha256": "33ea9f67161ddd0aa377aab25fae841264fb2aabd986c0f0ade465baf126713c"
+    },
+    {
+      "bytes": 153080,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Shrapnel.mmx",
+      "sha256": "3d0955daa3cc146688d88555c6d0938a2e58648deb25aff51592eb5d8dac77e0"
+    },
+    {
+      "bytes": 84840,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "SinkSwim.yro",
+      "sha256": "655f191407664745d5829b59b34baddcfd287fcd0bbfd9b1e38c03c901571daf"
+    },
+    {
+      "bytes": 76862662,
+      "checksum_flag": false,
+      "checksum_verified": false,
+      "data_offset": 198,
+      "declared_data_bytes": 76862464,
+      "declared_data_within_file": true,
+      "encrypted_index": false,
+      "entry_count": 16,
+      "entry_ranges_within_declared_data": true,
+      "flags_hex": "0x00000000",
+      "format_candidate": "classic",
+      "index_status": "numeric entries read; filenames unresolved",
+      "path": "THEME.MIX",
+      "sha256": "30027e29599d1c382ef4ca0bdc41590656c79715a46d7c4c68ae5ddfaed1fd4c",
+      "trailing_bytes": 0
+    },
+    {
+      "bytes": 145656,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Tanyas.mmx",
+      "sha256": "057082b842d541d04b43c00ae66b2dbdeac208701e40b90d55cbed5444112815"
+    },
+    {
+      "bytes": 206328,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Tower.mmx",
+      "sha256": "799a3e3021fa221ac9568e0ecc0f3390b1460d257cb3efaca429a97a3a81703a"
+    },
+    {
+      "bytes": 150264,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Transylv.yro",
+      "sha256": "b4b84f67b389f076f9f4a54105c56410492f1a1c82fbf2444e734ec8b968d02f"
+    },
+    {
+      "bytes": 197448,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Tsunami.mmx",
+      "sha256": "9beab5c2959d1d70b19c21cb8d33f726995b9b1a4e43d7c8430f7c2bfb758095"
+    },
+    {
+      "bytes": 187192,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Unrepent.yro",
+      "sha256": "68becb67e757042817247af8a00e43ca67826611f09b5e1ce9b247b32b8a1183"
+    },
+    {
+      "bytes": 233848,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "Valley.mmx",
+      "sha256": "e48aeadd751d4bbd001767e1b8690fe98cf3e4041245a31427d373f88ff5ac5e"
+    },
+    {
+      "bytes": 6181704,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "WDT.MIX",
+      "sha256": "b0fba59c882925fde9925fe9a82d898d342876f6daeb2a1d70b61df96d17fffb"
+    },
+    {
+      "bytes": 246152,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "YuriPlot.mmx",
+      "sha256": "7f61ab979c09f760c432fca8de30cc41e641d67b5d15fa75b22598fe7f03f9f4"
+    },
+    {
+      "bytes": 151656,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "amazon.mmx",
+      "sha256": "7ec7096787bd55550ab26db57a30b665d02a78d709e362e9dc9b66411411d7d0"
+    },
+    {
+      "bytes": 4813968,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "expandmd01.mix",
+      "sha256": "0c0a64e741bdecdc3843a0beb6bb1f58aa2df5b86eb3bc4a953821ec98f3d6ec"
+    },
+    {
+      "bytes": 146888,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "invasion.mmx",
+      "sha256": "fcee76aec1c2b84e98fb49a502bd48f1237e0ea8a81ad6dae9472be36acf8960"
+    },
+    {
+      "bytes": 84643206,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "data_offset": 130,
+      "declared_data_bytes": 84643056,
+      "declared_data_within_file": true,
+      "encrypted_index": false,
+      "entry_count": 10,
+      "entry_ranges_within_declared_data": true,
+      "flags_hex": "0x00010000",
+      "format_candidate": "flagged",
+      "index_status": "numeric entries read; filenames unresolved",
+      "path": "langmd.mix",
+      "sha256": "0290bc3e40c38406e2ec6805dc18ef6c3a9b6feee6db42df717ac920e93294c8",
+      "trailing_bytes": 20
+    },
+    {
+      "bytes": 52913656,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "language.mix",
+      "sha256": "870c3bcc596e8690c55077a4c651f88d0dbc35f2a786c6c4891df8ffdb9ce192"
+    },
+    {
+      "bytes": 4419780,
+      "checksum_flag": false,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00020000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "mapsmd03.mix",
+      "sha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3"
+    },
+    {
+      "bytes": 357481664,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "movies01.mix",
+      "sha256": "b372192bec31af8e1137ed487b55bdb261d7068553d7e465e1bf65b7f56ff0ba"
+    },
+    {
+      "bytes": 304170688,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "movies02.mix",
+      "sha256": "24e7f9435a593ee4eac44f8d18191aeaaead639418725397fda134b3c254dd35"
+    },
+    {
+      "bytes": 394116336,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "movmd03.mix",
+      "sha256": "26959d790cf1f3fa98b078a6b58a6d6cb3167be4495145b65ad2f853a4a5ef71"
+    },
+    {
+      "bytes": 31264268,
+      "checksum_flag": false,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00020000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "multimd.mix",
+      "sha256": "ff4138ba95f7efd8bded14342fc9082b99c47e43c25ab18236e4eea141b488e9"
+    },
+    {
+      "bytes": 281888480,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "ra2.mix",
+      "sha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914"
+    },
+    {
+      "bytes": 204527696,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "ra2md.mix",
+      "sha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d"
+    },
+    {
+      "bytes": 46859102,
+      "checksum_flag": false,
+      "checksum_verified": false,
+      "data_offset": 126,
+      "declared_data_bytes": 46858976,
+      "declared_data_within_file": true,
+      "encrypted_index": false,
+      "entry_count": 10,
+      "entry_ranges_within_declared_data": true,
+      "flags_hex": "0x00000000",
+      "format_candidate": "classic",
+      "index_status": "numeric entries read; filenames unresolved",
+      "path": "thememd.mix",
+      "sha256": "8ac4ca1e48ce8f34cd1d5cf5b3a612dd045c97d320dcfd7d10c0c1e791dc19c5",
+      "trailing_bytes": 0
+    },
+    {
+      "bytes": 113192,
+      "checksum_flag": true,
+      "checksum_verified": false,
+      "encrypted_index": true,
+      "flags_hex": "0x00030000",
+      "format_candidate": "flagged",
+      "index_status": "not decrypted; members not enumerated",
+      "path": "xmas.mmx",
+      "sha256": "b0222137a3bb63caf68bbb0421742bf3f428f0d1b870511f397ec63b339d1576"
+    }
+  ],
+  "total_bytes": 1961556205
+}

@@ -1,0 +1,5 @@
+/game
+
+# Private analysis, extracted assets, and original-game reference evidence.
+/local/
+__pycache__/
