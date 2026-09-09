@@ -30,7 +30,7 @@ function seedNames(): string[] {
   return [...new Set(names)].sort(compare);
 }
 /** A conservative inspection eligibility policy; no native mount ranks or content winners. */
-function scope(path: string, profile: BrowserImportOptions['profile'], archive: boolean): BrowserProfileStatus {
+export function classifyBrowserAssetScope(path: string, profile: BrowserImportOptions['profile'], archive: boolean): BrowserProfileStatus {
   if (path.includes('/')) return 'unassigned';
   const yr = yrArchiveNames.has(path) || /^(expandmd|ecachemd|elocalmd|mapsmd|movmd|moviesmd)\d{2}\.mix$/.test(path) ||
     /^(rules|art|ai|battle|mapsel|sound|theme|mission)md\.ini$/.test(path) || path === 'ra2md.csf' || /^(all|sov)\d{2}(u|s|t)?md\.map$/.test(path) || path.endsWith('.yro');
@@ -44,7 +44,7 @@ function scope(path: string, profile: BrowserImportOptions['profile'], archive: 
 function combinedScope(parent: BrowserProfileStatus, names: readonly string[], profile: BrowserImportOptions['profile']): BrowserProfileStatus {
   if (parent !== 'eligible') return parent;
   if (!names.length) return parent; // Numeric member inherits the chosen archive scope, without a resolved filename.
-  const scopes = names.map(name => scope(name, profile, archiveExtension.test(name)));
+  const scopes = names.map(name => classifyBrowserAssetScope(name, profile, archiveExtension.test(name)));
   return scopes.every(value => value === 'excluded') ? 'excluded' : scopes.some(value => value === 'eligible') ? 'eligible' : 'unassigned';
 }
 function isKnownNonArchive(bytes: Uint8Array): boolean {
@@ -93,7 +93,7 @@ export async function inspectInstallation(input: readonly File[], options: Brows
     const path = paths[i], id = `file:${i}`;
     let kind: BrowserImportFile['kind'] = path && archiveExtension.test(path) ? 'archive' : path && looseExtension.test(path) ? 'loose' : path && /\.(exe|dll|com|bat|cmd|scr)$/i.test(path) ? 'program' : 'unsupported';
     let status: BrowserImportFile['status'] = 'accepted';
-    const profileStatus = path ? scope(path, profile, kind === 'archive') : 'unassigned';
+    const profileStatus = path ? classifyBrowserAssetScope(path, profile, kind === 'archive') : 'unassigned';
     if (!path) status = 'invalid';
     else if ((pathCounts.get(path) ?? 0) > 1) { status = 'duplicate'; diagnostic({ code: 'duplicate-file-path', severity: 'error', sourceId: id, path }); }
     else if (profileStatus === 'excluded' || kind === 'program' || kind === 'unsupported') {
