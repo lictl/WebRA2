@@ -52,6 +52,7 @@ export class WorldSession {
       const verified = replayWorld(this.model, parseJson(action.text));
       return { type: 'world-document', kind: 'validated', modelHash: this.model.sha256, revision: this.#revision, stateHash: verified.stateSha256, text: null };
     }
+    if (this.#revision >= 0x7fffffff) throw new Error('world-ui-revision-limit');
     if (action.type === 'world-restore') {
       const candidate = new WorldReplayRecorder(this.model, parseJson(action.text));
       this.#recorder = candidate; this.#events = []; this.#omittedEvents = 0;

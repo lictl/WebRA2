@@ -47,15 +47,15 @@ export function validWorldSummary(v: unknown): v is WorldSummary {
 export function validWorldSnapshot(v: unknown, summary?: WorldSummary): v is WorldSnapshot {
   if (!worldRecord(v, ['modelHash', 'revision', 'nextTick', 'stateHash', 'queuedCommands', 'actors', 'events', 'omittedEvents']) || !worldHashText(v.modelHash) || !worldHashText(v.stateHash) || !worldInt(v.revision) || !worldInt(v.nextTick, 0, 1_000_000_000) || !worldInt(v.queuedCommands, 0, 256) || !worldRows(v.actors, WORLD_UI.entities) || !worldRows(v.events, WORLD_UI.trace) || !worldInt(v.omittedEvents, 0, 32768)) return false;
   if (summary && (summary.modelHash !== v.modelHash || summary.actors.length !== v.actors.length)) return false;
-  let lastId = 0, routes = 0; const ids = new Set<number>();
+  let lastId = 0, routes = 0;
   for (let i = 0; i < v.actors.length; i++) {
     const a = v.actors[i], info = summary?.actors[i];
     if (!worldRecord(a, ['id', 'x', 'y', 'health', 'goalX', 'goalY', 'nextX', 'nextY', 'routeLength', 'progress', 'edgeCost', 'waitTicks']) || !worldInt(a.id, lastId + 1) || !worldInt(a.x, 0, 511) || !worldInt(a.y, 0, 511) || !nullableInt(a.health, 1_000_000) || !pair(a.goalX, a.goalY) || !pair(a.nextX, a.nextY) || !worldInt(a.routeLength, 0, 16384) || !worldInt(a.progress, 0, 362 * 65535) || !(a.edgeCost === null || worldInt(a.edgeCost, 1, 362 * 65535)) || !worldInt(a.waitTicks, 0, 15)) return false;
     if ((info && (info.id !== a.id || (a.health === null ? info.maximumHealth !== null : info.maximumHealth === null || a.health > info.maximumHealth))) || (a.routeLength >= 2 ? a.nextX === null || a.edgeCost === null : a.nextX !== null || a.edgeCost !== null) || (a.progress > 0 && (a.edgeCost === null || a.progress >= a.edgeCost))) return false;
-    routes += a.routeLength; lastId = a.id; ids.add(a.id);
+    routes += a.routeLength; lastId = a.id;
   }
   if (routes > 16384) return false;
-  return v.events.every(e => worldRecord(e, ['tick', 'phase', 'kind', 'entityId', 'cell', 'value']) && worldInt(e.tick, 0, Math.max(0, v.nextTick as number - 1)) && ['command', 'navigation', 'movement'].some(p => p === e.phase) && label(e.kind, 96) && worldInt(e.entityId, 1) && nullableInt(e.cell, 262143) && nullableInt(e.value, 0x7fffffff));
+  return v.events.every(e => worldRecord(e, ['tick', 'phase', 'kind', 'entityId', 'cell', 'value']) && worldInt(e.tick, 0, Math.max(0, v.nextTick as number - 1)) && ['command', 'navigation', 'movement'].some(p => p === e.phase) && label(e.kind, 96) && worldInt(e.entityId, 1) && nullableInt(e.cell, 262143) && nullableInt(e.value, Number.MAX_SAFE_INTEGER));
 }
 export function validWorldDocument(v: unknown): v is WorldDocument {
   return worldRecord(v, ['type', 'kind', 'modelHash', 'revision', 'stateHash', 'text']) && v.type === 'world-document' && worldHashText(v.modelHash) && worldHashText(v.stateHash) && worldInt(v.revision) && (v.kind === 'validated' ? v.text === null : (v.kind === 'save' || v.kind === 'replay') && worldDocumentText(v.text));

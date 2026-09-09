@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { WorldSession } from '../../apps/web/src/world-session.ts';
 import { validWorldAction, validWorldSnapshot, validWorldSummary, WORLD_UI } from '../../apps/web/src/world-protocol.ts';
 import { originalWorld } from './world-ui.fixture.ts';
+import { createWorldModel } from '../../packages/sim/src/world-model.ts';
 const move = (x = 6, y = 3) => ({ type: 'world-order' as const, order: 'move' as const, playerId: 0, entityId: 1, x, y });
 test('world UI session derives authoritative orders, detours, ownership and bounded render snapshots', () => {
   const session = new WorldSession(originalWorld());
@@ -43,4 +44,11 @@ test('metadata owns descriptor inputs and rejects row/ID joins and covert wire o
   const extra = structuredClone(snapshot); Object.assign(extra.actors, { payload: new Blob(['original']) }); assert.equal(validWorldSnapshot(extra), false);
   assert.equal(validWorldAction({ ...move(), payload: new Blob(['original']) }), false);
   assert.equal(validWorldAction({ type: 'world-step', ticks: -0 }), false);
+});
+test('busy original worlds retain only the bounded event tail with an exact omitted count', () => {
+  const base=originalWorld(),entities=Array.from({length:100},(_,i)=>({...base.model.entities[0]!,id:i+1,rowId:`original:${i}`,movementPerTick:1,blocksCell:false}));
+  const model=createWorldModel({contentIdentity:base.model.contentIdentity,sourceSha256:base.model.sourceSha256,definitionsSha256:base.model.definitionsSha256,entities,navigation:base.model.navigation,blocked:[]});
+  const session=new WorldSession({...base,model,placements:entities.map(e=>({rowId:e.rowId,entityId:e.id,status:'mobile',reasons:[]}))});
+  for(const e of entities)session.act({...move(),entityId:e.id});session.act({type:'world-step',ticks:4});
+  const snapshot=session.snapshot();assert.equal(snapshot.events.length,WORLD_UI.trace);assert(snapshot.omittedEvents>0);assert.equal(snapshot.actors.length,100);assert(validWorldSnapshot(snapshot,session.summary));
 });

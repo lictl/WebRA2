@@ -40,7 +40,7 @@ export function mountWorld(root: HTMLElement, controller: TerrainController): ()
     const t = (key: string) => worldText(state.locale, key), summary = state.frame?.summary.world, world = state.frame?.world;
     panel.hidden = !summary || !world;
     if (locale !== state.locale) { locale = state.locale; for (const el of panel.querySelectorAll<HTMLElement>('[data-world]')) el.textContent = t(el.dataset.world!); }
-    if (!summary || !world) { selectKey = ''; return; }
+    if (!summary || !world) { selectKey = ''; priorEntity = -1; return; }
     const selectionKey = `${summary.modelHash}:${state.playerId}:${state.locale}:${state.selectedEntity}`;
     if (selectionKey !== selectKey) {
       selectKey = selectionKey;

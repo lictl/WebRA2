@@ -8,7 +8,7 @@ import { TerrainController } from '../../apps/web/src/terrain-controller.ts';
 import { type TerrainReply, type TerrainAction, type FrameResult } from '../../apps/web/src/terrain-protocol.ts';
 import { WorldTickSchedule } from '../../apps/web/src/world-scheduler.ts';
 import { LocalWorldStorage, type WorldStorage } from '../../apps/web/src/world-storage.ts';
-import { worldText } from '../../apps/web/src/world-i18n.ts';
+import { worldText, worldEventText } from '../../apps/web/src/world-i18n.ts';
 import { originalWorld } from './world-ui.fixture.ts';
 const artwork = { policy: 'webra2-object-still-2' as const, presentation: 'webra2-placed-still-1' as const, types: 0, rendered: 0, unavailable: 3, assets: 0, palettes: 0, sourceBytes: 0, decodedBytes: 0, indexedFrames: 0, rows: [], omittedTypes: 0, omittedPlacements: 3, omittedRendered: 0, truncatedFields: 0, unplaced: 0 };
 const loader: SceneLoader = async () => ({ world: originalWorld(), summary: { profile: 'ra2', mission: 'all01t.map', contentHash: 'a'.repeat(64), mapHash: 'c'.repeat(64), paletteHash: 'e'.repeat(64), artwork, cells: 35, objects: 3, assets: 1, verifiedBytes: 100, sourceBytes: 100, decodedBytes: 100, decodedSlots: 1, bounds: { x: 0, y: 0, width: 100, height: 100 }, diagnostics: [] }, scene: {
@@ -68,4 +68,5 @@ test('world storage uses its own database, bounds text before opening and expose
   await assert.rejects(store.write(1, '{}', signal), /quota/); assert.equal(opens, 1);
   for (const key of ['worldPaused', 'worldSaved', 'worldLoaded', 'worldRejected', 'worldVerified', 'worldQuota', 'worldStorage', 'worldHidden', 'constructor', '__proto__']) for (const locale of ['en', 'zh-Hant'] as const) assert.equal(typeof worldText(locale, key), 'string');
   assert.match(worldText('zh-Hant', 'scope'), /尚未執行戰鬥/);
+  for(const code of ['stopped','move-accepted','arrived','path-found','blocked','progress','moved','unreachable','budget-exhausted','missing-goal','blocked-goal','constructor','__proto__'])assert.match(worldEventText('zh-Hant',code),/[\u3400-\u9fff]/);
 });
