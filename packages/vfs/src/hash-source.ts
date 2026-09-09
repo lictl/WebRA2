@@ -54,6 +54,7 @@ export async function hashByteSource(source: ByteSource, options: SourceHashOpti
         await new Promise<void>(resolve => setTimeout(resolve, 0)); aborted(signal); lastYield = performance.now();
       }
     }
+    if (source.size !== size) throw new SourceHashError('source-size-changed');
     const hex = Array.from(state.digest(), value => value.toString(16).padStart(2, '0')).join('');
     return Object.freeze({ algorithm, offset, hex, bytesRead, totalBytes: length, chunks });
   } finally { state.destroy(); }

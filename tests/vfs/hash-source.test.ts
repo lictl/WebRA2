@@ -54,3 +54,14 @@ test('changing source size fails and later caller mutation cannot change a compl
   const input = bytes(100), result = await hashByteSource(memorySource(input)); input.fill(0);
   assert.equal(result.hex, createHash('sha256').update(bytes(100)).digest('hex'));
 });
+
+test('final progress, empty-range progress and final yield cannot change size before success', async () => {
+  for (const initialSize of [0, 100]) {
+    const source = { size: initialSize, async read(offset: number, length: number) { return bytes(length); } };
+    await assert.rejects(hashByteSource(source, { onProgress(p) { if (p.bytesRead === p.totalBytes) source.size++; } }), /source-size-changed/);
+  }
+  const source = { size: 32, async read(offset: number, length: number) { return bytes(length); } };
+  await assert.rejects(hashByteSource(source, { chunkBytes: 1, onProgress(p) {
+    if (p.bytesRead === p.totalBytes) setTimeout(() => { source.size++; }, 0);
+  } }), /source-size-changed/);
+});
