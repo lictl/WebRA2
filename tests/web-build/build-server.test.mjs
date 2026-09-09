@@ -93,3 +93,19 @@ test('build rejects external runtime code and remote CSS resources', async () =>
     await assert.rejects(buildWeb(root), /external runtime imports/);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
+
+test('copied notices reject intermediate symlinks before changing the last good build', async () => {
+  const root = await fixture();
+  try {
+    await buildWeb(root);
+    const manifest = await readFile(join(root, 'dist/manifest.json'), 'utf8');
+    const notice = await readFile(join(root, 'dist/licenses/docs-licensing.md.txt'), 'utf8');
+    await mkdir(join(root, 'local'));
+    await writeFile(join(root, 'local/licensing.md'), 'PRIVATE SYNTHETIC MARKER');
+    await rm(join(root, 'docs'), { recursive: true });
+    await symlink(join(root, 'local'), join(root, 'docs'));
+    await assert.rejects(buildWeb(root), /symlink components/);
+    assert.equal(await readFile(join(root, 'dist/manifest.json'), 'utf8'), manifest);
+    assert.equal(await readFile(join(root, 'dist/licenses/docs-licensing.md.txt'), 'utf8'), notice);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});

@@ -9,6 +9,7 @@ export const repositoryRoot = fileURLToPath(new URL('../../', import.meta.url));
 const allowedOutput = /^(?:app\.(?:js|css)|chunks\/[a-zA-Z0-9_-]+\.js)$/;
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 async function boundedFile(path, limit) {
+  if (await realpath(path) !== resolve(path)) throw new Error(`Build input has symlink components: ${path}`);
   const stat = await lstat(path);
   if (!stat.isFile() || stat.size > limit) throw new Error(`Invalid build input: ${path}`);
   return readFile(path);
