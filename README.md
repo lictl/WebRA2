@@ -4,9 +4,10 @@ A planned browser-native reimplementation of the Red Alert 2 and Yuri's Revenge
 engines, using assets supplied by the player. Singleplayer campaigns come first;
 complete vanilla engine coverage, broader mods, and multiplayer follow.
 
-**Current state:** M0 implementation is underway. The planning bootstrap is merged;
-TypeScript tooling/contracts, MIX analysis and browser feasibility are the active
-first wave. There is no playable game app yet.
+**Current state:** M0 implementation is underway. TypeScript tooling/contracts,
+the bounded MIX reader and census, behavior specifications, and browser/media
+diagnostics are merged. Campaign and locale analysis is the next active slice.
+There is no playable game app yet.
 
 ## Project documents
 
@@ -20,6 +21,11 @@ first wave. There is no playable game app yet.
 - [Decisions and questions](docs/decisions.md): user answers and unresolved choices.
 - [Static analysis](docs/analysis/static-analysis.md): findings, evidence, limitations,
   and follow-up analysis.
+- [MIX reader and census](docs/analysis/mix-reader.md): encrypted/nested archive
+  results and unresolved names/checksums.
+- [Browser](docs/analysis/browser-feasibility.md) and
+  [media](docs/analysis/media-feasibility.md) probes: measured results and remaining gates.
+- [Behavior specifications](docs/specs/README.md): evidence records and reference probes.
 - [Compatibility matrix](docs/compatibility.md): what full support must prove.
 
 ## Development checks
@@ -32,7 +38,8 @@ npm run check
 ```
 
 These checks use original synthetic fixtures and need no game installation. They
-cover types, contract tests, document links and tracked publication paths. See
+cover types, synthetic parser/contract/diagnostic tests, document links and tracked
+publication paths. See
 [the toolchain decision](docs/adr/0001-m0-toolchain-and-contracts.md) for limits.
 
 ## Inspect a local installation
@@ -59,7 +66,7 @@ that exist today.
 
 ## Licensing
 
-Original repository material uses [MIT](LICENSE). The MIX component has a planned
-GPL-3.0-or-later provenance boundary; combined distributions must honor it. See
+Original repository material uses [MIT](LICENSE). The MIX component is licensed
+GPL-3.0-or-later; combined distributions must honor it. See
 [component licenses and notices](docs/licensing.md) before reusing or distributing
 code. Game assets remain separate and are not licensed by this repository.
