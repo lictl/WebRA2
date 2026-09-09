@@ -147,24 +147,29 @@ Pure compilation caps: 40 documents, 500,000 section/entry records, 64 Mi code u
 25,000 nodes, 100,000 edges, 40,000 diagnostics, 80,000 file/sample matches and 128
 tokens per reference. The reused structural compiler retains its tighter limits.
 Inventory caps: 512 archives / 250,000 members. Audio-index caps: 4 MiB / 100,000
-records. CLI caps: 128 reads / 64 MiB total / 16 MiB per member; each input JSON is
+records. Before expanding index/BAG candidates, the CLI caps all parsed index
+entries at 100,000 and cumulative pair attempts at 80,000, including out-of-range
+pairs. The private pass uses 3,438 entries and pair attempts. CLI read caps are
+128 reads / 64 MiB total / 16 MiB per member; each input JSON is
 read with the shared bounded 4 MiB manifest loader. Source selection and read budget
 are recorded directly in the report. Exceeding a cap fails rather than emitting a
 silently complete result.
 
-Eight new original synthetic tests cover transitive chains, cycles, rule variants,
+Nine new original synthetic tests cover transitive chains, cycles, rule variants,
 list/scalar errors, prototype-shaped names, source/profile separation, graph limits,
 MIX containment and explicit numeric aliases, every truncated audio-index length,
 verified sound/index discovery, stale roots, private-payload omission and invalid
-BAG pairings. These are parser/metadata tests, not retail gameplay tests.
+BAG pairings and duplicate-BAG fanout before expansion. These are parser/metadata
+tests, not retail gameplay tests.
 
 With Node 24.20.0 from repository root:
 
 ```sh
 npm ci
 npm run check
-node --import tsx tools/analysis/dependency-census.ts /absolute/path/to/game docs/analysis/campaign-census.json docs/analysis/mix-census.json > /tmp/dependency-candidates.json
-cmp docs/analysis/dependency-candidates.json /tmp/dependency-candidates.json
+mkdir -p local/dependency-reproduction
+node --import tsx tools/analysis/dependency-census.ts /absolute/path/to/game docs/analysis/campaign-census.json docs/analysis/mix-census.json > local/dependency-reproduction/dependency-candidates.json
+cmp docs/analysis/dependency-candidates.json local/dependency-reproduction/dependency-candidates.json
 ```
 
 The last two commands are the opt-in private metadata gate. Missing retail inputs

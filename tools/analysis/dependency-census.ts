@@ -11,10 +11,11 @@ import { compileDependencyCandidates, DEPENDENCY_LIMITS, type AudioCandidate, ty
 import { createDependencyFileResolver, type PhysicalDependencyInventory } from '../../packages/content/src/dependency-inventory.ts';
 import { readDependencyAudioIndex } from '../../packages/content/src/dependency-audio-index.ts';
 function count(values: string[]) { const result: Record<string, number> = Object.create(null) as Record<string, number>; for (const value of values.sort()) result[value] = (result[value] ?? 0) + 1; return result; }
+const AUDIO_CENSUS_LIMITS = Object.freeze({ indexEntries: 100_000, pairAttempts: 80_000 });
 export async function dependencyCensus(directory: string, campaign: GraphCensusInput, physical: PhysicalDependencyInventory) {
   if (!Array.isArray(campaign.missions) || !Array.isArray(campaign.definitions) || campaign.missions.length > 1000 || campaign.definitions.length > 64) throw new Error('dependency-campaign-limit');
   const resolveFile = createDependencyFileResolver(physical, [{ filename: 'lib.pal', id: 2124019542, evidence: 'EA editor 6abf0f5 Loading.cpp:4361-4363; numeric lookup, filename not proven' }]), reader = await createVerifiedSourceReader(directory);
-  let bytesRead = 0, membersRead = 0;
+  let bytesRead = 0, membersRead = 0, audioIndexEntries = 0, audioPairAttempts = 0;
   const discovered: { filename: string; identity: GraphSource }[] = [], samples = new Map<string, AudioCandidate[]>();
   async function discover(filename: string, range: { rootFile: string; rootSha256: string; absoluteOffset: number; size: number }) {
     if (membersRead >= 128 || range.size > 16 * 1024 * 1024 || bytesRead + range.size > 64 * 1024 * 1024) throw new Error('dependency-read-limit');
@@ -32,6 +33,10 @@ export async function dependencyCensus(directory: string, campaign: GraphCensusI
       const result = await discover('audio.idx', candidate), entries = readDependencyAudioIndex(result.bytes);
       // Same-container pairing is evidence for a candidate pair, not the native choice among mounted indexes/bags.
       const paired = bags.filter(b => b.archivePath === candidate.archivePath && b.archiveSha256 === candidate.archiveSha256);
+      // Bound the Cartesian product before materializing candidates, including rejected ranges.
+      if (entries.length > AUDIO_CENSUS_LIMITS.indexEntries - audioIndexEntries) throw new Error('dependency-audio-index-entry-limit');
+      if (entries.length && paired.length > Math.floor((AUDIO_CENSUS_LIMITS.pairAttempts - audioPairAttempts) / entries.length)) throw new Error('dependency-audio-pairing-limit');
+      audioIndexEntries += entries.length; audioPairAttempts += entries.length * paired.length;
       const names = new Set<string>(); let duplicateNames = 0, outOfRangePairs = 0;
       for (const sample of entries) {
         if (names.has(sample.name)) duplicateNames++; names.add(sample.name);
@@ -88,8 +93,8 @@ export async function dependencyCensus(directory: string, campaign: GraphCensusI
           unsupportedCapabilities: graph.unsupportedCapabilities, nativeDependencyClosureComplete: false });
       }
     }
-    return { schemaVersion: 1, scope: 'transitive candidates from opening Allied structural seeds', membersRead, bytesRead,
-      readBudget: { maxMembers: 128, maxMemberBytes: 16 * 1024 * 1024, maxTotalBytes: 64 * 1024 * 1024, manifestsIndividuallyBoundedToBytes: 4 * 1024 * 1024 }, discovered, audioIndexes, openings, diagnostics,
+    return { schemaVersion: 1, scope: 'transitive candidates from opening Allied structural seeds', membersRead, bytesRead, audioIndexEntries, audioPairAttempts,
+      readBudget: { maxMembers: 128, maxMemberBytes: 16 * 1024 * 1024, maxTotalBytes: 64 * 1024 * 1024, manifestsIndividuallyBoundedToBytes: 4 * 1024 * 1024, maxAudioIndexEntries: AUDIO_CENSUS_LIMITS.indexEntries, maxAudioPairAttempts: AUDIO_CENSUS_LIMITS.pairAttempts }, discovered, audioIndexes, openings, diagnostics,
       fileMatchPolicy: 'all physical MIX hash matches plus explicit EA numeric lib.pal alias; no effective native profile or payload identity chosen',
       requirementsMeaning: 'edge-local research classification; optional file probes are alternatives, not missing required content', nativeDependencyClosureComplete: false };
   } finally { await reader.close(); }

@@ -7,11 +7,15 @@
   "scope": "transitive candidates from opening Allied structural seeds",
   "membersRead": 15,
   "bytesRead": 3810446,
+  "audioIndexEntries": 3438,
+  "audioPairAttempts": 3438,
   "readBudget": {
     "maxMembers": 128,
     "maxMemberBytes": 16777216,
     "maxTotalBytes": 67108864,
-    "manifestsIndividuallyBoundedToBytes": 4194304
+    "manifestsIndividuallyBoundedToBytes": 4194304,
+    "maxAudioIndexEntries": 100000,
+    "maxAudioPairAttempts": 80000
   },
   "discovered": [
     {
