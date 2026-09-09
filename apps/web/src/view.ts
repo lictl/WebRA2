@@ -48,7 +48,7 @@ export function mountShell(root: HTMLElement, controller: ImportController): () 
     const t = (key: TextKey) => translate(locale, key), target = get('report'); target.replaceChildren();
     target.append(element('p', t('resultScope'), 'scope-note'));
     const stats = element('div', undefined, 'result-stats');
-    for (const [key, value] of [['accepted', report.summary.acceptedFiles], ['ignored', report.summary.ignoredFiles], ['named', report.summary.namedMembers]] as const) { const stat = element('span'); stat.append(element('b', value.toLocaleString(locale)), document.createTextNode(t(key))); stats.append(stat); } target.append(stats);
+    for (const [key, value] of [['accepted', report.summary.acceptedFiles], ['ignored', report.summary.ignoredFiles], ['named', report.summary.namedMembers]] as const) { const stat = element('span'); stat.append(element('b', value.toLocaleString(locale)), document.createTextNode(t(key))); stats.append(stat); } target.append(stats); const readStat = element('span'); readStat.append(element('b', formatBytes(report.summary.bytesRead, locale)), document.createTextNode(t('read'))); readStat.title = `${report.summary.bytesRead} B`; readStat.id = 'report-read-bytes'; stats.append(readStat);
     function block(title: TextKey, help?: TextKey) { const box = element('section', undefined, 'report-block'), head = element('div', undefined, 'report-block-header'); head.append(element('h3', t(title))); if (help) head.append(element('p', t(help))); box.append(head); target.append(box); return box; }
     const sourceById = new Map(report.files.map(source => [source.id, source.path]));
     const archiveById = new Map(report.archives.map(archive => [archive.id, archive]));
