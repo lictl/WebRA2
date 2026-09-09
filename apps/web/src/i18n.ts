@@ -3,7 +3,7 @@
 export type Locale = 'en' | 'zh-Hant';
 const en = {
   skip: 'Skip to setup', local: 'LOCAL WORKSPACE', tagline: 'Your files. Your battlefield.',
-  setupNav: 'Installation', inspectNav: 'Inspection', aboutNav: 'About this build',
+  practiceNav: 'Practice', setupNav: 'Installation', inspectNav: 'Inspection', aboutNav: 'About this build',
   deviceOnly: 'ON-DEVICE', shellStage: 'ASSET INSPECTOR', language: 'Language',
   kicker: '01 / PREPARE YOUR INSTALLATION', title: 'Bring your game files.',
   intro: 'Select a game, then choose your installation folder or asset files to inspect them locally.',
@@ -35,7 +35,7 @@ const en = {
   previous: 'Previous', next: 'Next', page: 'Page', of: 'of', shown: 'shown',
   ignored: 'Ignored files', accepted: 'Accepted files', named: 'Named entries',
   privacyTitle: 'Your installation stays yours.', privacyBody: 'Files are read directly in this browser. Closing or refreshing the page releases this session; select your files again to reconnect.',
-  buildTitle: 'Building toward the campaign.', buildBody: 'This build inspects assets. Campaign play, saves and multiplayer are not available yet.',
+  buildTitle: 'Building toward the campaign.', buildBody: 'This build inspects assets and includes original practice scenarios with local saves. Original campaigns and multiplayer remain in development.',
   technical: 'Technical details', noFile: 'Select at least one file.', genericFailure: 'The inspection failed. Check your selection and try again.',
   fileAccessFailure: 'The browser could not read the selected files. Select them again and retry.',
   sourceUnknown: 'Unclassified', safeStatus: 'No asset uploads', limitNote: 'Inspection is bounded. Large or unsupported inputs are reported instead of silently skipped.',
@@ -64,7 +64,7 @@ const en = {
 export type TextKey = keyof typeof en;
 const zh: Record<TextKey, string> = {
   skip: '跳至設定', local: '本機工作區', tagline: '你的檔案，你的戰場。',
-  setupNav: '遊戲檔案', inspectNav: '檢查結果', aboutNav: '關於此版本', deviceOnly: '僅限本機', shellStage: '資產檢查工具', language: '語言',
+  practiceNav: '練習', setupNav: '遊戲檔案', inspectNav: '檢查結果', aboutNav: '關於此版本', deviceOnly: '僅限本機', shellStage: '資產檢查工具', language: '語言',
   kicker: '01 / 準備遊戲檔案', title: '帶上你的遊戲檔案。', intro: '選擇遊戲，再選取安裝資料夾或資產檔案，即可在本機檢查。',
   profileLegend: '選擇遊戲', ra2: '紅色警戒 2', ra2Sub: '原版遊戲', yr: '尤里的復仇', yrSub: '資料片 · 需要原版資產',
   sourceTitle: '連接你的遊戲檔案', sourceHelp: '可選取現有遊戲資料夾、MIX 封存檔，或支援的個別資產檔案。不需要執行檔。',
@@ -88,7 +88,7 @@ const zh: Record<TextKey, string> = {
   sourcesTitle: '選定的來源', sourcesHelp: '僅顯示中繼資料。檔案控制代碼保留於此瀏覽器工作階段。', type: '類型', bytes: '大小',
   previous: '上一頁', next: '下一頁', page: '頁', of: '／', shown: '已顯示', ignored: '忽略的檔案', accepted: '接受的檔案', named: '已知名稱項目',
   privacyTitle: '你的遊戲檔案由你掌握。', privacyBody: '此瀏覽器直接讀取檔案。關閉或重新整理頁面會結束工作階段；重新選取即可連接檔案。',
-  buildTitle: '逐步邁向完整戰役。', buildBody: '此版本可檢查資產，尚未提供戰役遊玩、存檔與多人連線。',
+  buildTitle: '逐步邁向完整戰役。', buildBody: '此版本可檢查資產，並提供含本機存檔的原創練習場景。原版戰役與多人連線仍在開發中。',
   technical: '技術詳細資料', noFile: '請至少選取一個檔案。', genericFailure: '檢查失敗。請確認選取內容並重試。',
   fileAccessFailure: '瀏覽器無法讀取選定檔案。請重新選取並重試。', sourceUnknown: '尚未分類', safeStatus: '不上傳資產',
   limitNote: '檢查有資源上限。大型或不支援的輸入會明確回報，不會無聲略過。', filesUnit: '個檔案', matchesUnit: '個相符項目',
