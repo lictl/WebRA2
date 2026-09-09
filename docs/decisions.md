@@ -59,7 +59,7 @@ session. The remaining unknowns below need evidence or a later milestone decisio
 ## Decisions deliberately deferred
 
 The M0 [toolchain/contract decision](adr/0001-m0-toolchain-and-contracts.md) now pins
-Node/npm/TypeScript and initial envelopes; [MIX provenance](../packages/formats/PROVENANCE.md)
+Node/TypeScript, the npm lockfile and initial envelopes; [MIX provenance](../packages/formats/PROVENANCE.md)
 records the adopted archive component. Browser/media reports record measured versions
 and hardware, not a permanent minimum support matrix.
 
