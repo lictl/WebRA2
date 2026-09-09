@@ -17,7 +17,7 @@ best effort. Owner can provide original-game observations when actually needed.
 
 All reviews below are independent agent COMMENT reviews under the shared `lictl`
 account, not approvals from separate GitHub identities. Each merge matched the
-reviewed head. Current integrated main before this documentation slice: `762d6aa`.
+reviewed head. Current integrated main before this documentation slice: `679228c`.
 
 | Work | Issue / PR / final review | Merge SHA |
 | --- | --- | --- |
@@ -26,13 +26,17 @@ reviewed head. Current integrated main before this documentation slice: `762d6aa
 | Behavior/reference specs | [#6](https://github.com/lictl/WebRA2/issues/6), [PR #9](https://github.com/lictl/WebRA2/pull/9), [review](https://github.com/lictl/WebRA2/pull/9#pullrequestreview-5154529411) | 4d586cd45726194ba30fd5fae03edb2b06a9491b |
 | Browser/media diagnostics | [#7](https://github.com/lictl/WebRA2/issues/7), [PR #15](https://github.com/lictl/WebRA2/pull/15), [review](https://github.com/lictl/WebRA2/pull/15#pullrequestreview-5154539016) | bcf9b7b7ff3772c7382b826bfe7a46274a605a70 |
 | MIX reader/census | [#5](https://github.com/lictl/WebRA2/issues/5), [PR #14](https://github.com/lictl/WebRA2/pull/14), [review](https://github.com/lictl/WebRA2/pull/14#pullrequestreview-5154566975) | 762d6aa6de0ea7c79a3ce0194cf823374764b414 |
+| First-wave integration handoff | [#4](https://github.com/lictl/WebRA2/issues/4), [PR #17](https://github.com/lictl/WebRA2/pull/17), [review](https://github.com/lictl/WebRA2/pull/17#pullrequestreview-5154778852) | a520216ce224beb4098b5702eb9dc819a4cf2a75 |
+| Hosted public CI | [#10](https://github.com/lictl/WebRA2/issues/10), [PR #19](https://github.com/lictl/WebRA2/pull/19), [review](https://github.com/lictl/WebRA2/pull/19#pullrequestreview-5154855718) | 679228cfc06eabb5857cfe51cdbe5f367dccf5a7 |
 
 Reviewed heads respectively: `c2910ea1f3eb0b90bd095903fea3e28b2b4996da`,
 `4c139f3b9c7e92d475f13047b0a8913b891704de`,
 `3319b2a0d9251689253277c3ec7ddbee9e5df777`,
 `76312b730893b0e67e2a332da33ae3f8e29c7985`,
-`08cd33e60e51a0326888155517ff026fbeffab36`.
-Issues #1/#5/#6/#7 are closed. #8 retains the hosted CI gate tracked in #10.
+`08cd33e60e51a0326888155517ff026fbeffab36`,
+`84fd571b31b6799db5404917b5e5c032f672f6ac`,
+`342ba90220fcb463c38431577143130cdbb8d132`.
+Issues #1/#5/#6/#7/#8/#10 are closed.
 The [M0 tracker #4](https://github.com/lictl/WebRA2/issues/4) remains open.
 
 The Git credential mismatch [#2](https://github.com/lictl/WebRA2/issues/2) was resolved
@@ -49,7 +53,7 @@ an unpublished historical workflow attempt; it is not the reviewed foundation br
 
 ## Active ownership
 
-- Coordinator: `codex/4-m0-integration`, shared docs/config/contracts and merge gates.
+- Coordinator: `codex/4-m0-handoff`, shared docs/config/contracts and merge gates.
 - Worker `bootstrap_review`: [campaign census #16](https://github.com/lictl/WebRA2/issues/16),
   branch `codex/16-campaign-census`, worktree `local/worktrees/campaign`, based on
   merged MIX/specs. Owns `packages/content/`, `tests/content/`,
@@ -106,9 +110,17 @@ are explicit in [licensing](licensing.md), preserving MIT for separable original
 
 | Issue | Impact and next action |
 | --- | --- |
-| [#10: CI access](https://github.com/lictl/WebRA2/issues/10) | CLI credential lacks `workflow` scope; GitHub integration also returned 403. Reviewed workflow design is preserved in `docs/ci/public-checks.yml.example`; local checks continue. Owner was asked to authorize `gh auth refresh -h github.com -s workflow` for `lictl`. Once access exists, activate through a reviewed PR and verify a real hosted run; do not claim CI passes before then. |
 | [#11: movie MIX checksums](https://github.com/lictl/WebRA2/issues/11) | Two stored/payload SHA-1 mismatches reproduced independently; cause and tolerant/strict import policy unresolved. Structural reads succeed; do not label the installation corrupt without evidence. Agent investigation can continue without owner action. |
 | [#12: media/browser evidence](https://github.com/lictl/WebRA2/issues/12) | Full cinematic A/V/subtitle/seek path, realistic large inputs/peak memory, actual Edge and Firefox codec evidence, real visual assets and full import/storage recovery remain. No immediate owner action required. |
+| [#18: effective content](https://github.com/lictl/WebRA2/issues/18) | Resolve RA2/YR patch/loose/profile precedence, effective campaign progression/dependencies and playable locales using #16 candidates. Queued next content investigation; no immediate owner action required. |
+
+CI access [#10](https://github.com/lictl/WebRA2/issues/10) is **resolved** through the
+already authorized GitHub browser session. Both the
+[PR run](https://github.com/lictl/WebRA2/actions/runs/34356060476) and
+[merged-main run](https://github.com/lictl/WebRA2/actions/runs/34356266462) passed.
+The earlier requested `gh auth refresh` is no longer needed for this activation;
+no credential scopes or repository rules were changed. Future workflow writes can
+use that authorized UI route if CLI credentials still lack workflow scope.
 
 All initial product questions are answered. Ask the owner only for necessary missing
 access, an essential decision or an original-game comparison agents cannot obtain.
@@ -122,7 +134,7 @@ access, an essential decision or an original-game comparison agents cannot obtai
 2. Use mission/locale candidates to define the next effective-profile/override and
    first RA2/YR dependency-closure investigation. Keep unresolved names and semantics
    explicit; static parsing alone cannot choose patch precedence or prove behavior.
-3. Progress #11/#12 independently and activate CI only when #10 access is available.
+3. Progress #11/#12 independently; require the active public workflow on future PRs.
 4. Reassess the M0 exit criteria in `docs/plan.md`: effective manifests/dependency graph,
    unsupported format/opcode inventory, media path, dependency decisions, first mission
    selection and reference comparison plan. M0 remains open; M1–M8 are not complete.
