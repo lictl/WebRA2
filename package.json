@@ -19,6 +19,7 @@
     "start": "npm run build && npm run preview"
   },
   "dependencies": {
+    "@noble/hashes": "2.4.0",
     "egoroof-blowfish": "4.0.3"
   },
   "devDependencies": {
