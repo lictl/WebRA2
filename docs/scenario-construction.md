@@ -50,8 +50,10 @@ Use canonical IDs to join consumers, not these indices as an original save ABI.
 
 ## Ordered construction policy
 
-Policy `webra2-scenario-construction-1` first reconstructs every stage from all
-selected and shadowed INI origins. Registry entry **line order**, rather than
+Policy `webra2-scenario-construction-1` uses the shared
+[retained source view](ini-source-view.md) to reconstruct every stage from all
+selected and shadowed INI origins. The extraction preserves the output policy and
+private projection hashes; no allocation/property semantics change. Registry entry **line order**, rather than
 numeric key sorting or final overwritten table rows, determines allocation order.
 An overwritten key in a later stage does not delete an earlier allocated type.
 A case-insensitive ID registration repeat retains the first allocation and its
@@ -117,7 +119,11 @@ result and never mutates its inputs.
 
 Malformed joins, source/profile mismatches, exact duplicate consumed registry or
 property keys/sections, invalid limits, accessors, mutable inputs, cycles and
-budget exhaustion throw a `ScenarioConstructionError` with a stable code.
+budget exhaustion throw a `ScenarioConstructionError` with a stable code. The
+shared source-view validator additionally bounds its own reconstruction/indexing
+work at 4,194,304 units and checks each entry against the last preceding header;
+its failures are translated to construction error codes. This is separate from
+the construction interpreter's existing semantic work counter.
 Unsupported IDs, truncation, special country selectors, unresolved owners/types
 and unresolved parent references retain diagnostics/rows where possible.
 Supported identifiers are narrow printable ASCII: type/new-country IDs at most

@@ -2,6 +2,7 @@
 // Copyright 2026 WebRA2 contributors. Original bounded identity construction; see ../CONSTRUCTION_PROVENANCE.md.
 import type { ProfileId } from '../../contracts/src/index.ts';
 import type { IniOrigin, RuntimeIni } from './runtime-ini.ts';
+import { createIniSourceView, IniSourceViewError } from './ini-source-view.ts';
 import type { PlacementKind, ScenarioObjects, ScenarioRow } from './scenario-objects.ts';
 
 export const SCENARIO_CONSTRUCTION_POLICY = 'webra2-scenario-construction-1' as const;
@@ -98,8 +99,8 @@ function immutable(inputs: readonly unknown[], cap: Limits): void {
 const integer = (n: number): boolean => Number.isSafeInteger(n) && n >= 0 && !Object.is(n, -0);
 const identifier = (s: string, max: number): boolean => typeof s === 'string' && s.length > 0 && s.length <= max && /^[\x20-\x7e]+$/.test(s) && !/[,;\[\]=]/.test(s) && s === s.trim();
 const special = (s: string): boolean => /^(?:<.*>|none)$/i.test(s);
-type Section = { lines: number[]; occurrenceLines: Map<number, number>; origins: IniOrigin[] };
-type Stage = { layer: RuntimeIni['layers'][number]; sections: Map<string, Section>; headerLines: Set<number>; lines: Map<number, IniOrigin> };
+type Section = { lines: number[]; origins: IniOrigin[] };
+type Stage = { layer: RuntimeIni['layers'][number]; sections: Map<string, Section>; lines: Map<number, IniOrigin> };
 type MutableDefinition = { id: string; index: number; name: string; allocation: 'registry' | 'general-reference' | 'terrain-placement' | 'house-country'; allocationOrigin: IniOrigin;
   registrations: IniOrigin[]; definitionStages: DefinitionStage[]; fields: Map<string, ConstructionField>;
   alias: { value: string; origin: IniOrigin | null }; parent: { value: string | null; origin: IniOrigin | null } };
@@ -118,47 +119,30 @@ export function assembleScenarioDefinitions(input: { readonly objects: ScenarioO
     if (!identifier(layer.id, 256) || byLayer.has(layer.id) || !integer(layer.order) || layer.order <= previousOrder || layer.profile !== objects.profile ||
         !['base', 'expansion', 'mod', 'map'].includes(layer.kind) || !/^[a-f0-9]{64}$/.test(layer.sourceSha256)) fail('construction-stage');
     previousOrder = layer.order;
-    const stage: Stage = { layer, sections: new Map(), headerLines: new Set(), lines: new Map() }; stages.push(stage); byLayer.set(layer.id, stage);
+    const stage: Stage = { layer, sections: new Map(), lines: new Map() }; stages.push(stage); byLayer.set(layer.id, stage);
   }
   const maps = stages.filter(s => s.layer.kind === 'map'), map = maps[0];
   if (maps.length !== 1 || !map || map !== stages.at(-1) || map.layer.sourceSha256 !== objects.source.sha256) fail('construction-map-identity');
-  let occurrences = 0, work = 0, registrationCount = 0, definitions = 0, fieldCount = 0;
+  let work = 0, registrationCount = 0, definitions = 0, fieldCount = 0;
   function budget(n = 1): void { if (n > cap.work - work) fail('construction-work-limit'); work += n; }
   const diagnostics: ConstructionDiagnostic[] = [];
   function diagnostic(code: string, subjectId: string, origin: IniOrigin | null, severity: 'info' | 'unsupported' = 'unsupported'): void {
     if (diagnostics.length >= cap.diagnostics) fail('construction-diagnostic-limit'); diagnostics.push(Object.freeze({ code, severity, subjectId, origin }));
   }
-  const sectionNames = new Set<string>();
-  for (const section of rules.sections) {
-    if (typeof section.name !== 'string' || fold(section.name) !== section.name || sectionNames.has(section.name)) fail('construction-section'); sectionNames.add(section.name);
-    for (const occurrence of section.occurrences) {
-      if (++occurrences > cap.occurrences) fail('construction-occurrence-limit');
-      const stage = byLayer.get(occurrence.layerId);
-      if (!stage || !integer(occurrence.line) || !occurrence.line || fold(occurrence.spelling) !== section.name) fail('construction-section-origin');
-      if (!integer(occurrence.occurrence)) fail('construction-section-origin');
-      let value = stage.sections.get(occurrence.spelling);
-      if (!value) { value = { lines: [], occurrenceLines: new Map(), origins: [] }; stage.sections.set(occurrence.spelling, value); }
-      if (stage.headerLines.has(occurrence.line) || value.occurrenceLines.has(occurrence.occurrence)) fail('construction-section-origin');
-      value.lines.push(occurrence.line); value.occurrenceLines.set(occurrence.occurrence, occurrence.line); stage.headerLines.add(occurrence.line);
+  // The shared view validates every retained source occurrence, including header ownership.
+  // Native allocation/property semantics stay here; no effective-table merge is introduced.
+  let view: ReturnType<typeof createIniSourceView>;
+  try { view = createIniSourceView(rules, { stages: cap.stages, occurrences: cap.occurrences, nodes: cap.nodes, characters: cap.characters }); }
+  catch (error) { if (error instanceof IniSourceViewError) fail(error.code.replace('ini-source-', 'construction-')); throw error; }
+  for (const sourceStage of view.stages) {
+    const stage = byLayer.get(sourceStage.layer.id)!;
+    for (const source of sourceStage.sections) {
+      let section = stage.sections.get(source.name);
+      if (!section) { section = { lines: [], origins: [] }; stage.sections.set(source.name, section); }
+      section.lines.push(source.line);
+      for (const entry of source.entries) { section.origins.push(entry.origin); stage.lines.set(entry.origin.line, entry.origin); }
     }
   }
-  const entryKeys = new Set<string>();
-  for (const entry of rules.entries) {
-    if (typeof entry.section !== 'string' || typeof entry.key !== 'string' || fold(entry.section) !== entry.section || fold(entry.key) !== entry.key) fail('construction-entry');
-    const id = `${entry.section}\0${entry.key}`; if (entryKeys.has(id)) fail('construction-duplicate-entry'); entryKeys.add(id);
-    if (semantic(entry.selected.rawValue) !== entry.value) fail('construction-entry-value');
-    if (entry.shadowed.length + 1 > cap.occurrences - occurrences) fail('construction-occurrence-limit');
-    for (const origin of [...entry.shadowed, entry.selected]) {
-      if (++occurrences > cap.occurrences) fail('construction-occurrence-limit');
-      const stage = byLayer.get(origin.layerId), section = stage?.sections.get(origin.sectionSpelling);
-      if (!stage || !section || origin.sourceSha256 !== stage.layer.sourceSha256 || !integer(origin.line) || !origin.line ||
-          fold(origin.sectionSpelling) !== entry.section || fold(origin.keySpelling) !== entry.key || stage.lines.has(origin.line) || stage.headerLines.has(origin.line) ||
-          !integer(origin.sectionOccurrence) || !integer(origin.keyOccurrence) ||
-          !section.occurrenceLines.has(origin.sectionOccurrence) || origin.line <= section.occurrenceLines.get(origin.sectionOccurrence)!) fail('construction-entry-origin');
-      section.origins.push(origin); stage.lines.set(origin.line, origin);
-    }
-  }
-  for (const stage of stages) for (const section of stage.sections.values()) section.origins.sort((a, b) => a.line - b.line);
   function unique(section: Section | undefined): void {
     if (!section) return;
     if (section.lines.length !== 1) fail('construction-repeated-section');
