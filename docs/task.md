@@ -13,14 +13,15 @@ CPU composition are also merged. Both opening terrains now render in actual desk
 The current work adds object artwork, native scenario construction and persistent
 cinematics. No original mission is playable yet.
 
-Current wave: coordinator [object artwork #100](https://github.com/lictl/WebRA2/issues/100);
-browser agent [persistent media #101](https://github.com/lictl/WebRA2/issues/101);
-format agent independently reviews #100; simulation agent
-[exact INI source view #103](https://github.com/lictl/WebRA2/issues/103) has opened
-[PR #109](https://github.com/lictl/WebRA2/pull/109) and is reviewing the media core.
-Scenario construction #94, sprite composition #99 and SHP header fields #104 have
-merged. The #104 software blocker is resolved; both full #100 private preparations
-and independent source/pixel comparisons now pass.
+Current wave: coordinator [exact staged artwork #110](https://github.com/lictl/WebRA2/issues/110);
+browser agent finishes [persistent media #101](https://github.com/lictl/WebRA2/issues/101)
+then [placed-object viewport #111](https://github.com/lictl/WebRA2/issues/111);
+format agent finishes #100 review then [voxel rasterizer #112](https://github.com/lictl/WebRA2/issues/112);
+simulation agent reviews media core then [typed entity definitions #113](https://github.com/lictl/WebRA2/issues/113).
+Scenario construction #94, sprite composition #99, SHP header fields #104 and exact
+source view #109 have merged. #100 passed final independent review; both private
+opening resource preparations and source/pixel comparisons pass. #103 stays open
+for deliberate exact-source consumer migrations. #100 is now merged as recorded below.
 Build/import decisions are recorded in [ADR 0003](adr/0003-browser-build-and-import-boundary.md).
 No essential human input is currently needed. Finish each reviewed slice and continue
 through the accepted milestones; do not stop simply because this first wave merges.
@@ -51,10 +52,10 @@ the coordinator after independent exact-head COMMENT review and successful check
 
 | Role | Current work and exclusive paths | Branch / private worktree |
 | --- | --- | --- |
-| Coordinator | #100 object-art plan/resources; shared configuration/notices/handoff; independent reviews | `codex/100-object-art` at root |
+| Coordinator | #110 exact staged artwork; shared profile identity/configuration/notices/handoff; independent reviews | `codex/110-native-art` at root |
 | browser_feasibility | #101 retained Bink decoder/player; packages/media/**, tests/media/**, tools/media/**, docs/persistent-media.md; sole native UI owner | `codex/101-persistent-media`, `local/worktrees/persistent-media` |
-| mix_reader | Independent #100 final review; #104 merged | `codex/104-shp-header-fields`; preserved `local/worktrees/sprite-layer` |
-| bootstrap_review | #103 exact source view/extraction (PR #109); independent #101 native/build review | `codex/103-ini-source-view`, `local/worktrees/ini-source-view` |
+| mix_reader | Independent #100 final review, then #112 voxel rasterizer | New #112 worktree after #100 review; preserved earlier worktrees |
+| bootstrap_review | Independent #101 native/build review, then #113 typed entity definitions | Preserved `local/worktrees/ini-source-view`; new #113 worktree after media review |
 
 The current wire contracts stay unchanged. The simulation worker owns its internal
 synthetic state policy; importer/UI shared types are coordinated before integration.
@@ -255,26 +256,29 @@ again. Do not push historical unreviewed local branches such as
 | Bounded mission trigger runtime | [#91 / PR #98 and review](https://github.com/lictl/WebRA2/pull/98) | d9bb13b478cf261a6bdd167a5cc3235121d84179 |
 | Four-browser terrain viewport | [#92 / PR #95 and reviews](https://github.com/lictl/WebRA2/pull/95) | 524754571beaa13be9cdaa1ed5e662919dfff9d4 |
 | SHP sprite layer | [#99 / PR #102 and scoped reviews](https://github.com/lictl/WebRA2/pull/102) | f22c8b33f7f608b8021ab65234600c6efe126be4 |
-
 | Native scenario construction | [#94 / PR #105 and reviews](https://github.com/lictl/WebRA2/pull/105) | c0049272a6bd3a9f9ec92db1443988a7d908f1f8 |
 | SHP compression byte/auxiliary fields | [#104 / PR #108 and review](https://github.com/lictl/WebRA2/pull/108) | f822914b44d19c9ec9b7832ae761b2d1f71f77bc |
+| Exact retained INI source view | [#103 / PR #109 and review](https://github.com/lictl/WebRA2/pull/109) | 4f4e1c92fe58e41316fa3b03dabfb3f195859c56 |
+
+| Verified placed-object artwork | [#100 / PR #106](https://github.com/lictl/WebRA2/pull/106), [review](https://github.com/lictl/WebRA2/pull/106#pullrequestreview-5159608146) | 7d9b0b7b8860d77ae03a17ee3989f55dc07b0746 |
 
 ## Remaining work and exact next action
 
-Finish independent final review and merge #100. Its twelve focused tests cover
-both profiles, all six placement families, bounded resource loading and metadata
-ownership across asynchronous discovery. Private preparation now readies 110/138
-SHP types using 107/131 unique images and 3/2 palettes; 10/5 voxel types remain
-explicit. An independent raw-source and pixel oracle matches every plan/row join
-and all 2,578,276 selected pixels. Evidence and scripts are under `local/object-art/`;
-[the report](object-art.md) records exact scope and comparison hashes.
+Finish #110 exact staged artwork/native evidence review. The new policy passes
+15 focused artwork/resource tests and the complete private source/pixel comparison
+for both openings. Policy-2 source/field metadata changes while selected assets
+remain 107/131 SHPs and 3/2 palettes; 10/5 voxel types remain explicit. All 2,578,276
+selected pixels match. Private scripts/reports are under `local/native-art/`;
+prior #100 evidence remains `local/object-art/`. Profile content policy2 exposes
+source views and incorporates the adopted consumer policies in its fingerprints.
+See [the artwork report](object-art.md) for exact scope and projection hashes.
 
 Merged #94's staged registry/property/country/house/placement model passed 444 tests
 and independent raw-source/native-range checks. The private oracle reproduces all
 811/570 placements, but modeled allocation order is not complete native runtime
-indices or implemented statistics. #103 PR #109 exposes exact source occurrences
-and extracts construction's repeated walk without changing its private hashes;
-review it and then migrate artwork and runtime property consumers. General
+indices or implemented statistics. Merged #103 PR #109 exposes exact source occurrences
+and extracts construction's repeated walk without changing its private hashes.
+#110 now migrates artwork; #113 will compile typed native entity fields. General
 RuntimeIni remains ASCII-case-folded. Neither a resolved ID nor a typed outcome
 request is an executable mission. The merged #91 interpreter supports bounded
 timer/flag and trigger controls; teams, scripts, object conditions and many actions

@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { assembleProfileContent, type ProfileContentPlan, type ProfileContentFile, type ProfileContentRole } from '../../packages/content/src/profile-content.ts';
 import { createBrowserVerifiedSession } from '../../packages/vfs/src/browser-verified.ts';
+import { findIniSourceSections, findIniSourceEntries } from '../../packages/content/src/ini-source-view.ts';
 import { lookupRuntimeIni } from '../../packages/content/src/runtime-ini.ts';
 const digest = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
 function csf(): Uint8Array {
@@ -36,6 +37,12 @@ test('verified profile assembly compiles map overrides and independent table nam
   assert.equal(lookupRuntimeIni(result.rules, 'Toy', 'Retained')!.value, 'base');
   assert.equal(lookupRuntimeIni(result.mission, 'Toy', 'Retained'), undefined);
   for (const [role, table] of Object.entries(result.tables)) assert.equal(lookupRuntimeIni(table, 'Toy', 'Value')!.value, role);
+  for (const [role, view] of Object.entries(result.sourceViews)) {
+    assert.equal(view.profile, result.contentIdentity.profile); assert.equal(view.policy, 'webra2-ini-source-view-1');
+    const section = findIniSourceSections(view, view.stages[0]!.layer.id, 'Toy')[0]!;
+    assert.equal(findIniSourceEntries(section, 'Value')[0]!.value, role);
+    assert.equal(findIniSourceEntries(section, 'value').length, 0);
+  }
   assert.equal(result.strings.resolve('ui:example').text, '原創測試');
   assert.equal(result.files.length, 10); assert.equal(result.canStartCampaign, false); assert.equal(result.scope, 'definitions-and-opening-mission');
   assert.ok(Object.isFrozen(result)); assert.ok(Object.isFrozen(result.files[0]!.source.root)); assert.ok(Object.isFrozen(result.contentIdentity));
@@ -50,7 +57,7 @@ test('fingerprints ignore picker IDs, physical locations and caller enumeration 
       size: file.source.size + prefix.length * 2, sha256: digest(new Uint8Array([...prefix, ...packed.payloads[i]!, ...prefix])) } } })) };
   assert.deepEqual((await assembled(packed, packedPlan)).contentIdentity, first.contentIdentity);
   const semantic = (files: readonly ProfileContentFile[]) => files.map(file => ({ path: file.path, role: file.role, order: file.order, kind: file.kind, size: file.source.size, sha256: file.source.sha256 }));
-  const version = { policy: 'webra2-profile-content-1', iniPolicy: 'webra2-ini-1', csfPolicy: 'v3-ambiguous-labels-1', engineVersion: 'test-engine-1', profile: 'ra2', orderedModHashes: [] };
+  const version = { policy: 'webra2-profile-content-2', iniPolicy: 'webra2-ini-1', sourceViewPolicy: 'webra2-ini-source-view-1', constructionPolicy: 'webra2-scenario-construction-1', objectArtPolicy: 'webra2-object-still-2', csfPolicy: 'v3-ambiguous-labels-1', engineVersion: 'test-engine-1', profile: 'ra2', orderedModHashes: [] };
   assert.equal(first.contentIdentity.manifestSha256, digest(new TextEncoder().encode(JSON.stringify({ ...version, files: semantic(f.plan.files) }))));
   const mods = ['a'.repeat(64), 'b'.repeat(64)];
   for (const plan of [{ ...f.plan, engineVersion: 'test-engine-2' }, { ...f.plan, orderedModHashes: mods }, { ...f.plan, files: f.plan.files.map(file => file.role === 'art' ? { ...file, path: 'replacement.ini' } : file) }])
