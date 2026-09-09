@@ -31,7 +31,14 @@ function occupancy(model: WorldModel, state: WorldState): Map<number, number> {
     const e = state.entities[i]!, d = model.entities[i]!;
     if (d.blocksCell && e.health !== 0) { add(worldAddress(e.x, e.y)); if (e.progress > 0) add(e.route[1]!); }
   }
+  const byId = new Map(state.entities.map(e => [e.id, e]));
+  for (const p of model.footprints) if (byId.get(p.entityId)!.health !== 0) for (const at of p.cells) add(at);
   return counts;
+}
+function staticOccupancy(model: WorldModel, state: { entities: readonly Pick<WorldEntity, 'id' | 'health'>[] }): Set<number> {
+  const blocked = new Set(model.blocked), byId = new Map(state.entities.map(e => [e.id, e]));
+  for (const p of model.footprints) if (byId.get(p.entityId)?.health !== 0) for (const at of p.cells) blocked.add(at);
+  return blocked;
 }
 function validateSave(model: WorldModel, input: unknown): LiveSave {
   assertWorldModel(model);
@@ -43,7 +50,15 @@ function validateSave(model: WorldModel, input: unknown): LiveSave {
   if (s.modelSha256 !== model.sha256) worldFail('world-save-model');
   if (worldList(r.scheduledWork, 0).length || Reflect.ownKeys(worldRecord(r.rngStates, [])).length) worldFail('world-save-work');
   const inputs = worldList(s.entities, C.entities); if (inputs.length !== model.entities.length) worldFail('world-save-entities');
-  const grids = new Map(model.navigation.map(b => [b.grid.movementClass, b])), staticBlocked = new Set(model.blocked);
+  const grids = new Map(model.navigation.map(b => [b.grid.movementClass, b]));
+  // Read/validate health projections before using them to include stationary footprint cells.
+  const projected = inputs.map((v, i) => {
+    const e = worldRecord(v, ['id', 'x', 'y', 'health', 'goal', 'route', 'progress', 'waitTicks']), d = model.entities[i]!;
+    const health = e.health === null ? null : worldInteger(e.health, 0, d.maximumHealth ?? 0);
+    if (e.id !== d.id || (health === null) !== (d.maximumHealth === null)) worldFail('world-save-health');
+    return { id: d.id, health };
+  });
+  const staticBlocked = staticOccupancy(model, { entities: projected });
   const entities: WorldEntity[] = []; let paths = 0;
   for (let i = 0; i < inputs.length; i++) {
     const e = worldRecord(inputs[i], ['id', 'x', 'y', 'health', 'goal', 'route', 'progress', 'waitTicks']), definition = model.entities[i]!;
@@ -130,7 +145,7 @@ export class WorldSimulation {
     worldInteger(ticks, 1, C.stepTicks); if (ticks > C.tick - this.nextTick) worldFail('world-tick-overflow');
     worldInteger(workLimit, 0, C.replayWork);
     const save = worldClone(this.#value), events: WorldTrace[] = [], definitions = new Map(this.#model.entities.map(e => [e.id, e]));
-    const bindings = new Map(this.#model.navigation.map(b => [b.grid.movementClass, b])), staticBlocked = new Set(this.#model.blocked);
+    const bindings = new Map(this.#model.navigation.map(b => [b.grid.movementClass, b])), staticBlocked = staticOccupancy(this.#model, save.state);
     const work = { entityVisits: 0, navigationExpansions: 0, transitions: 0 };
     const emit = (phase: WorldTrace['phase'], kind: string, entityId: number, cell: number | null = null, value: number | null = null) => {
       if (events.length >= C.trace) worldFail('world-trace-limit'); events.push({ tick: save.nextTick, phase, kind, entityId, cell, value });

@@ -20,17 +20,21 @@ export interface WorldEntityDefinition {
   readonly movementPerTick: number; readonly navigationClass: string | null; readonly blocksCell: boolean;
 }
 export interface WorldNavigationBinding { readonly grid: NavigationGrid; readonly costScale: number }
+export interface WorldFootprint { readonly entityId: number; readonly cells: readonly Readonly<{ x: number; y: number }>[] }
 export interface WorldModelInput {
   readonly contentIdentity: ContentIdentity; readonly sourceSha256: string; readonly definitionsSha256: string;
   readonly entities: readonly WorldEntityDefinition[]; readonly navigation: readonly WorldNavigationBinding[];
   /** Additional explicit occupied cells, e.g. supported foundation cells beyond each entity's anchor. */
   readonly blocked: readonly Readonly<{ x: number; y: number }>[];
+  /** Extra absolute occupied cells belonging to stationary entities; omit each anchor handled by blocksCell. */
+  readonly footprints?: readonly WorldFootprint[];
 }
 export interface WorldModel {
   readonly policy: typeof WORLD_MODEL_POLICY; readonly motionPolicy: typeof WORLD_MOTION_POLICY;
   readonly contentIdentity: ContentIdentity; readonly sourceSha256: string; readonly definitionsSha256: string;
   readonly sha256: string; readonly entities: readonly WorldEntityDefinition[];
   readonly navigation: readonly WorldNavigationBinding[]; readonly blocked: readonly number[];
+  readonly footprints: readonly Readonly<{ entityId: number; cells: readonly number[] }>[];
   readonly initialSharedCells: number; readonly nativeBehaviorVerified: false;
 }
 export class WorldError extends Error { constructor(readonly code: string) { super(code); this.name = 'WorldError'; } }
@@ -78,7 +82,9 @@ export function assertWorldModel(model: WorldModel): void { if (!models.has(mode
 
 /** Content adapters supply interpreted health, occupancy and traversal. No art/pixel inference occurs here. */
 export function createWorldModel(input: WorldModelInput): WorldModel {
-  const r = worldRecord(input, ['contentIdentity', 'sourceSha256', 'definitionsSha256', 'entities', 'navigation', 'blocked']);
+  const hasFootprints = !!input && Object.hasOwn(input, 'footprints');
+  const r = worldRecord(input, ['contentIdentity', 'sourceSha256', 'definitionsSha256', 'entities', 'navigation', 'blocked',
+    ...(hasFootprints ? ['footprints'] : [])]);
   const contentIdentity = worldContent(r.contentIdentity), sourceSha256 = hash(r.sourceSha256), definitionsSha256 = hash(r.definitionsSha256);
   const classes = new Set<string>(), navigation: WorldNavigationBinding[] = [];
   for (const item of worldList(r.navigation, WORLD_LIMITS.grids)) {
@@ -110,11 +116,27 @@ export function createWorldModel(input: WorldModelInput): WorldModel {
     const p = worldRecord(item, ['x', 'y']), at = worldAddress(p.x, p.y); if (blockedSet.has(at)) worldFail('world-duplicate-blocker'); blockedSet.add(at); blocked.push(at);
   }
   blocked.sort((a, b) => a - b);
+  const byId = new Map(entities.map(e => [e.id, e])), footprintIds = new Set<number>();
+  const footprints: { entityId: number; cells: readonly number[] }[] = []; let footprintCells = 0;
+  for (const item of worldList(hasFootprints ? r.footprints : [], WORLD_LIMITS.entities)) {
+    const p = worldRecord(item, ['entityId', 'cells']), entityId = worldInteger(p.entityId, 1, 2147483647), d = byId.get(entityId);
+    if (!d || d.movementPerTick || footprintIds.has(entityId)) worldFail('world-footprint-entity'); footprintIds.add(entityId);
+    const cells: number[] = [], seen = new Set<number>();
+    for (const item of worldList(p.cells, WORLD_LIMITS.blocked)) {
+      if (++footprintCells > WORLD_LIMITS.blocked) worldFail('world-footprint-limit');
+      const c = worldRecord(item, ['x', 'y']), at = worldAddress(c.x, c.y);
+      if (seen.has(at) || d.blocksCell && at === worldAddress(d.x, d.y)) worldFail('world-footprint-duplicate'); seen.add(at); cells.push(at);
+    }
+    if (!cells.length) worldFail('world-footprint-empty');
+    cells.sort((a, b) => a - b); footprints.push(Object.freeze({ entityId, cells: Object.freeze(cells) }));
+  }
+  footprints.sort((a, b) => a.entityId - b.entityId);
   const occupied = new Map<number, number>(blocked.map(at => [at, 1]));
   for (const e of entities) if (e.blocksCell && e.initialHealth !== 0) { const at = worldAddress(e.x, e.y); occupied.set(at, (occupied.get(at) ?? 0) + 1); }
+  for (const p of footprints) if (byId.get(p.entityId)!.initialHealth !== 0) for (const at of p.cells) occupied.set(at, (occupied.get(at) ?? 0) + 1);
   const initialSharedCells = [...occupied.values()].filter(n => n > 1).length;
   const common = { policy: WORLD_MODEL_POLICY, motionPolicy: WORLD_MOTION_POLICY, contentIdentity, sourceSha256, definitionsSha256,
-    entities: Object.freeze(entities), blocked: Object.freeze(blocked), initialSharedCells, nativeBehaviorVerified: false as const };
+    entities: Object.freeze(entities), blocked: Object.freeze(blocked), footprints: Object.freeze(footprints), initialSharedCells, nativeBehaviorVerified: false as const };
   const sha256 = worldHash({ ...common, navigation: navigation.map(b => ({ gridSha256: b.grid.sha256, costScale: b.costScale })) });
   const model = Object.freeze({ ...common, navigation: Object.freeze(navigation), sha256 }); models.add(model); return model;
 }

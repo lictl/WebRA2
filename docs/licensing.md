@@ -142,3 +142,9 @@ Before adding a decoder or vendored source, record upstream URL, exact revision/
 files reused or translated, SPDX license, local changes, and a source/distribution plan.
 Do not describe a GPL-derived implementation as an MIT clean-room implementation.
 Native codec builds need their own configuration-specific audit; none is adopted here.
+
+The original opening-world content adapter composes the existing content compilers
+under GPL-3.0-or-later; [its notice](../packages/sim/WORLD_CONTENT_PROVENANCE.md)
+accompanies the development bundle. The pure world model/movement/replay code
+remains separable original MIT material. No source assets or original saves are
+included in these adapters or their synthetic tests.

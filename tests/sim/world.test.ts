@@ -152,6 +152,33 @@ test('definition validation rejects ambiguous identity, missing grid bindings an
   assert.throws(() => createWorldModel({ ...a, entities: [actor(1, 0, 2, { blocksCell: Object(true) as boolean })] }), error('world-occupancy'));
 });
 
+test('stationary footprint cells bind the owning entity and disappear when its saved health is zero', () => {
+  const a = input([actor(), actor(2, 2, 0, { movementPerTick: 0, navigationClass: null, kind: 'structure' })]);
+  const footprints = [{ entityId: 2, cells: [{ x: 2, y: 1 }, { x: 2, y: 2 }, { x: 2, y: 3 }] }];
+  const model = createWorldModel({ ...a, footprints });
+  footprints[0]!.cells[0]!.x = 99; assert.equal(model.footprints[0]!.cells[0], 514);
+  const sim = WorldSimulation.create(model); sim.admitCommands([move(0, 4, 2)]); sim.step();
+  assert(!sim.save().state.entities[0]!.route.includes(1026));
+  const restored = WorldSimulation.restore(model, sim.save()); assert.deepEqual(restored.step(20), sim.step(20));
+  assert.equal(sim.save().state.entities[0]!.x, 4);
+  const inactive = WorldSimulation.create(model).save(); inactive.state.entities[1]!.health = 0;
+  const clear = WorldSimulation.restore(model, inactive); clear.admitCommands([move(0, 4, 2)]); clear.step();
+  assert(clear.save().state.entities[0]!.route.includes(1026));
+  const shared = createWorldModel({ ...input([actor(1, 2, 2), a.entities[1]!]), footprints: [{ entityId: 2, cells: [{ x: 2, y: 2 }] }] });
+  assert.equal(shared.initialSharedCells, 1); assert.doesNotThrow(() => WorldSimulation.create(shared));
+});
+
+test('footprint factory rejects mobile owners, aliases, forged empty input and duplicate cells', () => {
+  const a = input([actor(), actor(2, 6, 4, { movementPerTick: 0, navigationClass: null })]);
+  for (const footprints of [[{ entityId: 1, cells: [{ x: 1, y: 1 }] }], [{ entityId: 9, cells: [{ x: 1, y: 1 }] }],
+    [{ entityId: 2, cells: [{ x: 6, y: 4 }] }], [{ entityId: 2, cells: [{ x: 1, y: 1 }, { x: 1, y: 1 }] }],
+    [{ entityId: 2, cells: [] }]]) assert.throws(() => createWorldModel({ ...a, footprints }), WorldError);
+  assert.throws(() => createWorldModel({ ...a, footprints: null as never }), WorldError);
+  const p = [{ entityId: 2, cells: [{ x: 1, y: 1 }] }];
+  assert.throws(() => createWorldModel({ ...a, footprints: [...p, ...p] }), WorldError);
+  assert.notEqual(createWorldModel({ ...a, footprints: p }).sha256, createWorldModel(a).sha256);
+});
+
 test('world replay preserves admission timing, pending future orders, motion and terminal hashes', () => {
   const model = createWorldModel(input([actor(), actor(2, 6, 4)])), recorder = new WorldReplayRecorder(model);
   recorder.admitCommands([move(0, 6, 2), move(1, 4, 4, 2, 8)]); recorder.step(3);
