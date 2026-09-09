@@ -32,7 +32,7 @@ adapts pinned OpenRA and EA/XCC definitions and unpacking under GPL-3.0-or-later
 The selected-frame SHP runtime separately preserves its OpenRA/EA/XCC references in
 [runtime sprite provenance](../packages/formats/SHP_RUNTIME_PROVENANCE.md). Its
 notice also accompanies the development bundle.
-Original runtime INI, terrain/object tables, theater mappings and verified catalog
+Original runtime INI, terrain/object/mission-logic tables, theater mappings, terrain preview and verified catalog
 profile composition use the content component's GPL-3.0-or-later license. No decoded retail map or tile is shipped.
 
 The locale/font coverage scanner and verified analysis CLI retain GPL-3.0-or-later.
