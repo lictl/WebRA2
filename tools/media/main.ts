@@ -11,6 +11,7 @@ let state = 'idle', generation = 0, queue = new MediaQueue(), pumping = false, e
 let epoch: number | undefined, target = 0, started = 0, lastReport = 0, frameId = 0;
 const sources = new Set<AudioBufferSourceNode>();
 let metrics: Record<string, unknown> = {};
+let frameCallbacks = 0, timerCallbacks = 0;
 let displayed = 0, dropped = 0, scheduled = 0, trimmed = 0, peakSources = 0, scheduledBytes = 0, peakScheduledBytes = 0, maxLag = 0, rmsPeak = 0;
 function controls(): void {
   buttons.play!.disabled = !['idle', 'ended', 'skipped', 'cancelled', 'failed'].includes(state);
@@ -21,7 +22,7 @@ function controls(): void {
 }
 function playhead(): number { return epoch === undefined || !audio ? target : Math.max(target, audio.currentTime - epoch); }
 function update(): void {
-  Object.assign(metrics, { state, position: Number(playhead().toFixed(4)), displayed, dropped, scheduledSamplesPerChannel: scheduled, trimmedSamplesPerChannel: trimmed,
+  Object.assign(metrics, { environment: { visibilityState: document.visibilityState, hasFocus: document.hasFocus(), pageFragment: location.hash.slice(0, 64), frameCallbacks, timerCallbacks }, state, position: Number(playhead().toFixed(4)), displayed, dropped, scheduledSamplesPerChannel: scheduled, trimmedSamplesPerChannel: trimmed,
     peakOwnedQueueBytes: queue.peakBytes, peakQueueItems: queue.peakItems, retainedQueueBytes: queue.bytes, retainedQueueItems: queue.length, peakScheduledAudioSources: peakSources, activeAudioSources: sources.size,
     peakScheduledAudioBytes: peakScheduledBytes, scheduledAudioBytes: scheduledBytes, maxVideoClockLagMs: maxLag, rmsPeak, audioState: audio?.state ?? 'absent' });
   report.replaceChildren(...Object.entries(metrics).map(([key, value]) => {
@@ -62,7 +63,7 @@ async function pump(): Promise<void> {
     }
   } finally { if (current === generation) pumping = false; }
 }
-function tick(): void { try { tickFrame(); } catch (error) { fail(error); } }
+function tick(): void { frameCallbacks++; try { tickFrame(); } catch (error) { fail(error); } }
 function tickFrame(): void {
   if (!client) return;
   if (state === 'playing' && audio && epoch !== undefined) {
@@ -140,5 +141,7 @@ buttons.seek!.onclick = async () => {
 };
 buttons.skip!.onclick = () => { void cleanup('skipped'); }; buttons.cancel!.onclick = () => { void cleanup('cancelled'); };
 document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'playing') buttons.pause!.click(); });
-window.addEventListener('pagehide', () => { void cleanup('cancelled'); });
+// Diagnostic-only heartbeat: observe callback/visibility suspension without driving playback.
+const observationTimer = setInterval(() => { timerCallbacks++; update(); }, 1000);
+window.addEventListener('pagehide', () => { clearInterval(observationTimer); void cleanup('cancelled'); });
 controls();
