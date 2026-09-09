@@ -82,7 +82,7 @@ node --import tsx tools/analysis/mix-census.ts game > local/mix-census.json
 The implementation was run with Node 24.20.0, TypeScript 7.0.2, tsx 4.23.13 and
 `egoroof-blowfish` 4.0.3. During isolated worktree development Node came from
 `/Users/lucus/Projects/WebRA2/local/toolchain/node_modules/node/bin/node`.
-Nineteen original synthetic tests pass, covering all format variants, every
+Twenty-one original synthetic tests pass, covering all format variants, every
 truncation boundary, unknown flags, checksum trailer presence, uint32 overflow,
 resource caps, zero-count ambiguity, short reads, payload-lazy reads, nested ranges,
 duplicate IDs, overlaps, filename collisions and bounded XCC parsing. The RSA

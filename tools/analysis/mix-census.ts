@@ -35,7 +35,7 @@ async function digest(source: ByteSource, algorithm: 'sha1' | 'sha256', offset =
 }
 function signature(bytes: Uint8Array): string | undefined {
   const ascii = String.fromCharCode(...bytes.slice(0, 4));
-  if (ascii.startsWith('BIK')) return `bink:${bytes[3]!.toString(16)}`;
+  if (ascii.length === 4 && ascii.startsWith('BIK')) return `bink:${bytes[3]!.toString(16)}`;
   if (ascii === 'RIFF') return 'riff';
   if (ascii === ' FSC') return 'csf';
   return undefined;
@@ -102,7 +102,7 @@ export async function censusInstallation(directory: string) {
       row.members.push(member);
       const names = member.names.filter(n => /\.(mix|mmx|yro)$/i.test(n.name));
       const memberPath = `${path}/#${entry.ordinal}:${member.idHex}`;
-      if (entry.size < 6 || kind) continue;
+      if (!names.length && (entry.size < 6 || kind)) continue;
       // Unknown files have no reliable MIX magic. A successful bounded parse with
       // exact declared length is evidence of structure, not a resolved filename.
       let nested: MixArchive;

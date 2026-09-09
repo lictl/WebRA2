@@ -40,3 +40,28 @@ test('invalid archive and malformed named nested member appear as failures', asy
     const census = await censusInstallation(directory); assert.equal(census.failures.length, 2);
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
+test('three-byte BIK prefix remains an ordinary member and does not omit later records', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'webra2-mix-'));
+  try {
+    const bytes = new Uint8Array(37), v = new DataView(bytes.buffer);
+    v.setUint16(0, 2, true); v.setUint32(2, 7, true);
+    v.setUint32(6, 0x12345678, true); v.setUint32(14, 3, true);
+    v.setUint32(18, 0x23456789, true); v.setUint32(22, 3, true); v.setUint32(26, 4, true);
+    bytes.set([66, 73, 75, 1, 2, 3, 4], 30);
+    await writeFile(join(directory, 'short-signature.mix'), bytes);
+    const census = await censusInstallation(directory);
+    assert.deepEqual(census.failures, []); assert.equal(census.summary.memberRecords, 2);
+    assert.equal(census.archives[0]!.members[0]!.signature, undefined);
+    assert.equal(census.archives[0]!.members[1]!.id, 0x23456789);
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
+test('undersized named MIX candidate is reported as a parse failure', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'webra2-mix-'));
+  try {
+    await writeFile(join(directory, 'short-nested.mix'), archive(hashMixName('cache.mix'), Uint8Array.of(66, 73, 75)));
+    const census = await censusInstallation(directory);
+    assert.equal(census.summary.memberRecords, 1); assert.equal(census.failures.length, 1);
+    assert.match(census.failures[0]!.path, /short-nested\.mix\/#0:/);
+    assert.match(census.failures[0]!.error, /Invalid byte range/);
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
