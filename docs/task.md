@@ -8,9 +8,11 @@ point. M0 integration [PR #42](https://github.com/lictl/WebRA2/pull/42) merged a
 Current integration: [UI #27 / PR #56](https://github.com/lictl/WebRA2/pull/56)
 and [build #45 / PR #46](https://github.com/lictl/WebRA2/pull/46).
 The first simulation, browser inspector, CSF runtime, incremental hashing and verified
-browser source sessions have merged. Parallel follow-ups are
-[effective INI #54](https://github.com/lictl/WebRA2/issues/54) and
-[map packs #55 / PR #58](https://github.com/lictl/WebRA2/pull/58).
+browser source sessions have merged, along with effective INI, map-pack codecs,
+terrain geometry and worker file reads. Parallel follow-ups are
+[profile composition #62 / PR #68](https://github.com/lictl/WebRA2/pull/68),
+[worker application acceptance #64](https://github.com/lictl/WebRA2/issues/64) and
+[TMP tiles #67](https://github.com/lictl/WebRA2/issues/67).
 Build/import decisions are recorded in [ADR 0003](adr/0003-browser-build-and-import-boundary.md).
 No essential human input is currently needed. Finish each reviewed slice and continue
 through the accepted milestones; do not stop simply because this first wave merges.
@@ -41,10 +43,10 @@ the coordinator after independent exact-head COMMENT review and successful check
 
 | Role | Current work and exclusive paths | Branch / private worktree |
 | --- | --- | --- |
-| Coordinator | #45 build/server/integration, #55 map-pack codecs awaiting review; shared configuration/handoff | `codex/45-browser-build` at root; `codex/55-map-packs` in `local/worktrees/map-packs` |
+| Coordinator | #45 build/server/integration, #62 profile composition awaiting review; shared configuration/handoff | `codex/45-browser-build` at root; `codex/62-profile-content` in `local/worktrees/profile-content` |
 | browser_feasibility | #27 UI: apps/web/**, tests/web-ui/**, docs/import-shell.md; browser UI owner | `codex/27-import-shell`, `local/worktrees/import-shell` |
-| mix_reader | #53 verified session merged; independent PR #58 codec review | `codex/53-browser-verified`, `local/worktrees/browser-verified`; detached review checkout |
-| bootstrap_review | #54 runtime INI: packages/content/src/runtime-ini.ts, tests/content/runtime-ini.test.ts, docs/runtime-ini.md | `codex/54-runtime-ini`, `local/worktrees/runtime-ini` |
+| mix_reader | #67 TMP decoder, plus final worker report-validation review | `codex/67-tmp-decoder`, `local/worktrees/tmp-decoder` |
+| bootstrap_review | #61 terrain merged; independent PR #68 profile composition and subsequent integration review | `codex/61-scenario-terrain`, `local/worktrees/scenario-terrain`; detached review checkout |
 
 The current wire contracts stay unchanged. The simulation worker owns its internal
 synthetic state policy; importer/UI shared types are coordinated before integration.
@@ -57,11 +59,11 @@ branch/worktree. Never stage a private dependency symlink as node_modules; use
 
 ## Evidence and checks
 
-Current #45 integration before #53: **213 public tests pass**, including seven
-bundle/server tests. PR #56 shell independently passes 215 tests on its main-based
-branch (nine new controller tests); its final four-browser evidence is pending.
-PR #57 verified sessions passes 218 branch tests (12 new) and merged. Test totals
-are revision-specific, not additive claims about an untested final bundle.
+Current #45 integration at `fc31b7b0334619edadac2b6baba5b3153f1ee26a`:
+**283 public tests pass**, strict types/docs/publication/evidence and the actual
+app/worker build pass (16 code/license files from 19 approved inputs). PR #56's
+final four-browser worker evidence remains pending. PR #68 independently passes
+239 tests on its earlier main base. Counts are revision-specific, not additive.
 
 Actual completed Firefox full-folder YR import: 438 files, 118 archives / 14,912
 entries, 1,149,148 bytes read. The extra editor archive compared with the flat 129-file
@@ -74,7 +76,22 @@ Verified browser source sessions match both pinned opening root/member identitie
 using genuine Node file-backed Blobs; those are component tests, not browser evidence.
 The new map-pack codecs independently decode both openings' six terrain/overlay
 packs; LZO agrees with liblzo2 2.10, LCW with a separate Python grammar implementation.
-PR #58 still needs independent review. No cells have been rendered or mission played.
+PR #58 merged after independent review. Terrain PR #65 additionally compiles 6,336
+RA2 and 15,480 YR cells; all decoded fields and full rectangular overlay arrays
+match independent checks. Unknown tile words/sentinels remain explicit. No cells
+have been rendered or mission played.
+
+PR #68 privately assembles all ten verified definition groups in each profile,
+including local CSF catalogs, map-overridden rules and separate other namespaces.
+It remains a definitions-and-opening-mission identity, not a full runtime manifest.
+Review/CI and subsequent application integration remain required.
+
+A measured full-folder scan issues 36,923 small range reads. Task yields alone
+allow Safari to finish but take minutes in observed UI intervals. #64 adds a
+dedicated worker with bounded FileReaderSync reads and termination; actual speed,
+full report equality and cancellation need final rebuilt-browser evidence. A review
+found shallow terminal-report validation; the app now validates nested records and
+has a regression test, with independent final review still pending.
 
 Final integrated baseline: **154 public tests pass**, strict types,
 Markdown links, publication paths and whitespace checks. The new public M0 metadata
@@ -187,6 +204,11 @@ again. Do not push historical unreviewed local branches such as
 | Bounded browser inspection | [#44 / PR #51](https://github.com/lictl/WebRA2/pull/51), [review](https://github.com/lictl/WebRA2/pull/51#pullrequestreview-5157079383) | 4229951020ac9693f94fe34204c8563c05c4678a |
 | Incremental source hashing | [#49 / PR #52](https://github.com/lictl/WebRA2/pull/52), [review](https://github.com/lictl/WebRA2/pull/52#pullrequestreview-5157046824) | f7159ccf4c9049cc6cf91472e19c7ae731321727 |
 | Verified browser source sessions | [#53 / PR #57 and review](https://github.com/lictl/WebRA2/pull/57) | 94d57978b5b1b1734e70098fb484e7f24a618f9f |
+| Map-pack LZO/LCW codecs | [#55 / PR #58](https://github.com/lictl/WebRA2/pull/58), [review](https://github.com/lictl/WebRA2/pull/58#pullrequestreview-5157261040) | 61dbf2214ea1f606c4eb058bc09995a79ceb4f13 |
+| Runtime INI | [#54 / PR #60](https://github.com/lictl/WebRA2/pull/60), [review](https://github.com/lictl/WebRA2/pull/60#pullrequestreview-5157317798) | 72b38afdbfbfe160d096135b7cdc992a7c0b0649 |
+| Browser task yields | [#59 / PR #63](https://github.com/lictl/WebRA2/pull/63), [review](https://github.com/lictl/WebRA2/pull/63#pullrequestreview-5157364457) | b04d619c97f3e7e46eb2980809d0d6d9d5096103 |
+| Scenario terrain grids | [#61 / PR #65](https://github.com/lictl/WebRA2/pull/65), [review](https://github.com/lictl/WebRA2/pull/65#pullrequestreview-5157536685) | 050b6f3f7962972ea19f58da6a1af9409cf40029 |
+| Dedicated-worker range reads | [#64 / PR #66](https://github.com/lictl/WebRA2/pull/66), [review](https://github.com/lictl/WebRA2/pull/66#pullrequestreview-5157514259) | 29aad7c898cff8e8729fd52bfddbd0ce55afa9ae |
 
 ## Remaining work and exact next action
 

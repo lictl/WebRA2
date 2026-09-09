@@ -7,8 +7,9 @@ complete vanilla engine coverage, broader mods, and multiplayer follow.
 **Current state:** M1 implementation is in progress. An English/Traditional Chinese
 browser app inspects locally selected game folders and asset files, with explicit
 RA2/YR selection and cancellation. The headless synthetic simulation survives
-save/restore and replay. Verified source reads, CSF text lookup and map-pack codecs
-are implemented; original mission gameplay and rendering remain in development.
+save/restore and replay. Verified source reads, CSF text lookup, runtime INI and
+complete opening-map terrain grids are implemented. Inspection runs in a dedicated
+worker; original mission gameplay and rendering remain in development.
 See [the current handoff](docs/task.md) for exact evidence and remaining gates.
 
 To run the asset inspector with Node 24.20.0:

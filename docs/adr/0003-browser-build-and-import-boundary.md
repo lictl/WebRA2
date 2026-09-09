@@ -14,12 +14,14 @@ no new version or browser runtime library is introduced. The
 support explicit entrypoints, ESM output and build-input metadata. Framework and
 full development-server adoption are deferred until there is a concrete need.
 
-`npm run build` compiles `apps/web/src/main.ts` and its code imports into ignored
-`dist/`. `npm run preview` serves that build at `http://127.0.0.1:4173`;
-`npm start` builds then starts it. The shell entrypoint arrives in #27, so those
-product commands require its integration. Browser syntax targets ES2022; this is a
-compilation target, not a minimum browser-support claim. The four actual browser
-families still need application behavior tests after integration.
+`npm run build` compiles `apps/web/src/main.ts` and the explicit
+`apps/web/src/import-worker.ts` entry, plus their code imports, into ignored `dist/`.
+`npm run preview` serves that build at `http://127.0.0.1:4173`;
+`npm start` builds then starts it. `npm run check` builds the actual application
+after public checks, so CI catches missing entries and forbidden dependencies.
+Browser syntax targets ES2022; this is a compilation target, not a minimum
+browser-support claim. Actual browser behavior evidence belongs in the
+[application report](../import-shell.md).
 
 Build input is restricted to app/package source and the adopted Blowfish and @noble/hashes runtime
 packages, with explicit file extensions and per-input/output caps. Resolved symlinks
@@ -28,7 +30,12 @@ manifest and carries license/provenance notices. The launcher validates all outp
 routes and hashes before listening, caches app code only, binds to loopback, validates
 Host and serves GET/HEAD on exact manifest routes. It has no asset path or upload
 handler. A CSP blocks network connections from app code; user file selection uses
-File/Blob APIs. These structural checks complement manual payload review and actual
+File/Blob APIs. The allowlisted `/workers/import.js` is bundled application code,
+not imported mod code. Each job clones File handles into one dedicated worker,
+returns bounded/coalesced metadata and terminates on completion or cancellation.
+The [worker byte-source path](../browser-import-worker.md) uses FileReaderSync only
+in a supported dedicated worker, with asynchronous component fallback elsewhere.
+These structural checks complement manual payload review and actual
 browser network evidence; they do not identify copyrighted bytes copied into source.
 
 This is a local development distribution. Combined GPL component source and notices
@@ -47,8 +54,10 @@ ignored and are never required or executed.
 
 The importer owns `packages/vfs/src/browser-types.ts` and its inspection API; the shell
 consumes that single contract. No File/Blob/asset bytes occur in public report fields.
-Private handles remain within the import session. Full source hashing, effective
-profile compilation, ZIP support, persistent storage and the asset-serving localhost
-path follow as bounded M1 tasks. Index inspection does not close all of M1 or make a
+Private handles remain within the import session. Incremental source hashing,
+verified reader sessions, runtime INI and terrain compilation now exist as components;
+their application integration, complete dependency resolution, ZIP support,
+persistent storage and the asset-serving localhost path remain bounded M1/M2 tasks.
+Index inspection does not close all of M1 or make a
 campaign playable. The independent simulation foundation uses existing wire envelopes
 and a separately versioned synthetic policy; it makes no native timing/RNG claim.
