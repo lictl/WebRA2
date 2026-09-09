@@ -1,0 +1,3117 @@
+{
+  "inputLocatorsSha256": "2a8581ecc6954fd1f2caac945c3c54970ecb24a0af49e42a5b78a3647f53d082",
+  "inputCensusSha256": "cdbaafd772bfd9b4d983da1612de00da98fb75f11a4658f7d9a9653d48fbef32",
+  "schemaVersion": 1,
+  "scope": "pinned-native-static-profile-and-progression-evidence",
+  "membersRead": 48,
+  "bytesRead": 22405216,
+  "images": [
+    {
+      "rootFile": "game.exe",
+      "rootSha256": "73288c03b58d370be268ca6d156b4e33bfdb2066dc980359467d8852ff3b00df",
+      "absoluteOffset": 0,
+      "size": 5077312,
+      "sha256": "73288c03b58d370be268ca6d156b4e33bfdb2066dc980359467d8852ff3b00df",
+      "ranges": [
+        {
+          "id": "numbered-expansion-loop",
+          "virtualAddress": 5332137,
+          "absoluteOffset": 1137833,
+          "size": 214,
+          "sha256": "5af3465bae14bdd0c750e1419fff575327151ae16af803a4c81e1af6d8e52023"
+        },
+        {
+          "id": "base-after-expansions",
+          "virtualAddress": 5332368,
+          "absoluteOffset": 1138064,
+          "size": 24,
+          "sha256": "85810f0c0cf3868009978ede375e81a03c7631c911cf685c14370dd3e0e5673d"
+        },
+        {
+          "id": "mix-tail-insertion",
+          "virtualAddress": 5854386,
+          "absoluteOffset": 1660082,
+          "size": 33,
+          "sha256": "55307f9fa43acc859583af1317d3016afd2fc7fc84e6ea5126260833247542bf"
+        },
+        {
+          "id": "mix-first-match",
+          "virtualAddress": 5855969,
+          "absoluteOffset": 1661665,
+          "size": 208,
+          "sha256": "1ab3d991354b743d6c706ff9f555299aad6ec0f6dda633fe8b9ba1bb8541544d"
+        },
+        {
+          "id": "read-open-loose-first",
+          "virtualAddress": 4624928,
+          "absoluteOffset": 430624,
+          "size": 297,
+          "sha256": "2e64e39ce60e2ecd6db7b6f81f38028b8b7a1d6b71112046426665e6c13f0b59"
+        },
+        {
+          "id": "win-transition-branches",
+          "virtualAddress": 6675177,
+          "absoluteOffset": 2480873,
+          "size": 214,
+          "sha256": "f5779523cafdf3abda760a9fab583c384349ef049ea689500126918ee3744af2"
+        },
+        {
+          "id": "basic-control-read",
+          "virtualAddress": 6691732,
+          "absoluteOffset": 2497428,
+          "size": 90,
+          "sha256": "a963f357f6da80f098a9bd33e650ed99ed86f43ca1a878c750d04a6f799b68f4"
+        },
+        {
+          "id": "mapsel-open",
+          "virtualAddress": 5963824,
+          "absoluteOffset": 1769520,
+          "size": 131,
+          "sha256": "85dec14fdd0ac8d91ea0a9d90c81bde1e53e0aff1f90b6f744258eebe7b6f6b0"
+        },
+        {
+          "id": "map-selection-next-call",
+          "virtualAddress": 5829956,
+          "absoluteOffset": 1635652,
+          "size": 48,
+          "sha256": "98265944a683e65175b57d21ecca846abc5d0fc21f0a87dc4aec134caa79456f"
+        }
+      ]
+    },
+    {
+      "rootFile": "gamemd.exe",
+      "rootSha256": "3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600",
+      "absoluteOffset": 0,
+      "size": 5286208,
+      "sha256": "3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600",
+      "ranges": [
+        {
+          "id": "numbered-expansion-loop",
+          "virtualAddress": 5439930,
+          "absoluteOffset": 1245626,
+          "size": 214,
+          "sha256": "198ceb0dd6be31efeb1c8790587e73218bf22ee9a175eb08778f4f6eeb85fafe"
+        },
+        {
+          "id": "bases-after-expansions",
+          "virtualAddress": 5440158,
+          "absoluteOffset": 1245854,
+          "size": 57,
+          "sha256": "971d979f696e6247d8aea6777654f07527fbf5cd79da761efa4b761ef700e7d4"
+        },
+        {
+          "id": "localmd-before-local",
+          "virtualAddress": 5440456,
+          "absoluteOffset": 1246152,
+          "size": 61,
+          "sha256": "18d21f4b70ac6b91e7bbbcc6fbbf466fac9295927151c95e6bd27bc507617709"
+        },
+        {
+          "id": "maps-wildcards-after-expansions",
+          "virtualAddress": 5441456,
+          "absoluteOffset": 1247152,
+          "size": 344,
+          "sha256": "e614283f66876315a6b61a2d828a7a15b7a69550db54e75e71ef9da46545b9a6"
+        },
+        {
+          "id": "list-sentinels",
+          "virtualAddress": 5418208,
+          "absoluteOffset": 1223904,
+          "size": 105,
+          "sha256": "2ec6ce96a74211a9f0e89b13c4eea620be88eb89117a54a43164b632520756dc"
+        },
+        {
+          "id": "mix-tail-insertion",
+          "virtualAddress": 5979618,
+          "absoluteOffset": 1785314,
+          "size": 33,
+          "sha256": "c6fb7f74458164573314ac45ec69e492ef4ea4001c1d316a1c81d874fe95c47a"
+        },
+        {
+          "id": "mix-first-match",
+          "virtualAddress": 5981345,
+          "absoluteOffset": 1787041,
+          "size": 220,
+          "sha256": "290f6e0f35de51b1e2cee3c875c3d9bf651505df51dc8f67082b924bacd809a4"
+        },
+        {
+          "id": "read-open-loose-first",
+          "virtualAddress": 4668688,
+          "absoluteOffset": 474384,
+          "size": 316,
+          "sha256": "1ed4f403dd267b90c42090beed49af2cd91fbd406a9f24021fc7909f63e8570e"
+        },
+        {
+          "id": "loose-existence-delegate",
+          "virtualAddress": 4398864,
+          "absoluteOffset": 204560,
+          "size": 22,
+          "sha256": "faa0829e2cfa7306cb5cce41a5597fe3c401bb4270a7a2252ac61fc5cf210888"
+        },
+        {
+          "id": "basic-continuation-read",
+          "virtualAddress": 6856640,
+          "absoluteOffset": 2662336,
+          "size": 57,
+          "sha256": "e885c98b9393f6c598f7448698cdcd6f43658833c61bd5eec64ad271b68e945e"
+        },
+        {
+          "id": "basic-control-read",
+          "virtualAddress": 6856937,
+          "absoluteOffset": 2662633,
+          "size": 316,
+          "sha256": "19e520e535bca591f117929e324b3cbde2350729832180c033f95b03923aa85f"
+        },
+        {
+          "id": "win-transition-branches",
+          "virtualAddress": 6838699,
+          "absoluteOffset": 2644395,
+          "size": 217,
+          "sha256": "7f25011a8688335c0e384ccccdcd5c46667e50f0482e6e0f98874488d89788e4"
+        },
+        {
+          "id": "map-selection-next-call",
+          "virtualAddress": 5954884,
+          "absoluteOffset": 1760580,
+          "size": 48,
+          "sha256": "91282ef972e245a0820362f9008f80892ca57007f5f574137b9a1c6fae33bc13"
+        },
+        {
+          "id": "map-selection-transition",
+          "virtualAddress": 5955865,
+          "absoluteOffset": 1761561,
+          "size": 255,
+          "sha256": "ef8725e7a12d730c2b9010661581dabe8afd05518bb37b8573b2f8d35b5c04f2"
+        },
+        {
+          "id": "mapsel-open-and-stage-enumeration",
+          "virtualAddress": 6090590,
+          "absoluteOffset": 1896286,
+          "size": 295,
+          "sha256": "1eb7a4ad5eaec30a2df1f3c38dc6e9b9c224ff40365a26b72c0337858c9842e0"
+        },
+        {
+          "id": "stage-scenario-read",
+          "virtualAddress": 6093247,
+          "absoluteOffset": 1898943,
+          "size": 99,
+          "sha256": "bbe15f86626f590b2a0984d88614727f7b1854b2be123247a9675a11438c885f"
+        },
+        {
+          "id": "cache-success-stub",
+          "virtualAddress": 5981152,
+          "absoluteOffset": 1786848,
+          "size": 3,
+          "sha256": "e18aacce29affcdddaa5f641ac1ec12552e0fe9d066e6408941b1792818b8619"
+        },
+        {
+          "id": "cache-success-stub-argument",
+          "virtualAddress": 5981168,
+          "absoluteOffset": 1786864,
+          "size": 5,
+          "sha256": "f4c6d7ae520f88aecb3ea65952e885437fa4a6ce4b5c3439a161d1c5d8e42863"
+        }
+      ]
+    }
+  ],
+  "tables": [
+    {
+      "profile": "ra2",
+      "source": {
+        "name": "mapsel.ini",
+        "rootFile": "ra2.mix",
+        "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+        "archivePath": "ra2.mix/#3:a8548fd9",
+        "absoluteOffset": 119095600,
+        "size": 7875,
+        "sha256": "f4bcbb678d182c35a4331d69c92150a719d73fc0c95fae36cc52e65d74923982"
+      },
+      "stages": [
+        {
+          "ordinal": 5,
+          "sectionLine": 117,
+          "scenario": null,
+          "scenarioLines": [
+            118
+          ]
+        },
+        {
+          "ordinal": 6,
+          "sectionLine": 129,
+          "scenario": "all01t.map",
+          "scenarioLines": [
+            130
+          ]
+        },
+        {
+          "ordinal": 7,
+          "sectionLine": 139,
+          "scenario": "all02s.map",
+          "scenarioLines": [
+            140
+          ]
+        },
+        {
+          "ordinal": 8,
+          "sectionLine": 149,
+          "scenario": "all03u.map",
+          "scenarioLines": [
+            150
+          ]
+        },
+        {
+          "ordinal": 9,
+          "sectionLine": 159,
+          "scenario": "all04u.map",
+          "scenarioLines": [
+            160
+          ]
+        },
+        {
+          "ordinal": 10,
+          "sectionLine": 169,
+          "scenario": "all05s.map",
+          "scenarioLines": [
+            170
+          ]
+        },
+        {
+          "ordinal": 11,
+          "sectionLine": 179,
+          "scenario": "all06u.map",
+          "scenarioLines": [
+            180
+          ]
+        },
+        {
+          "ordinal": 12,
+          "sectionLine": 189,
+          "scenario": "all07t.map",
+          "scenarioLines": [
+            190
+          ]
+        },
+        {
+          "ordinal": 13,
+          "sectionLine": 199,
+          "scenario": "all08u.map",
+          "scenarioLines": [
+            200
+          ]
+        },
+        {
+          "ordinal": 14,
+          "sectionLine": 209,
+          "scenario": "all09t.map",
+          "scenarioLines": [
+            210
+          ]
+        },
+        {
+          "ordinal": 15,
+          "sectionLine": 219,
+          "scenario": "all10s.map",
+          "scenarioLines": [
+            220
+          ]
+        },
+        {
+          "ordinal": 16,
+          "sectionLine": 229,
+          "scenario": "all11t.map",
+          "scenarioLines": [
+            230
+          ]
+        },
+        {
+          "ordinal": 17,
+          "sectionLine": 239,
+          "scenario": "all12s.map",
+          "scenarioLines": [
+            240
+          ]
+        },
+        {
+          "ordinal": 18,
+          "sectionLine": 263,
+          "scenario": "sov01t.map",
+          "scenarioLines": [
+            264
+          ]
+        },
+        {
+          "ordinal": 19,
+          "sectionLine": 273,
+          "scenario": "sov02t.map",
+          "scenarioLines": [
+            274
+          ]
+        },
+        {
+          "ordinal": 20,
+          "sectionLine": 283,
+          "scenario": "sov03u.map",
+          "scenarioLines": [
+            284
+          ]
+        },
+        {
+          "ordinal": 21,
+          "sectionLine": 293,
+          "scenario": "sov04s.map",
+          "scenarioLines": [
+            294
+          ]
+        },
+        {
+          "ordinal": 22,
+          "sectionLine": 303,
+          "scenario": "sov05u.map",
+          "scenarioLines": [
+            304
+          ]
+        },
+        {
+          "ordinal": 23,
+          "sectionLine": 313,
+          "scenario": "sov06t.map",
+          "scenarioLines": [
+            314
+          ]
+        },
+        {
+          "ordinal": 24,
+          "sectionLine": 323,
+          "scenario": "sov07s.map",
+          "scenarioLines": [
+            324
+          ]
+        },
+        {
+          "ordinal": 25,
+          "sectionLine": 333,
+          "scenario": "sov08u.map",
+          "scenarioLines": [
+            334
+          ]
+        },
+        {
+          "ordinal": 26,
+          "sectionLine": 343,
+          "scenario": "sov09u.map",
+          "scenarioLines": [
+            344
+          ]
+        },
+        {
+          "ordinal": 27,
+          "sectionLine": 353,
+          "scenario": "sov10t.map",
+          "scenarioLines": [
+            354
+          ]
+        },
+        {
+          "ordinal": 28,
+          "sectionLine": 363,
+          "scenario": "sov11s.map",
+          "scenarioLines": [
+            364
+          ]
+        },
+        {
+          "ordinal": 29,
+          "sectionLine": 373,
+          "scenario": "sov12s.map",
+          "scenarioLines": [
+            374
+          ]
+        },
+        {
+          "ordinal": 30,
+          "sectionLine": 384,
+          "scenario": null,
+          "scenarioLines": [
+            385
+          ]
+        },
+        {
+          "ordinal": 31,
+          "sectionLine": 394,
+          "scenario": null,
+          "scenarioLines": [
+            395
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "from": 5,
+          "to": [
+            6
+          ],
+          "choice": 1,
+          "line": 126,
+          "ambiguous": false
+        },
+        {
+          "from": 6,
+          "to": [
+            7
+          ],
+          "choice": 2,
+          "line": 137,
+          "ambiguous": false
+        },
+        {
+          "from": 7,
+          "to": [
+            8
+          ],
+          "choice": 3,
+          "line": 147,
+          "ambiguous": false
+        },
+        {
+          "from": 8,
+          "to": [
+            9
+          ],
+          "choice": 4,
+          "line": 157,
+          "ambiguous": false
+        },
+        {
+          "from": 9,
+          "to": [
+            10
+          ],
+          "choice": 5,
+          "line": 167,
+          "ambiguous": false
+        },
+        {
+          "from": 10,
+          "to": [
+            11
+          ],
+          "choice": 6,
+          "line": 177,
+          "ambiguous": false
+        },
+        {
+          "from": 11,
+          "to": [
+            12
+          ],
+          "choice": 7,
+          "line": 187,
+          "ambiguous": false
+        },
+        {
+          "from": 12,
+          "to": [
+            13
+          ],
+          "choice": 8,
+          "line": 197,
+          "ambiguous": false
+        },
+        {
+          "from": 13,
+          "to": [
+            14
+          ],
+          "choice": 9,
+          "line": 207,
+          "ambiguous": false
+        },
+        {
+          "from": 14,
+          "to": [
+            15
+          ],
+          "choice": 10,
+          "line": 217,
+          "ambiguous": false
+        },
+        {
+          "from": 15,
+          "to": [
+            16
+          ],
+          "choice": 11,
+          "line": 227,
+          "ambiguous": false
+        },
+        {
+          "from": 16,
+          "to": [
+            17
+          ],
+          "choice": 12,
+          "line": 237,
+          "ambiguous": false
+        },
+        {
+          "from": 18,
+          "to": [
+            19
+          ],
+          "choice": 2,
+          "line": 271,
+          "ambiguous": false
+        },
+        {
+          "from": 19,
+          "to": [
+            20
+          ],
+          "choice": 3,
+          "line": 281,
+          "ambiguous": false
+        },
+        {
+          "from": 20,
+          "to": [
+            21
+          ],
+          "choice": 4,
+          "line": 291,
+          "ambiguous": false
+        },
+        {
+          "from": 21,
+          "to": [
+            22
+          ],
+          "choice": 5,
+          "line": 301,
+          "ambiguous": false
+        },
+        {
+          "from": 22,
+          "to": [
+            23
+          ],
+          "choice": 6,
+          "line": 311,
+          "ambiguous": false
+        },
+        {
+          "from": 23,
+          "to": [
+            24
+          ],
+          "choice": 7,
+          "line": 321,
+          "ambiguous": false
+        },
+        {
+          "from": 24,
+          "to": [
+            25
+          ],
+          "choice": 8,
+          "line": 331,
+          "ambiguous": false
+        },
+        {
+          "from": 25,
+          "to": [
+            26
+          ],
+          "choice": 9,
+          "line": 341,
+          "ambiguous": false
+        },
+        {
+          "from": 26,
+          "to": [
+            27
+          ],
+          "choice": 10,
+          "line": 351,
+          "ambiguous": false
+        },
+        {
+          "from": 27,
+          "to": [
+            28
+          ],
+          "choice": 11,
+          "line": 361,
+          "ambiguous": false
+        },
+        {
+          "from": 28,
+          "to": [
+            29
+          ],
+          "choice": 12,
+          "line": 371,
+          "ambiguous": false
+        },
+        {
+          "from": 30,
+          "to": [
+            31
+          ],
+          "choice": 1,
+          "line": 392,
+          "ambiguous": false
+        },
+        {
+          "from": 31,
+          "to": [
+            6
+          ],
+          "choice": 2,
+          "line": 402,
+          "ambiguous": false
+        }
+      ],
+      "diagnostics": [
+        {
+          "line": 385,
+          "code": "unclassified-scenario"
+        },
+        {
+          "line": 395,
+          "code": "unclassified-scenario"
+        }
+      ],
+      "interpretation": "structural-choice-links; native branch execution and presentation untested"
+    },
+    {
+      "profile": "yr",
+      "source": {
+        "name": "mapselmd.ini",
+        "rootFile": "ra2md.mix",
+        "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d",
+        "archivePath": "ra2md.mix/#14:fbe0d09d",
+        "absoluteOffset": 7458896,
+        "size": 5573,
+        "sha256": "074ccccd9e156d586d0ed099ceab78b3d72384c808725d8b5bee2c9799691d52"
+      },
+      "stages": [
+        {
+          "ordinal": 5,
+          "sectionLine": 99,
+          "scenario": null,
+          "scenarioLines": [
+            100
+          ]
+        },
+        {
+          "ordinal": 6,
+          "sectionLine": 111,
+          "scenario": "all01umd.map",
+          "scenarioLines": [
+            112
+          ]
+        },
+        {
+          "ordinal": 7,
+          "sectionLine": 121,
+          "scenario": "all02umd.map",
+          "scenarioLines": [
+            122
+          ]
+        },
+        {
+          "ordinal": 8,
+          "sectionLine": 131,
+          "scenario": "all03umd.map",
+          "scenarioLines": [
+            132
+          ]
+        },
+        {
+          "ordinal": 9,
+          "sectionLine": 141,
+          "scenario": "all04dmd.map",
+          "scenarioLines": [
+            142
+          ]
+        },
+        {
+          "ordinal": 10,
+          "sectionLine": 151,
+          "scenario": "all05umd.map",
+          "scenarioLines": [
+            152
+          ]
+        },
+        {
+          "ordinal": 11,
+          "sectionLine": 161,
+          "scenario": "all06umd.map",
+          "scenarioLines": [
+            162
+          ]
+        },
+        {
+          "ordinal": 12,
+          "sectionLine": 171,
+          "scenario": "all07smd.map",
+          "scenarioLines": [
+            172
+          ]
+        },
+        {
+          "ordinal": 13,
+          "sectionLine": 194,
+          "scenario": "sov01umd.map",
+          "scenarioLines": [
+            195
+          ]
+        },
+        {
+          "ordinal": 14,
+          "sectionLine": 204,
+          "scenario": "sov02smd.map",
+          "scenarioLines": [
+            205
+          ]
+        },
+        {
+          "ordinal": 15,
+          "sectionLine": 214,
+          "scenario": "sov03umd.map",
+          "scenarioLines": [
+            215
+          ]
+        },
+        {
+          "ordinal": 16,
+          "sectionLine": 224,
+          "scenario": "sov04dmd.map",
+          "scenarioLines": [
+            225
+          ]
+        },
+        {
+          "ordinal": 17,
+          "sectionLine": 234,
+          "scenario": "sov05umd.map",
+          "scenarioLines": [
+            235
+          ]
+        },
+        {
+          "ordinal": 18,
+          "sectionLine": 244,
+          "scenario": "sov06lmd.map",
+          "scenarioLines": [
+            245
+          ]
+        },
+        {
+          "ordinal": 19,
+          "sectionLine": 254,
+          "scenario": "sov07tmd.map",
+          "scenarioLines": [
+            255
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "from": 5,
+          "to": [
+            6
+          ],
+          "choice": 1,
+          "line": 108,
+          "ambiguous": false
+        },
+        {
+          "from": 6,
+          "to": [
+            7
+          ],
+          "choice": 2,
+          "line": 119,
+          "ambiguous": false
+        },
+        {
+          "from": 7,
+          "to": [
+            8
+          ],
+          "choice": 3,
+          "line": 129,
+          "ambiguous": false
+        },
+        {
+          "from": 8,
+          "to": [
+            9
+          ],
+          "choice": 4,
+          "line": 139,
+          "ambiguous": false
+        },
+        {
+          "from": 9,
+          "to": [
+            10
+          ],
+          "choice": 5,
+          "line": 149,
+          "ambiguous": false
+        },
+        {
+          "from": 10,
+          "to": [
+            11
+          ],
+          "choice": 6,
+          "line": 159,
+          "ambiguous": false
+        },
+        {
+          "from": 11,
+          "to": [
+            12
+          ],
+          "choice": 7,
+          "line": 169,
+          "ambiguous": false
+        },
+        {
+          "from": 13,
+          "to": [
+            14
+          ],
+          "choice": 2,
+          "line": 202,
+          "ambiguous": false
+        },
+        {
+          "from": 14,
+          "to": [
+            15
+          ],
+          "choice": 3,
+          "line": 212,
+          "ambiguous": false
+        },
+        {
+          "from": 15,
+          "to": [
+            16
+          ],
+          "choice": 4,
+          "line": 222,
+          "ambiguous": false
+        },
+        {
+          "from": 16,
+          "to": [
+            17
+          ],
+          "choice": 5,
+          "line": 232,
+          "ambiguous": false
+        },
+        {
+          "from": 17,
+          "to": [
+            18
+          ],
+          "choice": 6,
+          "line": 242,
+          "ambiguous": false
+        },
+        {
+          "from": 18,
+          "to": [
+            19
+          ],
+          "choice": 7,
+          "line": 252,
+          "ambiguous": false
+        }
+      ],
+      "diagnostics": [],
+      "interpretation": "structural-choice-links; native branch execution and presentation untested"
+    }
+  ],
+  "missions": [
+    {
+      "candidateNames": [
+        "all11t.map"
+      ],
+      "profiles": [
+        "ra2"
+      ],
+      "sha256": "08456515dd5e258f5a9ff73b8961491883eccaa3635a8f008dcb1f9369d43887",
+      "sources": [
+        {
+          "path": "MAPS01.MIX/#8:ce4ce1f2",
+          "rootFile": "MAPS01.MIX",
+          "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "ordinal": 8,
+          "idHex": "ce4ce1f2",
+          "absoluteOffset": 2574052,
+          "size": 369324,
+          "sha256": "08456515dd5e258f5a9ff73b8961491883eccaa3635a8f008dcb1f9369d43887"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            264
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            267
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            266
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        260,
+        261
+      ]
+    },
+    {
+      "candidateNames": [
+        "all04u.map"
+      ],
+      "profiles": [
+        "ra2"
+      ],
+      "sha256": "09e52db16946a330c032e988679ef61ff7745670ddad5e9bfcf96f916d18d093",
+      "sources": [
+        {
+          "path": "MAPS01.MIX/#13:37a0f061",
+          "rootFile": "MAPS01.MIX",
+          "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "ordinal": 13,
+          "idHex": "37a0f061",
+          "absoluteOffset": 724644,
+          "size": 222831,
+          "sha256": "09e52db16946a330c032e988679ef61ff7745670ddad5e9bfcf96f916d18d093"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            292
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            295
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            294
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        288,
+        289
+      ]
+    },
+    {
+      "candidateNames": [
+        "sov07s.map"
+      ],
+      "profiles": [
+        "ra2"
+      ],
+      "sha256": "0ad2fde5c76f17085065f7b43cb76045935774092b2498badc44fe91e7793171",
+      "sources": [
+        {
+          "path": "MAPS02.MIX/#3:93b2c6fb",
+          "rootFile": "MAPS02.MIX",
+          "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "ordinal": 3,
+          "idHex": "93b2c6fb",
+          "absoluteOffset": 1344212,
+          "size": 178521,
+          "sha256": "0ad2fde5c76f17085065f7b43cb76045935774092b2498badc44fe91e7793171"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            281
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            284
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            283
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        277,
+        278
+      ]
+    },
+    {
+      "candidateNames": [
+        "all07smd.map"
+      ],
+      "profiles": [
+        "yr"
+      ],
+      "sha256": "0ec687c320382e4c02cf66eec0153b713e56c4449fab7d29b5a19b61bf10e4f3",
+      "sources": [
+        {
+          "path": "mapsmd03.mix/#2:9fd0367f",
+          "rootFile": "mapsmd03.mix",
+          "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "ordinal": 2,
+          "idHex": "9fd0367f",
+          "absoluteOffset": 1934484,
+          "size": 434373,
+          "sha256": "0ec687c320382e4c02cf66eec0153b713e56c4449fab7d29b5a19b61bf10e4f3"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            116
+          ],
+          "value": true,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            119
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            118
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        112,
+        113
+      ]
+    },
+    {
+      "candidateNames": [
+        "sov02smd.map"
+      ],
+      "profiles": [
+        "yr"
+      ],
+      "sha256": "139a7f17a17cefc20d12c21e9221d94ff6e1e8894ac09ab716fc9f6975d5a665",
+      "sources": [
+        {
+          "path": "mapsmd03.mix/#1:9e7d3c58",
+          "rootFile": "mapsmd03.mix",
+          "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "ordinal": 1,
+          "idHex": "9e7d3c58",
+          "absoluteOffset": 2698068,
+          "size": 327808,
+          "sha256": "139a7f17a17cefc20d12c21e9221d94ff6e1e8894ac09ab716fc9f6975d5a665"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            286
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            289
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            288
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        282,
+        283
+      ]
+    },
+    {
+      "candidateNames": [
+        "all02umd.map"
+      ],
+      "profiles": [
+        "yr"
+      ],
+      "sha256": "168ed42024991b6c2af4de0e5a667e9c2bf15767741efe99dac975721460b303",
+      "sources": [
+        {
+          "path": "mapsmd03.mix/#4:b4e00d21",
+          "rootFile": "mapsmd03.mix",
+          "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "ordinal": 4,
+          "idHex": "b4e00d21",
+          "absoluteOffset": 301348,
+          "size": 465825,
+          "sha256": "168ed42024991b6c2af4de0e5a667e9c2bf15767741efe99dac975721460b303"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            257
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            260
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            259
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        253,
+        254
+      ]
+    },
+    {
+      "candidateNames": [
+        "all03u.map"
+      ],
+      "profiles": [
+        "ra2"
+      ],
+      "sha256": "186e317d4be77eaeec8e0b09e5c813f6ff95aa01e4e206f4b4c82178bf679a61",
+      "sources": [
+        {
+          "path": "MAPS01.MIX/#15:3d65f978",
+          "rootFile": "MAPS01.MIX",
+          "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "ordinal": 15,
+          "idHex": "3d65f978",
+          "absoluteOffset": 522068,
+          "size": 202576,
+          "sha256": "186e317d4be77eaeec8e0b09e5c813f6ff95aa01e4e206f4b4c82178bf679a61"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            269
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            272
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            271
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        265,
+        266
+      ]
+    },
+    {
+      "candidateNames": [
+        "sov05umd.map"
+      ],
+      "profiles": [
+        "yr"
+      ],
+      "sha256": "22518e8b4a86331a9172048e10de13b45c2826ea4fdf4d2203b58994b897761b",
+      "sources": [
+        {
+          "path": "mapsmd03.mix/#6:f768007b",
+          "rootFile": "mapsmd03.mix",
+          "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "ordinal": 6,
+          "idHex": "f768007b",
+          "absoluteOffset": 3443732,
+          "size": 467636,
+          "sha256": "22518e8b4a86331a9172048e10de13b45c2826ea4fdf4d2203b58994b897761b"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            139
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            142
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            141
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        135,
+        136
+      ]
+    },
+    {
+      "candidateNames": [
+        "sov11s.map"
+      ],
+      "profiles": [
+        "ra2"
+      ],
+      "sha256": "2f51c08a063f3c4d648bd486672eacc50d3f32903aa14e9566bfd2030464fc7f",
+      "sources": [
+        {
+          "path": "MAPS02.MIX/#14:42a6db3f",
+          "rootFile": "MAPS02.MIX",
+          "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "ordinal": 14,
+          "idHex": "42a6db3f",
+          "absoluteOffset": 2212852,
+          "size": 187412,
+          "sha256": "2f51c08a063f3c4d648bd486672eacc50d3f32903aa14e9566bfd2030464fc7f"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            234
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            237
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            236
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        230,
+        231
+      ]
+    },
+    {
+      "candidateNames": [
+        "sov05u.map"
+      ],
+      "profiles": [
+        "ra2"
+      ],
+      "sha256": "31c6883ce678c0bcede293c571a610d355319a7cd729d45560183ced152a5629",
+      "sources": [
+        {
+          "path": "MAPS02.MIX/#5:b247f4bc",
+          "rootFile": "MAPS02.MIX",
+          "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "ordinal": 5,
+          "idHex": "b247f4bc",
+          "absoluteOffset": 996356,
+          "size": 85694,
+          "sha256": "31c6883ce678c0bcede293c571a610d355319a7cd729d45560183ced152a5629"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            250
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            253
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            252
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        246,
+        247
+      ]
+    },
+    {
+      "candidateNames": [
+        "all07t.map"
+      ],
+      "profiles": [
+        "ra2"
+      ],
+      "sha256": "3925c1211d86938a7137ff0df11cba85c59d3ae75742221d5e2d4d502d33c103",
+      "sources": [
+        {
+          "path": "MAPS01.MIX/#12:1f58fc36",
+          "rootFile": "MAPS01.MIX",
+          "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "ordinal": 12,
+          "idHex": "1f58fc36",
+          "absoluteOffset": 1422692,
+          "size": 471258,
+          "sha256": "3925c1211d86938a7137ff0df11cba85c59d3ae75742221d5e2d4d502d33c103"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            269
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            272
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            271
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        265,
+        266
+      ]
+    },
+    {
+      "candidateNames": [
+        "sov01umd.map"
+      ],
+      "profiles": [
+        "yr"
+      ],
+      "sha256": "498b989a4b6f579dee0904a77f1fabf982c14786db21a46c41900fc8344ec72b",
+      "sources": [
+        {
+          "path": "mapsmd03.mix/#12:73220e81",
+          "rootFile": "mapsmd03.mix",
+          "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "ordinal": 12,
+          "idHex": "73220e81",
+          "absoluteOffset": 2368868,
+          "size": 329188,
+          "sha256": "498b989a4b6f579dee0904a77f1fabf982c14786db21a46c41900fc8344ec72b"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            360
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            363
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            362
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        356,
+        357
+      ]
+    },
+    {
+      "candidateNames": [
+        "sov10t.map"
+      ],
+      "profiles": [
+        "ra2"
+      ],
+      "sha256": "5c3d8b26e05a0a73530630db8353637fa9ed7072144d5360e1ab994869428449",
+      "sources": [
+        {
+          "path": "MAPS02.MIX/#16:4babe52f",
+          "rootFile": "MAPS02.MIX",
+          "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "ordinal": 16,
+          "idHex": "4babe52f",
+          "absoluteOffset": 1936340,
+          "size": 276498,
+          "sha256": "5c3d8b26e05a0a73530630db8353637fa9ed7072144d5360e1ab994869428449"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            262
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            265
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            264
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        258,
+        259
+      ]
+    },
+    {
+      "candidateNames": [
+        "all02s.map"
+      ],
+      "profiles": [
+        "ra2"
+      ],
+      "sha256": "5ebd7a3aaa60215a6da1f63e87a53c4ebf8cb28378b09f7128953ab05e6425fc",
+      "sources": [
+        {
+          "path": "MAPS01.MIX/#4:921fccdc",
+          "rootFile": "MAPS01.MIX",
+          "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "ordinal": 4,
+          "idHex": "921fccdc",
+          "absoluteOffset": 330820,
+          "size": 191242,
+          "sha256": "5ebd7a3aaa60215a6da1f63e87a53c4ebf8cb28378b09f7128953ab05e6425fc"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            186
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            189
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            188
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        182,
+        183
+      ]
+    },
+    {
+      "candidateNames": [
+        "sov04dmd.map"
+      ],
+      "profiles": [
+        "yr"
+      ],
+      "sha256": "702bd788efbd08ae5b7591a1dfc240684e73faedace2ffaac68baefdfd0fb12a",
+      "sources": [
+        {
+          "path": "mapsmd03.mix/#7:fa6b979f",
+          "rootFile": "mapsmd03.mix",
+          "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "ordinal": 7,
+          "idHex": "fa6b979f",
+          "absoluteOffset": 3215716,
+          "size": 228003,
+          "sha256": "702bd788efbd08ae5b7591a1dfc240684e73faedace2ffaac68baefdfd0fb12a"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            214
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            217
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            216
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        210,
+        211
+      ]
+    },
+    {
+      "candidateNames": [
+        "all08u.map"
+      ],
+      "profiles": [
+        "ra2"
+      ],
+      "sha256": "71a119187bd8f78a1c7677636e20a18a258f24dc94add2ac2b108a3dae9df8ea",
+      "sources": [
+        {
+          "path": "MAPS01.MIX/#16:600fe52e",
+          "rootFile": "MAPS01.MIX",
+          "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "ordinal": 16,
+          "idHex": "600fe52e",
+          "absoluteOffset": 1893956,
+          "size": 199442,
+          "sha256": "71a119187bd8f78a1c7677636e20a18a258f24dc94add2ac2b108a3dae9df8ea"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            298
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            301
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            300
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        294,
+        295
+      ]
+    },
+    {
+      "candidateNames": [
+        "all05umd.map"
+      ],
+      "profiles": [
+        "yr"
+      ],
+      "sha256": "7ee8148ad4b0092b7970588d9b064ddd6b753fc7bfb352bcc043affeb72c6aed",
+      "sources": [
+        {
+          "path": "mapsmd03.mix/#5:be250438",
+          "rootFile": "mapsmd03.mix",
+          "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "ordinal": 5,
+          "idHex": "be250438",
+          "absoluteOffset": 1467892,
+          "size": 274279,
+          "sha256": "7ee8148ad4b0092b7970588d9b064ddd6b753fc7bfb352bcc043affeb72c6aed"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            220
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            223
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            222
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        216,
+        217
+      ]
+    },
+    {
+      "candidateNames": [
+        "sov01t.map"
+      ],
+      "profiles": [
+        "ra2"
+      ],
+      "sha256": "7f4492961d30b5799367aa840ba007932057b19a22a77f95475a18ca1407b99f",
+      "sources": [
+        {
+          "path": "MAPS01.MIX/#2:907af1f2",
+          "rootFile": "MAPS01.MIX",
+          "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "ordinal": 2,
+          "idHex": "907af1f2",
+          "absoluteOffset": 146548,
+          "size": 184260,
+          "sha256": "7f4492961d30b5799367aa840ba007932057b19a22a77f95475a18ca1407b99f"
+        },
+        {
+          "path": "MAPS02.MIX/#1:907af1f2",
+          "rootFile": "MAPS02.MIX",
+          "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "ordinal": 1,
+          "idHex": "907af1f2",
+          "absoluteOffset": 249956,
+          "size": 184260,
+          "sha256": "7f4492961d30b5799367aa840ba007932057b19a22a77f95475a18ca1407b99f"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            370
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            373
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            372
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        366,
+        367
+      ]
+    },
+    {
+      "candidateNames": [
+        "all09t.map"
+      ],
+      "profiles": [
+        "ra2"
+      ],
+      "sha256": "89a243ea0d9ccc802bd6e1d7da4d271d0077f86c3883802e27be7840364ac279",
+      "sources": [
+        {
+          "path": "MAPS01.MIX/#10:0ad2ee04",
+          "rootFile": "MAPS01.MIX",
+          "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "ordinal": 10,
+          "idHex": "0ad2ee04",
+          "absoluteOffset": 2093412,
+          "size": 190682,
+          "sha256": "89a243ea0d9ccc802bd6e1d7da4d271d0077f86c3883802e27be7840364ac279"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            301
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            304
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            303
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        297,
+        298
+      ]
+    },
+    {
+      "candidateNames": [
+        "sov08u.map"
+      ],
+      "profiles": [
+        "ra2"
+      ],
+      "sha256": "91817fa1585e631cd929b6356ccc29c99f1dfb8144c52cd225e3eeb924370b7e",
+      "sources": [
+        {
+          "path": "MAPS02.MIX/#13:2942e16d",
+          "rootFile": "MAPS02.MIX",
+          "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "ordinal": 13,
+          "idHex": "2942e16d",
+          "absoluteOffset": 1522740,
+          "size": 197257,
+          "sha256": "91817fa1585e631cd929b6356ccc29c99f1dfb8144c52cd225e3eeb924370b7e"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            270
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            273
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            272
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        266,
+        267
+      ]
+    },
+    {
+      "candidateNames": [
+        "all06u.map"
+      ],
+      "profiles": [
+        "ra2"
+      ],
+      "sha256": "9e02b8fa4c570000c2bb34c9b0e702b143e2e93ae529faa36556e1f43af0f922",
+      "sources": [
+        {
+          "path": "MAPS01.MIX/#17:7585f71c",
+          "rootFile": "MAPS01.MIX",
+          "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "ordinal": 17,
+          "idHex": "7585f71c",
+          "absoluteOffset": 1162228,
+          "size": 260458,
+          "sha256": "9e02b8fa4c570000c2bb34c9b0e702b143e2e93ae529faa36556e1f43af0f922"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            352
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            355
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            354
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        348,
+        349
+      ]
+    },
+    {
+      "candidateNames": [
+        "sov04s.map"
+      ],
+      "profiles": [
+        "ra2"
+      ],
+      "sha256": "a0a95b26639cc1d4d916dea3a264a18e409bef3d2b84c245e67cd250defc2100",
+      "sources": [
+        {
+          "path": "MAPS02.MIX/#11:1d3dc118",
+          "rootFile": "MAPS02.MIX",
+          "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "ordinal": 11,
+          "idHex": "1d3dc118",
+          "absoluteOffset": 794532,
+          "size": 201817,
+          "sha256": "a0a95b26639cc1d4d916dea3a264a18e409bef3d2b84c245e67cd250defc2100"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            264
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            267
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            266
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        260,
+        261
+      ]
+    },
+    {
+      "candidateNames": [
+        "sov03u.map"
+      ],
+      "profiles": [
+        "ra2"
+      ],
+      "sha256": "a0ec1cd648f2b1f5cd122713d405b514634941977289080e22990021f8719c05",
+      "sources": [
+        {
+          "path": "MAPS02.MIX/#17:7428fd3b",
+          "rootFile": "MAPS02.MIX",
+          "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "ordinal": 17,
+          "idHex": "7428fd3b",
+          "absoluteOffset": 620628,
+          "size": 173904,
+          "sha256": "a0ec1cd648f2b1f5cd122713d405b514634941977289080e22990021f8719c05"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            321
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            324
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            323
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        317,
+        318
+      ]
+    },
+    {
+      "candidateNames": [
+        "all10s.map"
+      ],
+      "profiles": [
+        "ra2"
+      ],
+      "sha256": "ac0ea14ec650256a014626db7c78135bb74168ba86d4eb863d987f04b07d1593",
+      "sources": [
+        {
+          "path": "MAPS01.MIX/#7:c741dfe2",
+          "rootFile": "MAPS01.MIX",
+          "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "ordinal": 7,
+          "idHex": "c741dfe2",
+          "absoluteOffset": 2284100,
+          "size": 289946,
+          "sha256": "ac0ea14ec650256a014626db7c78135bb74168ba86d4eb863d987f04b07d1593"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            292
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            295
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            294
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        288,
+        289
+      ]
+    },
+    {
+      "candidateNames": [
+        "all01t.map"
+      ],
+      "profiles": [
+        "ra2"
+      ],
+      "sha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+      "sources": [
+        {
+          "path": "MAPS01.MIX/#9:d937f5b1",
+          "rootFile": "MAPS01.MIX",
+          "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "ordinal": 9,
+          "idHex": "d937f5b1",
+          "absoluteOffset": 308,
+          "size": 146240,
+          "sha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c"
+        },
+        {
+          "path": "MAPS02.MIX/#8:d937f5b1",
+          "rootFile": "MAPS02.MIX",
+          "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "ordinal": 8,
+          "idHex": "d937f5b1",
+          "absoluteOffset": 103716,
+          "size": 146240,
+          "sha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            351
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            354
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            353
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        347,
+        348
+      ]
+    },
+    {
+      "candidateNames": [
+        "all03umd.map"
+      ],
+      "profiles": [
+        "yr"
+      ],
+      "sha256": "b84a2e689cc00f0be064ecbfcd385635ac037f28bf8f72c02b426a0e52ff1547",
+      "sources": [
+        {
+          "path": "mapsmd03.mix/#13:784a0dbf",
+          "rootFile": "mapsmd03.mix",
+          "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "ordinal": 13,
+          "idHex": "784a0dbf",
+          "absoluteOffset": 767188,
+          "size": 418628,
+          "sha256": "b84a2e689cc00f0be064ecbfcd385635ac037f28bf8f72c02b426a0e52ff1547"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            468
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            471
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            470
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        464,
+        465
+      ]
+    },
+    {
+      "candidateNames": [
+        "sov06t.map"
+      ],
+      "profiles": [
+        "ra2"
+      ],
+      "sha256": "bea4548cca589aa1caf6fbc4e69700f8b408d650b700b71c65242f0df9eeeb83",
+      "sources": [
+        {
+          "path": "MAPS02.MIX/#4:9abff8eb",
+          "rootFile": "MAPS02.MIX",
+          "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "ordinal": 4,
+          "idHex": "9abff8eb",
+          "absoluteOffset": 1082052,
+          "size": 262145,
+          "sha256": "bea4548cca589aa1caf6fbc4e69700f8b408d650b700b71c65242f0df9eeeb83"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            194
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            197
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            196
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        190,
+        191
+      ]
+    },
+    {
+      "candidateNames": [
+        "all06umd.map"
+      ],
+      "profiles": [
+        "yr"
+      ],
+      "sha256": "cfd2b50c5448fd84ab3647ff3a95f96b45e8dccd6a72b2601c0bb603cddeeb63",
+      "sources": [
+        {
+          "path": "mapsmd03.mix/#9:30aa03db",
+          "rootFile": "mapsmd03.mix",
+          "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "ordinal": 9,
+          "idHex": "30aa03db",
+          "absoluteOffset": 1742180,
+          "size": 192301,
+          "sha256": "cfd2b50c5448fd84ab3647ff3a95f96b45e8dccd6a72b2601c0bb603cddeeb63"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            204
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            207
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            206
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        200,
+        201
+      ]
+    },
+    {
+      "candidateNames": [
+        "all05s.map"
+      ],
+      "profiles": [
+        "ra2"
+      ],
+      "sha256": "d09cebddc1f4009098dfa48b18bf4022e6e4d00801f1ca8efd99917f185bb225",
+      "sources": [
+        {
+          "path": "MAPS01.MIX/#5:98dac5c5",
+          "rootFile": "MAPS01.MIX",
+          "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "ordinal": 5,
+          "idHex": "98dac5c5",
+          "absoluteOffset": 947476,
+          "size": 214744,
+          "sha256": "d09cebddc1f4009098dfa48b18bf4022e6e4d00801f1ca8efd99917f185bb225"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            299
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            302
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            301
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        295,
+        296
+      ]
+    },
+    {
+      "candidateNames": [
+        "all01umd.map"
+      ],
+      "profiles": [
+        "yr"
+      ],
+      "sha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+      "sources": [
+        {
+          "path": "mapsmd03.mix/#11:3a6f0ac2",
+          "rootFile": "mapsmd03.mix",
+          "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "ordinal": 11,
+          "idHex": "3a6f0ac2",
+          "absoluteOffset": 260,
+          "size": 301077,
+          "sha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            441
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            444
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            443
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        437,
+        438
+      ]
+    },
+    {
+      "candidateNames": [
+        "sov03umd.map"
+      ],
+      "profiles": [
+        "yr"
+      ],
+      "sha256": "df69d0f63f982823bb5818d3d49776028a719a2c20ced2526fab8f5cecb49fe6",
+      "sources": [
+        {
+          "path": "mapsmd03.mix/#10:310709fc",
+          "rootFile": "mapsmd03.mix",
+          "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "ordinal": 10,
+          "idHex": "310709fc",
+          "absoluteOffset": 3025876,
+          "size": 189836,
+          "sha256": "df69d0f63f982823bb5818d3d49776028a719a2c20ced2526fab8f5cecb49fe6"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            569
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            572
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            571
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        565,
+        566
+      ]
+    },
+    {
+      "candidateNames": [
+        "sov09t.map"
+      ],
+      "profiles": [
+        "ra2"
+      ],
+      "sha256": "e444665c9afec8ffa2528d4e10641739f8a7c16921522b91dba3520cacd71041",
+      "sources": [
+        {
+          "path": "MAPS02.MIX/#15:439fea47",
+          "rootFile": "MAPS02.MIX",
+          "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "ordinal": 15,
+          "idHex": "439fea47",
+          "absoluteOffset": 1720004,
+          "size": 110638,
+          "sha256": "e444665c9afec8ffa2528d4e10641739f8a7c16921522b91dba3520cacd71041"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            89
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            92
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            91
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        85,
+        86
+      ]
+    },
+    {
+      "candidateNames": [
+        "all12s.map"
+      ],
+      "profiles": [
+        "ra2"
+      ],
+      "sha256": "e6d31134742f8566a425a252113fa6b8e3f3eb178b00e34124deec4f7e11250b",
+      "sources": [
+        {
+          "path": "MAPS01.MIX/#0:8564d89f",
+          "rootFile": "MAPS01.MIX",
+          "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+          "ordinal": 0,
+          "idHex": "8564d89f",
+          "absoluteOffset": 2943380,
+          "size": 185688,
+          "sha256": "e6d31134742f8566a425a252113fa6b8e3f3eb178b00e34124deec4f7e11250b"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            216
+          ],
+          "value": true,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            219
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            218
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        212,
+        213
+      ]
+    },
+    {
+      "candidateNames": [
+        "all02umd.map"
+      ],
+      "profiles": [
+        "yr"
+      ],
+      "sha256": "e761d28ce43401308ca4532d65479b1cf4a309d74fd4f996fafa92a0a06f8b65",
+      "sources": [
+        {
+          "path": "expandmd01.mix/#8:b4e00d21",
+          "rootFile": "expandmd01.mix",
+          "rootSha256": "0c0a64e741bdecdc3843a0beb6bb1f58aa2df5b86eb3bc4a953821ec98f3d6ec",
+          "archiveSha256": "0c0a64e741bdecdc3843a0beb6bb1f58aa2df5b86eb3bc4a953821ec98f3d6ec",
+          "ordinal": 8,
+          "idHex": "b4e00d21",
+          "absoluteOffset": 4347996,
+          "size": 465788,
+          "sha256": "e761d28ce43401308ca4532d65479b1cf4a309d74fd4f996fafa92a0a06f8b65"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            257
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            260
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            259
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        253,
+        254
+      ]
+    },
+    {
+      "candidateNames": [
+        "sov02t.map"
+      ],
+      "profiles": [
+        "ra2"
+      ],
+      "sha256": "ea3aff6876f7e81e76284a2c9b41ee693c71f0f27e1ae45542e8f5ea95c96ae7",
+      "sources": [
+        {
+          "path": "MAPS02.MIX/#12:1ef5f611",
+          "rootFile": "MAPS02.MIX",
+          "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "ordinal": 12,
+          "idHex": "1ef5f611",
+          "absoluteOffset": 434228,
+          "size": 186385,
+          "sha256": "ea3aff6876f7e81e76284a2c9b41ee693c71f0f27e1ae45542e8f5ea95c96ae7"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            231
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            234
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            233
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        227,
+        228
+      ]
+    },
+    {
+      "candidateNames": [
+        "sov07tmd.map"
+      ],
+      "profiles": [
+        "yr"
+      ],
+      "sha256": "eacf89952cb6e8eacd762f97895a062e0b6bfa16c8f916b901c1e667def266d4",
+      "sources": [
+        {
+          "path": "mapsmd03.mix/#8:133a0cb2",
+          "rootFile": "mapsmd03.mix",
+          "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "ordinal": 8,
+          "idHex": "133a0cb2",
+          "absoluteOffset": 4052756,
+          "size": 367021,
+          "sha256": "eacf89952cb6e8eacd762f97895a062e0b6bfa16c8f916b901c1e667def266d4"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            267
+          ],
+          "value": true,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            270
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            269
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        263,
+        264
+      ]
+    },
+    {
+      "candidateNames": [
+        "sov09u.map"
+      ],
+      "profiles": [
+        "ra2"
+      ],
+      "sha256": "ef2dd5c5280d20f5759c02cebf860111280dc0f091c322f21b42eeae6b53c8b6",
+      "sources": [
+        {
+          "path": "MAPS02.MIX/#9:e5e8e1f3",
+          "rootFile": "MAPS02.MIX",
+          "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "ordinal": 9,
+          "idHex": "e5e8e1f3",
+          "absoluteOffset": 1830644,
+          "size": 105691,
+          "sha256": "ef2dd5c5280d20f5759c02cebf860111280dc0f091c322f21b42eeae6b53c8b6"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            216
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            219
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            218
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        212,
+        213
+      ]
+    },
+    {
+      "candidateNames": [
+        "all04dmd.map"
+      ],
+      "profiles": [
+        "yr"
+      ],
+      "sha256": "f1621a21e7221c1e475a52dccd4a04bb3125f8a095377c917e2122019f2157b2",
+      "sources": [
+        {
+          "path": "mapsmd03.mix/#3:b32693dc",
+          "rootFile": "mapsmd03.mix",
+          "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "ordinal": 3,
+          "idHex": "b32693dc",
+          "absoluteOffset": 1185828,
+          "size": 282057,
+          "sha256": "f1621a21e7221c1e475a52dccd4a04bb3125f8a095377c917e2122019f2157b2"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            250
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            253
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            252
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        246,
+        247
+      ]
+    },
+    {
+      "candidateNames": [
+        "sov06lmd.map"
+      ],
+      "profiles": [
+        "yr"
+      ],
+      "sha256": "f55b65fd33a53dd03f61b48259d7732d260a4f97170e6dcf0767a61af82403a4",
+      "sources": [
+        {
+          "path": "mapsmd03.mix/#0:8ba1de85",
+          "rootFile": "mapsmd03.mix",
+          "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "ordinal": 0,
+          "idHex": "8ba1de85",
+          "absoluteOffset": 3911380,
+          "size": 141376,
+          "sha256": "f55b65fd33a53dd03f61b48259d7732d260a4f97170e6dcf0767a61af82403a4"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            217
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            220
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            219
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        213,
+        214
+      ]
+    },
+    {
+      "candidateNames": [
+        "sov12s.map"
+      ],
+      "profiles": [
+        "ra2"
+      ],
+      "sha256": "f69c18a54ce5915c9cdc08c2f10113853bc8656cf3e5f1392a64818a700d2720",
+      "sources": [
+        {
+          "path": "MAPS02.MIX/#7:cc29dcdc",
+          "rootFile": "MAPS02.MIX",
+          "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+          "ordinal": 7,
+          "idHex": "cc29dcdc",
+          "absoluteOffset": 2400276,
+          "size": 231726,
+          "sha256": "f69c18a54ce5915c9cdc08c2f10113853bc8656cf3e5f1392a64818a700d2720"
+        }
+      ],
+      "controls": [
+        {
+          "key": "endofgame",
+          "lines": [
+            198
+          ],
+          "value": true,
+          "status": "literal"
+        },
+        {
+          "key": "skipmapselect",
+          "lines": [
+            201
+          ],
+          "value": false,
+          "status": "literal"
+        },
+        {
+          "key": "onetimeonly",
+          "lines": [
+            200
+          ],
+          "value": false,
+          "status": "literal"
+        }
+      ],
+      "legacyContinuationLines": [
+        194,
+        195
+      ]
+    }
+  ],
+  "alternatives": [
+    {
+      "filename": "rulesmd.ini",
+      "proposedSelectedSource": {
+        "path": "expandmd01.mix/#0:8218f9f4",
+        "rootFile": "expandmd01.mix",
+        "rootSha256": "0c0a64e741bdecdc3843a0beb6bb1f58aa2df5b86eb3bc4a953821ec98f3d6ec",
+        "archiveSha256": "0c0a64e741bdecdc3843a0beb6bb1f58aa2df5b86eb3bc4a953821ec98f3d6ec",
+        "ordinal": 0,
+        "idHex": "8218f9f4",
+        "absoluteOffset": 2220316,
+        "size": 743215,
+        "sha256": "3d341ef8a13a4b5ab24af2eef48ac94931ac2bb87d950fe3330a07e2d25672ef"
+      },
+      "alternatives": [
+        {
+          "path": "ra2md.mix/#14:fbe0d09d/#4:8218f9f4",
+          "rootFile": "ra2md.mix",
+          "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d",
+          "archiveSha256": "cd181596b2deaeacf7bba77e661ae4438d3f778efc0e38ae2b967c410bf3f931",
+          "ordinal": 4,
+          "idHex": "8218f9f4",
+          "absoluteOffset": 6715040,
+          "size": 742958,
+          "sha256": "06761dd7f714e7d9400216ec3c06109ec5c1461f6a0727be7401eb9d8b0f6d05"
+        }
+      ],
+      "evidence": "pinned native expansion construction + list traversal; supplied-install proposal, not universal mount policy"
+    },
+    {
+      "filename": "all02umd.map",
+      "proposedSelectedSource": {
+        "path": "expandmd01.mix/#8:b4e00d21",
+        "rootFile": "expandmd01.mix",
+        "rootSha256": "0c0a64e741bdecdc3843a0beb6bb1f58aa2df5b86eb3bc4a953821ec98f3d6ec",
+        "archiveSha256": "0c0a64e741bdecdc3843a0beb6bb1f58aa2df5b86eb3bc4a953821ec98f3d6ec",
+        "ordinal": 8,
+        "idHex": "b4e00d21",
+        "absoluteOffset": 4347996,
+        "size": 465788,
+        "sha256": "e761d28ce43401308ca4532d65479b1cf4a309d74fd4f996fafa92a0a06f8b65"
+      },
+      "alternatives": [
+        {
+          "path": "mapsmd03.mix/#4:b4e00d21",
+          "rootFile": "mapsmd03.mix",
+          "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+          "ordinal": 4,
+          "idHex": "b4e00d21",
+          "absoluteOffset": 301348,
+          "size": 465825,
+          "sha256": "168ed42024991b6c2af4de0e5a667e9c2bf15767741efe99dac975721460b303"
+        }
+      ],
+      "evidence": "pinned native expansion construction + list traversal; supplied-install proposal, not universal mount policy"
+    }
+  ],
+  "nativeProgramsExecuted": false,
+  "runtimeComparisonVerified": false,
+  "effectiveProfileComplete": false,
+  "limits": {
+    "memberReads": 192,
+    "totalMemberBytes": 67108864,
+    "imageRanges": 64
+  },
+  "limitations": [
+    "Wildcard enumeration and every dynamically mounted theater/side/locale layer are not fully traced.",
+    "Choice edges are table references, not an implemented or observed native campaign run.",
+    "Literal name identities remain filename/hash candidates."
+  ]
+}
