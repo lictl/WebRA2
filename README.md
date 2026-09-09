@@ -4,10 +4,10 @@ A planned browser-native reimplementation of the Red Alert 2 and Yuri's Revenge
 engines, using assets supplied by the player. Singleplayer campaigns come first;
 complete vanilla engine coverage, broader mods, and multiplayer follow.
 
-**Current state:** M0 implementation is underway. TypeScript tooling/contracts,
-the bounded MIX reader and census, behavior specifications, and browser/media
-diagnostics, and the bounded campaign/locale census are merged. Effective content
-profiles and campaign dependency selection are the next planned slice.
+**Current state:** M0 implementation is underway. The repository includes bounded
+archive/content analysis, explicit profile resolution and checksum policy, opening
+mission dependency graphs, command contracts, and browser/media diagnostics. Native
+content precedence, complete dependencies and playable locales remain unverified.
 There is no playable game app yet.
 
 ## Project documents
@@ -27,6 +27,12 @@ There is no playable game app yet.
 - [Campaign](docs/analysis/campaign-census.md) and
   [locale](docs/analysis/locale-census.md) census: mission variants, opcode coverage
   and string-table metadata.
+- [Profile resolution](docs/analysis/profile-resolution.md),
+  [campaign graphs](docs/analysis/campaign-graph.md), and
+  [MIX integrity policy](docs/analysis/checksum-policy.md): implemented primitives,
+  reproducible metadata, and remaining compatibility evidence.
+- [Verified source reader](docs/analysis/verified-source-reader.md): bounded local
+  analysis reads pinned to source and member hashes.
 - [Browser](docs/analysis/browser-feasibility.md) and
   [media](docs/analysis/media-feasibility.md) probes: measured results and remaining gates.
 - [Behavior specifications](docs/specs/README.md): evidence records and reference probes.
