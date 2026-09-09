@@ -52,6 +52,10 @@ its notice accompanies the development bundle. No retail rule or placement rows 
 The terrain traversal compiler and original fixtures retain the content GPL terms,
 with native land-table evidence and explicit ground-subset limits in
 [traversal provenance](../packages/content/TERRAIN_TRAVERSAL_PROVENANCE.md).
+The static base-foundation compiler and original fixtures are GPL-3.0-or-later;
+[foundation provenance](../packages/content/FOUNDATION_OCCUPANCY_PROVENANCE.md)
+records the inspected geometry and accompanies the development bundle. No retail
+cell arrays or native bytes are distributed.
 That notice is distributed with the development bundle.
 
 The CPU terrain scene and composing browser viewport are GPL-3.0-or-later;
