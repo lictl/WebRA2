@@ -98,6 +98,21 @@ test('planning cursor is saved and fairly rotates beyond the per-tick query limi
   assert(sim.save().state.planningCursor !== 8);
 });
 
+test('restore preserves only original overlapping anchors and fixed static positions', () => {
+  const model = createWorldModel(input([actor(1), actor(2), actor(3, 6, 2),
+    actor(4, 5, 4, { movementPerTick: 0, navigationClass: null })], [{ x: 4, y: 4 }]));
+  const sim = WorldSimulation.create(model); sim.admitCommands([move(0, 1, 2)]); sim.step(2);
+  const save = sim.save(); assert.deepEqual(WorldSimulation.restore(model, save).save(), save);
+  for (const [index, x, y, code] of [[2, 0, 2, 'world-save-anchor-overlap'],
+    [2, 4, 4, 'world-save-anchor-overlap'], [3, 6, 4, 'world-save-static-position']] as const) {
+    const edited = structuredClone(save); Object.assign(edited.state.entities[index]!, { x, y });
+    assert.throws(() => WorldSimulation.restore(model, edited), error(code));
+  }
+  // Shared initial anchors also remain valid during partial departure.
+  const partial = WorldSimulation.create(model); partial.admitCommands([move(0, 1, 2)]); partial.step();
+  assert.deepEqual(WorldSimulation.restore(model, partial.save()).step(), partial.step());
+});
+
 test('malformed batches, reused sequences and excess queues reject atomically', () => {
   const sim = WorldSimulation.create(createWorldModel(input())), before = sim.saveText();
   assert.throws(() => sim.admitCommands([move(0, 1, 2), { ...move(1, 1, 2), payload: { entityId: 1, x: -1, y: 2 } }]), error('world-integer'));

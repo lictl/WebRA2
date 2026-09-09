@@ -49,6 +49,7 @@ function validateSave(model: WorldModel, input: unknown): LiveSave {
     const e = worldRecord(inputs[i], ['id', 'x', 'y', 'health', 'goal', 'route', 'progress', 'waitTicks']), definition = model.entities[i]!;
     if (e.id !== definition.id) worldFail('world-save-entity-id');
     const at = worldAddress(e.x, e.y), health = e.health === null ? null : worldInteger(e.health, 0, definition.maximumHealth ?? 0);
+    if (!definition.movementPerTick && at !== worldAddress(definition.x, definition.y)) worldFail('world-save-static-position');
     if ((health === null) !== (definition.maximumHealth === null)) worldFail('world-save-health');
     const goal = e.goal === null ? null : worldInteger(e.goal, 0, 512 * 512 - 1), route = worldList(e.route, C.paths).map(a => worldInteger(a, 0, 512 * 512 - 1));
     paths += route.length; if (paths > C.paths) worldFail('world-path-limit');
@@ -79,6 +80,13 @@ function validateSave(model: WorldModel, input: unknown): LiveSave {
     if (c.tick < nextTick || c.tick > Math.min(C.tick - 1, nextTick + C.futureTicks) || c.sequence > (cursors.get(c.playerId) ?? -1)) worldFail('world-save-command');
   }
   const state = { modelSha256: model.sha256, entities, planningCursor, admissionCursors }, counts = occupancy(model, state);
+  // Only original shared anchors may overlap. A legal edit cannot introduce a new
+  // occupant at a blocked cell or move immutable static footprints away from their actor.
+  for (let i = 0; i < entities.length; i++) {
+    const e = entities[i]!, d = model.entities[i]!, at = worldAddress(e.x, e.y);
+    if (d.blocksCell && e.health !== 0 && (counts.get(at) ?? 0) > 1 &&
+      (d.initialHealth === 0 || at !== worldAddress(d.x, d.y))) worldFail('world-save-anchor-overlap');
+  }
   // Shared initial anchor cells are allowed, but an active edge must own its destination reservation.
   for (let i = 0; i < entities.length; i++) if (entities[i]!.progress && model.entities[i]!.blocksCell && counts.get(entities[i]!.route[1]!) !== 1) worldFail('world-save-reservation');
   const save: LiveSave = { schemaVersion: 1, engineVersion: WORLD_ENGINE_VERSION, simulationRulesVersion: WORLD_MOTION_POLICY,

@@ -75,7 +75,10 @@ and grids. This slice has no scheduled work or RNG and requires both containers
 to be empty. Restore requires the genuine model, validates every route edge and
 active destination reservation, and rejects mismatched content/versions/state
 before creating the simulation. The restored checkpoint need not prove the
-original user never edited a legal save; it must be internally valid.
+original user never edited a legal save; it must be internally valid. Only actors
+still on their originally occupied shared anchor may overlap; relocated actors
+cannot enter another anchor or an explicit blocker. Entities with zero movement
+credit retain their model position, keeping static footprint bindings coherent.
 
 `WorldReplayRecorder` owns its simulation and records admission ticks as well as
 commands. It can begin at any valid moving checkpoint, bounds recording before
@@ -104,7 +107,7 @@ Worker termination remains the outer cancellation mechanism for synchronous work
 ## Validation and remaining integration
 
 Run `node --import tsx --test tests/sim/world.test.ts` and `npm run check`.
-Sixteen original tests cover canonical models, integer velocity, obstacle detours,
+Seventeen original tests cover canonical models, integer velocity, obstacle detours,
 shared starts, competing reservations, control replacement/stopping, ownership,
 fair planning, malformed/mismatched saves, admission/replay timing and pending
 orders. Moving checkpoint restores produce identical subsequent traces/state;
