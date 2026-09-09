@@ -20,8 +20,11 @@ Content/session code supplies verified source identity separately.
 
 Metadata preserves canvas width/height, table extent and frame ordinal, x/y,
 width/height, all three complete LE32 words at frame offsets 8/12/16, absolute
-data offset, bounded data end, emptiness and shared payload ownership. It does
-not pad odd dimensions, convert coordinates or infer auxiliary-word semantics.
+data offset, bounded data end, emptiness and shared payload ownership. The legacy
+`compressionWord` name retains the raw word at +8; it is not a mode enum.
+`compressionByte` is byte +8 and a frozen `auxiliaryBytes` tuple retains bytes
++9/+10/+11. It does not pad odd dimensions, convert coordinates or infer the
+meaning of those higher bytes or the other words.
 
 Each successful decode owns one private `width * height` index buffer.
 `copyPixels()` returns a fresh native `Uint8Array`; mutations cannot affect
@@ -32,7 +35,9 @@ frame objects and pixel copies and release their references when finished.
 
 Index construction validates all frame-table geometry, offsets, caps and shared
 layouts. **It does not decode or certify every payload.** Unknown compression
-words remain in metadata; selecting one throws `shp-unsupported-compression`.
+bytes remain in metadata; selecting a byte greater than 3 throws
+`shp-unsupported-compression`, including for empty records. Higher bytes of the
+raw word do not select a mode.
 Errors contain a code, frame ordinal when available and input byte offset,
 without pixel values. Decode failures publish no partial output.
 
@@ -44,7 +49,7 @@ without pixel values. Decode failures publish no partial output.
 | Format 3 | Each row starts with an LE16 byte length including that prefix. Nonzero bytes are literals; zero followed by an unsigned byte counts zero indices. |
 | Format 2 | Only per-row `width + 2` prefixes followed by nonzero literals. Zero or another row length throws `shp-format2-ambiguous`. |
 | Empty | Both dimensions and the data offset must be zero. No pixel buffer content is invented; retained x/y/words are uninterpreted. |
-| Shared payload | Equal nonzero offset, dimensions and compression word. Each record retains its own origin/auxiliary words. Lowest ordinal identifies the payload owner; mismatched layouts reject. |
+| Shared payload | Equal nonzero offset, dimensions and compression byte. Each record retains its own origin, full flags word and auxiliary bytes/words. Lowest ordinal identifies the payload owner; mismatched layouts reject. |
 
 The next **distinct**, sorted nonzero offset or EOF bounds a payload, independently
 of table order. Shared payloads have no recursive frame-reference semantics.
@@ -70,6 +75,64 @@ Format 2 remains deliberately narrow: OpenRA reads one literal-row prefix outsid
 its row loop, while XCC's compressed-bit path reads every row and applies zero
 runs. The real M0 loading sample proves per-row nonzero data only. This change
 does not resolve the divergent zero semantics or silently pick one.
+
+## Compression-byte correction
+
+Issue [#104](https://github.com/lictl/WebRA2/issues/104) corrects the former
+full-word mode dispatch. The pinned OpenRA loader reads one byte at frame +8,
+then skips eleven bytes before the absolute data offset. XCC preserves a 32-bit
+`compression` field but checks bit 1; neither source makes the complete word an
+enum restricted to 0–3. The public fields are additive and the policy remains
+`webra2-shp-1`; code that assumed `compressionWord` was a mode must use
+`compressionByte` instead. Frozen auxiliary bytes preserve information without
+inventing shadow, palette, remap or memory-initialization semantics.
+
+A read-only static check of the pinned YR executable supports the byte access.
+The helper at VA `0x69e900` resolves SHP data, validates the frame index, uses
+the 24-byte frame stride after the eight-byte global header, and reads frame
+byte +8 before checking bit 1. The adjacent helper at `0x69e8d0` checks bit 0
+from the same byte. YRpp supplied the address lead; the actual supplied binary
+was checked with Capstone 5.0.6. No game code was executed or published.
+
+| Native evidence | Identity |
+| --- | --- |
+| gamemd.exe SHA-256 | `3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600` |
+| Half-open virtual range | `0x69e8d0` to `0x69e92e` |
+| File range | offset 2,746,576; 94 bytes |
+| Range SHA-256 | `01473ad444d5daa82eba193d5290eb5a1da1fb37fb7f0b484a1655412681d10e` |
+
+This supports the field-width correction, not every native draw path or the
+meaning of unknown bits. A matching RA2 native helper has not been established.
+WebRA2 still rejects low-byte modes greater than 3 instead of masking them with
+3. Its strict bounds and ambiguous-format-2 rejection also remain unchanged.
+
+The triggering private member is identified without publishing its filename:
+
+| Source fact | Value |
+| --- | --- |
+| Root | ra2.mix, with the SHA-256 pinned below |
+| Member range | offset 269,770,650; 1,792 bytes |
+| Member SHA-256 | `f1e41e109a305a93a692257f1642ddad9305a32921da33023087fed43d4802ea` |
+| Header census | Four records; each raw word `0xcccc0003`, mode byte 3, auxiliary bytes `[0, 204, 204]` |
+
+A separate Python comparison rehashed every root and selected member, checked
+the selected frame's retained header fields, decoded its bounded payload using
+the primary raw/row-zero-run interpretation and compared every index against
+the actual TypeScript output. This covers the first frames selected by the
+private [#100](https://github.com/lictl/WebRA2/issues/100) preparation probe:
+
+| Profile | Selected first frames | Indexed headers | Compared indices | Selected modes 1 / 3 | Headers with nonzero upper bytes |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| RA2 | 106 | 3,434 | 951,139 | 3 / 103 | 4 |
+| YR | 131 | 3,594 | 1,597,457 | 4 / 127 | 0 |
+
+All 237 selected frames matched, representing 231 distinct physical members
+and 2,548,596 compared indices. Only one selected first frame required the
+upper-byte correction. All 7,028 indexed headers had mode 1 or 3; the header
+census does not certify the other payloads. This is a decoder comparison of an
+explicit preparation selection, not independent proof of art-name, palette,
+frame-choice or native campaign behavior. The preparation's missing resource
+and voxel rows remain separate content/renderer work.
 
 ## Resource limits
 
@@ -198,15 +261,23 @@ try {
 
 Independent reproduction must not import the TypeScript decoder: read the pinned
 range, unpack `<4H` globally and `<4H4I` per frame, follow the referenced XCC raw
-and per-row zero-run algorithm, clamp terminal zero runs to the remaining width,
+and per-row zero-run algorithm using byte +8 for the mode, clamp terminal zero runs to the remaining width,
 require exact row fill and compare every indexed-frame hash. The worker retained
 `local/probe.ts`, `local/oracle.py`, `local/verify.ts` and aggregate verification
 metadata in its isolated worktree for independent PR review; they are private
 research outputs, not public fixtures or prerequisites of CI.
 
-Fourteen original synthetic tests cover formats, row framing, clipping, malformed
+The #104 worktree additionally retains ignored `local/object-art/prepare.mjs`,
+its pinned preparation metadata and decoded first-frame indices, plus
+`local/oracle.py` and `local/oracle-facts.json`. Run `python3 local/oracle.py`
+from that worktree to repeat the independent root/member and 237-frame comparison.
+The private native probe retains hash/range metadata and its uncommitted listing
+for independent review; these artifacts are not required or copied by public CI.
+
+Seventeen original synthetic tests cover formats, row framing, clipping, malformed
 and truncated input, shared offsets, empty records, byte/geometry/frame/pixel caps,
-unknown flags, immutable snapshots and hostile accessor/buffer inputs. Public
+unknown low-byte modes, nonzero auxiliary bytes across all four supported modes,
+aliases with differing upper bytes, immutable snapshots and hostile accessor/buffer inputs. Public
 synthetic success does not substitute for retail or native rendering tests.
 Next consumers must implement palette/material policy and bounded frame caching;
 unknown format-2 zero semantics and native playback remain explicit follow-ups.

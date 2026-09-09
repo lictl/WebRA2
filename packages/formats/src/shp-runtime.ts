@@ -18,8 +18,13 @@ export interface RuntimeShpFrame {
   readonly y: number;
   readonly width: number;
   readonly height: number;
-  /** Complete LE32 words; no palette, shadow, remap or auxiliary-flag interpretation. */
+  /** Complete raw LE32 flags word at +8; retained name for compatibility, not a mode enum. */
   readonly compressionWord: number;
+  /** Mode byte at +8. Only 0–3 are supported; other low-byte bits are not masked away. */
+  readonly compressionByte: number;
+  /** Raw bytes +9/+10/+11 of the flags word. Their meaning is not inferred. */
+  readonly auxiliaryBytes: readonly [number, number, number];
+  /** Complete raw LE32 words; no palette, shadow or remap interpretation. */
   readonly unknownWord: number;
   readonly reservedWord: number;
   readonly dataOffset: number;
@@ -90,19 +95,21 @@ export function createRuntimeShp(input: Uint8Array, options: Partial<Limits> = {
   for (let ordinal = 0; ordinal < count; ordinal++) {
     const at = 8 + ordinal * 24;
     const x = view.getUint16(at, true), y = view.getUint16(at + 2, true), w = view.getUint16(at + 4, true), h = view.getUint16(at + 6, true);
-    const compressionWord = view.getUint32(at + 8, true), unknownWord = view.getUint32(at + 12, true), reservedWord = view.getUint32(at + 16, true), dataOffset = view.getUint32(at + 20, true);
+    const compressionWord = view.getUint32(at + 8, true), compressionByte = view.getUint8(at + 8);
+    const auxiliaryBytes = Object.freeze([view.getUint8(at + 9), view.getUint8(at + 10), view.getUint8(at + 11)] as const);
+    const unknownWord = view.getUint32(at + 12, true), reservedWord = view.getUint32(at + 16, true), dataOffset = view.getUint32(at + 20, true);
     const empty = w === 0 && h === 0 && dataOffset === 0;
     if (!empty && (!w || !h || x + w > width || y + h > height)) fail('shp-frame-rectangle', ordinal, at);
     if (w * h > cap.framePixels) fail('shp-pixel-limit', ordinal, at);
     if (!empty && (dataOffset < tableEnd || dataOffset >= bytes.length)) fail('shp-frame-offset', ordinal, at + 20);
-    // Preserve unknown words but do not mask an unsupported compression word down to a known byte.
-    const row = { ordinal, headerOffset: at, x, y, width: w, height: h, compressionWord, unknownWord, reservedWord, dataOffset, empty };
+    // The pinned YR helper and OpenRA loader read +8 as a byte. Preserve the full flags word separately.
+    const row = { ordinal, headerOffset: at, x, y, width: w, height: h, compressionWord, compressionByte, auxiliaryBytes, unknownWord, reservedWord, dataOffset, empty };
     rows.push(row);
     if (!empty) {
       const group = groups.get(dataOffset);
       if (group) {
         const first = group[0]!;
-        if (first.width !== w || first.height !== h || first.compressionWord !== compressionWord) fail('shp-shared-layout', ordinal, at);
+        if (first.width !== w || first.height !== h || first.compressionByte !== compressionByte) fail('shp-shared-layout', ordinal, at);
         group.push(row);
       } else groups.set(dataOffset, [row]);
     }
@@ -113,7 +120,7 @@ export function createRuntimeShp(input: Uint8Array, options: Partial<Limits> = {
     sharedFrameCount: row.empty ? 0 : groups.get(row.dataOffset)!.length })));
   function decodeFrame(ordinal: number): DecodedShpFrame {
     if (!Number.isSafeInteger(ordinal) || Object.is(ordinal, -0) || ordinal < 0 || ordinal >= frames.length) fail('shp-frame-ordinal');
-    const frame = frames[ordinal]!, format = frame.compressionWord;
+    const frame = frames[ordinal]!, format = frame.compressionByte;
     if (format > 3) fail('shp-unsupported-compression', ordinal, frame.headerOffset + 8);
     // Empty records have no encoded pixels; zero-valued indices in a nonempty frame remain distinct.
     const pixels = new Uint8Array(frame.width * frame.height);
