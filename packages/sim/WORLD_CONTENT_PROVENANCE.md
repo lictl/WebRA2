@@ -4,11 +4,12 @@
 [original pipeline fixtures](../../tests/sim/world-content.test.ts) are original
 GPL-3.0-or-later WebRA2 composition, Copyright 2026 WebRA2 contributors. They
 consume the existing GPL exact-source, scenario-construction, entity-definition
-and terrain-traversal components. Retain the
+foundation-occupancy and terrain-traversal components. Retain the
 [content notice](../content/PROVENANCE.md),
 [construction notice](../content/CONSTRUCTION_PROVENANCE.md),
 [entity-definition notice](../content/ENTITY_DEFINITIONS_PROVENANCE.md),
-[traversal notice](../content/TERRAIN_TRAVERSAL_PROVENANCE.md) and their pinned
+[traversal notice](../content/TERRAIN_TRAVERSAL_PROVENANCE.md),
+[foundation notice](../content/FOUNDATION_OCCUPANCY_PROVENANCE.md) and their pinned
 primary references. No new external implementation or dependency is adopted.
 
 The compiler directly consumes those reviewed typed results; it makes no further

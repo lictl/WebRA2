@@ -9,7 +9,7 @@ The original MIT implementation is in
 
 Current component scope is explicit WebRA2 cell movement on caller-supplied data.
 The native typed-entity and terrain adapter now runs both opening placement sets;
-base footprint integration is still pending. No
+stationary base footprint masks are bound to their owning entities. No
 original campaign is playable, and this code does not change the existing
 practice simulation or its saved-game policy.
 
@@ -62,7 +62,7 @@ Starting from a shared anchor is allowed by excluding the current cell when
 planning an exit. New destinations still require free occupancy. Diagonal
 permissions/corners are checked before an edge starts; only its source and
 destination are reserved while moving. Infantry subcells, flight layers, bridges,
-footprints, acceleration, turning, transport and native collision fidelity need
+dynamic foundations, acceleration, turning, transport and native collision fidelity need
 their own interpreted model/policy. This whole-cell baseline makes those
 limitations explicit rather than calling them original behavior. Optional model `footprints` hold extra
 absolute cells per stationary entity, excluding an anchor already handled by
@@ -86,6 +86,9 @@ original user never edited a legal save; it must be internally valid. Only actor
 still on their originally occupied shared anchor may overlap; relocated actors
 cannot enter another anchor or an explicit blocker. Entities with zero movement
 credit retain their model position, keeping static footprint bindings coherent.
+Reviving an initially absent footprint cannot introduce new sharing with another
+anchor, footprint or explicit blocker. Originally occupied shared masks remain
+representable after a legal health edit.
 
 `WorldReplayRecorder` owns its simulation and records admission ticks as well as
 commands. It can begin at any valid moving checkpoint, bounds recording before
@@ -114,7 +117,7 @@ Worker termination remains the outer cancellation mechanism for synchronous work
 ## Validation and remaining integration
 
 Run `node --import tsx --test tests/sim/world.test.ts` and `npm run check`.
-Nineteen original core tests cover canonical models, integer velocity, obstacle detours,
+Twenty original core tests cover canonical models, integer velocity, obstacle detours,
 shared starts, competing reservations, control replacement/stopping, ownership,
 fair planning, malformed/mismatched saves, admission/replay timing and pending
 orders. Moving checkpoint restores produce identical subsequent traces/state;
@@ -135,9 +138,9 @@ claiming a playable original mission.
 [world-content.ts](../packages/sim/src/world-content.ts) is original GPL-3.0-or-later
 composition; it does not relicense the separable MIT core. Its
 [notice](../packages/sim/WORLD_CONTENT_PROVENANCE.md) accompanies the build.
-`compileWorldContent({mapBytes,rules,definitions,traversal})` requires genuine
-entity-definition and traversal factory results, exact profile/mission identity,
-and identical ordered rule source pins. It owns/hashes the map bytes, recompiles
+`compileWorldContent({mapBytes,rules,definitions,traversal,footprints})` requires genuine
+entity-definition, traversal and base-footprint factory results, exact profile/mission identity,
+matching footprint/definition fingerprints and identical ordered rule source pins. It owns/hashes the map bytes, recompiles
 placements and staged construction, and checks every row/type/owner/raw-strength
 join before producing a model. Rules byte authentication remains the verified
 import pipeline's responsibility; metadata alone is not source authentication.
@@ -155,25 +158,30 @@ Supported movement consumes the compiled positive scaled Speed and a matching
 supported grid for walk/drive/hover/mech/ship labels. It still uses the explicit
 15 Hz WebRA2 cell policy, with no acceleration, turning, crushing or special
 MovementZone execution. Aircraft have no ground-blocking fallback. Smudges are
-nonblocking; initial terrain/structure/ground actor anchors use explicit baseline
-whole-cell occupancy. Native base masks from
-[#125](https://github.com/lictl/WebRA2/issues/125) must be integrated before this
-component's final review and real movement UI acceptance. The current counts below
-are an interim anchor-policy checkpoint, not footprint or gameplay acceptance.
+nonblocking; ground mobile actors use whole-cell anchors. Terrain and structures
+use the ready native base masks from
+[the foundation compiler](foundation-occupancy.md), translated by map anchor with
+no facing rotation or clipping. Unknown required masks fail with a bounded source
+row ID; unsupported candidate cells are never used. Empty foundations remain
+nonblocking. The aggregate 16,384-cell adapter budget charges all translated mask
+cells, including anchors, and the model owns extra cells by entity. Gates, wall
+conversion, occupation flags and native lifecycle semantics remain separate work.
 
-Five original pipeline tests check both profiles, all six placement families,
+Six original pipeline tests check both profiles, all six placement families,
 stable IDs/ownership/health, supported movement, moving restore/replay, source and
-factory rejection, explicit player selection and lower resource caps. A private
+factory rejection, explicit player selection, native mask binding and lower
+resource caps. A private
 probe under ignored `local/world-content/` reuses actual verified profile/terrain
 preparation and fresh entity compilation. It verifies all initial world coordinates
 against the freshly compiled map placements and runs a supported player-unit order
 selected by navigation, without a hardcoded mission objective.
 
-| Interim private component run | RA2 opening | YR opening |
+| Private component run with base masks | RA2 opening | YR opening |
 | --- | ---: | ---: |
 | Accounted placements | 811 | 570 |
 | Movable / stationary / passive / unavailable | 58 / 190 / 562 / 1 | 70 / 189 / 307 / 4 |
 | Houses / default development player | 8 / 0 | 17 / 0 |
+| Translated stationary base cells | 1,108 | 1,478 |
 | Moving checkpoint progress | 7,680 | 10,240 |
 | Restored and admission-replayed terminal tick | 122 | 122 |
 
@@ -182,5 +190,15 @@ locomotor (0/2). All source hashes/row joins are verified by the composing pipel
 continuous and restored traces/state and replay terminal hashes match. This is an
 actual-content movement/state check, not an independent native movement oracle
 or an actual browser test. Raw models, rows, selected commands and saves stay
-private. The source/traversal/definition fingerprints and explicit adapter policy
+private. The source/traversal/definition/footprint fingerprints and explicit adapter policy
 feed the world model hash; the save contains none of those immutable asset tables.
+
+The integrated component passes 611 public tests, strict types, 98-document/511-link
+validation, publication/M0 guards and a 39-file code/license build from 76 approved
+inputs. This is the component head before the browser world UI is integrated.
+
+| Final private identity | RA2 opening | YR opening |
+| --- | --- | --- |
+| Adapter SHA256 | `987715d167adfdecd3061e68e7a1795836a1977497f77dc010ba197f8e8cfac0` | `8029afd078edf7899881df1c9a6c478f41fade7c57f9a27c93470e77139756fa` |
+| World model SHA256 | `57bb08af8cdafefc5afb18d8d5f2019725f1fd45e31dbda994ea44218d70cda4` | `fd4126992c8c896f50766a8240aa69dd48e9d4a8e2ff444fb9f9cd5a020c3dff` |
+| Replay terminal SHA256 | `5329f09996654a2576033f5fa66cae7a6e6b87ead718ce14dc1cd0506151966a` | `a0533054b8049c8577d333f10561fdb3d80ba91cf8b76b5ccf0e8620dbc4f818` |
