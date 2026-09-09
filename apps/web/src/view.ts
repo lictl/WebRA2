@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2026 WebRA2 contributors. Imported names and diagnostics use textContent only.
 import type { BrowserImportReport } from '../../../packages/vfs/src/browser-types.ts';
+import { displayDiagnostics } from './report.ts';
 import { ImportController, type ShellState } from './controller.ts';
 import { translate, diagnosticText, formatBytes, type Locale, type TextKey } from './i18n.ts';
 const template = `
@@ -74,7 +75,7 @@ export function mountShell(root: HTMLElement, controller: ImportController): () 
     if (!report.diagnostics.length) diagnosticBox.append(element('p', t('noDiagnostics'), 'no-diagnostics'));
     else {
       const list = element('ul', undefined, 'diagnostics-list');
-      for (const diagnostic of report.diagnostics.slice(0, 100)) { const li = element('li'), top = element('div', undefined, 'diagnostic-top'); top.append(element('span', t(diagnostic.severity), `severity-${diagnostic.severity}`), element('span', diagnostic.code, 'diagnostic-code')); li.append(element('p', diagnosticText(locale, diagnostic.code), 'diagnostic-explanation'), top); if (diagnostic.path || diagnostic.sourceId) li.append(element('p', diagnostic.path ?? sourceById.get(diagnostic.sourceId!) ?? diagnostic.sourceId, 'diagnostic-path')); list.append(li); }
+      for (const diagnostic of displayDiagnostics(report.diagnostics)) { const li = element('li'), top = element('div', undefined, 'diagnostic-top'); top.append(element('span', t(diagnostic.severity), `severity-${diagnostic.severity}`), element('span', diagnostic.code, 'diagnostic-code')); li.append(element('p', diagnosticText(locale, diagnostic.code), 'diagnostic-explanation'), top); if (diagnostic.path || diagnostic.sourceId) li.append(element('p', diagnostic.path ?? sourceById.get(diagnostic.sourceId!) ?? diagnostic.sourceId, 'diagnostic-path')); list.append(li); }
       diagnosticBox.append(list); if (report.diagnostics.length > 100) diagnosticBox.append(element('p', `100 / ${report.diagnostics.length} ${t('shown')}`, 'no-diagnostics'));
     }
     const sources = block('sourcesTitle', 'sourcesHelp'), sourcesWrap = element('div', undefined, 'table-wrap'), sourceTable = element('table');
