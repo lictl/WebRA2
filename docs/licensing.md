@@ -36,7 +36,10 @@ OpenRA/EA-XCC attribution under GPL-3.0-or-later in
 [voxel provenance](../packages/formats/VOXEL_PROVENANCE.md); no model, animation
 transform or normal-vector table is distributed.
 Original runtime INI, terrain/object/mission-logic tables, structural object bindings, theater mappings, terrain preview and verified catalog
-profile composition use the content component's GPL-3.0-or-later license. No decoded retail map or tile is shipped.
+profile composition use the content component's GPL-3.0-or-later license. No decoded retail map or tile is shipped. The original object-art planner and
+verified still-resource adapter use the same GPL terms, with pinned editor
+references and explicit preview limitations in
+[object-art provenance](../packages/content/OBJECT_ART_PROVENANCE.md).
 
 The CPU terrain scene and composing browser viewport are GPL-3.0-or-later;
 [render provenance](../packages/render/PROVENANCE.md) records pinned OpenRA placement
