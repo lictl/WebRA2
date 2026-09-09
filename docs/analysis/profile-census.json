@@ -1,0 +1,2571 @@
+{
+  "schemaVersion": 1,
+  "policy": "webra2-explicit-rank-v1; candidate report deliberately assigns rank 0 to all roots",
+  "inputScope": "Existing reviewed campaign and physical MIX metadata; no retail bytes re-read by this adapter.",
+  "physicalSourcesInCampaignSnapshot": 62,
+  "mountedCandidateSources": 55,
+  "unassigned": [
+    {
+      "sourceId": "MAPS01.MIX/#11:179782bb",
+      "sha256": "dce4cd2b88f39c7738680e3d3a2f6cbfa81aec6d10199b5aa121b9d2cf3bed3c",
+      "candidateNames": [
+        "e31.map"
+      ],
+      "reason": "No candidate profile in campaign snapshot"
+    },
+    {
+      "sourceId": "MAPS01.MIX/#14:3b76574e",
+      "sha256": "35f7b531a8d0312ca7e44fa1da33f88dde1af48ac3781841bc74d3122c498445",
+      "candidateNames": [
+        "trn02t.map"
+      ],
+      "reason": "No candidate profile in campaign snapshot"
+    },
+    {
+      "sourceId": "MAPS01.MIX/#3:9103f015",
+      "sha256": "88c6c39431548ebb8f276f7c7809c76dd139e39706a0307420019e4eb1ea8a2b",
+      "candidateNames": [
+        "e32.map"
+      ],
+      "reason": "No candidate profile in campaign snapshot"
+    },
+    {
+      "sourceId": "MAPS01.MIX/#6:b5f950ad",
+      "sha256": "4dcec9e12f2541e4c15bf1e7da78c6ff74932c794837c35029a02de5bf43cd71",
+      "candidateNames": [
+        "trn01t.map"
+      ],
+      "reason": "No candidate profile in campaign snapshot"
+    },
+    {
+      "sourceId": "MAPS02.MIX/#10:179782bb",
+      "sha256": "dce4cd2b88f39c7738680e3d3a2f6cbfa81aec6d10199b5aa121b9d2cf3bed3c",
+      "candidateNames": [
+        "e31.map"
+      ],
+      "reason": "No candidate profile in campaign snapshot"
+    },
+    {
+      "sourceId": "MAPS02.MIX/#2:9103f015",
+      "sha256": "88c6c39431548ebb8f276f7c7809c76dd139e39706a0307420019e4eb1ea8a2b",
+      "candidateNames": [
+        "e32.map"
+      ],
+      "reason": "No candidate profile in campaign snapshot"
+    },
+    {
+      "sourceId": "MAPS02.MIX/#6:b7ce3f39",
+      "sha256": "ac08cd2256d5c6c5c35de163e9fb08d95d9c85b9003c2f12e7b536e400ff88c7",
+      "candidateNames": [],
+      "reason": "No candidate filename in campaign snapshot"
+    }
+  ],
+  "profiles": [
+    {
+      "profile": "ra2",
+      "mode": "candidate-only-unranked",
+      "effectiveProfileVerified": false,
+      "selectionCounts": {
+        "resolved": 0,
+        "candidate": 30,
+        "ambiguous": 0,
+        "missing": 0
+      },
+      "requestScope": "Six definition/string names plus faction filenames from the prior census; not a full dependency closure.",
+      "requested": [
+        {
+          "path": "ai.ini",
+          "status": "candidate"
+        },
+        {
+          "path": "all01t.map",
+          "status": "candidate"
+        },
+        {
+          "path": "all02s.map",
+          "status": "candidate"
+        },
+        {
+          "path": "all03u.map",
+          "status": "candidate"
+        },
+        {
+          "path": "all04u.map",
+          "status": "candidate"
+        },
+        {
+          "path": "all05s.map",
+          "status": "candidate"
+        },
+        {
+          "path": "all06u.map",
+          "status": "candidate"
+        },
+        {
+          "path": "all07t.map",
+          "status": "candidate"
+        },
+        {
+          "path": "all08u.map",
+          "status": "candidate"
+        },
+        {
+          "path": "all09t.map",
+          "status": "candidate"
+        },
+        {
+          "path": "all10s.map",
+          "status": "candidate"
+        },
+        {
+          "path": "all11t.map",
+          "status": "candidate"
+        },
+        {
+          "path": "all12s.map",
+          "status": "candidate"
+        },
+        {
+          "path": "art.ini",
+          "status": "candidate"
+        },
+        {
+          "path": "battle.ini",
+          "status": "candidate"
+        },
+        {
+          "path": "mission.ini",
+          "status": "candidate"
+        },
+        {
+          "path": "ra2.csf",
+          "status": "candidate"
+        },
+        {
+          "path": "rules.ini",
+          "status": "candidate"
+        },
+        {
+          "path": "sov01t.map",
+          "status": "candidate"
+        },
+        {
+          "path": "sov02t.map",
+          "status": "candidate"
+        },
+        {
+          "path": "sov03u.map",
+          "status": "candidate"
+        },
+        {
+          "path": "sov04s.map",
+          "status": "candidate"
+        },
+        {
+          "path": "sov05u.map",
+          "status": "candidate"
+        },
+        {
+          "path": "sov06t.map",
+          "status": "candidate"
+        },
+        {
+          "path": "sov07s.map",
+          "status": "candidate"
+        },
+        {
+          "path": "sov08u.map",
+          "status": "candidate"
+        },
+        {
+          "path": "sov09u.map",
+          "status": "candidate"
+        },
+        {
+          "path": "sov10t.map",
+          "status": "candidate"
+        },
+        {
+          "path": "sov11s.map",
+          "status": "candidate"
+        },
+        {
+          "path": "sov12s.map",
+          "status": "candidate"
+        }
+      ],
+      "excludedSourceIds": [
+        "expandmd01.mix/#0:8218f9f4",
+        "expandmd01.mix/#8:b4e00d21",
+        "langmd.mix/#2:bd835079",
+        "mapsmd03.mix/#0:8ba1de85",
+        "mapsmd03.mix/#10:310709fc",
+        "mapsmd03.mix/#11:3a6f0ac2",
+        "mapsmd03.mix/#12:73220e81",
+        "mapsmd03.mix/#13:784a0dbf",
+        "mapsmd03.mix/#1:9e7d3c58",
+        "mapsmd03.mix/#2:9fd0367f",
+        "mapsmd03.mix/#3:b32693dc",
+        "mapsmd03.mix/#4:b4e00d21",
+        "mapsmd03.mix/#5:be250438",
+        "mapsmd03.mix/#6:f768007b",
+        "mapsmd03.mix/#7:fa6b979f",
+        "mapsmd03.mix/#8:133a0cb2",
+        "mapsmd03.mix/#9:30aa03db",
+        "ra2md.mix/#14:fbe0d09d/#105:07e280dd",
+        "ra2md.mix/#14:fbe0d09d/#109:116f3f76",
+        "ra2md.mix/#14:fbe0d09d/#161:5b47d8d5",
+        "ra2md.mix/#14:fbe0d09d/#4:8218f9f4",
+        "ra2md.mix/#14:fbe0d09d/#84:eb5cd6b4"
+      ],
+      "entries": [
+        {
+          "path": "ai.ini",
+          "status": "candidate",
+          "content": {
+            "sha256": "1feac6ddea6886b177ddf7e5f8580b7a99a63f12684f2cbb42831671bb7a8a79",
+            "size": 84972
+          },
+          "selected": [
+            {
+              "layerId": "ra2.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "ai.ini",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:definitions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "ra2.mix/#3:a8548fd9/#88:9e11e49a",
+                "rootPath": "ra2.mix",
+                "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+                "rootSize": 281888480,
+                "archiveSha256": "d748797f59a652a296d3825e1703b8781380f43eba7b3d1825477752a395ba08",
+                "ordinal": 88,
+                "memberId": "9e11e49a",
+                "absoluteOffset": 118221968,
+                "size": 84972,
+                "sha256": "1feac6ddea6886b177ddf7e5f8580b7a99a63f12684f2cbb42831671bb7a8a79"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "all01t.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+            "size": 146240
+          },
+          "selected": [
+            {
+              "layerId": "MAPS01.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "all01t.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS01.MIX/#9:d937f5b1",
+                "rootPath": "MAPS01.MIX",
+                "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "rootSize": 3823604,
+                "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "ordinal": 9,
+                "memberId": "d937f5b1",
+                "absoluteOffset": 308,
+                "size": 146240,
+                "sha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c"
+              },
+              "ambiguousName": false
+            },
+            {
+              "layerId": "MAPS02.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "all01t.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS02.MIX/#8:d937f5b1",
+                "rootPath": "MAPS02.MIX",
+                "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "rootSize": 3170324,
+                "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "ordinal": 8,
+                "memberId": "d937f5b1",
+                "absoluteOffset": 103716,
+                "size": 146240,
+                "sha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "all02s.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "5ebd7a3aaa60215a6da1f63e87a53c4ebf8cb28378b09f7128953ab05e6425fc",
+            "size": 191242
+          },
+          "selected": [
+            {
+              "layerId": "MAPS01.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "all02s.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS01.MIX/#4:921fccdc",
+                "rootPath": "MAPS01.MIX",
+                "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "rootSize": 3823604,
+                "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "ordinal": 4,
+                "memberId": "921fccdc",
+                "absoluteOffset": 330820,
+                "size": 191242,
+                "sha256": "5ebd7a3aaa60215a6da1f63e87a53c4ebf8cb28378b09f7128953ab05e6425fc"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "all03u.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "186e317d4be77eaeec8e0b09e5c813f6ff95aa01e4e206f4b4c82178bf679a61",
+            "size": 202576
+          },
+          "selected": [
+            {
+              "layerId": "MAPS01.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "all03u.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS01.MIX/#15:3d65f978",
+                "rootPath": "MAPS01.MIX",
+                "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "rootSize": 3823604,
+                "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "ordinal": 15,
+                "memberId": "3d65f978",
+                "absoluteOffset": 522068,
+                "size": 202576,
+                "sha256": "186e317d4be77eaeec8e0b09e5c813f6ff95aa01e4e206f4b4c82178bf679a61"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "all04u.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "09e52db16946a330c032e988679ef61ff7745670ddad5e9bfcf96f916d18d093",
+            "size": 222831
+          },
+          "selected": [
+            {
+              "layerId": "MAPS01.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "all04u.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS01.MIX/#13:37a0f061",
+                "rootPath": "MAPS01.MIX",
+                "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "rootSize": 3823604,
+                "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "ordinal": 13,
+                "memberId": "37a0f061",
+                "absoluteOffset": 724644,
+                "size": 222831,
+                "sha256": "09e52db16946a330c032e988679ef61ff7745670ddad5e9bfcf96f916d18d093"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "all05s.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "d09cebddc1f4009098dfa48b18bf4022e6e4d00801f1ca8efd99917f185bb225",
+            "size": 214744
+          },
+          "selected": [
+            {
+              "layerId": "MAPS01.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "all05s.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS01.MIX/#5:98dac5c5",
+                "rootPath": "MAPS01.MIX",
+                "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "rootSize": 3823604,
+                "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "ordinal": 5,
+                "memberId": "98dac5c5",
+                "absoluteOffset": 947476,
+                "size": 214744,
+                "sha256": "d09cebddc1f4009098dfa48b18bf4022e6e4d00801f1ca8efd99917f185bb225"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "all06u.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "9e02b8fa4c570000c2bb34c9b0e702b143e2e93ae529faa36556e1f43af0f922",
+            "size": 260458
+          },
+          "selected": [
+            {
+              "layerId": "MAPS01.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "all06u.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS01.MIX/#17:7585f71c",
+                "rootPath": "MAPS01.MIX",
+                "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "rootSize": 3823604,
+                "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "ordinal": 17,
+                "memberId": "7585f71c",
+                "absoluteOffset": 1162228,
+                "size": 260458,
+                "sha256": "9e02b8fa4c570000c2bb34c9b0e702b143e2e93ae529faa36556e1f43af0f922"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "all07t.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "3925c1211d86938a7137ff0df11cba85c59d3ae75742221d5e2d4d502d33c103",
+            "size": 471258
+          },
+          "selected": [
+            {
+              "layerId": "MAPS01.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "all07t.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS01.MIX/#12:1f58fc36",
+                "rootPath": "MAPS01.MIX",
+                "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "rootSize": 3823604,
+                "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "ordinal": 12,
+                "memberId": "1f58fc36",
+                "absoluteOffset": 1422692,
+                "size": 471258,
+                "sha256": "3925c1211d86938a7137ff0df11cba85c59d3ae75742221d5e2d4d502d33c103"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "all08u.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "71a119187bd8f78a1c7677636e20a18a258f24dc94add2ac2b108a3dae9df8ea",
+            "size": 199442
+          },
+          "selected": [
+            {
+              "layerId": "MAPS01.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "all08u.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS01.MIX/#16:600fe52e",
+                "rootPath": "MAPS01.MIX",
+                "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "rootSize": 3823604,
+                "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "ordinal": 16,
+                "memberId": "600fe52e",
+                "absoluteOffset": 1893956,
+                "size": 199442,
+                "sha256": "71a119187bd8f78a1c7677636e20a18a258f24dc94add2ac2b108a3dae9df8ea"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "all09t.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "89a243ea0d9ccc802bd6e1d7da4d271d0077f86c3883802e27be7840364ac279",
+            "size": 190682
+          },
+          "selected": [
+            {
+              "layerId": "MAPS01.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "all09t.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS01.MIX/#10:0ad2ee04",
+                "rootPath": "MAPS01.MIX",
+                "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "rootSize": 3823604,
+                "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "ordinal": 10,
+                "memberId": "0ad2ee04",
+                "absoluteOffset": 2093412,
+                "size": 190682,
+                "sha256": "89a243ea0d9ccc802bd6e1d7da4d271d0077f86c3883802e27be7840364ac279"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "all10s.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "ac0ea14ec650256a014626db7c78135bb74168ba86d4eb863d987f04b07d1593",
+            "size": 289946
+          },
+          "selected": [
+            {
+              "layerId": "MAPS01.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "all10s.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS01.MIX/#7:c741dfe2",
+                "rootPath": "MAPS01.MIX",
+                "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "rootSize": 3823604,
+                "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "ordinal": 7,
+                "memberId": "c741dfe2",
+                "absoluteOffset": 2284100,
+                "size": 289946,
+                "sha256": "ac0ea14ec650256a014626db7c78135bb74168ba86d4eb863d987f04b07d1593"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "all11t.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "08456515dd5e258f5a9ff73b8961491883eccaa3635a8f008dcb1f9369d43887",
+            "size": 369324
+          },
+          "selected": [
+            {
+              "layerId": "MAPS01.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "all11t.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS01.MIX/#8:ce4ce1f2",
+                "rootPath": "MAPS01.MIX",
+                "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "rootSize": 3823604,
+                "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "ordinal": 8,
+                "memberId": "ce4ce1f2",
+                "absoluteOffset": 2574052,
+                "size": 369324,
+                "sha256": "08456515dd5e258f5a9ff73b8961491883eccaa3635a8f008dcb1f9369d43887"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "all12s.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "e6d31134742f8566a425a252113fa6b8e3f3eb178b00e34124deec4f7e11250b",
+            "size": 185688
+          },
+          "selected": [
+            {
+              "layerId": "MAPS01.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "all12s.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS01.MIX/#0:8564d89f",
+                "rootPath": "MAPS01.MIX",
+                "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "rootSize": 3823604,
+                "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "ordinal": 0,
+                "memberId": "8564d89f",
+                "absoluteOffset": 2943380,
+                "size": 185688,
+                "sha256": "e6d31134742f8566a425a252113fa6b8e3f3eb178b00e34124deec4f7e11250b"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "art.ini",
+          "status": "candidate",
+          "content": {
+            "sha256": "b477f861063a9509e87b7836b78190204c73bea5ea5595a842c456f5920ea223",
+            "size": 245825
+          },
+          "selected": [
+            {
+              "layerId": "ra2.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "art.ini",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:definitions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "ra2.mix/#3:a8548fd9/#298:f91b2c8b",
+                "rootPath": "ra2.mix",
+                "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+                "rootSize": 281888480,
+                "archiveSha256": "d748797f59a652a296d3825e1703b8781380f43eba7b3d1825477752a395ba08",
+                "ordinal": 298,
+                "memberId": "f91b2c8b",
+                "absoluteOffset": 118306944,
+                "size": 245825,
+                "sha256": "b477f861063a9509e87b7836b78190204c73bea5ea5595a842c456f5920ea223"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "battle.ini",
+          "status": "candidate",
+          "content": {
+            "sha256": "a5752a8d49e1c3823fe01a55e0057f91f2996d8b4a78804f197251a79b552a1d",
+            "size": 4054
+          },
+          "selected": [
+            {
+              "layerId": "ra2.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "battle.ini",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:definitions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "ra2.mix/#3:a8548fd9/#25:889c5b31",
+                "rootPath": "ra2.mix",
+                "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+                "rootSize": 281888480,
+                "archiveSha256": "d748797f59a652a296d3825e1703b8781380f43eba7b3d1825477752a395ba08",
+                "ordinal": 25,
+                "memberId": "889c5b31",
+                "absoluteOffset": 121822384,
+                "size": 4054,
+                "sha256": "a5752a8d49e1c3823fe01a55e0057f91f2996d8b4a78804f197251a79b552a1d"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "mission.ini",
+          "status": "candidate",
+          "content": {
+            "sha256": "49eb674e46058d67a08e0cf4ba31c99b1948d3d2072b10beced873f62226c54e",
+            "size": 9756
+          },
+          "selected": [
+            {
+              "layerId": "ra2.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "mission.ini",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:definitions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "ra2.mix/#3:a8548fd9/#34:8a782347",
+                "rootPath": "ra2.mix",
+                "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+                "rootSize": 281888480,
+                "archiveSha256": "d748797f59a652a296d3825e1703b8781380f43eba7b3d1825477752a395ba08",
+                "ordinal": 34,
+                "memberId": "8a782347",
+                "absoluteOffset": 121826448,
+                "size": 9756,
+                "sha256": "49eb674e46058d67a08e0cf4ba31c99b1948d3d2072b10beced873f62226c54e"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "ra2.csf",
+          "status": "candidate",
+          "content": {
+            "sha256": "60e1238de020831e53465b703f19cb984f33eabbc6d3b6773e4c4efbad3c634b",
+            "size": 283368
+          },
+          "selected": [
+            {
+              "layerId": "language.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "ra2.csf",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:locales:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "language.mix/#5:7f6fbcdf",
+                "rootPath": "language.mix",
+                "rootSha256": "870c3bcc596e8690c55077a4c651f88d0dbc35f2a786c6c4891df8ffdb9ce192",
+                "rootSize": 52913656,
+                "archiveSha256": "870c3bcc596e8690c55077a4c651f88d0dbc35f2a786c6c4891df8ffdb9ce192",
+                "ordinal": 5,
+                "memberId": "7f6fbcdf",
+                "absoluteOffset": 37456852,
+                "size": 283368,
+                "sha256": "60e1238de020831e53465b703f19cb984f33eabbc6d3b6773e4c4efbad3c634b"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "rules.ini",
+          "status": "candidate",
+          "content": {
+            "sha256": "fd1e95cea0306ea78049dc81c8cd816e18c28c496872a1ff02edd50bd082062f",
+            "size": 541915
+          },
+          "selected": [
+            {
+              "layerId": "ra2.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "rules.ini",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:definitions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "ra2.mix/#3:a8548fd9/#280:f025a96c",
+                "rootPath": "ra2.mix",
+                "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+                "rootSize": 281888480,
+                "archiveSha256": "d748797f59a652a296d3825e1703b8781380f43eba7b3d1825477752a395ba08",
+                "ordinal": 280,
+                "memberId": "f025a96c",
+                "absoluteOffset": 118552784,
+                "size": 541915,
+                "sha256": "fd1e95cea0306ea78049dc81c8cd816e18c28c496872a1ff02edd50bd082062f"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "sov01t.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "7f4492961d30b5799367aa840ba007932057b19a22a77f95475a18ca1407b99f",
+            "size": 184260
+          },
+          "selected": [
+            {
+              "layerId": "MAPS01.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "sov01t.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS01.MIX/#2:907af1f2",
+                "rootPath": "MAPS01.MIX",
+                "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "rootSize": 3823604,
+                "archiveSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+                "ordinal": 2,
+                "memberId": "907af1f2",
+                "absoluteOffset": 146548,
+                "size": 184260,
+                "sha256": "7f4492961d30b5799367aa840ba007932057b19a22a77f95475a18ca1407b99f"
+              },
+              "ambiguousName": false
+            },
+            {
+              "layerId": "MAPS02.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "sov01t.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS02.MIX/#1:907af1f2",
+                "rootPath": "MAPS02.MIX",
+                "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "rootSize": 3170324,
+                "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "ordinal": 1,
+                "memberId": "907af1f2",
+                "absoluteOffset": 249956,
+                "size": 184260,
+                "sha256": "7f4492961d30b5799367aa840ba007932057b19a22a77f95475a18ca1407b99f"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "sov02t.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "ea3aff6876f7e81e76284a2c9b41ee693c71f0f27e1ae45542e8f5ea95c96ae7",
+            "size": 186385
+          },
+          "selected": [
+            {
+              "layerId": "MAPS02.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "sov02t.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS02.MIX/#12:1ef5f611",
+                "rootPath": "MAPS02.MIX",
+                "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "rootSize": 3170324,
+                "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "ordinal": 12,
+                "memberId": "1ef5f611",
+                "absoluteOffset": 434228,
+                "size": 186385,
+                "sha256": "ea3aff6876f7e81e76284a2c9b41ee693c71f0f27e1ae45542e8f5ea95c96ae7"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "sov03u.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "a0ec1cd648f2b1f5cd122713d405b514634941977289080e22990021f8719c05",
+            "size": 173904
+          },
+          "selected": [
+            {
+              "layerId": "MAPS02.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "sov03u.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS02.MIX/#17:7428fd3b",
+                "rootPath": "MAPS02.MIX",
+                "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "rootSize": 3170324,
+                "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "ordinal": 17,
+                "memberId": "7428fd3b",
+                "absoluteOffset": 620628,
+                "size": 173904,
+                "sha256": "a0ec1cd648f2b1f5cd122713d405b514634941977289080e22990021f8719c05"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "sov04s.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "a0a95b26639cc1d4d916dea3a264a18e409bef3d2b84c245e67cd250defc2100",
+            "size": 201817
+          },
+          "selected": [
+            {
+              "layerId": "MAPS02.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "sov04s.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS02.MIX/#11:1d3dc118",
+                "rootPath": "MAPS02.MIX",
+                "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "rootSize": 3170324,
+                "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "ordinal": 11,
+                "memberId": "1d3dc118",
+                "absoluteOffset": 794532,
+                "size": 201817,
+                "sha256": "a0a95b26639cc1d4d916dea3a264a18e409bef3d2b84c245e67cd250defc2100"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "sov05u.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "31c6883ce678c0bcede293c571a610d355319a7cd729d45560183ced152a5629",
+            "size": 85694
+          },
+          "selected": [
+            {
+              "layerId": "MAPS02.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "sov05u.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS02.MIX/#5:b247f4bc",
+                "rootPath": "MAPS02.MIX",
+                "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "rootSize": 3170324,
+                "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "ordinal": 5,
+                "memberId": "b247f4bc",
+                "absoluteOffset": 996356,
+                "size": 85694,
+                "sha256": "31c6883ce678c0bcede293c571a610d355319a7cd729d45560183ced152a5629"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "sov06t.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "bea4548cca589aa1caf6fbc4e69700f8b408d650b700b71c65242f0df9eeeb83",
+            "size": 262145
+          },
+          "selected": [
+            {
+              "layerId": "MAPS02.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "sov06t.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS02.MIX/#4:9abff8eb",
+                "rootPath": "MAPS02.MIX",
+                "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "rootSize": 3170324,
+                "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "ordinal": 4,
+                "memberId": "9abff8eb",
+                "absoluteOffset": 1082052,
+                "size": 262145,
+                "sha256": "bea4548cca589aa1caf6fbc4e69700f8b408d650b700b71c65242f0df9eeeb83"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "sov07s.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "0ad2fde5c76f17085065f7b43cb76045935774092b2498badc44fe91e7793171",
+            "size": 178521
+          },
+          "selected": [
+            {
+              "layerId": "MAPS02.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "sov07s.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS02.MIX/#3:93b2c6fb",
+                "rootPath": "MAPS02.MIX",
+                "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "rootSize": 3170324,
+                "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "ordinal": 3,
+                "memberId": "93b2c6fb",
+                "absoluteOffset": 1344212,
+                "size": 178521,
+                "sha256": "0ad2fde5c76f17085065f7b43cb76045935774092b2498badc44fe91e7793171"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "sov08u.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "91817fa1585e631cd929b6356ccc29c99f1dfb8144c52cd225e3eeb924370b7e",
+            "size": 197257
+          },
+          "selected": [
+            {
+              "layerId": "MAPS02.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "sov08u.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS02.MIX/#13:2942e16d",
+                "rootPath": "MAPS02.MIX",
+                "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "rootSize": 3170324,
+                "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "ordinal": 13,
+                "memberId": "2942e16d",
+                "absoluteOffset": 1522740,
+                "size": 197257,
+                "sha256": "91817fa1585e631cd929b6356ccc29c99f1dfb8144c52cd225e3eeb924370b7e"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "sov09t.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "e444665c9afec8ffa2528d4e10641739f8a7c16921522b91dba3520cacd71041",
+            "size": 110638
+          },
+          "selected": [
+            {
+              "layerId": "MAPS02.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "sov09t.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS02.MIX/#15:439fea47",
+                "rootPath": "MAPS02.MIX",
+                "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "rootSize": 3170324,
+                "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "ordinal": 15,
+                "memberId": "439fea47",
+                "absoluteOffset": 1720004,
+                "size": 110638,
+                "sha256": "e444665c9afec8ffa2528d4e10641739f8a7c16921522b91dba3520cacd71041"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "sov09u.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "ef2dd5c5280d20f5759c02cebf860111280dc0f091c322f21b42eeae6b53c8b6",
+            "size": 105691
+          },
+          "selected": [
+            {
+              "layerId": "MAPS02.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "sov09u.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS02.MIX/#9:e5e8e1f3",
+                "rootPath": "MAPS02.MIX",
+                "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "rootSize": 3170324,
+                "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "ordinal": 9,
+                "memberId": "e5e8e1f3",
+                "absoluteOffset": 1830644,
+                "size": 105691,
+                "sha256": "ef2dd5c5280d20f5759c02cebf860111280dc0f091c322f21b42eeae6b53c8b6"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "sov10t.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "5c3d8b26e05a0a73530630db8353637fa9ed7072144d5360e1ab994869428449",
+            "size": 276498
+          },
+          "selected": [
+            {
+              "layerId": "MAPS02.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "sov10t.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS02.MIX/#16:4babe52f",
+                "rootPath": "MAPS02.MIX",
+                "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "rootSize": 3170324,
+                "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "ordinal": 16,
+                "memberId": "4babe52f",
+                "absoluteOffset": 1936340,
+                "size": 276498,
+                "sha256": "5c3d8b26e05a0a73530630db8353637fa9ed7072144d5360e1ab994869428449"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "sov11s.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "2f51c08a063f3c4d648bd486672eacc50d3f32903aa14e9566bfd2030464fc7f",
+            "size": 187412
+          },
+          "selected": [
+            {
+              "layerId": "MAPS02.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "sov11s.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS02.MIX/#14:42a6db3f",
+                "rootPath": "MAPS02.MIX",
+                "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "rootSize": 3170324,
+                "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "ordinal": 14,
+                "memberId": "42a6db3f",
+                "absoluteOffset": 2212852,
+                "size": 187412,
+                "sha256": "2f51c08a063f3c4d648bd486672eacc50d3f32903aa14e9566bfd2030464fc7f"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "sov12s.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "f69c18a54ce5915c9cdc08c2f10113853bc8656cf3e5f1392a64818a700d2720",
+            "size": 231726
+          },
+          "selected": [
+            {
+              "layerId": "MAPS02.MIX",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "ra2"
+              ],
+              "names": [
+                {
+                  "path": "sov12s.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "MAPS02.MIX/#7:cc29dcdc",
+                "rootPath": "MAPS02.MIX",
+                "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "rootSize": 3170324,
+                "archiveSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+                "ordinal": 7,
+                "memberId": "cc29dcdc",
+                "absoluteOffset": 2400276,
+                "size": 231726,
+                "sha256": "f69c18a54ce5915c9cdc08c2f10113853bc8656cf3e5f1392a64818a700d2720"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        }
+      ]
+    },
+    {
+      "profile": "yr",
+      "mode": "candidate-only-unranked",
+      "effectiveProfileVerified": false,
+      "selectionCounts": {
+        "resolved": 0,
+        "candidate": 18,
+        "ambiguous": 2,
+        "missing": 0
+      },
+      "requestScope": "Six definition/string names plus faction filenames from the prior census; not a full dependency closure.",
+      "requested": [
+        {
+          "path": "aimd.ini",
+          "status": "candidate"
+        },
+        {
+          "path": "all01umd.map",
+          "status": "candidate"
+        },
+        {
+          "path": "all02umd.map",
+          "status": "ambiguous"
+        },
+        {
+          "path": "all03umd.map",
+          "status": "candidate"
+        },
+        {
+          "path": "all04dmd.map",
+          "status": "candidate"
+        },
+        {
+          "path": "all05umd.map",
+          "status": "candidate"
+        },
+        {
+          "path": "all06umd.map",
+          "status": "candidate"
+        },
+        {
+          "path": "all07smd.map",
+          "status": "candidate"
+        },
+        {
+          "path": "artmd.ini",
+          "status": "candidate"
+        },
+        {
+          "path": "battlemd.ini",
+          "status": "candidate"
+        },
+        {
+          "path": "missionmd.ini",
+          "status": "candidate"
+        },
+        {
+          "path": "ra2md.csf",
+          "status": "candidate"
+        },
+        {
+          "path": "rulesmd.ini",
+          "status": "ambiguous"
+        },
+        {
+          "path": "sov01umd.map",
+          "status": "candidate"
+        },
+        {
+          "path": "sov02smd.map",
+          "status": "candidate"
+        },
+        {
+          "path": "sov03umd.map",
+          "status": "candidate"
+        },
+        {
+          "path": "sov04dmd.map",
+          "status": "candidate"
+        },
+        {
+          "path": "sov05umd.map",
+          "status": "candidate"
+        },
+        {
+          "path": "sov06lmd.map",
+          "status": "candidate"
+        },
+        {
+          "path": "sov07tmd.map",
+          "status": "candidate"
+        }
+      ],
+      "excludedSourceIds": [
+        "MAPS01.MIX/#0:8564d89f",
+        "MAPS01.MIX/#10:0ad2ee04",
+        "MAPS01.MIX/#12:1f58fc36",
+        "MAPS01.MIX/#13:37a0f061",
+        "MAPS01.MIX/#15:3d65f978",
+        "MAPS01.MIX/#16:600fe52e",
+        "MAPS01.MIX/#17:7585f71c",
+        "MAPS01.MIX/#2:907af1f2",
+        "MAPS01.MIX/#4:921fccdc",
+        "MAPS01.MIX/#5:98dac5c5",
+        "MAPS01.MIX/#7:c741dfe2",
+        "MAPS01.MIX/#8:ce4ce1f2",
+        "MAPS01.MIX/#9:d937f5b1",
+        "MAPS02.MIX/#11:1d3dc118",
+        "MAPS02.MIX/#12:1ef5f611",
+        "MAPS02.MIX/#13:2942e16d",
+        "MAPS02.MIX/#14:42a6db3f",
+        "MAPS02.MIX/#15:439fea47",
+        "MAPS02.MIX/#16:4babe52f",
+        "MAPS02.MIX/#17:7428fd3b",
+        "MAPS02.MIX/#1:907af1f2",
+        "MAPS02.MIX/#3:93b2c6fb",
+        "MAPS02.MIX/#4:9abff8eb",
+        "MAPS02.MIX/#5:b247f4bc",
+        "MAPS02.MIX/#7:cc29dcdc",
+        "MAPS02.MIX/#8:d937f5b1",
+        "MAPS02.MIX/#9:e5e8e1f3",
+        "language.mix/#5:7f6fbcdf",
+        "ra2.mix/#3:a8548fd9/#25:889c5b31",
+        "ra2.mix/#3:a8548fd9/#280:f025a96c",
+        "ra2.mix/#3:a8548fd9/#298:f91b2c8b",
+        "ra2.mix/#3:a8548fd9/#34:8a782347",
+        "ra2.mix/#3:a8548fd9/#88:9e11e49a"
+      ],
+      "entries": [
+        {
+          "path": "aimd.ini",
+          "status": "candidate",
+          "content": {
+            "sha256": "5df41eaec00a78d0760ef5eecdf27d65ae1cd537309c7eac973318266986f89d",
+            "size": 138538
+          },
+          "selected": [
+            {
+              "layerId": "ra2md.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "yr"
+              ],
+              "names": [
+                {
+                  "path": "aimd.ini",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:definitions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "ra2md.mix/#14:fbe0d09d/#109:116f3f76",
+                "rootPath": "ra2md.mix",
+                "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d",
+                "rootSize": 204527696,
+                "archiveSha256": "cd181596b2deaeacf7bba77e661ae4438d3f778efc0e38ae2b967c410bf3f931",
+                "ordinal": 109,
+                "memberId": "116f3f76",
+                "absoluteOffset": 6239952,
+                "size": 138538,
+                "sha256": "5df41eaec00a78d0760ef5eecdf27d65ae1cd537309c7eac973318266986f89d"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "all01umd.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+            "size": 301077
+          },
+          "selected": [
+            {
+              "layerId": "mapsmd03.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "yr"
+              ],
+              "names": [
+                {
+                  "path": "all01umd.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "mapsmd03.mix/#11:3a6f0ac2",
+                "rootPath": "mapsmd03.mix",
+                "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "rootSize": 4419780,
+                "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "ordinal": 11,
+                "memberId": "3a6f0ac2",
+                "absoluteOffset": 260,
+                "size": 301077,
+                "sha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "all02umd.map",
+          "status": "ambiguous",
+          "content": null,
+          "selected": [],
+          "alternatives": [
+            {
+              "layerId": "expandmd01.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "yr"
+              ],
+              "names": [
+                {
+                  "path": "all02umd.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "expandmd01.mix/#8:b4e00d21",
+                "rootPath": "expandmd01.mix",
+                "rootSha256": "0c0a64e741bdecdc3843a0beb6bb1f58aa2df5b86eb3bc4a953821ec98f3d6ec",
+                "rootSize": 4813968,
+                "archiveSha256": "0c0a64e741bdecdc3843a0beb6bb1f58aa2df5b86eb3bc4a953821ec98f3d6ec",
+                "ordinal": 8,
+                "memberId": "b4e00d21",
+                "absoluteOffset": 4347996,
+                "size": 465788,
+                "sha256": "e761d28ce43401308ca4532d65479b1cf4a309d74fd4f996fafa92a0a06f8b65"
+              },
+              "ambiguousName": false
+            },
+            {
+              "layerId": "mapsmd03.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "yr"
+              ],
+              "names": [
+                {
+                  "path": "all02umd.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "mapsmd03.mix/#4:b4e00d21",
+                "rootPath": "mapsmd03.mix",
+                "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "rootSize": 4419780,
+                "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "ordinal": 4,
+                "memberId": "b4e00d21",
+                "absoluteOffset": 301348,
+                "size": 465825,
+                "sha256": "168ed42024991b6c2af4de0e5a667e9c2bf15767741efe99dac975721460b303"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "diagnostics": [
+            "content-conflict"
+          ]
+        },
+        {
+          "path": "all03umd.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "b84a2e689cc00f0be064ecbfcd385635ac037f28bf8f72c02b426a0e52ff1547",
+            "size": 418628
+          },
+          "selected": [
+            {
+              "layerId": "mapsmd03.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "yr"
+              ],
+              "names": [
+                {
+                  "path": "all03umd.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "mapsmd03.mix/#13:784a0dbf",
+                "rootPath": "mapsmd03.mix",
+                "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "rootSize": 4419780,
+                "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "ordinal": 13,
+                "memberId": "784a0dbf",
+                "absoluteOffset": 767188,
+                "size": 418628,
+                "sha256": "b84a2e689cc00f0be064ecbfcd385635ac037f28bf8f72c02b426a0e52ff1547"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "all04dmd.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "f1621a21e7221c1e475a52dccd4a04bb3125f8a095377c917e2122019f2157b2",
+            "size": 282057
+          },
+          "selected": [
+            {
+              "layerId": "mapsmd03.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "yr"
+              ],
+              "names": [
+                {
+                  "path": "all04dmd.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "mapsmd03.mix/#3:b32693dc",
+                "rootPath": "mapsmd03.mix",
+                "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "rootSize": 4419780,
+                "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "ordinal": 3,
+                "memberId": "b32693dc",
+                "absoluteOffset": 1185828,
+                "size": 282057,
+                "sha256": "f1621a21e7221c1e475a52dccd4a04bb3125f8a095377c917e2122019f2157b2"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "all05umd.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "7ee8148ad4b0092b7970588d9b064ddd6b753fc7bfb352bcc043affeb72c6aed",
+            "size": 274279
+          },
+          "selected": [
+            {
+              "layerId": "mapsmd03.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "yr"
+              ],
+              "names": [
+                {
+                  "path": "all05umd.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "mapsmd03.mix/#5:be250438",
+                "rootPath": "mapsmd03.mix",
+                "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "rootSize": 4419780,
+                "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "ordinal": 5,
+                "memberId": "be250438",
+                "absoluteOffset": 1467892,
+                "size": 274279,
+                "sha256": "7ee8148ad4b0092b7970588d9b064ddd6b753fc7bfb352bcc043affeb72c6aed"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "all06umd.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "cfd2b50c5448fd84ab3647ff3a95f96b45e8dccd6a72b2601c0bb603cddeeb63",
+            "size": 192301
+          },
+          "selected": [
+            {
+              "layerId": "mapsmd03.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "yr"
+              ],
+              "names": [
+                {
+                  "path": "all06umd.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "mapsmd03.mix/#9:30aa03db",
+                "rootPath": "mapsmd03.mix",
+                "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "rootSize": 4419780,
+                "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "ordinal": 9,
+                "memberId": "30aa03db",
+                "absoluteOffset": 1742180,
+                "size": 192301,
+                "sha256": "cfd2b50c5448fd84ab3647ff3a95f96b45e8dccd6a72b2601c0bb603cddeeb63"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "all07smd.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "0ec687c320382e4c02cf66eec0153b713e56c4449fab7d29b5a19b61bf10e4f3",
+            "size": 434373
+          },
+          "selected": [
+            {
+              "layerId": "mapsmd03.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "yr"
+              ],
+              "names": [
+                {
+                  "path": "all07smd.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "mapsmd03.mix/#2:9fd0367f",
+                "rootPath": "mapsmd03.mix",
+                "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "rootSize": 4419780,
+                "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "ordinal": 2,
+                "memberId": "9fd0367f",
+                "absoluteOffset": 1934484,
+                "size": 434373,
+                "sha256": "0ec687c320382e4c02cf66eec0153b713e56c4449fab7d29b5a19b61bf10e4f3"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "artmd.ini",
+          "status": "candidate",
+          "content": {
+            "sha256": "e1f0378394313c04ebbd5073f47785ee3e46f1b3c62d65724e8f3c310ee7ba31",
+            "size": 336535
+          },
+          "selected": [
+            {
+              "layerId": "ra2md.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "yr"
+              ],
+              "names": [
+                {
+                  "path": "artmd.ini",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:definitions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "ra2md.mix/#14:fbe0d09d/#161:5b47d8d5",
+                "rootPath": "ra2md.mix",
+                "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d",
+                "rootSize": 204527696,
+                "archiveSha256": "cd181596b2deaeacf7bba77e661ae4438d3f778efc0e38ae2b967c410bf3f931",
+                "ordinal": 161,
+                "memberId": "5b47d8d5",
+                "absoluteOffset": 6378496,
+                "size": 336535,
+                "sha256": "e1f0378394313c04ebbd5073f47785ee3e46f1b3c62d65724e8f3c310ee7ba31"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "battlemd.ini",
+          "status": "candidate",
+          "content": {
+            "sha256": "7e40691a3480b1e5ffe6d1cdfccb83f67da4447157607ec3ecb5d2278acf0791",
+            "size": 2733
+          },
+          "selected": [
+            {
+              "layerId": "ra2md.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "yr"
+              ],
+              "names": [
+                {
+                  "path": "battlemd.ini",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:definitions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "ra2md.mix/#14:fbe0d09d/#105:07e280dd",
+                "rootPath": "ra2md.mix",
+                "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d",
+                "rootSize": 204527696,
+                "archiveSha256": "cd181596b2deaeacf7bba77e661ae4438d3f778efc0e38ae2b967c410bf3f931",
+                "ordinal": 105,
+                "memberId": "07e280dd",
+                "absoluteOffset": 7825072,
+                "size": 2733,
+                "sha256": "7e40691a3480b1e5ffe6d1cdfccb83f67da4447157607ec3ecb5d2278acf0791"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "missionmd.ini",
+          "status": "candidate",
+          "content": {
+            "sha256": "ce170ec97fc28589ee971792a31d135e0f0510f878acde3fd0d79a7b7896a775",
+            "size": 5034
+          },
+          "selected": [
+            {
+              "layerId": "ra2md.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "yr"
+              ],
+              "names": [
+                {
+                  "path": "missionmd.ini",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:definitions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "ra2md.mix/#14:fbe0d09d/#84:eb5cd6b4",
+                "rootPath": "ra2md.mix",
+                "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d",
+                "rootSize": 204527696,
+                "archiveSha256": "cd181596b2deaeacf7bba77e661ae4438d3f778efc0e38ae2b967c410bf3f931",
+                "ordinal": 84,
+                "memberId": "eb5cd6b4",
+                "absoluteOffset": 7827808,
+                "size": 5034,
+                "sha256": "ce170ec97fc28589ee971792a31d135e0f0510f878acde3fd0d79a7b7896a775"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "ra2md.csf",
+          "status": "candidate",
+          "content": {
+            "sha256": "1b90bb0756137f46ff529af043fe798d7f1f9fa1713a4110f17e1d674de81f1c",
+            "size": 332973
+          },
+          "selected": [
+            {
+              "layerId": "langmd.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "yr"
+              ],
+              "names": [
+                {
+                  "path": "ra2md.csf",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:locales:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "langmd.mix/#2:bd835079",
+                "rootPath": "langmd.mix",
+                "rootSha256": "0290bc3e40c38406e2ec6805dc18ef6c3a9b6feee6db42df717ac920e93294c8",
+                "rootSize": 84643206,
+                "archiveSha256": "0290bc3e40c38406e2ec6805dc18ef6c3a9b6feee6db42df717ac920e93294c8",
+                "ordinal": 2,
+                "memberId": "bd835079",
+                "absoluteOffset": 39346,
+                "size": 332973,
+                "sha256": "1b90bb0756137f46ff529af043fe798d7f1f9fa1713a4110f17e1d674de81f1c"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "rulesmd.ini",
+          "status": "ambiguous",
+          "content": null,
+          "selected": [],
+          "alternatives": [
+            {
+              "layerId": "expandmd01.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "yr"
+              ],
+              "names": [
+                {
+                  "path": "rulesmd.ini",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:definitions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "expandmd01.mix/#0:8218f9f4",
+                "rootPath": "expandmd01.mix",
+                "rootSha256": "0c0a64e741bdecdc3843a0beb6bb1f58aa2df5b86eb3bc4a953821ec98f3d6ec",
+                "rootSize": 4813968,
+                "archiveSha256": "0c0a64e741bdecdc3843a0beb6bb1f58aa2df5b86eb3bc4a953821ec98f3d6ec",
+                "ordinal": 0,
+                "memberId": "8218f9f4",
+                "absoluteOffset": 2220316,
+                "size": 743215,
+                "sha256": "3d341ef8a13a4b5ab24af2eef48ac94931ac2bb87d950fe3330a07e2d25672ef"
+              },
+              "ambiguousName": false
+            },
+            {
+              "layerId": "ra2md.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "yr"
+              ],
+              "names": [
+                {
+                  "path": "rulesmd.ini",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:definitions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "ra2md.mix/#14:fbe0d09d/#4:8218f9f4",
+                "rootPath": "ra2md.mix",
+                "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d",
+                "rootSize": 204527696,
+                "archiveSha256": "cd181596b2deaeacf7bba77e661ae4438d3f778efc0e38ae2b967c410bf3f931",
+                "ordinal": 4,
+                "memberId": "8218f9f4",
+                "absoluteOffset": 6715040,
+                "size": 742958,
+                "sha256": "06761dd7f714e7d9400216ec3c06109ec5c1461f6a0727be7401eb9d8b0f6d05"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "diagnostics": [
+            "content-conflict"
+          ]
+        },
+        {
+          "path": "sov01umd.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "498b989a4b6f579dee0904a77f1fabf982c14786db21a46c41900fc8344ec72b",
+            "size": 329188
+          },
+          "selected": [
+            {
+              "layerId": "mapsmd03.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "yr"
+              ],
+              "names": [
+                {
+                  "path": "sov01umd.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "mapsmd03.mix/#12:73220e81",
+                "rootPath": "mapsmd03.mix",
+                "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "rootSize": 4419780,
+                "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "ordinal": 12,
+                "memberId": "73220e81",
+                "absoluteOffset": 2368868,
+                "size": 329188,
+                "sha256": "498b989a4b6f579dee0904a77f1fabf982c14786db21a46c41900fc8344ec72b"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "sov02smd.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "139a7f17a17cefc20d12c21e9221d94ff6e1e8894ac09ab716fc9f6975d5a665",
+            "size": 327808
+          },
+          "selected": [
+            {
+              "layerId": "mapsmd03.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "yr"
+              ],
+              "names": [
+                {
+                  "path": "sov02smd.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "mapsmd03.mix/#1:9e7d3c58",
+                "rootPath": "mapsmd03.mix",
+                "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "rootSize": 4419780,
+                "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "ordinal": 1,
+                "memberId": "9e7d3c58",
+                "absoluteOffset": 2698068,
+                "size": 327808,
+                "sha256": "139a7f17a17cefc20d12c21e9221d94ff6e1e8894ac09ab716fc9f6975d5a665"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "sov03umd.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "df69d0f63f982823bb5818d3d49776028a719a2c20ced2526fab8f5cecb49fe6",
+            "size": 189836
+          },
+          "selected": [
+            {
+              "layerId": "mapsmd03.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "yr"
+              ],
+              "names": [
+                {
+                  "path": "sov03umd.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "mapsmd03.mix/#10:310709fc",
+                "rootPath": "mapsmd03.mix",
+                "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "rootSize": 4419780,
+                "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "ordinal": 10,
+                "memberId": "310709fc",
+                "absoluteOffset": 3025876,
+                "size": 189836,
+                "sha256": "df69d0f63f982823bb5818d3d49776028a719a2c20ced2526fab8f5cecb49fe6"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "sov04dmd.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "702bd788efbd08ae5b7591a1dfc240684e73faedace2ffaac68baefdfd0fb12a",
+            "size": 228003
+          },
+          "selected": [
+            {
+              "layerId": "mapsmd03.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "yr"
+              ],
+              "names": [
+                {
+                  "path": "sov04dmd.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "mapsmd03.mix/#7:fa6b979f",
+                "rootPath": "mapsmd03.mix",
+                "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "rootSize": 4419780,
+                "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "ordinal": 7,
+                "memberId": "fa6b979f",
+                "absoluteOffset": 3215716,
+                "size": 228003,
+                "sha256": "702bd788efbd08ae5b7591a1dfc240684e73faedace2ffaac68baefdfd0fb12a"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "sov05umd.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "22518e8b4a86331a9172048e10de13b45c2826ea4fdf4d2203b58994b897761b",
+            "size": 467636
+          },
+          "selected": [
+            {
+              "layerId": "mapsmd03.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "yr"
+              ],
+              "names": [
+                {
+                  "path": "sov05umd.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "mapsmd03.mix/#6:f768007b",
+                "rootPath": "mapsmd03.mix",
+                "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "rootSize": 4419780,
+                "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "ordinal": 6,
+                "memberId": "f768007b",
+                "absoluteOffset": 3443732,
+                "size": 467636,
+                "sha256": "22518e8b4a86331a9172048e10de13b45c2826ea4fdf4d2203b58994b897761b"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "sov06lmd.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "f55b65fd33a53dd03f61b48259d7732d260a4f97170e6dcf0767a61af82403a4",
+            "size": 141376
+          },
+          "selected": [
+            {
+              "layerId": "mapsmd03.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "yr"
+              ],
+              "names": [
+                {
+                  "path": "sov06lmd.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "mapsmd03.mix/#0:8ba1de85",
+                "rootPath": "mapsmd03.mix",
+                "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "rootSize": 4419780,
+                "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "ordinal": 0,
+                "memberId": "8ba1de85",
+                "absoluteOffset": 3911380,
+                "size": 141376,
+                "sha256": "f55b65fd33a53dd03f61b48259d7732d260a4f97170e6dcf0767a61af82403a4"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        },
+        {
+          "path": "sov07tmd.map",
+          "status": "candidate",
+          "content": {
+            "sha256": "eacf89952cb6e8eacd762f97895a062e0b6bfa16c8f916b901c1e667def266d4",
+            "size": 367021
+          },
+          "selected": [
+            {
+              "layerId": "mapsmd03.mix",
+              "rank": 0,
+              "kind": "archive",
+              "rankEvidence": "Unresolved original mount order: all observed physical roots deliberately share rank 0.",
+              "profiles": [
+                "yr"
+              ],
+              "names": [
+                {
+                  "path": "sov07tmd.map",
+                  "kind": "hash-candidate",
+                  "evidence": "campaign-census.json:missions:candidateNames/profileCandidates"
+                }
+              ],
+              "source": {
+                "id": "mapsmd03.mix/#8:133a0cb2",
+                "rootPath": "mapsmd03.mix",
+                "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "rootSize": 4419780,
+                "archiveSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+                "ordinal": 8,
+                "memberId": "133a0cb2",
+                "absoluteOffset": 4052756,
+                "size": 367021,
+                "sha256": "eacf89952cb6e8eacd762f97895a062e0b6bfa16c8f916b901c1e667def266d4"
+              },
+              "ambiguousName": false
+            }
+          ],
+          "alternatives": [],
+          "diagnostics": []
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Filename hashes and candidate profile labels are hypotheses, not proof of effective runtime identity.",
+    "No native patch, loose-file, nested archive, theater, language, or mod precedence is selected.",
+    "Content fingerprints are accepted from the prior census; this report does not verify current on-disk game bytes.",
+    "Unnamed and unassigned content, full graphics/audio dependencies and playable locale evidence remain outside this projection."
+  ],
+  "inputHashes": {
+    "campaignSha256": "cdbaafd772bfd9b4d983da1612de00da98fb75f11a4658f7d9a9653d48fbef32",
+    "physicalSha256": "0a360b51d7c505ba0a27938fe208a397efefe968d3c76e9dcbddff17349b982a"
+  }
+}
