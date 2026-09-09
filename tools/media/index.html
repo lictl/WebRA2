@@ -1,0 +1,12 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>WebRA2 · Persistent media diagnostic</title><link rel="stylesheet" href="/style.css"></head><body><main>
+<p class="eyebrow">WebRA2 · Local cinematic component</p><h1>Persistent Bink playback</h1><p>Choose your local movie. Its bytes stay on this device. This diagnostic tests decoding and presentation; campaign cinematics are still under development.</p>
+<p lang="zh-Hant">本機影片解碼測試：檔案不會上傳。這不是完整戰役播放功能。</p>
+<label>Local Bink file <input id="file" type="file" accept=".bik"></label>
+<label>Audio track (−1 = silent) <input id="track" type="number" min="-1" max="7" value="0"></label>
+<label>Expected SHA-256 (optional, local identity check) <input id="identity" type="text" maxlength="64" spellcheck="false"></label>
+<div class="controls"><button id="play">Play / 播放</button><button id="pause" disabled>Pause / 暫停</button><button id="resume" disabled>Resume / 繼續</button><button id="seek" disabled>Seek to 10 seconds</button><button id="skip" disabled>Skip / 跳過</button><button id="cancel" disabled>Cancel / 取消</button></div>
+<p id="status" role="status" aria-live="polite">Ready for a local file.</p>
+<canvas id="video" width="800" height="600" aria-label="Locally decoded movie frame"></canvas>
+<h2>Measured session metadata</h2><dl id="report" aria-live="off"><dt>Session</dt><dd>No session yet.</dd></dl>
+<p>The queue counter excludes Web Audio copies and browser allocation. WASM has a 128 MiB maximum; total process memory is measured separately. Audio signal telemetry is not a speaker recording.</p>
+<p>Codec: FFmpeg 9.0.1 · <a href="/codec/FFMPEG-LICENSE.txt">LGPL notice</a> · <a href="/codec/RUNTIME-NOTICES.txt">Runtime notices</a> · <a href="/codec/corresponding-source.tar.gz">Corresponding source and rebuild materials</a></p></main><script type="module" src="/main.js"></script></body></html>
