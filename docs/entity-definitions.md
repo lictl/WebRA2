@@ -120,7 +120,7 @@ the supported current-value loads stays outside this policy.
 
 All limits can only decrease: 64 combined rule/art stages, 262,144 combined retained
 section/entry occurrences, 16,384 types, 32,768 placements, 1,048,576 field reads,
-32,768 diagnostics, 64 Mi retained UTF-16 units, 2,000,000 graph values/properties,
+32,768 diagnostics, 64 Mi retained UTF-16 units, 2,000,000 graph values/properties per upstream validation,
 262,144 charged history references and 64 Mi canonical bytes. Each upstream view
 first applies its own bounded graph validation; aggregate source caps then apply
 before type-field expansion. No claimed arbitrary-size input is copied first.
