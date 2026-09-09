@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2026 WebRA2 contributors. Bounded validation at the app worker boundary.
 import type { BrowserImportReport } from '../../../packages/vfs/src/browser-types.ts';
-import { record, MAX_WORKER_FILES, MAX_WORKER_PATH } from './import-protocol.ts';
+import { record as objectRecord, MAX_WORKER_FILES, MAX_WORKER_PATH } from './import-protocol.ts';
+function record(value: unknown): value is Record<string, unknown> { return objectRecord(value) && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null); }
 function integer(value: unknown, max = Number.MAX_SAFE_INTEGER): value is number { return Number.isSafeInteger(value) && (value as number) >= 0 && (value as number) <= max; }
 function text(value: unknown, max = MAX_WORKER_PATH): value is string { return typeof value === 'string' && value.length <= max; }
 function choice(value: unknown, values: readonly unknown[]): boolean { return values.includes(value); }
-function rows(value: unknown, max: number): value is unknown[] { return Array.isArray(value) && value.length <= max; }
-function keys(value: Record<string, unknown>, allowed: string): boolean { const names = new Set(allowed.split(' ')); return Object.keys(value).every(key => names.has(key)); }
+function rows(value: unknown, max: number): value is unknown[] { return Array.isArray(value) && value.length <= max && Reflect.ownKeys(value).length === value.length + 1 && Array.from({ length: value.length }, (_, i) => Object.hasOwn(value, i)).every(Boolean); }
+function keys(value: Record<string, unknown>, allowed: string): boolean { const names = new Set(allowed.split(' ')); return Reflect.ownKeys(value).every(key => typeof key === 'string' && names.has(key)); }
 function identity(value: unknown): boolean { return record(value) && keys(value, 'status sha256') && value.status === 'unverified' && value.sha256 === null; }
 const profiles = ['eligible', 'excluded', 'unassigned'];
 /** Validates all imported report fields before the view or downstream app can consume them. */

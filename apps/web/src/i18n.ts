@@ -132,7 +132,7 @@ export function diagnosticText(locale: Locale, code: string): string {
     'archive-unverified': 'diagChecksumBlocked', 'checksum-mismatch': 'diagChecksumMismatch',
     'database-rejected': 'diagDatabase', 'ambiguous-archive-layout': 'diagMalformed',
   };
-  const key = keys[code] ?? (code.includes('limit') || code === 'browser-read-budget' ? 'diagLimit' :
+  const key = (Object.hasOwn(keys, code) ? keys[code] : undefined) ?? (code.includes('limit') || code === 'browser-read-budget' ? 'diagLimit' :
     /^(archive-|mix-|source-read|entry-|index-|header-|payload-|encrypted-|ambiguous-layout|truncated)/.test(code) ? 'diagMalformed' : 'diagUnknown');
   return translate(locale, key);
 }
