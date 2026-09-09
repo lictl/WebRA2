@@ -50,3 +50,54 @@ Ranges below are factual metadata, with exclusive ends and PE-mapped offsets. Wh
 | YR | `0x7e1d16–0x7e1d1a` | 4070678 / 4 | `cb680b67fab6d3986687649d91624220ceedff351579ffd262cce99c77092d2e` |
 | YR | `0x7e1d86–0x7e1d8a` | 4070790 / 4 | `85afcc4929b4bed4ac59eceec62739de792c8ccefaab9bc72a6f89484723f586` |
 | YR | `0x7e1df6–0x7e1dfa` | 4070902 / 4 | `87f221e8bb2a51247b085c2b5b82369cc2c9f95a32f1d696f4b364cd095c62c9` |
+
+## Exact staged source migration
+
+Policy `webra2-object-still-2` uses the reviewed
+[construction stages](CONSTRUCTION_PROVENANCE.md) and
+[exact retained source view](INI_SOURCE_PROVENANCE.md). Pinned primary YRpp
+[ObjectTypeClass.h](https://github.com/Phobos-developers/YRpp/blob/61d0887eb6040cfb36af16d592e9770ceae4dfb2/ObjectTypeClass.h)
+provides factual field/function labels; native bytes were inspected independently.
+No header implementation or proprietary function body is copied.
+
+Both native constructors copy the allocated ID into their 25-byte ImageFile field
+and initialize the generic Theater/NewTheater/Voxel flags to false. The generic
+ReadFromINI path reads exact Image under the allocated ID, with the existing
+ImageFile as the default. The art reads then use the resulting ImageFile against
+the global art INI and pass each existing flag as its default. This supports
+staged Image updates and flag retention when a later art section omits a key.
+The construction component separately establishes when each exact type section
+is visited, including late registration.
+
+The building theater loader reads art Image under ImageFile with an empty default,
+using a nonempty redirect for the filename while retaining flags from the original
+art source. The inspected generic SHP loader uses ImageFile directly. The new
+planner supports the building redirect and conservatively reports another family's
+explicit redirect as unsupported; it does not extrapolate the editor's generic
+Image alias behavior to all native classes.
+
+Native limits/truncation, arctic variants, filename fallback, family constructor
+overrides, native Foundation source/default policy, native duplicate parser ties,
+lighting and frame/sequence selection remain separate. In particular Foundation
+in this planner is explicit rectangular presentation metadata, not the native
+occupancy enum; typed gameplay construction is tracked in
+[#113](https://github.com/lictl/WebRA2/issues/113). Art layers use an explicit exact
+last-layer presentation policy, not a claim that a populated native INI merges
+identically. Source and policy fingerprints prevent this migration from silently
+reusing policy-1 content identities.
+
+These eight exclusive-end PE-mapped ranges were rehashed in the previously pinned
+full executable images. Raw Capstone listings and primary-header copies remain
+private under `local/native-bindings/`; scripts/range JSON are in
+`local/native-art/`. No original program ran.
+
+| Profile | VA start–end exclusive | File offset / bytes | SHA-256 |
+| --- | --- | --- | --- |
+| RA2 | `0x5d57f0–0x5d59d7` | 1923056 / 487 | `a8664353d80a13fd27f4e2d93cf2e80c8e1ae95393e9087899b124ed50ba9303` |
+| RA2 | `0x5d7810–0x5d7874` | 1931280 / 100 | `6cea2a85bb5617f68bb662155630ccc35740b82c24d5de7509a376d3b8e94bf7` |
+| RA2 | `0x5d7aae–0x5d7b72` | 1931950 / 196 | `736a407061d9d56f72ae2878f48544d00c848042f6bf15e76791d9d13ffcb8a2` |
+| RA2 | `0x459517–0x4595c8` | 365847 / 177 | `a2a54e528c597f0f6e2bff0f34eba2b070adb9ace0d20a246f43a6d01a533362` |
+| YR | `0x5f7090–0x5f7277` | 2060432 / 487 | `2784f80070eb3b38f75b0f92ca65d12a5353f51eb393802919a64147de5f49a6` |
+| YR | `0x5f92d0–0x5f9340` | 2069200 / 112 | `d61fd496f80b2bdd35843c3d77533b714eed23ef56ab27897db09f5a5b6af571` |
+| YR | `0x5f9574–0x5f963a` | 2069876 / 198 | `575b63f43bab92197c514e1bb80c6ae7cc3bcf705c1d3716c04e0f03bd7b9652` |
+| YR | `0x45f928–0x45f9e5` | 391464 / 189 | `cedd06f93d85501699d2f67486d88db1551fe5ee8d33e16b90e07b7da1d2b1f1` |

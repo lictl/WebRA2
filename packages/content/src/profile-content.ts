@@ -6,9 +6,12 @@ import { hashByteSource } from '../../vfs/src/hash-source.ts';
 import type { BrowserMemberIdentity, BrowserVerifiedSession } from '../../vfs/src/browser-verified.ts';
 import { throwIfImportAborted } from '../../vfs/src/browser-source.ts';
 import { compileRuntimeIni, RUNTIME_INI_POLICY, type RuntimeIni, type RuntimeIniLayer } from './runtime-ini.ts';
+import { createIniSourceView, INI_SOURCE_VIEW_POLICY, type IniSourceView } from './ini-source-view.ts';
+import { SCENARIO_CONSTRUCTION_POLICY } from './scenario-construction.ts';
+import { OBJECT_ART_POLICY } from './object-art.ts';
 import { decodeCsf, type CsfCatalog } from './csf-decode.ts';
 
-export const PROFILE_CONTENT_POLICY = 'webra2-profile-content-1';
+export const PROFILE_CONTENT_POLICY = 'webra2-profile-content-2';
 export const PROFILE_CONTENT_LIMITS = Object.freeze({ files: 128, bytes: 32 * 1024 * 1024, fileBytes: 16 * 1024 * 1024, mods: 32 });
 const roles = ['rules', 'art', 'ai', 'battle', 'mapsel', 'briefing', 'sound', 'mission', 'strings', 'font'] as const;
 export type ProfileContentRole = typeof roles[number];
@@ -38,6 +41,8 @@ export interface CompiledProfileContent {
   readonly rules: RuntimeIni;
   readonly mission: RuntimeIni;
   readonly tables: Readonly<Record<'art' | 'ai' | 'battle' | 'mapsel' | 'briefing' | 'sound', RuntimeIni>>;
+  /** Exact retained source occurrences beside the unchanged folded tables. */
+  readonly sourceViews: Readonly<Record<'rules' | 'mission' | 'art' | 'ai' | 'battle' | 'mapsel' | 'briefing' | 'sound', IniSourceView>>;
   readonly strings: CsfCatalog;
 }
 export class ProfileContentError extends Error {
@@ -122,15 +127,18 @@ export async function assembleProfileContent(reader: Pick<BrowserVerifiedSession
   const tables = Object.freeze({ art: compile(plan.files.filter(file => file.role === 'art')), ai: compile(plan.files.filter(file => file.role === 'ai')),
     battle: compile(plan.files.filter(file => file.role === 'battle')), mapsel: compile(plan.files.filter(file => file.role === 'mapsel')),
     briefing: compile(plan.files.filter(file => file.role === 'briefing')), sound: compile(plan.files.filter(file => file.role === 'sound')) });
+  const sourceViews = Object.freeze({ rules: createIniSourceView(rules), mission: createIniSourceView(mission),
+    art: createIniSourceView(tables.art), ai: createIniSourceView(tables.ai), battle: createIniSourceView(tables.battle),
+    mapsel: createIniSourceView(tables.mapsel), briefing: createIniSourceView(tables.briefing), sound: createIniSourceView(tables.sound) });
   guard();
   // Physical root locations and opaque picker IDs are provenance, not semantic identity.
   // Equivalent archived/loose source bytes therefore retain save compatibility.
   const semantic = (files: readonly ProfileContentFile[]) => files.map(file => ({ path: file.path, role: file.role, order: file.order, kind: file.kind, size: file.source.size, sha256: file.source.sha256 }));
-  const version = { policy: PROFILE_CONTENT_POLICY, iniPolicy: RUNTIME_INI_POLICY, csfPolicy: 'v3-ambiguous-labels-1', engineVersion: plan.engineVersion,
+  const version = { policy: PROFILE_CONTENT_POLICY, iniPolicy: RUNTIME_INI_POLICY, sourceViewPolicy: INI_SOURCE_VIEW_POLICY, constructionPolicy: SCENARIO_CONSTRUCTION_POLICY, objectArtPolicy: OBJECT_ART_POLICY, csfPolicy: 'v3-ambiguous-labels-1', engineVersion: plan.engineVersion,
     profile: plan.profile, orderedModHashes: plan.orderedModHashes };
   const manifestSha256 = await digest(new TextEncoder().encode(JSON.stringify({ ...version, files: semantic(plan.files) })), signal);
   const rulesSha256 = await digest(new TextEncoder().encode(JSON.stringify({ ...version, files: semantic(ruleFiles) })), signal); guard();
   return Object.freeze({ policy: PROFILE_CONTENT_POLICY, scope: 'definitions-and-opening-mission', canStartCampaign: false,
     engineVersion: plan.engineVersion, contentIdentity: Object.freeze({ profile: plan.profile, manifestSha256, rulesSha256, orderedModHashes: plan.orderedModHashes }),
-    files: plan.files, rules, mission, tables, strings: strings! });
+    files: plan.files, rules, mission, tables, sourceViews, strings: strings! });
 }

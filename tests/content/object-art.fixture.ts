@@ -8,15 +8,18 @@ import { hashMixName } from '../../packages/formats/src/mix-names.ts';
 export const encode = (s: string): Uint8Array => new TextEncoder().encode(s);
 export const sha = (b: Uint8Array): string => createHash('sha256').update(b).digest('hex');
 export const mission = '[Basic]\nNewINIFormat=4\n[Map]\nSize=0,0,3,2\n[Houses]\n0=OriginalHouse\n[OriginalHouse]\nCountry=OriginalCountry\n[Infantry]\n0=OriginalHouse,PERSON,256,2,2,2,Guard,0,None\n[Units]\n0=OriginalHouse,ROVER,256,2,2,0,Guard,None\n[Aircraft]\n0=OriginalHouse,FLYER,256,2,2,0,Guard,None\n[Structures]\n0=OriginalHouse,GHALL,256,2,2,0,None\n[Terrain]\n2002=PLANT\n[Smudge]\n0=TRACE,2,2,0\n';
-export const rules = '[PERSON]\nImage=SPRITE_PERSON\n[ROVER]\nStrength=20\n[FLYER]\nStrength=20\n[GHALL]\nStrength=20\n[PLANT]\nStrength=20\n[TRACE]\nWidth=1\n';
-export const art = '[SPRITE_PERSON]\nImage=ACTOR\nRemapable=yes\nSequence=OriginalSequence\n[ROVER]\nVoxel=yes\n[FLYER]\nVoxel=yes\n[GHALL]\nNewTheater=yes\nFoundation=2x3\n[PLANT]\nTheater=yes\n[TRACE]\nTerrainPalette=yes\n';
-export function input(options: { profile?: 'ra2' | 'yr'; mission?: string; rules?: string; art?: string } = {}) {
+export const rules = '[Countries]\n0=OriginalCountry\n[OriginalCountry]\nName=OriginalCountry\n[InfantryTypes]\n0=PERSON\n[VehicleTypes]\n0=ROVER\n[AircraftTypes]\n0=FLYER\n[BuildingTypes]\n0=GHALL\n[TerrainTypes]\n0=PLANT\n[SmudgeTypes]\n0=TRACE\n[PERSON]\nImage=ACTOR\n[ROVER]\nStrength=20\n[FLYER]\nStrength=20\n[GHALL]\nStrength=20\n[PLANT]\nStrength=20\n[TRACE]\nWidth=1\n';
+export const art = '[ACTOR]\nRemapable=yes\nSequence=OriginalSequence\n[ROVER]\nVoxel=yes\n[FLYER]\nVoxel=yes\n[GHALL]\nNewTheater=yes\nFoundation=2x3\n[PLANT]\nTheater=yes\n[TRACE]\nTerrainPalette=yes\n';
+export function input(options: { profile?: 'ra2' | 'yr'; mission?: string; rules?: string; art?: string; ruleMods?: string[]; artMods?: string[] } = {}) {
   const profile = options.profile ?? 'ra2', m = encode(options.mission ?? mission), r = encode(options.rules ?? rules), a = encode(options.art ?? art);
   const source = { id: 'original-map', profile, sha256: sha(m) };
   return { policy: OBJECT_ART_POLICY, theater: profile === 'ra2' ? 'URBAN' as const : 'NEWURBAN' as const,
     objects: compileScenarioObjects({ profile, source, bytes: m }),
-    rules: compileRuntimeIni(profile, [{ id: 'rules', profile, order: 0, kind: 'base', sourceSha256: sha(r), bytes: r }, { id: source.id, profile, order: 1, kind: 'map', sourceSha256: source.sha256, bytes: m }]),
-    art: compileRuntimeIni(profile, [{ id: 'art', profile, order: 0, kind: 'base', sourceSha256: sha(a), bytes: a }]) };
+    rules: compileRuntimeIni(profile, [{ id: 'rules', profile, order: 0, kind: 'base', sourceSha256: sha(r), bytes: r },
+      ...(options.ruleMods ?? []).map((s, i) => ({ id: `rule-mod-${i}`, profile, order: i + 10, kind: 'mod' as const, sourceSha256: sha(encode(s)), bytes: encode(s) })),
+      { id: source.id, profile, order: 100, kind: 'map', sourceSha256: source.sha256, bytes: m }]),
+    art: compileRuntimeIni(profile, [{ id: 'art', profile, order: 0, kind: 'base', sourceSha256: sha(a), bytes: a },
+      ...(options.artMods ?? []).map((s, i) => ({ id: `art-mod-${i}`, profile, order: i + 1, kind: 'mod' as const, sourceSha256: sha(encode(s)), bytes: encode(s) }))]) };
 }
 export const plan = (options: Parameters<typeof input>[0] = {}) => compileObjectArt(input(options));
 export function shp(color = 2): Uint8Array {
