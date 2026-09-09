@@ -1,0 +1,185 @@
+{
+  "inputHashes": {
+    "campaignSha256": "cdbaafd772bfd9b4d983da1612de00da98fb75f11a4658f7d9a9653d48fbef32",
+    "fontManifestSha256": "cc6d4f9bec6dcd5205aa50887c35e1b7eb577e11c2ff5dd083d342fc2265c581"
+  },
+  "schemaVersion": 1,
+  "scope": "pinned-CSF-and-Unicode-font-candidates",
+  "membersRead": 3,
+  "bytesRead": 2200536,
+  "fonts": [
+    {
+      "candidateNames": [
+        "game.fnt"
+      ],
+      "profileCandidates": [
+        "ra2",
+        "yr"
+      ],
+      "source": {
+        "rootFile": "ra2.mix",
+        "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+        "sha256": "ec8d6d85db3eedf5a862cc6ffb87bfad4c77279dd946bc2d30879ad9140c8d3f",
+        "absoluteOffset": 120161760,
+        "size": 1584195
+      },
+      "structure": {
+        "format": "fonT",
+        "ideographWidth": 20,
+        "stride": 3,
+        "symbolHeight": 16,
+        "fontHeight": 17,
+        "symbols": 29655,
+        "recordBytes": 49,
+        "zeroWidthSymbols": 1,
+        "maxGlyphWidth": 16,
+        "mappedCodepoints": 34112
+      }
+    }
+  ],
+  "strings": [
+    {
+      "candidateNames": [
+        "ra2md.csf"
+      ],
+      "profileCandidates": [
+        "yr"
+      ],
+      "source": {
+        "rootFile": "langmd.mix",
+        "rootSha256": "0290bc3e40c38406e2ec6805dc18ef6c3a9b6feee6db42df717ac920e93294c8",
+        "sha256": "1b90bb0756137f46ff529af043fe798d7f1f9fa1713a4110f17e1d674de81f1c",
+        "absoluteOffset": 39346,
+        "size": 332973
+      },
+      "structure": {
+        "version": 3,
+        "languageId": 9,
+        "reserved": 0,
+        "labelCount": 5211,
+        "strings": 5211,
+        "emptyLabels": 0,
+        "duplicateLabels": 0,
+        "extraRecords": 1204,
+        "codeUnits": 69601,
+        "hanCodeUnits": 52219,
+        "asciiCodeUnits": 11775,
+        "invalidSurrogates": 0
+      },
+      "uniqueCodepoints": 1978,
+      "duplicateValues": [],
+      "fontCandidates": [
+        {
+          "fontSource": {
+            "rootFile": "ra2.mix",
+            "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+            "sha256": "ec8d6d85db3eedf5a862cc6ffb87bfad4c77279dd946bc2d30879ad9140c8d3f",
+            "absoluteOffset": 120161760,
+            "size": 1584195
+          },
+          "requested": 1978,
+          "mapped": 1977,
+          "layoutControls": [
+            10
+          ],
+          "missing": [],
+          "zeroWidth": [
+            12288
+          ],
+          "blank": [
+            32,
+            12288
+          ],
+          "allNonControlMapped": true
+        }
+      ],
+      "candidateCoverage": "all-candidates-map-non-control-characters",
+      "nativeDuplicateResolutionVerified": false,
+      "verifiedPlayableLocale": null
+    },
+    {
+      "candidateNames": [
+        "ra2.csf"
+      ],
+      "profileCandidates": [
+        "ra2"
+      ],
+      "source": {
+        "rootFile": "language.mix",
+        "rootSha256": "870c3bcc596e8690c55077a4c651f88d0dbc35f2a786c6c4891df8ffdb9ce192",
+        "sha256": "60e1238de020831e53465b703f19cb984f33eabbc6d3b6773e4c4efbad3c634b",
+        "absoluteOffset": 37456852,
+        "size": 283368
+      },
+      "structure": {
+        "version": 3,
+        "languageId": 9,
+        "reserved": 0,
+        "labelCount": 4479,
+        "strings": 4479,
+        "emptyLabels": 0,
+        "duplicateLabels": 3,
+        "extraRecords": 1204,
+        "codeUnits": 57637,
+        "hanCodeUnits": 43321,
+        "asciiCodeUnits": 9599,
+        "invalidSurrogates": 0
+      },
+      "uniqueCodepoints": 1877,
+      "duplicateValues": [
+        {
+          "firstOrdinal": 3915,
+          "duplicateOrdinal": 4412,
+          "sameText": false,
+          "sameExtra": true,
+          "sameKind": true
+        },
+        {
+          "firstOrdinal": 3919,
+          "duplicateOrdinal": 4413,
+          "sameText": false,
+          "sameExtra": true,
+          "sameKind": true
+        },
+        {
+          "firstOrdinal": 3913,
+          "duplicateOrdinal": 4414,
+          "sameText": false,
+          "sameExtra": true,
+          "sameKind": true
+        }
+      ],
+      "fontCandidates": [
+        {
+          "fontSource": {
+            "rootFile": "ra2.mix",
+            "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+            "sha256": "ec8d6d85db3eedf5a862cc6ffb87bfad4c77279dd946bc2d30879ad9140c8d3f",
+            "absoluteOffset": 120161760,
+            "size": 1584195
+          },
+          "requested": 1877,
+          "mapped": 1876,
+          "layoutControls": [
+            10
+          ],
+          "missing": [],
+          "zeroWidth": [
+            12288
+          ],
+          "blank": [
+            32,
+            12288
+          ],
+          "allNonControlMapped": true
+        }
+      ],
+      "candidateCoverage": "all-candidates-map-non-control-characters",
+      "nativeDuplicateResolutionVerified": false,
+      "verifiedPlayableLocale": null
+    }
+  ],
+  "coverageMeaning": "Mapping presence only; zero-width/blank glyphs and layout controls are separate. No text layout or playable-locale claim.",
+  "effectiveFontSelectionVerified": false,
+  "playableLocaleEnumerationComplete": false
+}

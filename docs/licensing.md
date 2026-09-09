@@ -20,6 +20,12 @@ the MIX reader and retain the pinned EA editor/XCC reference and adaptation prov
 credits Olaf van der Spek; no translated game strings or mission/rule payloads are
 part of the published census. No additional runtime dependency was introduced.
 
+The locale/font coverage scanner and verified analysis CLI retain GPL-3.0-or-later.
+The `fonT` adaptation preserves the MIT copyright and permission notice for Belonit's
+ra2fnt revision `56da5b30fb53eebfaf35e98b2e1c6b3e150f58af` in
+[locale provenance](../packages/content/LOCALE_PROVENANCE.md). No Go implementation,
+retail font, glyph image or translated string is shipped; no dependency was added.
+
 The MIX integrity policy, its tests and checksum-domain CLI use GPL-3.0-or-later
 consistently with the format component they compose. The historical EA cache source
 observations in [the integrity report](analysis/checksum-policy.md) establish a

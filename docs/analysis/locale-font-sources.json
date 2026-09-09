@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "fonts": [
+    {
+      "candidateNames": [
+        "game.fnt"
+      ],
+      "profileCandidates": [
+        "ra2",
+        "yr"
+      ],
+      "source": {
+        "path": "ra2.mix/#3:a8548fd9/#143:b1d57ac2",
+        "rootFile": "ra2.mix",
+        "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+        "archiveSha256": "d748797f59a652a296d3825e1703b8781380f43eba7b3d1825477752a395ba08",
+        "ordinal": 143,
+        "idHex": "b1d57ac2",
+        "absoluteOffset": 120161760,
+        "size": 1584195,
+        "sha256": "ec8d6d85db3eedf5a862cc6ffb87bfad4c77279dd946bc2d30879ad9140c8d3f"
+      },
+      "nameEvidence": [
+        {
+          "rootFile": "game.exe",
+          "sha256": "73288c03b58d370be268ca6d156b4e33bfdb2066dc980359467d8852ff3b00df",
+          "literalOffset": 3994944
+        },
+        {
+          "rootFile": "gamemd.exe",
+          "sha256": "3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600",
+          "literalOffset": 4295576
+        }
+      ],
+      "nameStatus": "native filename literal plus CRC32 member candidate; body validates fonT structure"
+    }
+  ]
+}
