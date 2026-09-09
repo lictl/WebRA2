@@ -20,11 +20,17 @@ do not contain retail data. Renderer, UI framework, build bundler and WASM tooli
 remain unset until their own evidence warrants adoption.
 
 `packages/contracts` defines proposed WebRA2 command/content/save/replay/evidence
-types. Commands sort by tick, player ID and sequence; duplicate identities and unsafe
+types. Commands sort by tick, player ID and sequence; duplicate player/sequence
+identities across the entire batch and unsafe
 counters are rejected. Persistable JSON rejects lossy/nonfinite/negative-zero values,
 cycles, accessors and excessive nesting. These are WebRA2 rules, not recovered RA2
 internals. Checkpoints mean the start of `nextTick`. Native tick rate, phase order,
 RNG compatibility and actual save implementation remain unknown/unimplemented.
+Cross-batch admission cursors and late-command validation belong to the future
+simulation session; this pure ordering helper does not track session history.
+EvidenceSummary is a compact trace/UI view, distinct from the richer research
+interchange records. JSON structural validation permits finite fractional numbers;
+gameplay command kinds must impose their own numeric rules when implemented.
 
 Save/replay/content types currently have no wire loader or hash algorithm. Their
 presence does not constitute validated native-save import, complete state capture,

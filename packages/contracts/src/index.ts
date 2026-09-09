@@ -42,7 +42,8 @@ export interface ReplayEnvelope {
   readonly checkpoints: readonly { readonly nextTick: number; readonly stateSha256: string }[];
 }
 
-export interface EvidenceRecord {
+/** Compact trace/UI summary; the richer research interchange schema lives in docs/specs. */
+export interface EvidenceSummary {
   readonly id: string;
   readonly sourceKind: 'static-bytes' | 'licensed-source' | 'original-observation' | 'synthetic-test' | 'proposal';
   readonly locator: string;
@@ -69,6 +70,9 @@ export function assertJsonValue(value: unknown): asserts value is JsonValue {
     if (item === null || typeof item === 'boolean' || typeof item === 'string') return;
     if (typeof item === 'number' && Number.isFinite(item) && !Object.is(item, -0)) return;
     if (!Array.isArray(item) && !isRecord(item)) throw new TypeError('Expected a plain finite JSON value');
+    if (Array.isArray(item) && Object.getPrototypeOf(item) !== Array.prototype) {
+      throw new TypeError('Expected a plain JSON array');
+    }
     if (active.has(item)) throw new TypeError('Cyclic JSON value');
     active.add(item);
     const descriptors = Object.getOwnPropertyDescriptors(item);
@@ -111,13 +115,12 @@ export function assertCommand(value: unknown): asserts value is CommandEnvelope 
 /** Proposed WebRA2 total order. No original-engine tick/phase ordering is asserted. */
 export function orderCommands(values: readonly unknown[]): CommandEnvelope[] {
   const commands = values.map(value => { assertCommand(value); return value; });
-  commands.sort((a, b) => a.tick - b.tick || a.playerId - b.playerId || a.sequence - b.sequence);
-  for (let index = 1; index < commands.length; index++) {
-    const previous = commands[index - 1]!;
-    const current = commands[index]!;
-    if (previous.tick === current.tick && previous.playerId === current.playerId && previous.sequence === current.sequence) {
-      throw new TypeError('Duplicate command identity');
-    }
+  const identities = new Set<string>();
+  for (const command of commands) {
+    const identity = `${command.playerId}:${command.sequence}`;
+    if (identities.has(identity)) throw new TypeError('Duplicate command identity');
+    identities.add(identity);
   }
+  commands.sort((a, b) => a.tick - b.tick || a.playerId - b.playerId || a.sequence - b.sequence);
   return commands;
 }

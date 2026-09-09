@@ -17,6 +17,7 @@ test('arrival order does not change the command schedule or mutate the input bat
 
 test('duplicate identities are rejected even when the order payload differs', () => {
   assert.throws(() => orderCommands([command(), { ...command(), kind: 'unit.stop' }]), /Duplicate/);
+  assert.throws(() => orderCommands([command(0, 0, 0), command(1, 1, 0), command(2, 0, 0)]), /Duplicate/);
 });
 
 test('unsafe ticks, fractional player IDs and invalid sequence values cannot enter a replay', () => {
@@ -34,8 +35,10 @@ test('unsupported/missing/extra command fields fail before dispatch', () => {
 test('JSON state cannot silently lose values during persistence', () => {
   const cycle: unknown[] = []; cycle.push(cycle);
   const nonIndex = Object.assign([], { '4294967295': 'lost by JSON.stringify' });
+  class LossyArray extends Array { toJSON() { return ['changed']; } }
+  const lossy = new LossyArray(); lossy.push('original');
   for (const value of [undefined, -0, NaN, Infinity, 1n, new Date(), new Map(), [undefined], Array(1), cycle,
-    nonIndex, { run() {} }, { [Symbol('hidden')]: true }]) assert.throws(() => assertJsonValue(value));
+    nonIndex, lossy, { run() {} }, { [Symbol('hidden')]: true }]) assert.throws(() => assertJsonValue(value));
   let invoked = false;
   assert.throws(() => assertJsonValue({ get bad() { invoked = true; return 1; } }));
   assert.equal(invoked, false);
