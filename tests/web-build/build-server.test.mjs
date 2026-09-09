@@ -10,7 +10,7 @@ import { startWebServer } from '../../tools/web/serve.mjs';
 
 async function fixture() {
   const root = await mkdtemp(join(tmpdir(), 'webra2-build-'));
-  for (const name of ['LICENSE', 'LICENSES/GPL-3.0-or-later.txt', 'docs/licensing.md', 'packages/formats/PROVENANCE.md', 'packages/content/PROVENANCE.md', 'node_modules/egoroof-blowfish/LICENSE.md']) {
+  for (const name of ['LICENSE', 'LICENSES/GPL-3.0-or-later.txt', 'docs/licensing.md', 'packages/formats/PROVENANCE.md', 'packages/content/PROVENANCE.md', 'packages/vfs/PROVENANCE.md', 'packages/vfs/HASH_PROVENANCE.md', 'node_modules/@noble/hashes/LICENSE', 'node_modules/egoroof-blowfish/LICENSE.md']) {
     await mkdir(dirname(join(root, name)), { recursive: true }); await copyFile(join(repositoryRoot, name), join(root, name));
   }
   await mkdir(join(root, 'apps/web/src'), { recursive: true });
@@ -33,6 +33,8 @@ test('build emits portable code and notices with a hash manifest, without retail
     const manifest = await buildWeb(root);
     assert.deepEqual(manifest.inputs, ['apps/web/src/main.ts', 'apps/web/src/style.css']);
     assert.ok(manifest.files.some(row => row.name === 'app.css'));
+    assert.ok(manifest.files.some(row => row.name === 'licenses/noble-hashes.txt'));
+    assert.ok(manifest.files.some(row => row.name === 'licenses/packages-vfs-HASH_PROVENANCE.md.txt'));
     assert.ok(manifest.files.some(row => row.name === 'LICENSES/GPL-3.0-or-later.txt'));
     assert.match(await readFile(join(root, 'dist/app.js'), 'utf8'), /Synthetic app/);
     assert.equal((await buildWeb(root)).files.find(row => row.name === 'app.js').sha256, manifest.files.find(row => row.name === 'app.js').sha256);

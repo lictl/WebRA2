@@ -49,10 +49,23 @@ editor loader. The Node [verified source reader](analysis/verified-source-reader
 and its original tests also use MIT. These separable components do not relicense the
 GPL components with which a future application may combine them.
 
+The browser source/inspection and incremental hashing adapters use GPL-3.0-or-later
+consistently with the content pipeline they compose. Hashing uses the MIT-licensed
+@noble/hashes primitive; its exact package identity and full notice are in
+[hash provenance](../packages/vfs/HASH_PROVENANCE.md). Complete-root verification
+is a byte identity check, not a game content license or publisher authenticity claim.
+The runtime CSF lookup also retains the content component's GPL license and source
+attribution; decoded catalogs remain local to the player.
+
+The original [synthetic simulation and save/replay foundation](simulation-foundation.md)
+and its tests use MIT with no added runtime dependency. That separable license does
+not change GPL obligations for an application combining it with GPL components.
+
 ## Initial pinned dependencies
 
 | Component | Version | License / scope |
 | --- | --- | --- |
+| @noble/hashes | 2.4.0 | MIT; incremental SHA-256/SHA-1 for bounded source verification |
 | egoroof-blowfish | 4.0.3 | MIT; browser-capable cipher primitive used by the MIX reader |
 | TypeScript | 7.0.2 | Apache-2.0; development compiler |
 | tsx | 4.23.13 | MIT; development test loader |
