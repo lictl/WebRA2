@@ -10,7 +10,8 @@
     "test": "node tools/run-tests.mjs",
     "check:docs": "node tools/check-docs.mjs",
     "check:publication": "node tools/check-publication.mjs",
-    "check": "npm run typecheck && npm test && npm run check:docs && npm run check:publication"
+    "check:evidence": "node tools/check-m0-evidence.mjs",
+    "check": "npm run typecheck && npm test && npm run check:docs && npm run check:publication && npm run check:evidence"
   },
   "dependencies": { "egoroof-blowfish": "4.0.3" },
   "devDependencies": {

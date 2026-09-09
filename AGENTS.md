@@ -85,7 +85,7 @@ approval, or original-game observations that agents cannot obtain themselves.
 ## Verification and handoff
 
 Use Node from `.nvmrc` (24.20.0), `npm ci`, then `npm run check` for type checking,
-public synthetic tests, document links and publication-path checks. Run focused
+public synthetic tests, document links, publication paths and M0 metadata consistency. Run focused
 tests with `node tools/run-tests.mjs tests/<area>`. Installation triage remains
 `python3 tools/static_inventory.py game`; private corpus commands are documented
 with their component. Do not describe public synthetic checks as retail validation.

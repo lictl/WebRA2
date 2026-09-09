@@ -1,0 +1,765 @@
+{
+  "schemaVersion": 1,
+  "scope": "M0 source selections and conservative on-device import planning; no runtime or loader implementation",
+  "inputHashes": {
+    "campaign-census.json": "cdbaafd772bfd9b4d983da1612de00da98fb75f11a4658f7d9a9653d48fbef32",
+    "mix-census.json": "0a360b51d7c505ba0a27938fe208a397efefe968d3c76e9dcbddff17349b982a",
+    "native-profile-census.json": "1db8d8adf37dfa397f45f4517c378a8615ff8be82ab6344040bac7c9e76c8c01",
+    "dependency-candidates.json": "3e676225133c431fc9e1ff113ca4d9004b129e8f9aa029af100e04f958e087d2",
+    "locale-dependencies.json": "5a7314feb7a27e89b432c3b37d8a84993f648cc9b141f448dddc6ca507a40c5d",
+    "locale-font-sources.json": "cc6d4f9bec6dcd5205aa50887c35e1b7eb577e11c2ff5dd083d342fc2265c581"
+  },
+  "installation": "Owner-supplied Steam Traditional Chinese; pinned byte identities, historical version labels unverified",
+  "nativeExecutablesRequiredAtRuntime": false,
+  "localeCandidate": {
+    "ownerReported": "Traditional Chinese",
+    "observedCsfLanguageId": 9,
+    "observedPackCount": 1,
+    "nativePlayableLocaleVerified": false
+  },
+  "profiles": [
+    {
+      "profile": "ra2",
+      "referenceId": "steam-owner-zh-Hant-2026-09-09-ra2",
+      "historicalPatchNumber": null,
+      "opening": "all01t.map",
+      "definitionSelectionFingerprintSha256": "0c482312a73b6aefdcdef3cf4c19edf65f7ab0f2d04e92e63e4e3064768122ce",
+      "fingerprintMeaning": "UTF-8 sorted filename NUL member-sha256 lines, LF separators, no trailing LF; definition/locale subset only, not a full runtime content hash",
+      "requiredDefinitionGroups": [
+        {
+          "filename": "ai.ini",
+          "selectedContentSha256": "1feac6ddea6886b177ddf7e5f8580b7a99a63f12684f2cbb42831671bb7a8a79",
+          "equivalentSourceChoices": [
+            {
+              "rootFile": "ra2.mix",
+              "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+              "absoluteOffset": 118221968,
+              "size": 84972,
+              "sha256": "1feac6ddea6886b177ddf7e5f8580b7a99a63f12684f2cbb42831671bb7a8a79"
+            }
+          ],
+          "retainedAlternatives": [],
+          "selectionEvidence": "unique-content-candidate",
+          "nameEvidence": "filename/hash candidate plus matching content grammar; no recovered filename directory"
+        },
+        {
+          "filename": "all01t.map",
+          "selectedContentSha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+          "equivalentSourceChoices": [
+            {
+              "rootFile": "MAPS01.MIX",
+              "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+              "absoluteOffset": 308,
+              "size": 146240,
+              "sha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c"
+            },
+            {
+              "rootFile": "MAPS02.MIX",
+              "rootSha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f",
+              "absoluteOffset": 103716,
+              "size": 146240,
+              "sha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c"
+            }
+          ],
+          "retainedAlternatives": [],
+          "selectionEvidence": "unique-content-candidate",
+          "nameEvidence": "filename/hash candidate plus matching content grammar; no recovered filename directory"
+        },
+        {
+          "filename": "art.ini",
+          "selectedContentSha256": "b477f861063a9509e87b7836b78190204c73bea5ea5595a842c456f5920ea223",
+          "equivalentSourceChoices": [
+            {
+              "rootFile": "ra2.mix",
+              "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+              "absoluteOffset": 118306944,
+              "size": 245825,
+              "sha256": "b477f861063a9509e87b7836b78190204c73bea5ea5595a842c456f5920ea223"
+            }
+          ],
+          "retainedAlternatives": [],
+          "selectionEvidence": "unique-content-candidate",
+          "nameEvidence": "filename/hash candidate plus matching content grammar; no recovered filename directory"
+        },
+        {
+          "filename": "battle.ini",
+          "selectedContentSha256": "a5752a8d49e1c3823fe01a55e0057f91f2996d8b4a78804f197251a79b552a1d",
+          "equivalentSourceChoices": [
+            {
+              "path": "ra2.mix/#3:a8548fd9/#25:889c5b31",
+              "rootFile": "ra2.mix",
+              "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+              "archiveSha256": "d748797f59a652a296d3825e1703b8781380f43eba7b3d1825477752a395ba08",
+              "ordinal": 25,
+              "idHex": "889c5b31",
+              "absoluteOffset": 121822384,
+              "size": 4054,
+              "sha256": "a5752a8d49e1c3823fe01a55e0057f91f2996d8b4a78804f197251a79b552a1d"
+            }
+          ],
+          "retainedAlternatives": [],
+          "selectionEvidence": "unique-content-candidate",
+          "nameEvidence": "filename/hash candidate plus matching content grammar; no recovered filename directory"
+        },
+        {
+          "filename": "game.fnt",
+          "selectedContentSha256": "ec8d6d85db3eedf5a862cc6ffb87bfad4c77279dd946bc2d30879ad9140c8d3f",
+          "equivalentSourceChoices": [
+            {
+              "rootFile": "ra2.mix",
+              "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+              "sha256": "ec8d6d85db3eedf5a862cc6ffb87bfad4c77279dd946bc2d30879ad9140c8d3f",
+              "absoluteOffset": 120161760,
+              "size": 1584195
+            }
+          ],
+          "retainedAlternatives": [],
+          "selectionEvidence": "unique-content-candidate",
+          "nameEvidence": "filename/hash candidate plus matching content grammar; no recovered filename directory"
+        },
+        {
+          "filename": "mapsel.ini",
+          "selectedContentSha256": "f4bcbb678d182c35a4331d69c92150a719d73fc0c95fae36cc52e65d74923982",
+          "equivalentSourceChoices": [
+            {
+              "rootFile": "ra2.mix",
+              "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+              "absoluteOffset": 119095600,
+              "size": 7875,
+              "sha256": "f4bcbb678d182c35a4331d69c92150a719d73fc0c95fae36cc52e65d74923982"
+            }
+          ],
+          "retainedAlternatives": [],
+          "selectionEvidence": "unique-content-candidate",
+          "nameEvidence": "filename/hash candidate plus matching content grammar; no recovered filename directory"
+        },
+        {
+          "filename": "mission.ini",
+          "selectedContentSha256": "49eb674e46058d67a08e0cf4ba31c99b1948d3d2072b10beced873f62226c54e",
+          "equivalentSourceChoices": [
+            {
+              "path": "ra2.mix/#3:a8548fd9/#34:8a782347",
+              "rootFile": "ra2.mix",
+              "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+              "archiveSha256": "d748797f59a652a296d3825e1703b8781380f43eba7b3d1825477752a395ba08",
+              "ordinal": 34,
+              "idHex": "8a782347",
+              "absoluteOffset": 121826448,
+              "size": 9756,
+              "sha256": "49eb674e46058d67a08e0cf4ba31c99b1948d3d2072b10beced873f62226c54e"
+            }
+          ],
+          "retainedAlternatives": [],
+          "selectionEvidence": "unique-content-candidate",
+          "nameEvidence": "filename/hash candidate plus matching content grammar; no recovered filename directory"
+        },
+        {
+          "filename": "ra2.csf",
+          "selectedContentSha256": "60e1238de020831e53465b703f19cb984f33eabbc6d3b6773e4c4efbad3c634b",
+          "equivalentSourceChoices": [
+            {
+              "rootFile": "language.mix",
+              "rootSha256": "870c3bcc596e8690c55077a4c651f88d0dbc35f2a786c6c4891df8ffdb9ce192",
+              "sha256": "60e1238de020831e53465b703f19cb984f33eabbc6d3b6773e4c4efbad3c634b",
+              "absoluteOffset": 37456852,
+              "size": 283368
+            }
+          ],
+          "retainedAlternatives": [],
+          "selectionEvidence": "unique-content-candidate",
+          "nameEvidence": "filename/hash candidate plus matching content grammar; no recovered filename directory"
+        },
+        {
+          "filename": "rules.ini",
+          "selectedContentSha256": "fd1e95cea0306ea78049dc81c8cd816e18c28c496872a1ff02edd50bd082062f",
+          "equivalentSourceChoices": [
+            {
+              "rootFile": "ra2.mix",
+              "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+              "absoluteOffset": 118552784,
+              "size": 541915,
+              "sha256": "fd1e95cea0306ea78049dc81c8cd816e18c28c496872a1ff02edd50bd082062f"
+            }
+          ],
+          "retainedAlternatives": [],
+          "selectionEvidence": "unique-content-candidate",
+          "nameEvidence": "filename/hash candidate plus matching content grammar; no recovered filename directory"
+        },
+        {
+          "filename": "sound.ini",
+          "selectedContentSha256": "0bae295685bbe7e83d7fbd765d25825df392695676b9e73fa456a5c4305bf6f5",
+          "equivalentSourceChoices": [
+            {
+              "rootFile": "ra2.mix",
+              "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+              "absoluteOffset": 119103488,
+              "size": 60455,
+              "sha256": "0bae295685bbe7e83d7fbd765d25825df392695676b9e73fa456a5c4305bf6f5"
+            }
+          ],
+          "retainedAlternatives": [],
+          "selectionEvidence": "unique-content-candidate",
+          "nameEvidence": "filename/hash candidate plus matching content grammar; no recovered filename directory"
+        }
+      ],
+      "assetCandidatesPointer": "dependency-candidates.json:openings:all01t.map",
+      "candidateManifestContainsUnresolvedFiles": true,
+      "minimalAssetsOnlyManifestCertified": false,
+      "fullRuntimeDependencyClosureVerified": false
+    },
+    {
+      "profile": "yr",
+      "referenceId": "steam-owner-zh-Hant-2026-09-09-yr",
+      "historicalPatchNumber": null,
+      "opening": "all01umd.map",
+      "definitionSelectionFingerprintSha256": "28774c5010761ea07f653bbdd3e9634979263a3602c0ea33bbea2f0089ea55b8",
+      "fingerprintMeaning": "UTF-8 sorted filename NUL member-sha256 lines, LF separators, no trailing LF; definition/locale subset only, not a full runtime content hash",
+      "requiredDefinitionGroups": [
+        {
+          "filename": "aimd.ini",
+          "selectedContentSha256": "5df41eaec00a78d0760ef5eecdf27d65ae1cd537309c7eac973318266986f89d",
+          "equivalentSourceChoices": [
+            {
+              "rootFile": "ra2md.mix",
+              "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d",
+              "absoluteOffset": 6239952,
+              "size": 138538,
+              "sha256": "5df41eaec00a78d0760ef5eecdf27d65ae1cd537309c7eac973318266986f89d"
+            }
+          ],
+          "retainedAlternatives": [],
+          "selectionEvidence": "unique-content-candidate",
+          "nameEvidence": "filename/hash candidate plus matching content grammar; no recovered filename directory"
+        },
+        {
+          "filename": "all01umd.map",
+          "selectedContentSha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+          "equivalentSourceChoices": [
+            {
+              "rootFile": "mapsmd03.mix",
+              "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+              "absoluteOffset": 260,
+              "size": 301077,
+              "sha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0"
+            }
+          ],
+          "retainedAlternatives": [],
+          "selectionEvidence": "unique-content-candidate",
+          "nameEvidence": "filename/hash candidate plus matching content grammar; no recovered filename directory"
+        },
+        {
+          "filename": "artmd.ini",
+          "selectedContentSha256": "e1f0378394313c04ebbd5073f47785ee3e46f1b3c62d65724e8f3c310ee7ba31",
+          "equivalentSourceChoices": [
+            {
+              "rootFile": "ra2md.mix",
+              "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d",
+              "absoluteOffset": 6378496,
+              "size": 336535,
+              "sha256": "e1f0378394313c04ebbd5073f47785ee3e46f1b3c62d65724e8f3c310ee7ba31"
+            }
+          ],
+          "retainedAlternatives": [],
+          "selectionEvidence": "unique-content-candidate",
+          "nameEvidence": "filename/hash candidate plus matching content grammar; no recovered filename directory"
+        },
+        {
+          "filename": "battlemd.ini",
+          "selectedContentSha256": "7e40691a3480b1e5ffe6d1cdfccb83f67da4447157607ec3ecb5d2278acf0791",
+          "equivalentSourceChoices": [
+            {
+              "path": "ra2md.mix/#14:fbe0d09d/#105:07e280dd",
+              "rootFile": "ra2md.mix",
+              "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d",
+              "archiveSha256": "cd181596b2deaeacf7bba77e661ae4438d3f778efc0e38ae2b967c410bf3f931",
+              "ordinal": 105,
+              "idHex": "07e280dd",
+              "absoluteOffset": 7825072,
+              "size": 2733,
+              "sha256": "7e40691a3480b1e5ffe6d1cdfccb83f67da4447157607ec3ecb5d2278acf0791"
+            }
+          ],
+          "retainedAlternatives": [],
+          "selectionEvidence": "unique-content-candidate",
+          "nameEvidence": "filename/hash candidate plus matching content grammar; no recovered filename directory"
+        },
+        {
+          "filename": "game.fnt",
+          "selectedContentSha256": "ec8d6d85db3eedf5a862cc6ffb87bfad4c77279dd946bc2d30879ad9140c8d3f",
+          "equivalentSourceChoices": [
+            {
+              "rootFile": "ra2.mix",
+              "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+              "sha256": "ec8d6d85db3eedf5a862cc6ffb87bfad4c77279dd946bc2d30879ad9140c8d3f",
+              "absoluteOffset": 120161760,
+              "size": 1584195
+            }
+          ],
+          "retainedAlternatives": [],
+          "selectionEvidence": "unique-content-candidate",
+          "nameEvidence": "filename/hash candidate plus matching content grammar; no recovered filename directory"
+        },
+        {
+          "filename": "mapselmd.ini",
+          "selectedContentSha256": "074ccccd9e156d586d0ed099ceab78b3d72384c808725d8b5bee2c9799691d52",
+          "equivalentSourceChoices": [
+            {
+              "rootFile": "ra2md.mix",
+              "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d",
+              "absoluteOffset": 7458896,
+              "size": 5573,
+              "sha256": "074ccccd9e156d586d0ed099ceab78b3d72384c808725d8b5bee2c9799691d52"
+            }
+          ],
+          "retainedAlternatives": [],
+          "selectionEvidence": "unique-content-candidate",
+          "nameEvidence": "filename/hash candidate plus matching content grammar; no recovered filename directory"
+        },
+        {
+          "filename": "missionmd.ini",
+          "selectedContentSha256": "ce170ec97fc28589ee971792a31d135e0f0510f878acde3fd0d79a7b7896a775",
+          "equivalentSourceChoices": [
+            {
+              "path": "ra2md.mix/#14:fbe0d09d/#84:eb5cd6b4",
+              "rootFile": "ra2md.mix",
+              "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d",
+              "archiveSha256": "cd181596b2deaeacf7bba77e661ae4438d3f778efc0e38ae2b967c410bf3f931",
+              "ordinal": 84,
+              "idHex": "eb5cd6b4",
+              "absoluteOffset": 7827808,
+              "size": 5034,
+              "sha256": "ce170ec97fc28589ee971792a31d135e0f0510f878acde3fd0d79a7b7896a775"
+            }
+          ],
+          "retainedAlternatives": [],
+          "selectionEvidence": "unique-content-candidate",
+          "nameEvidence": "filename/hash candidate plus matching content grammar; no recovered filename directory"
+        },
+        {
+          "filename": "ra2md.csf",
+          "selectedContentSha256": "1b90bb0756137f46ff529af043fe798d7f1f9fa1713a4110f17e1d674de81f1c",
+          "equivalentSourceChoices": [
+            {
+              "rootFile": "langmd.mix",
+              "rootSha256": "0290bc3e40c38406e2ec6805dc18ef6c3a9b6feee6db42df717ac920e93294c8",
+              "sha256": "1b90bb0756137f46ff529af043fe798d7f1f9fa1713a4110f17e1d674de81f1c",
+              "absoluteOffset": 39346,
+              "size": 332973
+            }
+          ],
+          "retainedAlternatives": [],
+          "selectionEvidence": "unique-content-candidate",
+          "nameEvidence": "filename/hash candidate plus matching content grammar; no recovered filename directory"
+        },
+        {
+          "filename": "rulesmd.ini",
+          "selectedContentSha256": "3d341ef8a13a4b5ab24af2eef48ac94931ac2bb87d950fe3330a07e2d25672ef",
+          "equivalentSourceChoices": [
+            {
+              "rootFile": "expandmd01.mix",
+              "rootSha256": "0c0a64e741bdecdc3843a0beb6bb1f58aa2df5b86eb3bc4a953821ec98f3d6ec",
+              "absoluteOffset": 2220316,
+              "size": 743215,
+              "sha256": "3d341ef8a13a4b5ab24af2eef48ac94931ac2bb87d950fe3330a07e2d25672ef"
+            }
+          ],
+          "retainedAlternatives": [
+            {
+              "rootFile": "ra2md.mix",
+              "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d",
+              "absoluteOffset": 6715040,
+              "size": 742958,
+              "sha256": "06761dd7f714e7d9400216ec3c06109ec5c1461f6a0727be7401eb9d8b0f6d05"
+            }
+          ],
+          "selectionEvidence": "native-expansion-before-base-static-evidence",
+          "nameEvidence": "filename/hash candidate plus matching content grammar; no recovered filename directory"
+        },
+        {
+          "filename": "soundmd.ini",
+          "selectedContentSha256": "0a8e85381aef1a0f97074c953bfe99504da00c6220fae1a023a1afd857023232",
+          "equivalentSourceChoices": [
+            {
+              "rootFile": "expandmd01.mix",
+              "rootSha256": "0c0a64e741bdecdc3843a0beb6bb1f58aa2df5b86eb3bc4a953821ec98f3d6ec",
+              "absoluteOffset": 2963532,
+              "size": 99392,
+              "sha256": "0a8e85381aef1a0f97074c953bfe99504da00c6220fae1a023a1afd857023232"
+            }
+          ],
+          "retainedAlternatives": [
+            {
+              "rootFile": "ra2md.mix",
+              "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d",
+              "absoluteOffset": 7464480,
+              "size": 99292,
+              "sha256": "d1be76491a0888396b4d0e53f4857f33879a5afd40a8bcea65ea1d1a3096d419"
+            }
+          ],
+          "selectionEvidence": "native-expansion-before-base-static-evidence",
+          "nameEvidence": "filename/hash candidate plus matching content grammar; no recovered filename directory"
+        }
+      ],
+      "assetCandidatesPointer": "dependency-candidates.json:openings:all01umd.map",
+      "candidateManifestContainsUnresolvedFiles": true,
+      "minimalAssetsOnlyManifestCertified": false,
+      "fullRuntimeDependencyClosureVerified": false
+    }
+  ],
+  "conservativeDataArchiveSet": {
+    "policy": "Preserve these observed data containers when importing this complete supplied asset set. This deliberately includes multiplayer/unused alternatives; it is not a minimal required set. An assets-only installation may supply equivalent members without any EXE/DLL.",
+    "roots": [
+      {
+        "rootFile": "Arena.mmx",
+        "size": 139288,
+        "sha256": "ed5fa0d7ec4b5e2d8a7110a0fff6cad413ae0437c62521c3c75fd9bc7422c874"
+      },
+      {
+        "rootFile": "Barrel.mmx",
+        "size": 122664,
+        "sha256": "85af2e2b92d7e7b5adec060dd8d4f2e86deca04a3036b4a7f70e55b576ac3545"
+      },
+      {
+        "rootFile": "BayOPigs.mmx",
+        "size": 368568,
+        "sha256": "c97cd03221b5e8da3e752293892876f9babe9d154d1a6f00ab1129e3e3cc3587"
+      },
+      {
+        "rootFile": "Bermuda.mmx",
+        "size": 144696,
+        "sha256": "d78ff21a424b98cc657eab788f2947a61b16864fd1f8f4ba510939a98fb69e75"
+      },
+      {
+        "rootFile": "Break.mmx",
+        "size": 177608,
+        "sha256": "dfa3f2b820865a747a2afb5f9106506dda9e10a42d508d966b9ff7ecca7c741c"
+      },
+      {
+        "rootFile": "Carville.mmx",
+        "size": 146616,
+        "sha256": "3268fd2dd00e0d572497f3ce1540b204929232d92e1a21eec8179be6d6a74796"
+      },
+      {
+        "rootFile": "CrctBrd.yro",
+        "size": 188536,
+        "sha256": "039eb0a5f40aaf33ab3b308123b84ed277456a2846e9f527d8de32eb5728a58f"
+      },
+      {
+        "rootFile": "Deadman.mmx",
+        "size": 108936,
+        "sha256": "8d17f1937e7215ae2bd210506640172e954cc00efa2e620a64717b4da132890d"
+      },
+      {
+        "rootFile": "Death.mmx",
+        "size": 357608,
+        "sha256": "e8174e8ff5fae62b40da452efcb112d21762db5491de96eeac7f5202f7febd43"
+      },
+      {
+        "rootFile": "DeepFrze.yro",
+        "size": 239496,
+        "sha256": "1904d7337ed2eae8ac321e2b31fbbe6b7e3117dd8c99c3c911dbed09931f8b8a"
+      },
+      {
+        "rootFile": "Disaster.mmx",
+        "size": 205512,
+        "sha256": "a8d50554b42940deed6f1d3aefb09d9dcecf929e809e9a73dffce185147a0582"
+      },
+      {
+        "rootFile": "Dustbowl.mmx",
+        "size": 125288,
+        "sha256": "46b07f8968be4c267cbdec5b99cf36e9bde98f4ac0d23b7d634abf86e9165a79"
+      },
+      {
+        "rootFile": "EB1.mmx",
+        "size": 84776,
+        "sha256": "ad8fe28176c00d2a007045ebcf81870c24f94c4619640c60272d54d880713b3b"
+      },
+      {
+        "rootFile": "EB2.mmx",
+        "size": 221784,
+        "sha256": "3f13fce5b69bf0c924730fce66eb65ffc9e3ff65d17be95e7c374b40a3fb5ece"
+      },
+      {
+        "rootFile": "EB3.mmx",
+        "size": 192376,
+        "sha256": "89ebe3f58975c975950e3e781679e48c089fc8317affb10fb3e6e1f2641fac47"
+      },
+      {
+        "rootFile": "EB4.mmx",
+        "size": 157784,
+        "sha256": "919f74c5595171883a348fcfdc35e0f9e4d780d7b712234691b12cfa1ecef82f"
+      },
+      {
+        "rootFile": "EB5.mmx",
+        "size": 99016,
+        "sha256": "4742cbc66c6a6ab8167709c4409b49ac11fbf99a3944fa1ab4f3376ff5095d0c"
+      },
+      {
+        "rootFile": "GoldSt.mmx",
+        "size": 192104,
+        "sha256": "846a51b4d2f98f751f3e1550712def3ee20de56c39f69d751f619a7add124c24"
+      },
+      {
+        "rootFile": "Grinder.mmx",
+        "size": 195544,
+        "sha256": "fb3059207b036e6236dbbc4254d5ae28e2614f5d01094c61cb823151ed81503c"
+      },
+      {
+        "rootFile": "HailMary.mmx",
+        "size": 147096,
+        "sha256": "5bef8191a9991481a71b7029963c789c6e2c954228966484bb6e50f93e8d830d"
+      },
+      {
+        "rootFile": "HighExpR.yro",
+        "size": 120088,
+        "sha256": "7e91a094d647047bed7bc7c7b1795afb3679de48a3566c915c28611ca52c99de"
+      },
+      {
+        "rootFile": "Hills.mmx",
+        "size": 144760,
+        "sha256": "96de259a741f1fc4d0d4bc4de1a1582755e90a77c2404978814149113fc42f22"
+      },
+      {
+        "rootFile": "Ice_Age.yro",
+        "size": 243352,
+        "sha256": "2405488285323f671fbf3da2c706f803b08fa721c8e147c65baa04388faf31cc"
+      },
+      {
+        "rootFile": "IrvineCa.yro",
+        "size": 218792,
+        "sha256": "086def8929b6e65e9e13704e908de189bb189c1bd9bb27d3b99e2f3ad2867767"
+      },
+      {
+        "rootFile": "IsleLand.yro",
+        "size": 162216,
+        "sha256": "426c969e7dda4ff26d533a5ae4c36df20af2479b6146f500ca2c8275c3a5ff85"
+      },
+      {
+        "rootFile": "Kaliforn.mmx",
+        "size": 152712,
+        "sha256": "3da7ebe513ae2e6a78ac6b8343ff3d3c6d3e33bb7f518fe4e37d3e87a1e64497"
+      },
+      {
+        "rootFile": "Killer.mmx",
+        "size": 186648,
+        "sha256": "423c7a997d80f964b4490910da17124efb3b42d49e14b191bbb281d3ae565845"
+      },
+      {
+        "rootFile": "Lostlake.mmx",
+        "size": 210392,
+        "sha256": "39ae274e92a64ca1d5534876de81dffaf7153a696900b22a288d3edb52c81143"
+      },
+      {
+        "rootFile": "MAPS01.MIX",
+        "size": 3823604,
+        "sha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74"
+      },
+      {
+        "rootFile": "MAPS02.MIX",
+        "size": 3170324,
+        "sha256": "8ff61284f726a67760563c7a278c9034ff44baa5ca86a6790eddeb273301b11f"
+      },
+      {
+        "rootFile": "MULTI.MIX",
+        "size": 18666588,
+        "sha256": "c040bcede176677d0faba2f868be6d527ffa2d47e0fff2e048025c0aea629cfc"
+      },
+      {
+        "rootFile": "MojoSprt.yro",
+        "size": 131448,
+        "sha256": "85478c26eeeda91a413fa913a792b0b313f1a09c67a18adb1b8877aaccf2784b"
+      },
+      {
+        "rootFile": "MonsterM.yro",
+        "size": 134008,
+        "sha256": "c52d5bde53596b5c22e19bbfc1723aa7dff9a4390c05d7c4d8ff39196bbb1ef9"
+      },
+      {
+        "rootFile": "MoonPatr.yro",
+        "size": 103576,
+        "sha256": "580a1d2e9c941189c36ba03ee61ac51c82e7616594762e8c3b77e5e19a9a8580"
+      },
+      {
+        "rootFile": "NewHghts.mmx",
+        "size": 64376,
+        "sha256": "058df813b54f353d8a1afe5f2a7e2dbb668acee1abc51f76b232901698b38452"
+      },
+      {
+        "rootFile": "Oceansid.mmx",
+        "size": 175896,
+        "sha256": "f7b2cae8316c09754e2f6017b0674ee7f18427ab213efff67e233c133dc03b71"
+      },
+      {
+        "rootFile": "Pacific.mmx",
+        "size": 191432,
+        "sha256": "dc0d0637aca768bdf361a5485a2ac547c73ae93f94148339c2da8029dde0a62c"
+      },
+      {
+        "rootFile": "Potomac.mmx",
+        "size": 184392,
+        "sha256": "f5f1075e6c338517baaf375db2ea13c6f7c0527cefbe9bee3e62b84cc38e83bc"
+      },
+      {
+        "rootFile": "PowdrKeg.mmx",
+        "size": 324408,
+        "sha256": "8080a0795dceeb7bfb7947c193ee2a372c292c01660b1c42cce90f5829f837f8"
+      },
+      {
+        "rootFile": "RiverRam.yro",
+        "size": 74136,
+        "sha256": "d28f18e16e37a80e30d12bbb3a24f01232cb1d3b2c81109ea104c1c0d061c3a1"
+      },
+      {
+        "rootFile": "Rockets.mmx",
+        "size": 220680,
+        "sha256": "a1f2fc982b1f3f49306be29150a1729b1e3a5be80d262c645af4b0b3d72f1f66"
+      },
+      {
+        "rootFile": "Roulette.mmx",
+        "size": 300168,
+        "sha256": "cc969df0c92aed82d5512cef31240b557b57098cac9807dac4ee1888ff0651fb"
+      },
+      {
+        "rootFile": "Round.mmx",
+        "size": 109880,
+        "sha256": "d9459f5b328061a2929d8f0954fe59e5bd3201b5dfd0a9d9df3c2265336a6d8b"
+      },
+      {
+        "rootFile": "SeaofIso.mmx",
+        "size": 151176,
+        "sha256": "33ea9f67161ddd0aa377aab25fae841264fb2aabd986c0f0ade465baf126713c"
+      },
+      {
+        "rootFile": "Shrapnel.mmx",
+        "size": 153080,
+        "sha256": "3d0955daa3cc146688d88555c6d0938a2e58648deb25aff51592eb5d8dac77e0"
+      },
+      {
+        "rootFile": "SinkSwim.yro",
+        "size": 84840,
+        "sha256": "655f191407664745d5829b59b34baddcfd287fcd0bbfd9b1e38c03c901571daf"
+      },
+      {
+        "rootFile": "THEME.MIX",
+        "size": 76862662,
+        "sha256": "30027e29599d1c382ef4ca0bdc41590656c79715a46d7c4c68ae5ddfaed1fd4c"
+      },
+      {
+        "rootFile": "Tanyas.mmx",
+        "size": 145656,
+        "sha256": "057082b842d541d04b43c00ae66b2dbdeac208701e40b90d55cbed5444112815"
+      },
+      {
+        "rootFile": "Tower.mmx",
+        "size": 206328,
+        "sha256": "799a3e3021fa221ac9568e0ecc0f3390b1460d257cb3efaca429a97a3a81703a"
+      },
+      {
+        "rootFile": "Transylv.yro",
+        "size": 150264,
+        "sha256": "b4b84f67b389f076f9f4a54105c56410492f1a1c82fbf2444e734ec8b968d02f"
+      },
+      {
+        "rootFile": "Tsunami.mmx",
+        "size": 197448,
+        "sha256": "9beab5c2959d1d70b19c21cb8d33f726995b9b1a4e43d7c8430f7c2bfb758095"
+      },
+      {
+        "rootFile": "Unrepent.yro",
+        "size": 187192,
+        "sha256": "68becb67e757042817247af8a00e43ca67826611f09b5e1ce9b247b32b8a1183"
+      },
+      {
+        "rootFile": "Valley.mmx",
+        "size": 233848,
+        "sha256": "e48aeadd751d4bbd001767e1b8690fe98cf3e4041245a31427d373f88ff5ac5e"
+      },
+      {
+        "rootFile": "WDT.MIX",
+        "size": 6181704,
+        "sha256": "b0fba59c882925fde9925fe9a82d898d342876f6daeb2a1d70b61df96d17fffb"
+      },
+      {
+        "rootFile": "YuriPlot.mmx",
+        "size": 246152,
+        "sha256": "7f61ab979c09f760c432fca8de30cc41e641d67b5d15fa75b22598fe7f03f9f4"
+      },
+      {
+        "rootFile": "amazon.mmx",
+        "size": 151656,
+        "sha256": "7ec7096787bd55550ab26db57a30b665d02a78d709e362e9dc9b66411411d7d0"
+      },
+      {
+        "rootFile": "expandmd01.mix",
+        "size": 4813968,
+        "sha256": "0c0a64e741bdecdc3843a0beb6bb1f58aa2df5b86eb3bc4a953821ec98f3d6ec"
+      },
+      {
+        "rootFile": "invasion.mmx",
+        "size": 146888,
+        "sha256": "fcee76aec1c2b84e98fb49a502bd48f1237e0ea8a81ad6dae9472be36acf8960"
+      },
+      {
+        "rootFile": "langmd.mix",
+        "size": 84643206,
+        "sha256": "0290bc3e40c38406e2ec6805dc18ef6c3a9b6feee6db42df717ac920e93294c8"
+      },
+      {
+        "rootFile": "language.mix",
+        "size": 52913656,
+        "sha256": "870c3bcc596e8690c55077a4c651f88d0dbc35f2a786c6c4891df8ffdb9ce192"
+      },
+      {
+        "rootFile": "mapsmd03.mix",
+        "size": 4419780,
+        "sha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3"
+      },
+      {
+        "rootFile": "movies01.mix",
+        "size": 357481664,
+        "sha256": "b372192bec31af8e1137ed487b55bdb261d7068553d7e465e1bf65b7f56ff0ba"
+      },
+      {
+        "rootFile": "movies02.mix",
+        "size": 304170688,
+        "sha256": "24e7f9435a593ee4eac44f8d18191aeaaead639418725397fda134b3c254dd35"
+      },
+      {
+        "rootFile": "movmd03.mix",
+        "size": 394116336,
+        "sha256": "26959d790cf1f3fa98b078a6b58a6d6cb3167be4495145b65ad2f853a4a5ef71"
+      },
+      {
+        "rootFile": "multimd.mix",
+        "size": 31264268,
+        "sha256": "ff4138ba95f7efd8bded14342fc9082b99c47e43c25ab18236e4eea141b488e9"
+      },
+      {
+        "rootFile": "ra2.mix",
+        "size": 281888480,
+        "sha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914"
+      },
+      {
+        "rootFile": "ra2md.mix",
+        "size": 204527696,
+        "sha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d"
+      },
+      {
+        "rootFile": "thememd.mix",
+        "size": 46859102,
+        "sha256": "8ac4ca1e48ce8f34cd1d5cf5b3a612dd045c97d320dcfd7d10c0c1e791dc19c5"
+      },
+      {
+        "rootFile": "xmas.mmx",
+        "size": 113192,
+        "sha256": "b0222137a3bb63caf68bbb0421742bf3f428f0d1b870511f397ec63b339d1576"
+      }
+    ]
+  },
+  "remainingSelectionGates": [
+    "dynamic theater/side and wildcard conflicts if encountered by required content",
+    "native indexed audio and localized cinematic lookup",
+    "packed map and opcode-generated dependencies",
+    "default/inherited rules and actual activation semantics"
+  ]
+}
