@@ -31,13 +31,24 @@ adapts pinned OpenRA and EA/XCC definitions and unpacking under GPL-3.0-or-later
 [TMP provenance](../packages/formats/TMP_PROVENANCE.md) preserves their notices.
 The selected-frame SHP runtime separately preserves its OpenRA/EA/XCC references in
 [runtime sprite provenance](../packages/formats/SHP_RUNTIME_PROVENANCE.md). Its
-notice also accompanies the development bundle.
+notice also accompanies the development bundle. VXL/HVA decoding preserves the
+OpenRA/EA-XCC attribution under GPL-3.0-or-later in
+[voxel provenance](../packages/formats/VOXEL_PROVENANCE.md); no model, animation
+transform or normal-vector table is distributed.
 Original runtime INI, terrain/object/mission-logic tables, structural object bindings, theater mappings, terrain preview and verified catalog
 profile composition use the content component's GPL-3.0-or-later license. No decoded retail map or tile is shipped.
 
 The CPU terrain scene and composing browser viewport are GPL-3.0-or-later;
 [render provenance](../packages/render/PROVENANCE.md) records pinned OpenRA placement
-and composition references. This notice accompanies the development bundle.
+and composition references. The selected-frame SHP compositor uses the same license;
+[sprite layer provenance](../packages/render/SPRITE_PROVENANCE.md) records its
+OpenRA references and explicit WebRA2 anchor, depth and remap policies. These
+notices accompany the development bundle.
+
+The original bounded mission trigger interpreter and fixtures are GPL-3.0-or-later;
+[mission runtime provenance](../packages/sim/MISSION_LOGIC_PROVENANCE.md) separates
+factual native analysis from source reuse and preserves the existing compiler
+attribution. It adds no dependency. Its notice accompanies the development bundle.
 
 The locale/font coverage scanner and verified analysis CLI retain GPL-3.0-or-later.
 The `fonT` adaptation preserves the MIT copyright and permission notice for Belonit's

@@ -18,6 +18,10 @@ separate diamond coverage, bounded viewport allocation/work, CPU palette/depth
 composition and private visible-owner picking. No retail pixels, palettes or map
 geometry are included. Native lighting, remap and rendering fidelity are unverified.
 
+The selected-frame SHP extension has a separate [sprite layer notice](SPRITE_PROVENANCE.md)
+covering its pinned references, explicit placement/remap policies and original fixtures.
+Both notices accompany the development build.
+
 The [GPLv3 license text](../../LICENSES/GPL-3.0-or-later.txt) and this notice accompany
 the development bundle. A distributed combined program must include corresponding
 source and preserve its component notices; the repository's MIT license does not
