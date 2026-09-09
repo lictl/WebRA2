@@ -8,15 +8,16 @@ The original MIT implementation is in
 [world-replay.ts](../packages/sim/src/world-replay.ts).
 
 Current component scope is explicit WebRA2 cell movement on caller-supplied data.
-The native typed-entity and terrain adapters are still being integrated. No
+The native typed-entity and terrain adapter now runs both opening placement sets;
+base footprint integration is still pending. No
 original campaign is playable, and this code does not change the existing
 practice simulation or its saved-game policy.
 
 ## Model and interpretation boundary
 
 `createWorldModel` takes content identity, mission/definition hashes, stable entity
-IDs and source row/type joins, initial health, owners, navigation-class bindings
-and explicit extra blocked cells. It owns/freeze-copies these values; grids must
+IDs and source row/type joins, initial health, owners, navigation-class bindings,
+explicit extra blocked cells and optional stationary-entity footprint cells. It owns/freeze-copies these values; grids must
 be genuine navigation factory handles with the same content identity. An entity
 has a logical cell, optional health, explicit whole-cell blocking and an integer
 movement credit `0..255`. Each grid supplies a cost scale `1..256`. Neither pixels
@@ -63,7 +64,13 @@ permissions/corners are checked before an edge starts; only its source and
 destination are reserved while moving. Infantry subcells, flight layers, bridges,
 footprints, acceleration, turning, transport and native collision fidelity need
 their own interpreted model/policy. This whole-cell baseline makes those
-limitations explicit rather than calling them original behavior.
+limitations explicit rather than calling them original behavior. Optional model `footprints` hold extra
+absolute cells per stationary entity, excluding an anchor already handled by
+`blocksCell`. Their sorted identity is hashed; they are occupied while the owning
+entity has nonzero or null health. Zero health releases both anchor and extra
+cells. Mobile owners, duplicate cells/owners and empty footprints fail. Total
+extra footprint cells are independently capped at 16,384. This supports later
+health changes without making destroyed structures permanently block a route.
 
 ## Checkpoints, replay and resource bounds
 
@@ -107,7 +114,7 @@ Worker termination remains the outer cancellation mechanism for synchronous work
 ## Validation and remaining integration
 
 Run `node --import tsx --test tests/sim/world.test.ts` and `npm run check`.
-Seventeen original tests cover canonical models, integer velocity, obstacle detours,
+Nineteen original core tests cover canonical models, integer velocity, obstacle detours,
 shared starts, competing reservations, control replacement/stopping, ownership,
 fair planning, malformed/mismatched saves, admission/replay timing and pending
 orders. Moving checkpoint restores produce identical subsequent traces/state;
@@ -122,3 +129,58 @@ for every supplied placement. Browser snapshot/orders then follow the
 [placed-artwork UI #111](https://github.com/lictl/WebRA2/issues/111). Weapon/combat,
 full trigger/team behavior and campaign progression remain required before
 claiming a playable original mission.
+
+## Opening-world content adapter
+
+[world-content.ts](../packages/sim/src/world-content.ts) is original GPL-3.0-or-later
+composition; it does not relicense the separable MIT core. Its
+[notice](../packages/sim/WORLD_CONTENT_PROVENANCE.md) accompanies the build.
+`compileWorldContent({mapBytes,rules,definitions,traversal})` requires genuine
+entity-definition and traversal factory results, exact profile/mission identity,
+and identical ordered rule source pins. It owns/hashes the map bytes, recompiles
+placements and staged construction, and checks every row/type/owner/raw-strength
+join before producing a model. Rules byte authentication remains the verified
+import pipeline's responsibility; metadata alone is not source authentication.
+
+The adapter assigns entity ID `placementIndex+1` in the existing deterministic
+placement order. Players retain construction house indices and literal names.
+The development controller defaults to the unique exact map `Basic.Player` house
+name, otherwise remains unselected. This explicit UI choice is not a native
+campaign-player initialization claim. Every placement has a model entity and an
+explicit mobile/stationary/passive/unavailable status with reasons. Unsupported
+health remains null, unsupported motion remains stationary, and campaign readiness
+remains false. No art readiness flag decides simulation capabilities.
+
+Supported movement consumes the compiled positive scaled Speed and a matching
+supported grid for walk/drive/hover/mech/ship labels. It still uses the explicit
+15 Hz WebRA2 cell policy, with no acceleration, turning, crushing or special
+MovementZone execution. Aircraft have no ground-blocking fallback. Smudges are
+nonblocking; initial terrain/structure/ground actor anchors use explicit baseline
+whole-cell occupancy. Native base masks from
+[#125](https://github.com/lictl/WebRA2/issues/125) must be integrated before this
+component's final review and real movement UI acceptance. The current counts below
+are an interim anchor-policy checkpoint, not footprint or gameplay acceptance.
+
+Five original pipeline tests check both profiles, all six placement families,
+stable IDs/ownership/health, supported movement, moving restore/replay, source and
+factory rejection, explicit player selection and lower resource caps. A private
+probe under ignored `local/world-content/` reuses actual verified profile/terrain
+preparation and fresh entity compilation. It verifies all initial world coordinates
+against the freshly compiled map placements and runs a supported player-unit order
+selected by navigation, without a hardcoded mission objective.
+
+| Interim private component run | RA2 opening | YR opening |
+| --- | ---: | ---: |
+| Accounted placements | 811 | 570 |
+| Movable / stationary / passive / unavailable | 58 / 190 / 562 / 1 | 70 / 189 / 307 / 4 |
+| Houses / default development player | 8 / 0 | 17 / 0 |
+| Moving checkpoint progress | 7,680 | 10,240 |
+| Restored and admission-replayed terminal tick | 122 | 122 |
+
+Unavailable actors have unsupported starting terrain (1/2) or an unsupported
+locomotor (0/2). All source hashes/row joins are verified by the composing pipeline;
+continuous and restored traces/state and replay terminal hashes match. This is an
+actual-content movement/state check, not an independent native movement oracle
+or an actual browser test. Raw models, rows, selected commands and saves stay
+private. The source/traversal/definition fingerprints and explicit adapter policy
+feed the world model hash; the save contains none of those immutable asset tables.

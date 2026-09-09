@@ -13,16 +13,25 @@ CPU composition are also merged. Both opening terrains now render in actual desk
 The current work adds object artwork, native scenario construction and persistent
 cinematics. No original mission is playable yet.
 
-Current wave: coordinator [authoritative world movement #120](https://github.com/lictl/WebRA2/issues/120);
-browser agent [placed-object viewport #111](https://github.com/lictl/WebRA2/issues/111);
-format agent [terrain traversal #119](https://github.com/lictl/WebRA2/issues/119);
-simulation agent [typed entity definitions #113 / PR #122](https://github.com/lictl/WebRA2/pull/122).
-Exact staged artwork #110 and persistent media #101 have merged after independent
-reviews and checks. The media component has complete long-clip playback in Chrome,
-Edge and Firefox; Safari's hidden-page scheduling gap remains
-[#115](https://github.com/lictl/WebRA2/issues/115), and campaign cinematic acceptance
-remains #12. #103 retains the remaining exact-source consumer migrations. No
-original campaign is playable yet.
+Current wave: coordinator [authoritative world movement #120 / PR #123](https://github.com/lictl/WebRA2/pull/123);
+browser agent [world orders/save UI #127](https://github.com/lictl/WebRA2/issues/127);
+format agent [native foundation masks #125](https://github.com/lictl/WebRA2/issues/125);
+simulation agent [weapon/projectile/warhead definitions #126](https://github.com/lictl/WebRA2/issues/126).
+Typed entity definitions [PR #122](https://github.com/lictl/WebRA2/pull/122) merged as
+`f172d8db6def090f61b51350dd0b4f29fe8d843e`; placed artwork
+[PR #121](https://github.com/lictl/WebRA2/pull/121) as
+`f2197a810713bb2a21d865a9b2525dacfd3a2fe0`; terrain traversal
+[PR #124](https://github.com/lictl/WebRA2/pull/124) as
+`3ed4e5644f183aee942131ff294ecbbf20da581f`. All have independent exact-head
+COMMENT reviews and successful checks. Both opening artwork previews pass actual
+Chrome/Firefox/Edge/Safari. World core review at `0ecf8b3` resolved the checkpoint
+overlap/static-relocation finding; the new stationary footprint support and native
+content adapter require another review. Interim private world runs account for all
+811/570 placements and preserve moving restore/replay at tick 122; native footprint
+and actual browser movement integration are pending. No original mission is playable.
+The media component has complete long-clip playback in Chrome, Edge and Firefox;
+Safari's hidden-page scheduling gap remains [#115](https://github.com/lictl/WebRA2/issues/115),
+and campaign cinematic acceptance remains #12. #103 retains exact-source consumer migrations.
 Build/import decisions are recorded in [ADR 0003](adr/0003-browser-build-and-import-boundary.md).
 No essential human input is currently needed. Finish each reviewed slice and continue
 through the accepted milestones; do not stop simply because this first wave merges.
@@ -54,12 +63,13 @@ the coordinator after independent exact-head COMMENT review and successful check
 | Role | Current work and exclusive paths | Branch / private worktree |
 | --- | --- | --- |
 | Coordinator | #120 authoritative movement/model/save/replay and native adapters; shared configuration/handoff and independent reviews | `codex/120-world-movement` at root |
-| browser_feasibility | #111 mission artwork UI; apps/web/**, tests/browser/**, tests/web-ui/terrain.test.ts, docs/object-viewport.md; sole native UI owner | `codex/111-object-viewport`, `local/worktrees/object-viewport` |
-| mix_reader | #119 native terrain traversal; #116 and #111 code reviews completed | `codex/119-terrain-traversal`, separate private worktree |
-| bootstrap_review | #113 typed entity definitions; new content compiler/tests/provenance; media native/build review completed | `codex/113-entity-definitions`, `local/worktrees/entity-definitions` |
+| browser_feasibility | #127 world orders/save UI; apps/web/**, tests/browser/**, tests/web-ui/terrain.test.ts and focused docs; sole native UI owner | `codex/127-world-ui`, `local/worktrees/world-ui` |
+| mix_reader | #125 native base foundation masks; new content compiler/tests/provenance | `codex/125-foundation-occupancy`, separate private worktree |
+| bootstrap_review | #126 typed weapon/projectile/warhead definitions; new content compiler/tests/provenance | `codex/126-weapon-definitions`, separate private worktree |
 
 The shared wire contracts stay unchanged. The browser worker owns the approved
-private terrain protocol v2 and named placed-still preview policy. The coordinator
+private terrain protocol v3 for the world UI and named placed-still preview policy.
+The accepted preview server4174 remains immutable, alongside prior4173/media8767. The coordinator
 owns navigation/world motion; the simulation worker owns typed-definition policy. New world
 integration must join those policies deliberately before exposing native orders.
 Past merged research worktrees remain preserved. No worker starts extra agents.
