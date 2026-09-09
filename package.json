@@ -4,18 +4,26 @@
   "private": true,
   "type": "module",
   "license": "SEE LICENSE IN docs/licensing.md",
-  "engines": { "node": ">=24.20.0 <25" },
+  "engines": {
+    "node": ">=24.20.0 <25"
+  },
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "node tools/run-tests.mjs",
     "check:docs": "node tools/check-docs.mjs",
     "check:publication": "node tools/check-publication.mjs",
     "check:evidence": "node tools/check-m0-evidence.mjs",
-    "check": "npm run typecheck && npm test && npm run check:docs && npm run check:publication && npm run check:evidence"
+    "check": "npm run typecheck && npm test && npm run check:docs && npm run check:publication && npm run check:evidence",
+    "build": "node tools/web/build.mjs",
+    "preview": "node tools/web/serve.mjs",
+    "start": "npm run build && npm run preview"
   },
-  "dependencies": { "egoroof-blowfish": "4.0.3" },
+  "dependencies": {
+    "egoroof-blowfish": "4.0.3"
+  },
   "devDependencies": {
     "@types/node": "24.13.3",
+    "esbuild": "0.28.2",
     "tsx": "4.23.13",
     "typescript": "7.0.2"
   }

@@ -1,11 +1,17 @@
 # Current task and refreshed-session handoff
 
-State: **COMPLETE — M0 evidence and feasibility.** Final integration
-[PR #42](https://github.com/lictl/WebRA2/pull/42) is based on reviewed main
-`7b94971bef70035a06057a9d16604f60f7ce0fd5` (sprite PR #41). Consult PR #42 for its
-exact-head review, hosted checks and merge SHA. The owner asked to stop at M0 or
-essential human input; no essential human input was needed. Inspector #27 remains
-queued. Do not start it without a new continuation request.
+State: **WORKING — M1 application, import and deterministic foundation.** The owner
+now authorizes continuing toward a fully playable UI and original RA2/YR campaigns
+until essential human input is needed. This supersedes the previous M0 stopping
+point. M0 integration [PR #42](https://github.com/lictl/WebRA2/pull/42) merged as
+`d590992382d1ce1526942e12b0c5dc51796da1a2`; its evidence remains the baseline.
+Current wave: [UI #27](https://github.com/lictl/WebRA2/issues/27),
+[simulation #43](https://github.com/lictl/WebRA2/issues/43),
+[browser import #44](https://github.com/lictl/WebRA2/issues/44) and
+[build/integration #45](https://github.com/lictl/WebRA2/issues/45).
+Build/import decisions are recorded in [ADR 0003](adr/0003-browser-build-and-import-boundary.md).
+No essential human input is currently needed. Finish each reviewed slice and continue
+through the accepted milestones; do not stop simply because this first wave merges.
 
 Read [M0 exit evidence](analysis/m0-exit.md), [decisions](decisions.md),
 [reference profiles/budgets](adr/0002-reference-profiles-and-initial-budgets.md), then
@@ -26,18 +32,20 @@ product questions or permission requests for ordinary in-scope GitHub work.
 
 ## Current ownership and preserved worktrees
 
-No implementation assignment remains active after the final integration merge.
 Coordinator owns shared configuration/lock/contracts/licensing and this handoff.
-All worker implementations are committed and independently reviewed; merged
-checkouts stay preserved. The sprite diagnostic server on port 8766 is stopped.
-Check current app/server state before reusing browser UI in a future slice.
+Workers use isolated worktrees with exclusive paths; all GitHub merges belong to
+the coordinator after independent exact-head COMMENT review and successful checks.
 
-| Role | Current or preserved work | Branch / private worktree |
+| Role | Current work and exclusive paths | Branch / private worktree |
 | --- | --- | --- |
-| Coordinator | M0 integration PR #42 complete; look up final merge live | `codex/4-m0-exit`, repository root |
-| browser_feasibility | #38 / PR #41 sprite proof and media #40 merged | `codex/38-sprite-sample`, `local/worktrees/sprite`; media checkpoint `local/worktrees/media-presentation` |
-| mix_reader | #31 merged; native font and sprite-palette pairing research complete; implementation and review complete | `codex/31-native-profile-evidence`, `local/worktrees/native-profiles` |
-| bootstrap_review | #32 merged; independently reviewed #40 and audited M0 gates; final integration reviewer | `codex/32-dependency-closure`, `local/worktrees/dependencies` |
+| Coordinator | #45 build/server, shared interfaces/config, integration/handoff | `codex/45-browser-build`, repository root |
+| browser_feasibility | #27 UI: apps/web/**, tests/web-ui/**, docs/import-shell.md; browser UI owner | `codex/27-import-shell`, `local/worktrees/import-shell` |
+| mix_reader | #44 browser sources/inspector: packages/vfs/src/browser-*.ts, tests/vfs/browser-*.test.ts, docs/browser-import.md | `codex/44-browser-import`, `local/worktrees/browser-import` |
+| bootstrap_review | #43 deterministic kernel: packages/sim/**, tests/sim/**, docs/simulation-foundation.md | `codex/43-simulation-foundation`, `local/worktrees/simulation` |
+
+The current wire contracts stay unchanged. The simulation worker owns its internal
+synthetic state policy; importer/UI shared types are coordinated before integration.
+Past merged research worktrees remain preserved. No worker starts extra agents.
 
 Earlier `local/worktrees/{mix,specs,browser,campaign,checksum,profiles,graph}` and
 review checkouts remain preserved. Use `git worktree list` before selecting a new
@@ -45,6 +53,11 @@ branch/worktree. Never stage a private dependency symlink as node_modules; use
 `npm ci` in the checkout. There are at most four active agents including coordinator.
 
 ## Evidence and checks
+
+Current #45 build slice: six synthetic bundle/server tests pass, including private
+path/symlink/external-import rejection, exact code routes and changed output hashes.
+The full integrated suite has 160 public tests before worker changes; app/browser
+validation follows #27/#44 integration. The build entrypoint is owned by #27.
 
 Final integrated baseline: **154 public tests pass**, strict types,
 Markdown links, publication paths and whitespace checks. The new public M0 metadata
@@ -155,14 +168,12 @@ again. Do not push historical unreviewed local branches such as
 
 ## Remaining work and exact next action
 
-M0 exit, reference selections, the 38-mission ledger, budgets, compatibility matrix
-and component notices are integrated. Independent audit found no additional
-essential M0 implementation or human-input gate. Stop at the requested milestone. [#27](https://github.com/lictl/WebRA2/issues/27)
-is the next queued implementation slice: a browser asset inspector with explicit
-profiles, on-device import, progress/cancel, provenance and missing/unsupported
-content diagnostics. Assign exclusive paths and record any build dependency choice
-before starting it on a new authorized continuation. It is not a playable mission.
-The deterministic synthetic foundation follows within M1.
+Build and independently review the current M1 wave. Integrate the importer into the
+shell, then test real selected files, cancellation/error/reselection, Traditional
+Chinese and network boundaries in all four browser families. Connect the synthetic
+simulation/save/replay scenario and verify canonical traces across browsers. Continue
+M1 content/storage and then M2 real map/rendering work from reviewed source profiles;
+no original mission can be called playable with missing required mechanics/opcodes.
 
 [#18](https://github.com/lictl/WebRA2/issues/18) retains full effective-content,
 packed/opcode/default and locale behavior work; [#12](https://github.com/lictl/WebRA2/issues/12)

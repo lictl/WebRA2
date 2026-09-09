@@ -56,11 +56,13 @@ GPL components with which a future application may combine them.
 | egoroof-blowfish | 4.0.3 | MIT; browser-capable cipher primitive used by the MIX reader |
 | TypeScript | 7.0.2 | Apache-2.0; development compiler |
 | tsx | 4.23.13 | MIT; development test loader |
+| esbuild | 0.28.2 | MIT; direct development bundler, already pinned transitively before M1 |
 | @types/node | 24.13.3 | MIT; development types |
 
 Registry versions/licenses and integrity values were checked on 2026-09-09; the lockfile
-records exact dependency trees. Review transitive notices at packaging time. No browser
-engine/WASM binary or final distribution is produced by the current tooling.
+records exact dependency trees. Review transitive notices at packaging time. The M1 build emits local development browser code and component notices from
+explicit source entrypoints; no retail assets or WASM codec binary are included.
+Final release distribution/source packaging remains a separate gate.
 
 Before adding a decoder or vendored source, record upstream URL, exact revision/version,
 files reused or translated, SPDX license, local changes, and a source/distribution plan.
