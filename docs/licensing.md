@@ -22,8 +22,15 @@ part of the published census. No additional runtime dependency was introduced.
 
 The bounded SHP format-2 decoder, analysis CLI and original tests retain
 GPL-3.0-or-later with pinned OpenRA and EA/XCC notices in
-[the sprite provenance](../packages/formats/shp-PROVENANCE.md). The browser probe
-and loopback server are original MIT diagnostics; no retail sprite/palette is shipped.
+[the sprite provenance](../packages/formats/shp-PROVENANCE.md). The composing browser
+probe and loopback server also use GPL-3.0-or-later; no retail sprite/palette is shipped.
+
+The map-pack LZO/LCW codecs retain their pinned OpenRA/minilzo attribution in
+[map-pack provenance](../packages/formats/MAP_PACK_PROVENANCE.md). The TMP decoder
+adapts pinned OpenRA and EA/XCC definitions and unpacking under GPL-3.0-or-later;
+[TMP provenance](../packages/formats/TMP_PROVENANCE.md) preserves their notices.
+Original runtime INI, terrain tables and verified profile composition use the
+content component's GPL-3.0-or-later license. No decoded retail map or tile is shipped.
 
 The locale/font coverage scanner and verified analysis CLI retain GPL-3.0-or-later.
 The `fonT` adaptation preserves the MIT copyright and permission notice for Belonit's
@@ -49,18 +56,39 @@ editor loader. The Node [verified source reader](analysis/verified-source-reader
 and its original tests also use MIT. These separable components do not relicense the
 GPL components with which a future application may combine them.
 
+The browser source/inspection and incremental hashing adapters use GPL-3.0-or-later
+consistently with the content pipeline they compose. Hashing uses the MIT-licensed
+@noble/hashes primitive; its exact package identity and full notice are in
+[hash provenance](../packages/vfs/HASH_PROVENANCE.md). Complete-root verification
+is a byte identity check, not a game content license or publisher authenticity claim.
+The runtime CSF lookup also retains the content component's GPL license and source
+attribution; decoded catalogs remain local to the player.
+
+The original [synthetic simulation and save/replay foundation](simulation-foundation.md)
+and its tests use MIT with no added runtime dependency. That separable license does
+not change GPL obligations for an application combining it with GPL components.
+
+The [application shell](../apps/web/PROVENANCE.md), its original interface text and
+tests are GPL-3.0-or-later. The combined browser bundle retains GPL obligations;
+the build includes the app/component notices, GPL text and adopted runtime dependency
+licenses. System fonts and original HTML/CSS shapes provide the interface; no retail
+artwork, text, font or media is distributed.
+
 ## Initial pinned dependencies
 
 | Component | Version | License / scope |
 | --- | --- | --- |
+| @noble/hashes | 2.4.0 | MIT; incremental SHA-256/SHA-1 for bounded source verification |
 | egoroof-blowfish | 4.0.3 | MIT; browser-capable cipher primitive used by the MIX reader |
 | TypeScript | 7.0.2 | Apache-2.0; development compiler |
 | tsx | 4.23.13 | MIT; development test loader |
+| esbuild | 0.28.2 | MIT; direct development bundler, already pinned transitively before M1 |
 | @types/node | 24.13.3 | MIT; development types |
 
 Registry versions/licenses and integrity values were checked on 2026-09-09; the lockfile
-records exact dependency trees. Review transitive notices at packaging time. No browser
-engine/WASM binary or final distribution is produced by the current tooling.
+records exact dependency trees. Review transitive notices at packaging time. The M1 build emits local development browser code and component notices from
+explicit source entrypoints; no retail assets or WASM codec binary are included.
+Final release distribution/source packaging remains a separate gate.
 
 Before adding a decoder or vendored source, record upstream URL, exact revision/version,
 files reused or translated, SPDX license, local changes, and a source/distribution plan.

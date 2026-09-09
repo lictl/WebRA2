@@ -1,16 +1,29 @@
 # Current task and refreshed-session handoff
 
-State: **COMPLETE — M0 evidence and feasibility.** Final integration
-[PR #42](https://github.com/lictl/WebRA2/pull/42) is based on reviewed main
-`7b94971bef70035a06057a9d16604f60f7ce0fd5` (sprite PR #41). Consult PR #42 for its
-exact-head review, hosted checks and merge SHA. The owner asked to stop at M0 or
-essential human input; no essential human input was needed. Inspector #27 remains
-queued. Do not start it without a new continuation request.
+State: **WORKING — M1 runtime/UI and M2 map presentation.** The owner
+now authorizes continuing toward a fully playable UI and original RA2/YR campaigns
+until essential human input is needed. This supersedes the previous M0 stopping
+point. M0 integration [PR #42](https://github.com/lictl/WebRA2/pull/42) merged as
+`d590992382d1ce1526942e12b0c5dc51796da1a2`; its evidence remains the baseline.
+The [UI #27 / PR #56](https://github.com/lictl/WebRA2/pull/56) has merged after actual
+four-browser import acceptance. Current integration is
+[build #45 / PR #46](https://github.com/lictl/WebRA2/pull/46).
+The first simulation, browser inspector, CSF runtime, incremental hashing and verified
+browser source sessions have merged, along with effective INI, map-pack codecs,
+terrain geometry, worker file reads, verified profile composition, runtime catalog
+and TMP tile decoding. Parallel follow-ups are
+[practice/save UI #75](https://github.com/lictl/WebRA2/issues/75),
+[object placements #72](https://github.com/lictl/WebRA2/issues/72) and
+[theater tile mapping #76](https://github.com/lictl/WebRA2/issues/76).
+Build/import decisions are recorded in [ADR 0003](adr/0003-browser-build-and-import-boundary.md).
+No essential human input is currently needed. Finish each reviewed slice and continue
+through the accepted milestones; do not stop simply because this first wave merges.
 
 Read [M0 exit evidence](analysis/m0-exit.md), [decisions](decisions.md),
 [reference profiles/budgets](adr/0002-reference-profiles-and-initial-budgets.md), then
 the focused component report. M0 completion means an evidence baseline; no gameplay,
-full renderer, mission interpreter, simulation save runtime or multiplayer exists.
+full renderer, mission interpreter or multiplayer exists. M1 now adds a synthetic
+simulation/save/replay runtime; it makes no original campaign behavior claim.
 
 ## Owner decisions
 
@@ -26,18 +39,20 @@ product questions or permission requests for ordinary in-scope GitHub work.
 
 ## Current ownership and preserved worktrees
 
-No implementation assignment remains active after the final integration merge.
 Coordinator owns shared configuration/lock/contracts/licensing and this handoff.
-All worker implementations are committed and independently reviewed; merged
-checkouts stay preserved. The sprite diagnostic server on port 8766 is stopped.
-Check current app/server state before reusing browser UI in a future slice.
+Workers use isolated worktrees with exclusive paths; all GitHub merges belong to
+the coordinator after independent exact-head COMMENT review and successful checks.
 
-| Role | Current or preserved work | Branch / private worktree |
+| Role | Current work and exclusive paths | Branch / private worktree |
 | --- | --- | --- |
-| Coordinator | M0 integration PR #42 complete; look up final merge live | `codex/4-m0-exit`, repository root |
-| browser_feasibility | #38 / PR #41 sprite proof and media #40 merged | `codex/38-sprite-sample`, `local/worktrees/sprite`; media checkpoint `local/worktrees/media-presentation` |
-| mix_reader | #31 merged; native font and sprite-palette pairing research complete; implementation and review complete | `codex/31-native-profile-evidence`, `local/worktrees/native-profiles` |
-| bootstrap_review | #32 merged; independently reviewed #40 and audited M0 gates; final integration reviewer | `codex/32-dependency-closure`, `local/worktrees/dependencies` |
+| Coordinator | #45 final build integration; #62/#69/#71 merged; shared configuration/handoff and next renderer integration | `codex/45-browser-build` at root; preserved component worktrees |
+| browser_feasibility | #27 complete; #75 practice/save UI after #46 merges; apps/web/** and tests/web-ui/**; sole browser UI owner | `codex/27-import-shell`, `local/worktrees/import-shell`; next `codex/75-sandbox-ui` |
+| mix_reader | #76 theater tile mapping; packages/content/src/theater-tiles.ts, its tests and focused doc | `codex/76-theater-tiles`, `local/worktrees/theater-tiles` |
+| bootstrap_review | #72 object placements; packages/content/src/scenario-objects.ts, its tests and focused doc | `codex/72-scenario-objects`, `local/worktrees/scenario-objects` |
+
+The current wire contracts stay unchanged. The simulation worker owns its internal
+synthetic state policy; importer/UI shared types are coordinated before integration.
+Past merged research worktrees remain preserved. No worker starts extra agents.
 
 Earlier `local/worktrees/{mix,specs,browser,campaign,checksum,profiles,graph}` and
 review checkouts remain preserved. Use `git worktree list` before selecting a new
@@ -45,6 +60,57 @@ branch/worktree. Never stage a private dependency symlink as node_modules; use
 `npm ci` in the checkout. There are at most four active agents including coordinator.
 
 ## Evidence and checks
+
+Current #45 integration: **307 public tests pass**, strict types/docs/publication/
+evidence and the actual app/worker build pass (20 code/license files from 19 approved
+inputs). Four additional inherited format/locale notices accompany the development
+bundle. Counts are revision-specific, not additive. #46 still needs its final
+independent review and hosted check before coordinator merge.
+
+All four actual browsers completed the worker's full-folder YR/tolerant import:
+438 files, 118 archives / 14,912 entries, 158 accepted / 280 ignored, 91 named entries,
+eight candidate/two ambiguous requirements. Chrome/Firefox/Edge expose 1,020,238
+bytes; Safari shows the rounded 996.33 KiB display. Chrome RA2/strict completes with
+74 archives / 8,094 entries and 866,848 bytes. The extra editor archive compared
+with the flat M0 probe is unassigned `finalalert2/marble.mix`. Earlier partial counts
+must not replace final results. See [the application report](import-shell.md) for
+exact tested code hashes, UI/cancellation/locale checks and localhost request evidence.
+Observed intervals include native/tool scheduling delays and are not benchmarks;
+Safari remains noticeably slower. No owner input or browser settings change was needed.
+
+After browser acceptance, #74 only renames the shared scope-classification function
+in the inspector's runtime graph. A direct comparison of built output confirms that
+app/CSS/shared chunk bytes are identical to the tested bundle and the import worker
+differs only by that function name and generated local identifier names. No new
+runtime behavior is inferred from the different worker hash. Catalog code is not yet
+connected to the UI. The additional license files do not change runtime behavior.
+
+Verified browser source sessions match both pinned opening root/member identities
+using genuine Node file-backed Blobs; those are component tests, not browser evidence.
+The new map-pack codecs independently decode both openings' six terrain/overlay
+packs; LZO agrees with liblzo2 2.10, LCW with a separate Python grammar implementation.
+PR #58 merged after independent review. Terrain PR #65 additionally compiles 6,336
+RA2 and 15,480 YR cells; all decoded fields and full rectangular overlay arrays
+match independent checks. Unknown tile words/sentinels remain explicit. No cells
+have been rendered or mission played.
+
+Merged PR #68 privately assembles all ten verified definition groups in each profile,
+including local CSF catalogs, map-overridden rules and separate other namespaces.
+It remains a definitions-and-opening-mission identity, not a full runtime manifest.
+Subsequent application integration remains required. Merged PR #74 connects native
+File snapshots to explicit candidate lookup and verified reads. Its private full
+selection probe reproduces every selected M0 definition root/member identity; conflicts
+remain visible. The first catalog is bounded to 512 eligible roots and 16 MiB members.
+
+A measured full-folder scan originally issued 36,923 small range reads; merged #69
+reuses already-read headers and reduces YR requests to 15,438 while preserving all
+metadata except actual byte counts. #64's worker/termination and nested report
+validation passed independent code review and actual browser acceptance. These are
+request-count/control-flow improvements, not a controlled performance benchmark.
+
+TMP PR #73 decodes both supported diamond sizes and optional extra color/depth
+planes; an independent private Python interpreter matches all 1,821 plane hashes
+across 485 present subtiles in 64 members. No actual map has been composited yet.
 
 Final integrated baseline: **154 public tests pass**, strict types,
 Markdown links, publication paths and whitespace checks. The new public M0 metadata
@@ -151,18 +217,39 @@ again. Do not push historical unreviewed local branches such as
 | Transitive dependency candidates | [#32](https://github.com/lictl/WebRA2/issues/32), [PR #39](https://github.com/lictl/WebRA2/pull/39), [review](https://github.com/lictl/WebRA2/pull/39#pullrequestreview-5156103573) | 223684578674763e69f790736875b165f2f1b74e |
 | Four-browser cinematic presentation | [#12](https://github.com/lictl/WebRA2/issues/12), [PR #40](https://github.com/lictl/WebRA2/pull/40), [review](https://github.com/lictl/WebRA2/pull/40#pullrequestreview-5156098847) | 8867db03dbfcefcfc0bbf3004107d08d4925393a |
 | Real SHP/palette proof | [#38](https://github.com/lictl/WebRA2/issues/38), [PR #41](https://github.com/lictl/WebRA2/pull/41), [implementation review](https://github.com/lictl/WebRA2/pull/41#pullrequestreview-5156299078), [native evidence review](https://github.com/lictl/WebRA2/pull/41#pullrequestreview-5156347564) | 7b94971bef70035a06057a9d16604f60f7ce0fd5 |
-| M0 exit integration | [#4](https://github.com/lictl/WebRA2/issues/4), [#33](https://github.com/lictl/WebRA2/issues/33), [PR #42 and its exact-head review](https://github.com/lictl/WebRA2/pull/42) | Look up PR #42 merge SHA live |
+| M0 exit integration | [PR #42 and review](https://github.com/lictl/WebRA2/pull/42) | d590992382d1ce1526942e12b0c5dc51796da1a2 |
+| Runtime CSF | [#47 / PR #48](https://github.com/lictl/WebRA2/pull/48), [review](https://github.com/lictl/WebRA2/pull/48#pullrequestreview-5156949929) | 5faa730635de01c20600d5224fccae9952b03acb |
+| Synthetic simulation/save/replay | [#43 / PR #50](https://github.com/lictl/WebRA2/pull/50), [review](https://github.com/lictl/WebRA2/pull/50#pullrequestreview-5157079175) | f851660b37d4ba21af9782b4d52fe8045297b672 |
+| Bounded browser inspection | [#44 / PR #51](https://github.com/lictl/WebRA2/pull/51), [review](https://github.com/lictl/WebRA2/pull/51#pullrequestreview-5157079383) | 4229951020ac9693f94fe34204c8563c05c4678a |
+| Incremental source hashing | [#49 / PR #52](https://github.com/lictl/WebRA2/pull/52), [review](https://github.com/lictl/WebRA2/pull/52#pullrequestreview-5157046824) | f7159ccf4c9049cc6cf91472e19c7ae731321727 |
+| Verified browser source sessions | [#53 / PR #57 and review](https://github.com/lictl/WebRA2/pull/57) | 94d57978b5b1b1734e70098fb484e7f24a618f9f |
+| Map-pack LZO/LCW codecs | [#55 / PR #58](https://github.com/lictl/WebRA2/pull/58), [review](https://github.com/lictl/WebRA2/pull/58#pullrequestreview-5157261040) | 61dbf2214ea1f606c4eb058bc09995a79ceb4f13 |
+| Runtime INI | [#54 / PR #60](https://github.com/lictl/WebRA2/pull/60), [review](https://github.com/lictl/WebRA2/pull/60#pullrequestreview-5157317798) | 72b38afdbfbfe160d096135b7cdc992a7c0b0649 |
+| Browser task yields | [#59 / PR #63](https://github.com/lictl/WebRA2/pull/63), [review](https://github.com/lictl/WebRA2/pull/63#pullrequestreview-5157364457) | b04d619c97f3e7e46eb2980809d0d6d9d5096103 |
+| Scenario terrain grids | [#61 / PR #65](https://github.com/lictl/WebRA2/pull/65), [review](https://github.com/lictl/WebRA2/pull/65#pullrequestreview-5157536685) | 050b6f3f7962972ea19f58da6a1af9409cf40029 |
+| Dedicated-worker range reads | [#64 / PR #66](https://github.com/lictl/WebRA2/pull/66), [review](https://github.com/lictl/WebRA2/pull/66#pullrequestreview-5157514259) | 29aad7c898cff8e8729fd52bfddbd0ce55afa9ae |
+| Profile content composition | [#62 / PR #68](https://github.com/lictl/WebRA2/pull/68), [review](https://github.com/lictl/WebRA2/pull/68#pullrequestreview-5157569762) | 8c873f8a011a7737fa4c323379082dc0c22b032a |
+| Bounded member header reuse | [#69 / PR #70](https://github.com/lictl/WebRA2/pull/70), [review](https://github.com/lictl/WebRA2/pull/70#pullrequestreview-5157632074) | be96497f5efe1b18850f1879262acf4f6c72196e |
+| TMP terrain decoder | [#67 / PR #73](https://github.com/lictl/WebRA2/pull/73), [review](https://github.com/lictl/WebRA2/pull/73#pullrequestreview-5157728400) | a0dde393889bb2f92ea356a19f3e3c71c2eed8b9 |
+| Verified browser asset catalog | [#71 / PR #74](https://github.com/lictl/WebRA2/pull/74), [review](https://github.com/lictl/WebRA2/pull/74#pullrequestreview-5157755352) | 9457341122ed9459f00e6132a3839b45933d13fc |
+| Four-browser import shell | [#27 / PR #56](https://github.com/lictl/WebRA2/pull/56), [review](https://github.com/lictl/WebRA2/pull/56#pullrequestreview-5157785291) | 41f0183ccc6d4a39162b9cbdf75f6fbc08eee0cc |
 
 ## Remaining work and exact next action
 
-M0 exit, reference selections, the 38-mission ledger, budgets, compatibility matrix
-and component notices are integrated. Independent audit found no additional
-essential M0 implementation or human-input gate. Stop at the requested milestone. [#27](https://github.com/lictl/WebRA2/issues/27)
-is the next queued implementation slice: a browser asset inspector with explicit
-profiles, on-device import, progress/cancel, provenance and missing/unsupported
-content diagnostics. Assign exclusive paths and record any build dependency choice
-before starting it on a new authorized continuation. It is not a playable mission.
-The deterministic synthetic foundation follows within M1.
+Finish exact-head review/CI and merge #46. Start the already assigned #75 practice
+scenario/save UI in a fresh worktree from main; its app-private simulation worker is
+planned at `apps/web/src/simulation-worker.ts` → `/workers/simulation.js`. Coordinator
+adds that explicit build/server route only when the entry exists during #75 integration.
+Worker-owned deterministic state, bounded integer stepping, three fixed IndexedDB
+slots and canonical save/restore/replay equivalence are accepted next-slice choices.
+The original synthetic scenario must remain visibly separate from campaign play.
+
+In parallel, finish #72 object placement and #76 theater/TMP mapping. Then connect
+verified catalog/profile/terrain/object data to a real map viewport with palettes,
+elevation, camera and picking. Extend loose theater asset recognition deliberately;
+M1 ZIP import, large loose-asset catalogs, storage/error paths and content/mod selection
+still need implementation. Continue through the accepted campaign milestones;
+no original mission is playable while required mechanics/opcodes are absent.
 
 [#18](https://github.com/lictl/WebRA2/issues/18) retains full effective-content,
 packed/opcode/default and locale behavior work; [#12](https://github.com/lictl/WebRA2/issues/12)
