@@ -4,7 +4,7 @@ import { censusValue, ContentError, type IniDocument, type IniEntry } from './in
 import { compileCampaignGraph, copyGraphSource, summarizeCampaignGraph, validateGraphSource, type GraphDocument, type GraphSource } from './campaign-graph.ts';
 import { DEPENDENCY_FIELDS, PREREQUISITE_GROUPS, type DependencyKind, type Requirement } from './dependency-schema.ts';
 export interface DependencyDocument { profile: 'ra2' | 'yr'; role: GraphDocument['role'] | 'sound'; source: GraphSource; document: IniDocument }
-export interface FileCandidate { rootFile: string; rootSha256: string; archivePath: string; archiveSha256: string; absoluteOffset: number; size: number; memberId: string; ordinal: number; hashKinds: ('classic' | 'crc32')[] }
+export interface FileCandidate { rootFile: string; rootSha256: string; archivePath: string; archiveSha256: string; absoluteOffset: number; size: number; memberId: string; ordinal: number; hashKinds: ('classic' | 'crc32')[]; numericAliasEvidence?: string }
 export interface AudioCandidate { index: GraphSource; bag: FileCandidate; ordinal: number; offset: number; size: number; sampleRate: number; flags: number; chunkSize: number }
 export interface DependencyLocation { source: number; line: number }
 export interface DependencyNode { id: number; kind: DependencyKind; at: DependencyLocation; filename?: string; candidates?: FileCandidate[]; audioCandidates?: AudioCandidate[] }
@@ -66,7 +66,7 @@ export function compileDependencyCandidates(profile: 'ra2' | 'yr', inputs: Depen
   }
   function eligible(kind: DependencyKind, s: Section) {
     if (kind === 'sound') return s.role === 'sound';
-    if (['art', 'animation', 'voxel-animation'].includes(kind)) return s.role === 'art';
+    if (['art', 'animation'].includes(kind)) return s.role === 'art';
     return s.role === 'rules' || s.role === 'mission';
   }
   function reference(from: number, kind: DependencyKind, name: string, field: string, at: DependencyLocation, requirement: Requirement, evidence: string) {
@@ -92,6 +92,7 @@ export function compileDependencyCandidates(profile: 'ra2' | 'yr', inputs: Depen
   }
   function tokens(row: IniEntry, source: number, list: boolean): string[] {
     const value = censusValue(row.value);
+    if (absent(value)) return [];
     if (!list) { if (value.includes(',')) { diagnostic('unsupported-scalar-list', { source, line: row.line }); return []; } return [value]; }
     let count = 1; for (const c of value) if (c === ',' && ++count > limits.tokens) fail('dependency-token-limit');
     const values = value.split(',').map(s => s.trim());
@@ -114,7 +115,7 @@ export function compileDependencyCandidates(profile: 'ra2' | 'yr', inputs: Depen
     }
     edge(from, id, field, at, requirement, 'ea-editor-file-convention');
   }
-  function copyFile(m: FileCandidate): FileCandidate { return { rootFile: m.rootFile, rootSha256: m.rootSha256, archivePath: m.archivePath, archiveSha256: m.archiveSha256, absoluteOffset: m.absoluteOffset, size: m.size, memberId: m.memberId, ordinal: m.ordinal, hashKinds: [...m.hashKinds] }; }
+  function copyFile(m: FileCandidate): FileCandidate { return { rootFile: m.rootFile, rootSha256: m.rootSha256, archivePath: m.archivePath, archiveSha256: m.archiveSha256, absoluteOffset: m.absoluteOffset, size: m.size, memberId: m.memberId, ordinal: m.ordinal, hashKinds: [...m.hashKinds], ...(m.numericAliasEvidence ? { numericAliasEvidence: m.numericAliasEvidence } : {}) }; }
   function sample(from: number, name: string, at: DependencyLocation) {
     const normalized = fold(name).replace(/\.wav$/, '');
     if (!validSymbol(normalized)) { diagnostic('unsupported-audio-name', at, from); return; }
@@ -133,6 +134,21 @@ export function compileDependencyCandidates(profile: 'ra2' | 'yr', inputs: Depen
     const section = byLine.get(`${source}:${item.at.line}`); if (!section) fail('dependency-seed-location');
     seeds.push(sectionNode(item.kind, section!));
   }
+  if (seeds.length) {
+    const mission = docs[rootAt.source]!;
+    const theaters = new Map([['temperate', ['tem', 'temperat']], ['snow', ['sno', 'snow']], ['urban', ['urb', 'urban']], ['newurban', ['ubn', 'urbann']], ['desert', ['des', 'desert']], ['lunar', ['lun', 'lunar']]]);
+    for (const row of mission.document.entries) {
+      const at = { source: rootAt.source, line: row.line };
+      if (fold(row.section) === 'map' && fold(row.key) === 'theater') {
+        const theater = theaters.get(fold(row.value));
+        if (!theater) diagnostic('unsupported-theater-name', at);
+        else for (const base of [`unit${theater[0]}`, `iso${theater[0]}`, theater[1]!]) file(seeds[0]!, base, '.pal', 'map-theater-palette-candidate', at, 'conditional');
+      }
+      if (fold(row.section) === 'basic' && /^(intro|brief|win|lose|action|postscore|premapselect)$/.test(fold(row.key))) {
+        for (const extension of ['.bik', '.vqa']) file(seeds[0]!, row.value, extension, 'cinematic-direct-name-probe', at, 'optional');
+      }
+    }
+  }
   for (let cursor = 0; cursor < queue.length; cursor++) {
     const item = queue[cursor]!, n = nodes[item.node]!, s = item.section;
     const atRow = (r: IniEntry) => ({ source: s.at.source, line: r.line });
@@ -147,8 +163,11 @@ export function compileDependencyCandidates(profile: 'ra2' | 'yr', inputs: Depen
       const hasVoxel = n.kind === 'voxel-animation' || voxels.some(v => /^(yes|true|1)$/.test(v));
       const isTheater = s.rows.some(r => ['theater', 'newtheater'].includes(fold(r.key)) && /^(yes|true|1)$/.test(fold(r.value)));
       for (const { value, at } of values) {
-        file(n.id, value, hasVoxel ? '.vxl' : '.shp', 'image-file', at, 'required');
-        if (hasVoxel) { file(n.id, value, '.hva', 'voxel-transform-file', at, 'required'); file(n.id, value + 'tur', '.vxl', 'voxel-turret-probe', at, 'optional'); file(n.id, value + 'barl', '.vxl', 'voxel-barrel-probe', at, 'optional'); }
+        file(n.id, value, hasVoxel ? '.vxl' : '.shp', 'image-file', at, n.kind === 'voxel-animation' ? 'optional' : 'required');
+        if (hasVoxel) {
+          file(n.id, value, '.hva', 'voxel-transform-file', at, n.kind === 'voxel-animation' ? 'optional' : 'required');
+          for (const part of ['tur', 'barl']) for (const extension of ['.vxl', '.hva']) file(n.id, value + part, extension, 'voxel-attachment-probe', at, 'optional');
+        }
         if (isTheater && fold(value).length > 1) {
           diagnostic('theater-fallback-order-unverified', at, n.id);
           for (const theater of ['a', 't', 'u', 'd', 'l', 'n']) file(n.id, fold(value)[0]! + theater + fold(value).slice(2), '.shp', 'theater-image-probe', at, 'optional');
@@ -162,13 +181,17 @@ export function compileDependencyCandidates(profile: 'ra2' | 'yr', inputs: Depen
         for (const value of tokens(row, s.at.source, schema.list)) reference(n.id, schema.target, value, key, at, schema.requirement, schema.evidence);
       }
       if (n.kind === 'art' && /^(cameo|altcameo|buildup)$/.test(key)) file(n.id, row.value, '.shp', key, at, key === 'altcameo' ? 'optional' : 'conditional');
+      if (n.kind === 'art' && key === 'bibshape') file(n.id, row.value, '.shp', key, at, 'conditional');
+      if (['art', 'animation'].includes(n.kind) && key === 'palette') file(n.id, row.value, '.pal', 'explicit-palette', at, 'conditional');
       if (n.kind === 'sound' && key === 'sounds') {
         const raw = censusValue(row.value); let count = 0;
+        let inToken = false, tokenCount = 0;
+        for (const character of raw) { if (/[\s,]/.test(character)) inToken = false; else if (!inToken) { inToken = true; if (++tokenCount > limits.tokens) fail('dependency-token-limit'); } }
         const values = raw.split(/[\s,]+/); if (values.length > limits.tokens) fail('dependency-token-limit');
         for (const value of values) if (value) { const name = value.replace(/^\$/, ''); if (value !== name) diagnostic('audio-token-prefix-unverified', at, n.id); file(n.id, name, '.wav', 'sound-loose-wave-candidate', at, 'optional'); sample(n.id, name, at); count++; }
         if (!count) diagnostic('empty-sound-sample-list', at, n.id, 'sounds');
       }
-      if ((n.kind === 'animation' && key === 'spawnsparticle') || (n.kind === 'projectile' && key === 'airburstspread')) {
+      if ((n.kind === 'animation' && key === 'spawnsparticle') || (n.kind === 'projectile' && key === 'airburstspread') || (n.kind === 'voxel-animation' && key === 'voxelindex')) {
         diagnostic('numeric-operand-semantics-unsupported', at, n.id, key);
         edge(n.id, node('missing', at), key, at, 'unsupported', 'numeric-selector-not-recovered');
       }

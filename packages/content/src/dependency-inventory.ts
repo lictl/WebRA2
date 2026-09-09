@@ -6,7 +6,8 @@ export interface PhysicalDependencyInventory { archives: { path: string; rootFil
 function integer(n: number) { return Number.isSafeInteger(n) && n >= 0 && !Object.is(n, -0); }
 function name(n: string) { return typeof n === 'string' && n.length > 0 && n.length <= 2048 && !/[\x00-\x1f\x7f]/.test(n); }
 function hash(n: string) { return typeof n === 'string' && /^[a-f0-9]{64}$/.test(n); }
-export function createDependencyFileResolver(input: PhysicalDependencyInventory) {
+export function createDependencyFileResolver(input: PhysicalDependencyInventory, numericAliases: readonly { filename: string; id: number; evidence: string }[] = []) {
+  if (numericAliases.length > 128 || numericAliases.some(a => !/^[a-z0-9_][a-z0-9_.-]{0,254}$/i.test(a.filename) || !integer(a.id) || a.id > 0xffffffff || !name(a.evidence))) throw new Error('dependency-alias-limit');
   if (!Array.isArray(input.archives) || input.archives.length > 512) throw new Error('dependency-archive-limit');
   const roots = new Map<string, { size: number; sha256: string }>(), paths = new Set<string>();
   for (const a of input.archives) {
@@ -32,6 +33,10 @@ export function createDependencyFileResolver(input: PhysicalDependencyInventory)
     for (const kind of ['classic', 'crc32'] as const) for (const member of members.get(hashMixName(filename, kind)) ?? []) {
       const key = JSON.stringify(member), found = results.get(key);
       if (found) found.hashKinds.push(kind); else results.set(key, { ...member, hashKinds: [kind] });
+    }
+    for (const alias of numericAliases.filter(a => a.filename.toLowerCase() === filename.toLowerCase())) for (const member of members.get(alias.id) ?? []) {
+      const key = JSON.stringify(member), found = results.get(key);
+      if (found) found.numericAliasEvidence = alias.evidence; else results.set(key, { ...member, hashKinds: [], numericAliasEvidence: alias.evidence });
     }
     return [...results.values()].sort((a, b) => JSON.stringify(a) < JSON.stringify(b) ? -1 : JSON.stringify(a) > JSON.stringify(b) ? 1 : 0);
   };

@@ -58,6 +58,9 @@ test('physical filename candidates preserve hashes and source ranges without sel
   assert.throws(() => resolve('../test.shp'), /unsafe/);
   const invalid = archive('a.mix'); invalid.members[0]!.size = 100;
   assert.throws(() => createDependencyFileResolver({ archives: [invalid] }), /member-identity/);
+  const aliasResolver = createDependencyFileResolver({ archives: [archive('a.mix')] }, [{ filename: 'alias.pal', id, evidence: 'original synthetic explicit numeric alias' }]);
+  assert.equal(aliasResolver('alias.pal')[0]!.numericAliasEvidence, 'original synthetic explicit numeric alias');
+  assert.deepEqual(aliasResolver('alias.pal')[0]!.hashKinds, []);
 });
 
 function audioIndex() {

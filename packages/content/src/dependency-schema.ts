@@ -22,10 +22,15 @@ export const DEPENDENCY_FIELDS: readonly DependencyField[] = [
   field(['projectile'], /^(airburstweapon|shrapnelweapon)$/, 'weapon'),
   field(['projectile'], /^trailer$/, 'animation'),
   field(['warhead'], /^animlist$/, 'animation', true),
+  field(['voxel-animation'], /^spawns$/, 'voxel-animation'),
+  field(['voxel-animation'], /^(bounceanim|expireanim|traileranim)$/, 'animation'),
+  field(['voxel-animation'], /^(startsound|stopsound)$/, 'sound'),
+  field(['voxel-animation'], /^attachedsystem$/, 'particle-system'),
   field(['animation'], /^(next|spawns|traileranim)$/, 'animation'),
   field(['animation'], /^report$/, 'sound'),
   field(['particle-system'], /^holdswhat$/, 'particle', false, 'required'),
   field(['particle'], /^nextparticle$/, 'particle'),
-  field(['art'], /^(bibshape|activeanim\d*|idleanim|superanim\d+|specialanim\d+|turretanim)$/, 'art', false, 'conditional', 'ea-editor'),
+  field(['art'], /^(activeanim\d*|idleanim|superanim\d+|specialanim\d+)$/, 'animation', false, 'conditional', 'ea-editor'),
+  field(['art'], /^turretanim$/, 'art', false, 'conditional', 'ea-editor'),
 ];
 export const PREREQUISITE_GROUPS = new Map([['power', 'prerequisitepower'], ['factory', 'prerequisitefactory'], ['barracks', 'prerequisitebarracks'], ['radar', 'prerequisiteradar'], ['tech', 'prerequisitetech'], ['proc', 'prerequisiteproc']]);
