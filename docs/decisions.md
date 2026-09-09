@@ -66,8 +66,10 @@ Node/TypeScript, the npm lockfile and initial envelopes; [MIX provenance](../pac
 records the adopted archive component. Browser/media reports record measured versions
 and hardware, not a permanent minimum support matrix.
 
-Before M1: production decoder builds, renderer library versus direct WebGL, complete
-save schema v1, minimum browser versions and memory/performance budgets remain.
+Before each relevant implementation slice: production decoder builds, renderer library
+versus direct WebGL, complete save schema v1 and minimum browser versions remain.
+[ADR 0002](adr/0002-reference-profiles-and-initial-budgets.md) establishes initial
+import/media resource gates; gameplay and release hardware budgets remain.
 Choose these in short architecture decision records with alternatives, evidence and
 consequences; do not open-endedly benchmark stacks.
 

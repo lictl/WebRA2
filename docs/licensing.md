@@ -20,6 +20,11 @@ the MIX reader and retain the pinned EA editor/XCC reference and adaptation prov
 credits Olaf van der Spek; no translated game strings or mission/rule payloads are
 part of the published census. No additional runtime dependency was introduced.
 
+The bounded SHP format-2 decoder, analysis CLI and original tests retain
+GPL-3.0-or-later with pinned OpenRA and EA/XCC notices in
+[the sprite provenance](../packages/formats/shp-PROVENANCE.md). The browser probe
+and loopback server are original MIT diagnostics; no retail sprite/palette is shipped.
+
 The locale/font coverage scanner and verified analysis CLI retain GPL-3.0-or-later.
 The `fonT` adaptation preserves the MIT copyright and permission notice for Belonit's
 ra2fnt revision `56da5b30fb53eebfaf35e98b2e1c6b3e150f58af` in

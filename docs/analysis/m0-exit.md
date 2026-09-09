@@ -1,10 +1,10 @@
 # M0 evidence exit record
 
-State: **WORKING** — final integration and the real sprite proof
-[#38](https://github.com/lictl/WebRA2/issues/38) are pending. The owner authorized work
-until M0 completes or essential human input is required. No human input is currently
-essential. This record evaluates the accepted [M0 plan](../plan.md), not campaign
-release compatibility.
+State: **COMPLETE** — the accepted M0 evidence and feasibility gates are satisfied.
+The final integration is [PR #42](https://github.com/lictl/WebRA2/pull/42); its review,
+checks and merge are the authoritative completion record. No essential human input
+was needed. Work stops at the owner-requested milestone; inspector #27 is queued.
+This record evaluates the accepted [M0 plan](../plan.md), not campaign release compatibility.
 
 | M0 criterion | Reviewed evidence | Current boundary |
 | --- | --- | --- |
@@ -15,7 +15,7 @@ release compatibility.
 | Installed locale/font/UI/media dependencies | [Locale evidence](locale-dependencies.md), [source manifest](locale-font-sources.json); PR #37 | One observed Traditional Chinese candidate spanning both games; every non-control CSF character mapped; native layout/speech/subtitle release gates remain |
 | Bounded browser-local reads/storage and CJK | [Initial browser probe](browser-feasibility.md), [Edge/Firefox follow-up](media-presentation.md); PRs #15/#40 | Actual Chrome/Edge/Firefox/Safari File/storage/CJK smoke evidence; full import, eviction, IME and offline product flows await M1/R1 |
 | Candidate real cinematic path and load/memory evidence | [Presentation report](media-presentation.md); PR #40 | Real Bink/PCM displayed/scheduled in four browser families; long-clip rereads/underruns measured; persistent decoder and full cinematic gates remain #12 |
-| Real non-cinematic visual sample | [Sprite task #38](https://github.com/lictl/WebRA2/issues/38) | Pending bounded decoder, native palette pairing, browser sample and independent review |
+| Real non-cinematic visual sample | [SHP/palette sample](shp-sample.md), [native pairing locators](shp-native-pairing.json); PR #41 | Real 800×600 sample displayed in Chrome with independently reproduced pixel hashes; native paired palette uses RGB << 2; bounded format-2 nonzero literal subset only |
 | Initial behavior/save/command/evidence contracts and comparison plan | [Contracts](../../packages/contracts/src/index.ts), [specifications](../specs/README.md), [reference recipes](../specs/reference-recipes.md); PRs #9/#13 | Versioned research/command boundaries and original abstract probes; simulation/save runtime unimplemented |
 | Exact dependencies, licenses, toolchain and budgets | [Licensing](../licensing.md), [ADR 0001](../adr/0001-m0-toolchain-and-contracts.md), [ADR 0002](../adr/0002-reference-profiles-and-initial-budgets.md) | Dependency/source pins and component notices retained; explicit next-slice numeric gates on measured hardware; production codec remains a separate choice |
 
@@ -74,8 +74,13 @@ capabilities. All 38 ledger missions remain INVENTORIED.
 
 The [remaining dependency table](mission-dependencies.md) maps each gap to concrete
 next work. Gameplay, full renderers, mission interpreters, AI, saves and multiplayer
-remain unimplemented. M0 completion will record an evidence baseline and a viable
-implementation route while preserving those release requirements.
+remain unimplemented. M0 records an evidence baseline and a viable implementation
+route while preserving those release requirements.
+
+Final integrated validation: **154 public tests pass**, strict TypeScript,
+local documentation links, publication paths, metadata consistency and whitespace
+checks. Private source, native-range and pixel reproductions are described in the
+component reports and exact-head reviews; no retail fixture is needed in public CI.
 
 Public `npm run check:evidence` checks source-report hashes, filename/source joins,
 selected definition fingerprints, all conservative data roots, the 38 campaign rows,

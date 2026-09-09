@@ -1,11 +1,11 @@
 # Current task and refreshed-session handoff
 
-State: **WORKING** — final M0 integration on `codex/4-m0-exit`, based on main
-`8867db03dbfcefcfc0bbf3004107d08d4925393a`. The owner explicitly asked to continue until
-M0 completes or essential human input is required, using agent fan-out. No human
-input is currently essential. The remaining real sprite proof is
-[#38](https://github.com/lictl/WebRA2/issues/38), followed by independent integration
-review/CI/merge. Inspector #27 is queued; do not start M1 before M0 finishes.
+State: **COMPLETE — M0 evidence and feasibility.** Final integration
+[PR #42](https://github.com/lictl/WebRA2/pull/42) is based on reviewed main
+`7b94971bef70035a06057a9d16604f60f7ce0fd5` (sprite PR #41). Consult PR #42 for its
+exact-head review, hosted checks and merge SHA. The owner asked to stop at M0 or
+essential human input; no essential human input was needed. Inspector #27 remains
+queued. Do not start it without a new continuation request.
 
 Read [M0 exit evidence](analysis/m0-exit.md), [decisions](decisions.md),
 [reference profiles/budgets](adr/0002-reference-profiles-and-initial-budgets.md), then
@@ -26,18 +26,18 @@ product questions or permission requests for ordinary in-scope GitHub work.
 
 ## Current ownership and preserved worktrees
 
-Coordinator owns shared configuration/lock/contracts/licensing, this handoff and
-M0 integration. Browser worker owns new `shp-*` source/test/tool/report files and
-its standalone loopback diagnostic on port 8766. No other agent edits those files
-or uses browser UI without coordination. All workers have committed and opened
-reviewed PRs for prior work; merged checkouts stay preserved.
+No implementation assignment remains active after the final integration merge.
+Coordinator owns shared configuration/lock/contracts/licensing and this handoff.
+All worker implementations are committed and independently reviewed; merged
+checkouts stay preserved. The sprite diagnostic server on port 8766 is stopped.
+Check current app/server state before reusing browser UI in a future slice.
 
 | Role | Current or preserved work | Branch / private worktree |
 | --- | --- | --- |
-| Coordinator | Exit/ledger/source selections/budgets/shared docs | `codex/4-m0-exit`, repository root |
-| browser_feasibility | #38 real SHP/palette proof; media #40 complete | `codex/38-sprite-sample`, `local/worktrees/sprite`; media checkpoint `local/worktrees/media-presentation` |
-| mix_reader | #31 merged; native font and sprite-palette pairing research complete; available for review | `codex/31-native-profile-evidence`, `local/worktrees/native-profiles` |
-| bootstrap_review | #32 merged; independently reviewed #40 and audited M0 gates; available for exit review | `codex/32-dependency-closure`, `local/worktrees/dependencies` |
+| Coordinator | M0 integration PR #42 complete; look up final merge live | `codex/4-m0-exit`, repository root |
+| browser_feasibility | #38 / PR #41 sprite proof and media #40 merged | `codex/38-sprite-sample`, `local/worktrees/sprite`; media checkpoint `local/worktrees/media-presentation` |
+| mix_reader | #31 merged; native font and sprite-palette pairing research complete; implementation and review complete | `codex/31-native-profile-evidence`, `local/worktrees/native-profiles` |
+| bootstrap_review | #32 merged; independently reviewed #40 and audited M0 gates; final integration reviewer | `codex/32-dependency-closure`, `local/worktrees/dependencies` |
 
 Earlier `local/worktrees/{mix,specs,browser,campaign,checksum,profiles,graph}` and
 review checkouts remain preserved. Use `git worktree list` before selecting a new
@@ -46,11 +46,13 @@ branch/worktree. Never stage a private dependency symlink as node_modules; use
 
 ## Evidence and checks
 
-Current integrated baseline: **138 public synthetic tests pass**, strict types,
+Final integrated baseline: **154 public tests pass**, strict types,
 Markdown links, publication paths and whitespace checks. The new public M0 metadata
 check additionally validates source/report hashes, profile/source joins, definition
-fingerprints and all 38 campaign ledger rows without opening retail files. Final
-sprite/integration checks will update this count before the task is complete.
+fingerprints and all 38 campaign ledger rows without opening retail files. Negative
+metadata regression checks reject cross-profile groups, wrong patches, omitted
+alternatives, changed openings/progression targets and stale source reports.
+Component private reproduction is a separate gate.
 
 - MIX: 69 outer / 117 total archives, 83 encrypted, 13,814 members; 629 candidate
   name resolutions and 13,185 unknown names in the initial inventory. All indexes
@@ -77,6 +79,10 @@ sprite/integration checks will update this count before the task is complete.
   The 72-second Chrome run exposes 37.59× repeated reads, three dropped frames and
   underruns. Source/queue/linear-memory/aggregate-RSS scope is recorded; persistent
   decoder and campaign acceptance remain #12. Codec binaries/retail media are private.
+- Sprite: a real 800×600 SHP frame and its statically paired PAL displayed in
+  Chrome; 600 row prefixes and indexed/palette/RGBA hashes independently reproduced.
+  Decoder explicitly accepts only the bounded format-2 nonzero literal subset;
+  other compression, remaps, transparency and the full renderer remain unimplemented.
 - Review fixes this wave: source discovery cannot downgrade an expected member hash;
   native reports strip extra payload fields; sparse/case-alias locale inputs fail;
   audio pairing fanout is capped before expansion. Each code correction has regression
@@ -138,21 +144,20 @@ again. Do not push historical unreviewed local branches such as
 | MIX integrity policy | [#11](https://github.com/lictl/WebRA2/issues/11), [PR #26](https://github.com/lictl/WebRA2/pull/26), [review](https://github.com/lictl/WebRA2/pull/26#pullrequestreview-5155323336) | aa89abaacd83263abab505ac1ef1d540e99acd56 |
 | Explicit profiles | [#22](https://github.com/lictl/WebRA2/issues/22), [PR #28](https://github.com/lictl/WebRA2/pull/28), [review](https://github.com/lictl/WebRA2/pull/28#pullrequestreview-5155420257) | bdb99040164d28f015aaa626885cb41e882f4863 |
 | Structural campaign graphs | [#23](https://github.com/lictl/WebRA2/issues/23), [PR #29](https://github.com/lictl/WebRA2/pull/29), [review](https://github.com/lictl/WebRA2/pull/29#pullrequestreview-5155438898) | 9ccdf0aed07a2eeb70fde4f58da52e47ac6b3198 |
-
 | Prior content-wave handoff | [PR #30](https://github.com/lictl/WebRA2/pull/30), [review](https://github.com/lictl/WebRA2/pull/30#pullrequestreview-5155489186) | 109977241a9bfc0468a5376ff4a74cf0ce5a0f4a |
 | Verified source discovery | [#34](https://github.com/lictl/WebRA2/issues/34), [PR #35](https://github.com/lictl/WebRA2/pull/35), [review](https://github.com/lictl/WebRA2/pull/35#pullrequestreview-5155763983) | c8ebf1f63881f97ac70268535531794f9bb8c9b4 |
 | Native profile/progression | [#31](https://github.com/lictl/WebRA2/issues/31), [PR #36](https://github.com/lictl/WebRA2/pull/36), [review](https://github.com/lictl/WebRA2/pull/36#pullrequestreview-5155989864) | 9c0238210b3b07a80ccd96f5716af81362252c81 |
 | Locale/font coverage | [#33](https://github.com/lictl/WebRA2/issues/33), [PR #37](https://github.com/lictl/WebRA2/pull/37), [review](https://github.com/lictl/WebRA2/pull/37#pullrequestreview-5156090630) | 1c3d34e8f4641e87742769a87c23444983f26968 |
 | Transitive dependency candidates | [#32](https://github.com/lictl/WebRA2/issues/32), [PR #39](https://github.com/lictl/WebRA2/pull/39), [review](https://github.com/lictl/WebRA2/pull/39#pullrequestreview-5156103573) | 223684578674763e69f790736875b165f2f1b74e |
 | Four-browser cinematic presentation | [#12](https://github.com/lictl/WebRA2/issues/12), [PR #40](https://github.com/lictl/WebRA2/pull/40), [review](https://github.com/lictl/WebRA2/pull/40#pullrequestreview-5156098847) | 8867db03dbfcefcfc0bbf3004107d08d4925393a |
+| Real SHP/palette proof | [#38](https://github.com/lictl/WebRA2/issues/38), [PR #41](https://github.com/lictl/WebRA2/pull/41), [implementation review](https://github.com/lictl/WebRA2/pull/41#pullrequestreview-5156299078), [native evidence review](https://github.com/lictl/WebRA2/pull/41#pullrequestreview-5156347564) | 7b94971bef70035a06057a9d16604f60f7ce0fd5 |
+| M0 exit integration | [#4](https://github.com/lictl/WebRA2/issues/4), [#33](https://github.com/lictl/WebRA2/issues/33), [PR #42 and its exact-head review](https://github.com/lictl/WebRA2/pull/42) | Look up PR #42 merge SHA live |
 
 ## Remaining work and exact next action
 
-Finish/review/merge #38, then finalize the M0 exit checklist, source/ledger checks,
-shared compatibility/handoff and issue state. Independent audit found no additional
-essential M0 implementation or human-input gate beyond those assigned tasks.
-
-After M0 completes, stop at the requested milestone. [#27](https://github.com/lictl/WebRA2/issues/27)
+M0 exit, reference selections, the 38-mission ledger, budgets, compatibility matrix
+and component notices are integrated. Independent audit found no additional
+essential M0 implementation or human-input gate. Stop at the requested milestone. [#27](https://github.com/lictl/WebRA2/issues/27)
 is the next queued implementation slice: a browser asset inspector with explicit
 profiles, on-device import, progress/cancel, provenance and missing/unsupported
 content diagnostics. Assign exclusive paths and record any build dependency choice

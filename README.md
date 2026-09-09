@@ -4,10 +4,10 @@ A planned browser-native reimplementation of the Red Alert 2 and Yuri's Revenge
 engines, using assets supplied by the player. Singleplayer campaigns come first;
 complete vanilla engine coverage, broader mods, and multiplayer follow.
 
-**Current state:** M0 evidence integration is underway. The repository includes bounded
+**Current state:** M0 evidence and feasibility are complete. The repository includes bounded
 archive/content analysis, native source-selection evidence, opening dependency and
 campaign ledgers, Unicode font coverage, command contracts, and actual four-browser
-media diagnostics. Full dependency/behavior and playable-locale compatibility remain
+media diagnostics and a real sprite/palette proof. Full dependency/behavior and playable-locale compatibility remain
 unverified. See [M0 evidence and remaining work](docs/analysis/m0-exit.md).
 There is no playable game app yet.
 
@@ -79,7 +79,7 @@ that exist today.
 
 ## Licensing
 
-Original repository material uses [MIT](LICENSE). The MIX and content census
+Original repository material uses [MIT](LICENSE). The MIX, sprite and content census
 components are licensed GPL-3.0-or-later; combined distributions must honor it. See
 [component licenses and notices](docs/licensing.md) before reusing or distributing
 code. Game assets remain separate and are not licensed by this repository.

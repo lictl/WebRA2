@@ -16,6 +16,7 @@ function bytes(path) {
 const hash = data => createHash('sha256').update(data).digest('hex');
 const reference = JSON.parse(bytes('docs/analysis/m0-reference-profile.json'));
 assert.equal(reference.schemaVersion, 1);
+assert.deepEqual(Object.keys(reference.inputHashes).sort(), ['campaign-census.json', 'dependency-candidates.json', 'locale-dependencies.json', 'locale-font-sources.json', 'mix-census.json', 'native-profile-census.json']);
 const inputs = new Map();
 for (const [filename, expected] of Object.entries(reference.inputHashes)) {
   assert.match(filename, /^[a-z0-9-]+\.json$/);
@@ -26,27 +27,40 @@ const campaign = inputs.get('campaign-census.json'), native = inputs.get('native
 const physical = inputs.get('mix-census.json'), dependencies = inputs.get('dependency-candidates.json'), locales = inputs.get('locale-dependencies.json');
 const sourceKey = s => JSON.stringify([s.rootFile, s.rootSha256, s.absoluteOffset, s.size, s.sha256]);
 const candidates = new Map();
-function add(name, source) { const set = candidates.get(name) ?? new Set(); set.add(sourceKey(source)); candidates.set(name, set); }
+function add(name, source) { const sources = candidates.get(name) ?? new Map(); sources.set(sourceKey(source), source); candidates.set(name, sources); }
 for (const row of [...campaign.definitions, ...campaign.locales]) for (const name of row.candidateNames) add(name, row.source);
 for (const row of campaign.missions) for (const name of row.candidateNames) for (const source of row.sources) add(name, source);
 for (const row of native.tables) add(row.source.name, row.source);
 for (const row of dependencies.discovered) add(row.filename, row.identity);
 for (const row of locales.fonts) for (const name of row.candidateNames) add(name, row.source);
+// These are the accepted installation-specific selections, not a generic mount policy.
+const expectedProfiles = {
+  ra2: { opening: 'all01t.map', names: ['ai.ini', 'all01t.map', 'art.ini', 'battle.ini', 'game.fnt', 'mapsel.ini', 'mission.ini', 'ra2.csf', 'rules.ini', 'sound.ini'] },
+  yr: { opening: 'all01umd.map', names: ['aimd.ini', 'all01umd.map', 'artmd.ini', 'battlemd.ini', 'game.fnt', 'mapselmd.ini', 'missionmd.ini', 'ra2md.csf', 'rulesmd.ini', 'soundmd.ini'] }
+};
 assert.deepEqual(reference.profiles.map(p => p.profile), ['ra2', 'yr']);
 for (const profile of reference.profiles) {
   assert.equal(profile.fullRuntimeDependencyClosureVerified, false);
   assert.equal(profile.minimalAssetsOnlyManifestCertified, false);
+  assert.equal(profile.opening, expectedProfiles[profile.profile].opening, 'Wrong opening');
   const groups = profile.requiredDefinitionGroups;
-  assert.equal(groups.length, 10); assert.equal(new Set(groups.map(g => g.filename)).size, 10);
+  assert.deepEqual(groups.map(g => g.filename).sort(), expectedProfiles[profile.profile].names, 'Wrong profile definitions');
   for (const group of groups) {
-    assert.ok(group.equivalentSourceChoices.length > 0);
-    for (const source of [...group.equivalentSourceChoices, ...group.retainedAlternatives]) assert.ok(candidates.get(group.filename)?.has(sourceKey(source)), `Untraced source: ${group.filename}`);
-    assert.ok(group.equivalentSourceChoices.every(s => s.sha256 === group.selectedContentSha256));
-    if (group.retainedAlternatives.length) {
-      assert.equal(profile.profile, 'yr'); assert.ok(['rulesmd.ini', 'soundmd.ini'].includes(group.filename));
-      assert.ok(group.equivalentSourceChoices.every(s => s.rootFile === 'expandmd01.mix'));
-      assert.ok(group.retainedAlternatives.every(s => s.sha256 !== group.selectedContentSha256));
+    const observed = [...candidates.get(group.filename).values()];
+    let selectedHash;
+    if (group.filename === 'rulesmd.ini') {
+      selectedHash = native.alternatives.find(row => row.filename === group.filename).proposedSelectedSource.sha256;
+    } else if (group.filename === 'soundmd.ini') {
+      // ADR 0002 applies the inspected expansion-before-base policy to soundmd too.
+      const patches = observed.filter(source => source.rootFile === 'expandmd01.mix');
+      assert.equal(patches.length, 1, 'Ambiguous SOUNDMD patch'); selectedHash = patches[0].sha256;
+    } else {
+      const hashes = [...new Set(observed.map(source => source.sha256))];
+      assert.equal(hashes.length, 1, `New unresolved alternatives: ${group.filename}`); selectedHash = hashes[0];
     }
+    assert.equal(group.selectedContentSha256, selectedHash, `Wrong selected content: ${group.filename}`);
+    assert.deepEqual(group.equivalentSourceChoices.map(sourceKey).sort(), observed.filter(s => s.sha256 === selectedHash).map(sourceKey).sort(), `Incomplete equivalent sources: ${group.filename}`);
+    assert.deepEqual(group.retainedAlternatives.map(sourceKey).sort(), observed.filter(s => s.sha256 !== selectedHash).map(sourceKey).sort(), `Incomplete alternatives: ${group.filename}`);
   }
   const fingerprint = [...groups].sort((a, b) => a.filename < b.filename ? -1 : a.filename > b.filename ? 1 : 0).map(g => `${g.filename}\0${g.selectedContentSha256}`).join('\n');
   assert.equal(hash(fingerprint), profile.definitionSelectionFingerprintSha256);
