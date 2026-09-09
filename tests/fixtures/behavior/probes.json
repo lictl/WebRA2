@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "origin": "original-webra2-synthetic",
+  "representation": "abstract-research-probes-not-wire-schemas",
   "runtimeExecuted": false,
   "probes": [
     {
@@ -290,17 +291,16 @@
               }
             }
           ],
-          "rngStates": [
-            {
+          "rngStates": {
+            "simulation": {
               "algorithm": "fixture-opaque-v1",
-              "streamId": "simulation",
               "state": [
                 17,
                 23
               ],
               "position": 4
             }
-          ]
+          }
         },
         "compareAtNextTicks": [
           11,

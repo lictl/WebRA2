@@ -16,9 +16,11 @@ World coordinates, damage rounding and original 32-bit overflow remain separate
 spec decisions. A `number` TypeScript annotation is not runtime validation.
 
 Proposed `CommandEnvelope`: `schemaVersion`, `tick`, `playerId`, `sequence`, `kind`,
-`payload`. The payload is a bounded JSON value with finite safe integers initially;
-no functions, `undefined`, NaN/Infinity, unsafe integers, cycles or host handles.
-Each command kind later supplies a typed payload validator and authorization checks.
+`payload`. The structural payload contract accepts finite JSON numbers but rejects
+negative zero, functions, `undefined`, NaN/Infinity, cycles and host handles. Safe
+integer constraints apply to counters; each command kind later supplies per-field
+numeric rules, a typed payload validator and authorization checks. A structurally
+valid fractional or large payload number is not automatically valid gameplay data.
 
 The identity `(playerId, sequence)` is unique within a replay session. Sequence is
 monotonic per player at admission; reordered transport can buffer before admission.
@@ -65,7 +67,7 @@ sampling as well as the generator recurrence when a real algorithm is selected.
 | Envelope | Fields and meaning |
 | --- | --- |
 | `ContentIdentity` | `profile` (`ra2`/`yr`), effective `manifestSha256`, `rulesSha256`, ordered `orderedModHashes`; resolved content hash covers mission dependencies and precedence |
-| `SaveEnvelope` | `schemaVersion`, `engineVersion`, `simulationRulesVersion`, `contentIdentity`, `nextTick`, `state`, `queuedCommands`, `scheduledWork`, `rngStates` |
+| `SaveEnvelope` | `schemaVersion`, `engineVersion`, `simulationRulesVersion`, `contentIdentity`, `nextTick`, `state`, `queuedCommands`, `scheduledWork`, `rngStates` (record keyed by stream identity) |
 | `ReplayEnvelope` | Same version/content fields; `initialCheckpoint`, `commands`, `checkpoints` containing `{nextTick, stateSha256}` |
 
 Field placement may be normalized in the coordinator contract. Do not save queues or
@@ -85,9 +87,10 @@ timestamps, UI selection, GPU/audio objects and the hash field itself.
 
 ## Canonical hashes and acceptance probes
 
-Choose and version one canonical encoding before comparing hashes. Proposed option:
-SHA-256 over UTF-8 JCS of a defined authoritative-state projection with safe-integer
-values. [RFC 8785 sections 3.1–3.2](https://www.rfc-editor.org/rfc/rfc8785#section-3)
+Choose and version one canonical encoding and per-field numeric policy before
+comparing hashes. Proposed option: SHA-256 over UTF-8 JCS of a defined authoritative
+state projection. Counters remain safe integers; game numeric policy is unresolved.
+[RFC 8785 sections 3.1–3.2](https://www.rfc-editor.org/rfc/rfc8785#section-3)
 specifies primitive serialization and recursive UTF-16 property ordering; arrays
 retain order and strings are not normalized. Reject duplicate JSON keys and invalid
 Unicode on ingestion. JavaScript object property enumeration plus ordinary
@@ -108,6 +111,8 @@ M1 must execute, rather than merely parse, these invariants:
 - Run the same vectors in the headless runtime and all four target browser families.
   Hash comparisons are WebRA2-to-WebRA2; compare original runs by observable events.
 
-The [probe data](../../tests/fixtures/behavior/probes.json) supplies concrete command
-ordering, scheduled-work, checkpoint and capability examples. No such invariant has
-yet been executed by an engine in this slice.
+The [probe data](../../tests/fixtures/behavior/probes.json) supplies abstract research
+examples for command ordering, scheduled work, checkpoints and capabilities. These
+are not current wire-schema conformance vectors: fixture-only kinds/state/RNG names
+have no runtime implementation, and no save wire loader exists. No such invariant
+has yet been executed by an engine in this slice.

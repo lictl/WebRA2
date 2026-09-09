@@ -14,8 +14,8 @@ runtime comparison is included. These documents do not close campaign release ga
   into small future observations without asking the owner to run them now.
 - [Evidence records](../../tests/fixtures/behavior/evidence-records.json) and
   [synthetic probes](../../tests/fixtures/behavior/probes.json) are original,
-  metadata-only inputs for later test implementations. A probe is a test design,
-  not a passing engine test or an original mission.
+  metadata-only inputs for later test implementations. A probe is an abstract test
+  design, not a current wire schema, passing engine test or original mission.
 
 The coordinator owns `packages/contracts/` in [#8](https://github.com/lictl/WebRA2/issues/8).
 Treat field proposals here as review input; consumers use the accepted contract
@@ -48,6 +48,7 @@ evidence = json.loads((root / 'evidence-records.json').read_text())
 probes = json.loads((root / 'probes.json').read_text())
 assert evidence['schemaVersion'] == probes['schemaVersion'] == 1
 assert probes['origin'] == 'original-webra2-synthetic'
+assert probes['representation'] == 'abstract-research-probes-not-wire-schemas'
 assert probes['runtimeExecuted'] is False
 ids = [p['id'] for p in probes['probes']]
 assert len(ids) == len(set(ids))

@@ -2,7 +2,9 @@
 
 Revision `m0-specs-1`; issue [#6](https://github.com/lictl/WebRA2/issues/6).
 This is the research interchange proposal. It is separate from the runtime save
-schema and does not prescribe implementation mechanics.
+schema and does not prescribe implementation mechanics. The coordinator's compact
+`EvidenceSummary` contract is a distinct index/projection for runtime consumers;
+it does not replace this richer research record or satisfy its evidence requirements.
 
 ## One record, one falsifiable claim
 
