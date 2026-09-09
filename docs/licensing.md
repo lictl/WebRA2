@@ -45,6 +45,10 @@ scenario construction retains its static evidence in
 notices accompany the development bundle. The exact retained-source view uses
 the same GPL terms and includes [its provenance](../packages/content/INI_SOURCE_PROVENANCE.md)
 in the bundle.
+The staged typed entity-definition compiler and original fixtures also use GPL-3.0-or-later.
+[Entity-definition provenance](../packages/content/ENTITY_DEFINITIONS_PROVENANCE.md)
+records the pinned static field/load evidence and deliberate numeric/runtime boundaries;
+its notice accompanies the development bundle. No retail rule or placement rows are shipped.
 
 The CPU terrain scene and composing browser viewport are GPL-3.0-or-later;
 [render provenance](../packages/render/PROVENANCE.md) records pinned OpenRA placement
