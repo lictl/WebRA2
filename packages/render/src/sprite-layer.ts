@@ -201,7 +201,7 @@ function prepareSpriteBatchData(batch: SpriteBatch, viewport: TerrainViewport, c
     for (let i = 3; i < 1024; i += 4) if (palette.rgba[i] !== 0 && palette.rgba[i] !== 255) fail('sprite-palette-alpha');
   }
   placements.sort((a, b) => compare(a.object.id, b.object.id));
-  return { placements, palettes, samples, paletteBytes };
+  return { placements, palettes, samples, paletteBytes, cameraX, cameraY, zoom, width };
 }
 
 /** Presentation-only snapshot with owned palette values and lazily copied, resolved rasters. */
@@ -267,8 +267,7 @@ export function describeSpriteRasters(batch: SpriteBatch, coordinate: number) {
 }
 
 export function prepareSpriteBatch(batch: SpriteBatch, viewport: TerrainViewport, coordinate: number, sampleLimit: number) {
-  const { placements, samples, paletteBytes } = prepareSpriteBatchData(batch, viewport, coordinate, sampleLimit);
-  const { cameraX, cameraY, zoom, width } = viewport;
+  const { placements, samples, paletteBytes, cameraX, cameraY, zoom, width } = prepareSpriteBatchData(batch, viewport, coordinate, sampleLimit);
   return Object.freeze({ samples, paletteBytes, objects: placements.length,
     /** The callback receives opaque RGBA components; transparent fragments never invoke it. */
     paint(write: (at: number, depth: number, object: number, front: boolean, r: number, g: number, b: number) => void): void {
