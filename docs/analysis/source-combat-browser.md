@@ -24,9 +24,9 @@ The actual browser family was Chrome. Access to `chrome://version` was rejected
 by browser URL policy, so this run does not record an independently measured
 version. No browser settings or security controls were changed.
 
-The RA2 route uses the explicit development house 5, actor 23 and target 32, with a
-move to cell (32, 44). It is an ordinary source-bound scenario, not the original
-player campaign path; [issue #178](https://github.com/lictl/WebRA2/issues/178) tracks
+The RA2 route uses an explicit alternate development house and moves a supported
+infantry unit into range of an eligible enemy. It is an ordinary source-bound
+scenario, not the original player campaign path; [issue #178](https://github.com/lictl/WebRA2/issues/178) tracks
 the default RA2 actor's current traversal limitation.
 
 ## Initial observations and regression
@@ -76,8 +76,8 @@ preview. RA2's world and pending-save hashes remained unchanged across the fix.
 | Actual Chrome check | Observed result |
 | --- | --- |
 | YR 438-file load, cancel, retry | Cancellation retains selection; retry reaches a ready scene while retaining the initially zero-health entity in the world |
-| YR movement | Default house 0, actor 45 moved to (111, 101); tick 1 state matched the private source probe; browser-local moving save succeeded |
-| Inspected versus manual target | After inspecting enemy 15, selecting enemy 16 remained 16 through an out-of-range rejection at tick 666, with no admitted order; choosing 15 then admitted the valid attack |
+| YR movement | A supported infantry unit under the default player house moved into range; tick 1 state matched the private source probe; browser-local moving save succeeded |
+| Inspected versus manual target | After inspecting one enemy, manually selecting another remained selected through an out-of-range rejection at tick 666, with no admitted order; choosing the in-range enemy then admitted the valid attack |
 | YR pending save | Attack starts 666, saved windup 667 is due 668; native export hash equals the displayed state hash |
 | YR Stop and restore | Stop leaves target health 100 at 668; restore returns the identical 667 state; due-shot continuation shows 85 health at 669 |
 | RA2 saved-state compatibility | Native import of 9130616's pending 724 checkpoint returns the same world/state hashes in 26d1b3a |
@@ -85,7 +85,7 @@ preview. RA2's world and pending-save hashes remained unchanged across the fix.
 | Automatic running and completed deaths | Both profiles retain the ready preview through lethal damage and completed death; target health becomes 0 |
 | Replay verification | Both actual exported continuations verify to the displayed terminal state hashes below |
 | Exported replay file | At RA2 live tick 1119, native file validation of the 1118 replay reports its 1118 terminal hash while leaving the distinct live 1119 state unchanged |
-| Traditional Chinese | YR's result shows localized destroyed health/status and controls; inspecting the former infantry position returns visible terrain (115, 101) after retirement |
+| Traditional Chinese | YR's result shows localized destroyed health/status and controls; inspecting the former infantry position returns visible terrain after retirement |
 
 The YR moving tick 1 state SHA-256 is
 `b3b4316963a0c0dca6eebaea1ba39aadc1bb9e3144ea045280f5deaa6217e480`.
