@@ -14,7 +14,7 @@ import { TerrainBridge } from '../../apps/web/src/terrain-bridge.ts';
 import { validResult, type FrameResult, type TerrainAction } from '../../apps/web/src/terrain-protocol.ts';
 import { terrainText, artworkStatusText } from '../../apps/web/src/terrain-i18n.ts';
 import { createWorldViewport } from '../../apps/web/src/world-viewport.ts';
-import type { WorldSummary, WorldSnapshot } from '../../apps/web/src/world-protocol.ts';
+import { validWorldSnapshot, type WorldSummary, type WorldSnapshot } from '../../apps/web/src/world-protocol.ts';
 function packed(bytes:Uint8Array, lzo:boolean):string {
   if(lzo){const data=Buffer.from([bytes.length+17,...bytes,17,0,0]),b=Buffer.alloc(data.length+4);b.writeUInt16LE(data.length);b.writeUInt16LE(bytes.length,2);b.set(data,4);return b.toString('base64');}
   const chunks:Buffer[]=[];for(let at=0;at<bytes.length;at+=8192){const n=Math.min(8192,bytes.length-at),b=Buffer.from([5,0,n&255,n>>8,254,n&255,n>>8,bytes[at]!,128]);chunks.push(b);}return Buffer.concat(chunks).toString('base64');
@@ -89,4 +89,45 @@ test('world snapshot cells move owned original artwork while each frame retains 
   const a=first.pick(90,29),b=second.pick(120,44);assert.equal(a?.kind,'object');assert.equal(b?.kind,'object');
   if(a?.kind!=='object'||b?.kind!=='object')assert.fail();assert.deepEqual([a.object.x,a.object.y],[2,2]);assert.deepEqual([b.object.x,b.object.y],[3,2]);assert.equal(first.pick(90,29)?.kind,'object');assert.notDeepEqual(first.rgba,second.rgba);
   assert.deepEqual(scene.locate!(3,2),{x:120,y:15});assert.throws(()=>scene.render(view,{...snapshot(2,2),modelHash:'b'.repeat(64)}),/snapshot/);
+});
+test('real sprite frames survive pending death, completed retirement and restore across the bridge',async()=>{
+  const m=mission.slice(0,mission.indexOf('[Units]')),f=await fixture({mission:m}),still=createPlacedStill(f.terrain,f.objects,f.preview),info=[...still.objects.values()][0]!;
+  const summary:WorldSummary={policy:'webra2-world-ui-1',combatPolicy:'webra2-source-standing-infantry-combat-1',modelHash:'f'.repeat(64),motionPolicy:'webra2-cell-motion-1',defaultPlayerId:0,players:[{id:0,houseId:'original',name:'Original'}],actors:[{id:1,rowId:f.objects.placements[0]!.row.id,objectId:info.id,typeId:info.typeId,owner:0,kind:'infantry',movable:true,maximumHealth:100,combatRole:'attacker',reasons:[],omittedReasons:0}],limitations:[],omittedLimitations:0,truncatedFields:0};
+  const alive:WorldSnapshot={modelHash:summary.modelHash,revision:0,nextTick:0,stateHash:'a'.repeat(64),queuedCommands:0,actors:[{id:1,x:2,y:2,health:100,goalX:null,goalY:null,nextX:null,nextY:null,routeLength:0,progress:0,edgeCost:null,waitTicks:0,combat:{targetId:null,readyTick:0,windupUntil:null,deathSequence:null,deathUntil:null,corpseIndex:null}}],events:[],omittedEvents:0};
+  const pending=structuredClone(alive);pending.revision=1;pending.nextTick=3;pending.actors[0]!.health=0;Object.assign(pending.actors[0]!.combat!,{deathSequence:11,deathUntil:3});
+  const completed=structuredClone(pending);completed.revision=2;completed.nextTick=4;completed.actors[0]!.combat!.corpseIndex=0;
+  const restored=structuredClone(alive);restored.revision=3;
+  const scene=createWorldViewport(terrainScene(f.terrain),f.terrain,still,summary),view={...camera,backgroundRgba:[0,0,0,255] as const};
+  const wire=(world:WorldSnapshot,frameId:number):FrameResult=>{
+    assert(validWorldSnapshot(world,summary));const rendered=scene.render(view,world);
+    return {type:'frame',frameId,camera,world,controlPoints:[],summary:{world:summary,profile:'ra2',mission:'all01t.map',contentHash:'c'.repeat(64),mapHash:f.terrain.source.sha256,paletteHash:'b'.repeat(64),cells:10,objects:1,assets:1,verifiedBytes:100,sourceBytes:100,decodedBytes:100,decodedSlots:1,bounds:{x:0,y:-15,width:180,height:90},diagnostics:[],artwork:still.artwork},rgba:rendered.rgba.buffer as ArrayBuffer,allocations:{...rendered.allocations,voxel:null}};
+  };
+  const worker=new Worker(),bridge=new TerrainBridge(worker),signal=new AbortController().signal;
+  const states=[alive,pending,completed,restored],frames=states.map((s,i)=>wire(s,i+1));
+  for(let i=0;i<frames.length;i++){
+    const frame=frames[i]!,action:TerrainAction=i===0?{type:'load',profile:'ra2',files:[{file:file('original.mix',new Uint8Array(1)),relativePath:''}],width:180,height:120}:i===3?{type:'world-restore',text:'{}'}:{type:'world-step',ticks:1};
+    const result=bridge.request(action,signal);worker.emit({version:5,id:i+1,type:'result',result:frame});assert.equal((await result).type,'frame');
+    assert.equal(frame.summary.artwork.rendered,1);assert.equal(frame.allocations.objects,i===2?0:1);assert.deepEqual(frame.allocations.retiredObjectIds,i===2?[info.id]:[]);
+  }
+  assert.equal(worker.terminated,0);bridge.dispose();
+  assert.equal(scene.render(view,pending).pick(90,29)?.kind,'object');assert.notEqual(scene.render(view,completed).pick(90,29)?.kind,'object');
+  const dead=frames[2]!;
+  for(const ids of [[],[info.id,info.id],['unknown'],[''],[1],Array(1),Array(2049).fill(info.id)])assert(!validResult({...dead,allocations:{...dead.allocations,retiredObjectIds:ids}}));
+  for(const objects of [-1,.5,1,2])assert(!validResult({...dead,allocations:{...dead.allocations,objects}}));
+  const without=structuredClone(dead);delete without.allocations.retiredObjectIds;assert(!validResult(without));
+  const getter=structuredClone(dead);Object.defineProperty(getter.allocations,'retiredObjectIds',{get(){throw new Error('must not read');}});assert(!validResult(getter));
+  const element=structuredClone(dead);Object.defineProperty(element.allocations.retiredObjectIds!,'0',{get(){throw new Error('must not read');}});assert(!validResult(element));
+  for(const world of [alive,pending])assert(!validResult({...dead,world}));
+  assert(!validResult({...dead,world:null,summary:{...dead.summary,world:null}}));
+  // Initially dead placements have no death record; their prepared art is still accounted for.
+  const initialDead=structuredClone(alive);initialDead.actors[0]!.health=0;
+  const initial=wire(initialDead,1);assert(validResult(initial));assert.equal(initial.allocations.objects,0);assert.deepEqual(initial.allocations.retiredObjectIds,[info.id]);
+});
+test('unavailable dead artwork is never reported as retired prepared artwork',async()=>{
+  const f=await fixture(),still=createPlacedStill(f.terrain,f.objects,f.preview),actors=f.objects.placements.map((p,i)=>({id:i+1,rowId:p.row.id,objectId:`object-${i}`}));
+  const scene=createWorldViewport(terrainScene(f.terrain),f.terrain,still,{modelHash:'a'.repeat(64),actors});
+  const snapshot={modelHash:'a'.repeat(64),actors:actors.map(a=>({...a,x:2,y:2,health:0}))} as unknown as WorldSnapshot;
+  const frame=scene.render({...camera,backgroundRgba:[0,0,0,255]},snapshot);
+  assert.equal(frame.allocations.objects,0);assert.equal(frame.allocations.retiredObjectIds!.length,4);assert.deepEqual(frame.allocations.retiredObjectIds,[...still.objects.keys()].sort());
+  assert.equal(still.artwork.rendered,4);assert.equal(still.artwork.unavailable,2);
 });

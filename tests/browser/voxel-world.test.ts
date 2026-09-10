@@ -77,10 +77,11 @@ function mapText(){
   const overlay=(value:number)=>Buffer.concat(Array.from({length:32},()=>Buffer.from([5,0,0,32,254,0,32,value,128]))).toString('base64');
   return '[Basic]\nNewINIFormat=4\n[Map]\nSize=0,0,3,2\nLocalSize=0,0,3,2\nTheater=URBAN\n[Houses]\n0=Home\n[Home]\nCountry=Home\n[Units]\n0=Home,ROVER,256,2,2,0,Guard,None\n[IsoMapPack5]\n1='+pack.toString('base64')+'\n[OverlayPack]\n1='+overlay(255)+'\n[OverlayDataPack]\n1='+overlay(0);
 }
-async function fixture(conditional=false,missing=false){
-  const mission=mapText(),i=input({mission,rules:'[Countries]\n0=Home\n[VehicleTypes]\n0=ROVER\n[ROVER]\nStrength=20\n'+(conditional?'NoSpawnAlt=yes\n':''),art:'[ROVER]\nVoxel=yes\n'}),plan=compileObjectArt(i);
+async function fixture(conditional=false,missing=false,multipart=false){
+  const mission=mapText(),i=input({mission,rules:'[Countries]\n0=Home\n[VehicleTypes]\n0=ROVER\n[ROVER]\nStrength=20\n'+(conditional?'NoSpawnAlt=yes\n':'')+(multipart?'Turret=yes\n':''),art:'[ROVER]\nVoxel=yes\n'}),plan=compileObjectArt(i);
   const terrain=compileScenarioTerrain({profile:'ra2',source:i.objects.source,bytes:encode(mission)});
   const rows:Record<string,Uint8Array>={'rover.vxl':vxl().bytes,'uniturb.pal':palette()};if(!missing)rows['rover.hva']=hva([affine()]);if(conditional){rows['roverwo.vxl']=vxl().bytes;rows['roverwo.hva']=hva([affine()]);}
+  if(multipart)for(const part of ['rovertur','roverbarl']){rows[part+'.vxl']=vxl().bytes;rows[part+'.hva']=hva([affine()]);}
   const c=await inspectBrowserCatalog(Object.entries(rows).map(([n,b])=>file(n,b)),{profile:'ra2',policy:'tolerant'});
   try{const still=createPlacedStill(terrain,i.objects,await prepareObjectPreview(c,plan)),preview=await prepareVoxelPreview(c,compileVoxelPlan({objects:i.objects,rules:i.rules,art:i.art,artPlan:plan,definitions:compileEntityDefinitions({objects:i.objects,rules:i.rules,art:i.art}),policy:VOXEL_PLAN_POLICY}));return{i,plan,terrain,still,preview};}finally{await c.dispose();}
 }
@@ -113,4 +114,19 @@ test('source, model and actor joins fail explicitly; rendering leaves world mode
 });
 test('3D policy and selected-source labels have English and Traditional Chinese copy',()=>{
   for(const locale of ['en','zh-Hant'] as const)for(const key of ['format','voxel','voxel-sources','voxels','voxelPolicy','voxelPolicyValue','voxelGeometry','hvaPath','hvaHash','partRole'])assert.notEqual(terrainText(locale,key),terrainText(locale,'failure'));
+});
+test('multipart voxel retirement counts one prepared object and preserves sprite retirements and old frames',async()=>{
+  const f=await fixture(false,false,true),modelHash='a'.repeat(64),joins={modelHash,actors:[{objectId:'object-0',id:1,rowId:f.i.objects.placements[0]!.row.id}]};
+  const baseScene:ViewportScene={render(v){const frame=base(v.width,v.height);return {...frame,allocations:{...frame.allocations,retiredObjectIds:['object-9']}};}};
+  const result=createVoxelWorldViewport(baseScene,f.terrain,f.i.objects,f.still.artwork,f.plan,f.preview,joins);
+  assert.equal(f.preview.types[0]!.stillPartIds.length,3);assert.equal(result.artwork.rendered,1);
+  const alive={modelHash,actors:[{id:1,x:2,y:2,health:20}]} as WorldSnapshot,dead=structuredClone(alive);dead.actors[0]!.health=0;
+  const first=result.scene.render(view,alive),last=result.scene.render(view,dead),restored=result.scene.render(view,alive);
+  assert.equal(first.allocations.objects,1);assert.equal(first.allocations.voxel!.instances,3);assert.deepEqual(first.allocations.retiredObjectIds,['object-9']);
+  assert.equal(last.allocations.objects,0);assert.deepEqual(last.allocations.retiredObjectIds,['object-0','object-9']);assert.equal(last.allocations.voxel,undefined);
+  assert.equal(restored.allocations.objects,1);assert.deepEqual(restored.allocations.retiredObjectIds,['object-9']);assert.deepEqual(first.rgba,restored.rgba);
+  const n=Array.from({length:view.width*view.height},(_,n)=>n).find(n=>first.pick(n%view.width,Math.floor(n/view.width))?.kind==='object')!;
+  assert(Number.isInteger(n));assert.equal(first.pick(n%view.width,Math.floor(n/view.width))?.kind,'object');assert.equal(last.pick(n%view.width,Math.floor(n/view.width)),null);
+  const missing=await fixture(false,true),unavailable=createVoxelWorldViewport(baseScene,missing.terrain,missing.i.objects,missing.still.artwork,missing.plan,missing.preview,joins);
+  assert.equal(unavailable.artwork.rendered,0);assert.deepEqual(unavailable.scene.render(view,dead).allocations.retiredObjectIds,['object-9']);
 });

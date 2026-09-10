@@ -261,6 +261,13 @@ inside existing MIT combat/world modules. The retained
 composition and its explicit cadence. Distribution includes that notice, GPL text
 and applicable corresponding source; no additional dependency is adopted.
 
+The source-bound standing infantry bridge and world binding helper are
+GPL-3.0-or-later. The source combat world policy authenticates immutable content
+and current terrain/status before beginning and resolving shots. Its
+[notice](../packages/sim/ORDINARY_INFANTRY_BRIDGE_PROVENANCE.md), GPL text and
+corresponding source accompany the browser build. Existing separable MIT core
+files retain their licenses; the combined application remains GPL.
+
 The persistent source team Sleep policy is original GPL-3.0-or-later WebRA2 code.
 Its [notice](../packages/sim/TEAM_SLEEP_PROVENANCE.md), GPL text and corresponding
 source accompany the composed runtime. The build includes the notice separately
