@@ -33,7 +33,11 @@ from corrected4187/c416 assets-only16 replay/cancellation/slot and YR route acce
 RA2 default-player combat and long replay finish; YR pending-shot save/Stop/restore,
 completed death and native exported replay match. Coordinator independently reproduces
 the YR exported continuation from fresh16-file selection and its exact terminal hash.
-No original mission is playable. Issue180/178 closure follows final review and merge.
+The composed build passes1,068 tests/types,165 documents/824 links,582 publication
+paths and68 outputs from142 approved inputs. All executable/style/HTML files and
+64 prior outputs are byte-identical; one copied licensing document updates and
+three source notices are added. No original mission is playable. Issue180/178
+closure follows final review and merge.
 
 Root implements [source cue dispatch195](https://github.com/lictl/WebRA2/issues/195)
 in a separate mission-cue-dispatch worktree. bootstrap_review owns
