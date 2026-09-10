@@ -25,13 +25,13 @@ function packed(raw: Uint8Array, literal: boolean): string {
   return Buffer.concat(blocks).toString('base64');
 }
 export function teamSpawnFixture({profile='ra2' as 'ra2'|'yr', script='0=3,0\n1=6,1', count=1,
-  extraTeam='Waypoint=A', extraRules='', extraInfantryTypes='', forceType='Walker', extraArt='', waypoint='0=3003', extraAI='', extraMap='[Actions]\nSpawn=1,80,1,Squad,0,0,0,0,A', speed=128, infantryRows='0=Commander,Walker,256,2,2,0,Guard,0,None\n1=Commander,Walker,256,2,3,0,Guard,0,None\n2=Rival,Walker,256,4,2,0,Guard,0,None'}={}) {
+  extraTeam='Waypoint=A', extraRules='', extraInfantryTypes='', forceType='Walker', extraArt='', waypoint='0=3003', extraAI='', extraTeamTypes='', extraMap='[Actions]\nSpawn=1,80,1,Squad,0,0,0,0,A', speed=128, infantryRows='0=Commander,Walker,256,2,2,0,Guard,0,None\n1=Commander,Walker,256,2,3,0,Guard,0,None\n2=Rival,Walker,256,4,2,0,Guard,0,None'}={}) {
   const xy = [[1,3],[2,2],[3,1],[2,3],[3,2],[2,4],[3,3],[4,2],[3,4],[4,3]];
   const raw = new Uint8Array(114), view = new DataView(raw.buffer);
   xy.forEach(([x,y], i) => { view.setUint16(i*11,x!,true);view.setUint16(i*11+2,y!,true);view.setUint16(i*11+4,1,true); });
   const bytes = encode(`[Basic]\nNewINIFormat=4\nPlayer=Commander\n[Map]\nSize=0,0,3,2\nLocalSize=0,0,3,2\nTheater=URBAN\n[Houses]\n0=Commander\n1=Rival\n[Commander]\nCountry=Blue\n[Rival]\nCountry=Red\n[Infantry]\n${infantryRows}\n[Waypoints]\n${waypoint}\n[IsoMapPack5]\n1=${packed(raw,true)}\n[OverlayPack]\n1=${packed(new Uint8Array(262144).fill(255),false)}\n[OverlayDataPack]\n1=${packed(new Uint8Array(262144),false)}\n${extraMap}`);
   const base = encode(`[Countries]\n0=Blue\n1=Red\n[Clear]\nFoot=1\n[InfantryTypes]\n0=Walker\n${extraInfantryTypes}\n[Walker]\nStrength=100\nSpeed=${speed}\nLocomotor={4A582744-9839-11D1-B709-00A024DDAFD1}\n${extraRules}`);
-  const aiBytes = encode(`[TeamTypes]\n0=Squad\n[Squad]\nHouse=Blue\nTaskForce=Troop\nScript=Route\n${extraTeam}\n[TaskForces]\n0=Troop\n[Troop]\n0=${count},${forceType}\n[ScriptTypes]\n0=Route\n[Route]\n${script}\n${extraAI}`);
+  const aiBytes = encode(`[TeamTypes]\n0=Squad${extraTeamTypes ? '\n' + extraTeamTypes : ''}\n[Squad]\nHouse=Blue\nTaskForce=Troop\nScript=Route\n${extraTeam}\n[TaskForces]\n0=Troop\n[Troop]\n0=${count},${forceType}\n[ScriptTypes]\n0=Route\n[Route]\n${script}\n${extraAI}`);
   const artBytes = encode('[Original]\nValue=1\n'+extraArt), source = {id:'map',profile,sha256:hash(bytes)};
   const rules = compileRuntimeIni(profile,[{id:'base',profile,order:0,kind:'base',sourceSha256:hash(base),bytes:base},
     {id:'map',profile,order:1,kind:'map',sourceSha256:source.sha256,bytes}]);

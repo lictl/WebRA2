@@ -2,12 +2,20 @@
 // Original atomic composition. Core commands execute only on isolated world candidates.
 import { parseJson } from './canonical.ts';
 import type { CommandEnvelope } from '../../contracts/src/index.ts';
-import { WorldSimulation, type WorldTrace } from './world.ts';
+import { WorldSimulation, type WorldTrace, type WorldStep } from './world.ts';
+import { assertWorldModel, type WorldModel } from './world-model.ts';
 import { worldClone, worldHash, worldInteger, worldList, worldRecord, worldSourceHash } from './world-values.ts';
 import { teamRuntimeFail as fail, teamRuntimeFreeze as freeze } from './team-runtime-program.ts';
 import { prepareTeamTick, restoreTeamCheckpoint, teamRosterProgram, teamRosterModel, type TeamCheckpoint, type TeamRoster, type TeamOrder, type TeamEvent } from './team-runtime.ts';
 export interface TeamWorldResult { readonly checkpoint:TeamCheckpoint;readonly orders:readonly TeamOrder[];
   readonly events:readonly (TeamEvent & {tick:number})[];readonly worldEvents:readonly WorldTrace[];readonly work:number }
+const committedSteps = new WeakMap<object, { readonly model: WorldModel; readonly step: WorldStep }>();
+/** Only a single commit result retains the exact underlying world step. Batch results do not. */
+export function teamWorldStep(model: WorldModel, value: unknown): WorldStep {
+  assertWorldModel(model);
+  const retained = value && typeof value === 'object' ? committedSteps.get(value) : undefined;
+  if (!retained || retained.model !== model) fail('world-step-brand'); return retained.step;
+}
 
 /** Admit unrelated external orders between compound ticks; team-controlled actors cannot receive competing orders. */
 export function admitTeamWorldCommands(roster:TeamRoster,input:unknown,commands:readonly unknown[]):TeamCheckpoint{
@@ -48,7 +56,8 @@ export function commitTeamTick(roster:TeamRoster,input:unknown,workLimit?:number
   if(work>budget)fail('step-work-limit');
   const next=restoreTeamCheckpoint(roster,{schemaVersion:1,policy:'webra2-team-transaction-1',rosterSha256:roster.sha256,
     world:simulation.save(),team:plan.nextTeam,pending:null});
-  return freeze({checkpoint:next,orders:worldClone(plan.orders),events:plan.events.map(e=>({...e,tick:plan.tick})),worldEvents:worldStep.events,work});
+  const result=freeze({checkpoint:next,orders:worldClone(plan.orders),events:plan.events.map(e=>({...e,tick:plan.tick})),worldEvents:worldStep.events,work});
+  committedSteps.set(result,{model,step:freeze(worldStep)});return result;
 }
 /** All requested compound ticks commit to a returned candidate; caller-owned inputs are never mutated. */
 export function stepTeamWorld(roster:TeamRoster,input:unknown,ticks=1,workLimit?:number):TeamWorldResult{
