@@ -35,7 +35,7 @@ export async function buildGpuPerformance(destination, mode = 'full', root = rep
         const actual = await realpath(args.path);
         if (actual !== resolve(args.path)) throw Error('Symlink code input refused');
         const name = relative(root, actual).split(sep).join('/');
-        if (!/^(?:tools\/(?:gpu-performance|performance)\/|tests\/render\/gpu-fixtures\.ts|apps\/web\/src\/|packages\/|node_modules\/(?:@noble\/hashes|egoroof-blowfish)\/)/.test(name)
+        if (!/^(?:tools\/(?:gpu-performance|performance)\/|tests\/render\/gpu-fixtures\.ts$|apps\/web\/src\/|packages\/|node_modules\/(?:@noble\/hashes|egoroof-blowfish)\/)/.test(name)
           || (!name.startsWith('node_modules/') && /(?:^|\/)(?:local|game|public|dist)(?:\/|$)/i.test(name))
           || !['.mjs', '.js', '.ts'].includes(extname(actual))) throw Error('Unapproved benchmark input: ' + name);
         const bytes = await bounded(actual, 2 * 1024 * 1024); inputs.set(name, { name, bytes: bytes.length, sha256: hash(bytes) });
@@ -53,7 +53,7 @@ export async function buildGpuPerformance(destination, mode = 'full', root = rep
   files.set('index.html', await bounded(resolve(root, 'tools/gpu-performance/index.html'), 256 * 1024));
   files.set('style.css', await bounded(resolve(root, 'tools/gpu-performance/style.css'), 256 * 1024));
   // This intentionally carries the broader existing app notice set, not a minimized subset.
-  for (const name of noticeSources) {
+  for (const name of [...noticeSources,'packages/render/GPU_PROVENANCE.md']) {
     const target = name === 'LICENSE' ? 'LICENSE.txt' : name === 'LICENSES/GPL-3.0-or-later.txt' ? name :
       name === 'node_modules/egoroof-blowfish/LICENSE.md' ? 'licenses/blowfish.txt' :
       name === 'node_modules/@noble/hashes/LICENSE' ? 'licenses/noble-hashes.txt' : `licenses/${name.replaceAll('/', '-')}.txt`;
