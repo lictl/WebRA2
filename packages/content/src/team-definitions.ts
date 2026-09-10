@@ -10,7 +10,7 @@ import { teamInteger, teamBoolean, teamWaypoint, teamFold, teamFingerprint, desc
 
 export const TEAM_DEFINITIONS_POLICY = 'webra2-team-definitions-1' as const;
 export const TEAM_DEFINITIONS_LIMITS = Object.freeze({ missionBytes: 16 * 1024 * 1024, stages: 64, occurrences: 262144,
-  definitions: 8192, declarations: 32768, fields: 524288, references: 131072, history: 262144, tokens: 262144,
+  definitions: 8192, lateCountries: 256, declarations: 32768, fields: 524288, references: 131072, history: 262144, tokens: 262144,
   characters: 64 * 1024 * 1024, nodes: 2_000_000, work: 4_194_304, diagnostics: 32768, serializedBytes: 64 * 1024 * 1024 });
 type Limits = { -readonly [K in keyof typeof TEAM_DEFINITIONS_LIMITS]: number };
 type Kind = 'team' | 'taskforce' | 'script';
@@ -67,6 +67,7 @@ export interface TeamDefinitions {
   readonly source: ScenarioObjects['source']; readonly entityFingerprint: string;
   readonly sources: Readonly<{ rules: RuntimeIni['layers']; ai: RuntimeIni['layers'] }>;
   readonly phases: readonly Readonly<{ phase: Phase; layerId: string; sourceSha256: string; registry: string }>[];
+  readonly lateCountryAllocations: readonly Readonly<{ id: string; name: string; index: number; phase: Phase; origin: IniOrigin }>[];
   readonly teams: readonly TeamDefinition[]; readonly taskForces: readonly TaskForceDefinition[]; readonly scripts: readonly TeamScriptDefinition[];
   readonly diagnostics: readonly TeamDiagnostic[];
   readonly coverage: Readonly<{ typedTeams: number; typedTaskForces: number; numericScripts: number; typedOperandScripts: number;
@@ -136,8 +137,10 @@ export function compileTeamDefinitions(input: { readonly definitions: EntityDefi
   const objects = compileScenarioObjects({ profile, source: { ...mission.source }, bytes });
   const construction = assembleScenarioDefinitions({ objects, rules });
   if (construction.placements.length !== definitions.placements.length || construction.placements.some((p, i) => p.rowId !== definitions.placements[i]!.rowId || p.typeId !== definitions.placements[i]!.typeId || p.owner.houseId !== definitions.placements[i]!.ownerId)) fail('construction-identity');
-  if (objects.placements.some((p, i) => p.strengthRaw !== definitions.placements[i]!.rawStrength)) fail('placement-identity');
+  const placedRows = new Map(objects.placements.map(p => [p.row.id, p]));
+  if (definitions.placements.some(p => placedRows.get(p.rowId)?.strengthRaw !== p.rawStrength)) fail('placement-identity');
   const records = new Map<Kind, Map<string, MutableBase>>([['team', new Map()], ['script', new Map()], ['taskforce', new Map()]]), diagnostics: TeamDiagnostic[] = [];
+  const lateCountryAllocations: { id: string; name: string; index: number; phase: Phase; origin: IniOrigin }[] = [];
   let work = 0, declarationCount = 0, history = 0, fieldReads = 0, references = 0, tokens = 0;
   const charge = (n = 1) => { if (n > cap.work - work) fail('work-limit'); work += n; };
   const remember = (n = 1) => { if (n > cap.history - history) fail('history-limit'); history += n; };
@@ -149,8 +152,9 @@ export function compileTeamDefinitions(input: { readonly definitions: EntityDefi
     if (++fieldReads > cap.fields) fail('field-limit'); charge(); const rows = findIniSourceEntries(s, key); if (rows.length > 1) fail('duplicate-key'); return rows[0];
   }
   function allocate(kind: Kind, name: string, phase: Phase, origin: IniOrigin, reason: 'registry' | 'team-reference'): MutableBase {
-    charge(); if (!identifier(name) || absent(name)) fail('identifier'); const list = records.get(kind)!, key = teamFold(name), prior = list.get(key); if (prior) return prior;
-    if ([...records.values()].reduce((n, m) => n + m.size, 0) >= cap.definitions) fail('definition-limit');
+    charge(); if (!identifier(name) || absent(name)) fail('identifier');
+    if (reason === 'registry' && kind !== 'team' && name.length > 23) fail('registry-truncation'); const list = records.get(kind)!, key = teamFold(name), prior = list.get(key); if (prior) return prior;
+    if ([...records.values()].reduce((n, m) => n + m.size, 0) + lateCountryAllocations.length >= cap.definitions) fail('definition-limit');
     const fields: Record<string, EntityField<FieldValue>> = Object.create(null);
     if (kind === 'team') { for (const [key, value] of Object.entries(numericDefaults)) fields[key] = initial(value, 'native-constructor');
       if (profile === 'yr') fields.mindControlDecision = initial(0, 'native-constructor');
@@ -182,15 +186,21 @@ export function compileTeamDefinitions(input: { readonly definitions: EntityDefi
     r.fields[target] = field(prior, e, value, value === null ? 'unsupported-narrow-value' : 'native-read-current-default');
     if (value === null) diagnostic('unsupported-value', r.id, e.origin);
   }
-  const countries = new Map<string, typeof construction.countries[number]>(), houseByCountry = new Map<string, typeof construction.houses[number]>();
+  const countries = new Map<string, { id: string; name: string }>(), houseByCountry = new Map<string, typeof construction.houses[number]>();
   for (const c of construction.countries) for (const alias of [c.alias.value, c.name]) { charge(); if (!countries.has(teamFold(alias))) countries.set(teamFold(alias), c); }
   for (const h of construction.houses) { charge(); if (h.country.id && !houseByCountry.has(h.country.id)) houseByCountry.set(h.country.id, h); }
-  function loadOwner(r: MutableBase, s: IniSourceSection): void {
+  function loadOwner(r: MutableBase, s: IniSourceSection, phase: Phase): void {
     const e = entry(s, 'House'); if (!e) return;
     if (!e.value) { r.owner = { ...field(r.owner, e, r.owner.value, 'empty-retains-current'), status: r.owner.status }; return; }
-    const country = countries.get(teamFold(e.value)), special = /^<Player @ ([A-H])>$/.exec(e.value);
+    let country = countries.get(teamFold(e.value)); const special = /^<Player @ ([A-H])>$/.exec(e.value), random = teamFold(e.value) === '<random>';
+    if (!country && !random && !(profile === 'yr' && special) && e.value.length <= 24 && /^[\x20-\x7e]+$/.test(e.value) && !/[,;\[\]=]/.test(e.value)) {
+      if (lateCountryAllocations.length >= cap.lateCountries || [...records.values()].reduce((n, m) => n + m.size, 0) + lateCountryAllocations.length >= cap.definitions) fail('late-country-limit');
+      charge(); country = { id: `country:${teamFold(e.value)}`, name: e.value };
+      remember(); lateCountryAllocations.push({ ...country, index: construction.countries.length + lateCountryAllocations.length, phase, origin: e.origin }); countries.set(teamFold(e.value), country);
+    }
     let value: TeamOwner;
-    if (profile === 'yr' && special) value = { countryId: null, houseId: null, specialSelector: 4475 + special[1]!.charCodeAt(0) - 65, status: 'special' };
+    if (random) value = { countryId: null, houseId: null, specialSelector: -2, status: 'special' };
+    else if (profile === 'yr' && special) value = { countryId: null, houseId: null, specialSelector: 4475 + special[1]!.charCodeAt(0) - 65, status: 'special' };
     else if (country) value = { countryId: country.id, houseId: houseByCountry.get(country.id)?.id ?? null, specialSelector: null, status: houseByCountry.has(country.id) ? 'country-house' : 'missing-house' };
     else value = { countryId: null, houseId: null, specialSelector: null, status: 'unsupported' };
     r.owner = field(r.owner, e, value, 'country-then-first-house');
@@ -225,7 +235,7 @@ export function compileTeamDefinitions(input: { readonly definitions: EntityDefi
     }
   }
   function team(r: MutableBase, s: IniSourceSection, phase: Phase): boolean | null {
-    loadOwner(r, s);
+    loadOwner(r, s, phase);
     for (const [target, key] of Object.entries(numericKeys)) {
       if (target === 'mindControlDecision' && profile === 'ra2') continue;
       scalar(r, s, key, target, target === 'waypoint' || target === 'transportWaypoint' ? teamWaypoint : teamInteger);
@@ -317,7 +327,7 @@ export function compileTeamDefinitions(input: { readonly definitions: EntityDefi
   });
   diagnostic('external-allocation-paths-unmodeled', 'program');
   const payload = { schemaVersion: 1 as const, policy: TEAM_DEFINITIONS_POLICY, profile, source: { ...mission.source }, entityFingerprint: definitions.fingerprint,
-    sources: { rules: rules.layers, ai: ai.layers }, phases, teams, taskForces, scripts, diagnostics,
+    sources: { rules: rules.layers, ai: ai.layers }, phases, lateCountryAllocations, teams, taskForces, scripts, diagnostics,
     coverage: { typedTeams: teams.filter(r => r.typed).length, typedTaskForces: taskForces.filter(r => r.typed).length, numericScripts: scripts.filter(r => r.numericFramingComplete).length,
       typedOperandScripts: scripts.filter(r => r.operandsComplete).length, allocationScope: 'global-and-mission-lists-and-team-references' as const, nativeAllocationComplete: false as const },
     nativeExecutionVerified: false as const, canStartCampaign: false as const };

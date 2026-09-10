@@ -72,12 +72,20 @@ test('TaskForce and Script literal numeric slots compact gaps, retain missing ty
 });
 test('country aliases choose the first matching house; literal house names are not team country references; YR selectors are explicit', () => {
   const a = compileTeamDefinitions(fixture({ aiText: global.replace('House=Azure', 'House=Player') }));
-  assert.equal(a.teams[0]!.owner.status, 'unsupported'); assert.equal(a.teams[0]!.owner.value!.houseId, null);
+  assert.equal(a.teams[0]!.owner.value!.status, 'missing-house'); assert.equal(a.lateCountryAllocations[0]!.name, 'Player'); assert.equal(a.teams[0]!.owner.value!.houseId, null);
   for (const profile of ['ra2', 'yr'] as const) {
     const r = compileTeamDefinitions(fixture({ profile, aiText: global.replace('House=Azure', 'House=<Player @ H>') }));
     assert.equal(r.teams[0]!.owner.value!.specialSelector, profile === 'yr' ? 4482 : null);
-    assert.equal(r.teams[0]!.owner.value!.status, profile === 'yr' ? 'special' : 'unsupported');
+    assert.equal(r.teams[0]!.owner.value!.status, profile === 'yr' ? 'special' : 'missing-house');
   }
+});
+test('nonempty absent country loads allocate once, while native random selectors do not allocate', () => {
+  const r = compileTeamDefinitions(fixture({ aiText: global.replace('House=Azure', 'House=<none>').replace('House=Blue', 'House=<NONE>') }));
+  assert.equal(r.lateCountryAllocations.length, 1); assert.equal(r.lateCountryAllocations[0]!.name, '<none>');
+  assert.equal(r.teams[0]!.owner.value!.countryId, 'country:<none>'); assert.equal(r.teams[1]!.owner.value!.houseId, null);
+  const random = compileTeamDefinitions(fixture({ aiText: global.replace('House=Azure', 'House=<RANDOM>') }));
+  assert.equal(random.teams[0]!.owner.value!.specialSelector, -2); assert.equal(random.lateCountryAllocations.length, 0);
+  assert.throws(() => compileTeamDefinitions(fixture({ aiText: global.replace('House=Azure', 'House=<none>') }), { lateCountries: 0 }), /late-country-limit/);
 });
 test('unknown opcode, malformed pairs, overflow, negative quantities and unsupported fields remain visible', () => {
   const r = compileTeamDefinitions(fixture({ aiText: global.replace('0=3,26', '0=999,123').replace('2=4,258', '2=5,').replace('4=5,2', '4=5,2147483647').replace('0=2,INF', '0=-2,INF').replace('Priority=11', 'Priority=11tail\nUnknownFlag=yes') }));
@@ -107,6 +115,10 @@ test('lower-only budgets cover declarations, fields, work, history, tokens, seri
   for (const key of ['definitions', 'declarations', 'fields', 'work', 'history', 'tokens', 'serializedBytes', 'missionBytes', 'occurrences'] as const) assert.throws(() => compileTeamDefinitions(f, { [key]: 0 }));
   assert.throws(() => compileTeamDefinitions(f, { definitions: TEAM_DEFINITIONS_LIMITS.definitions + 1 }), /limits/);
   assert.throws(() => compileTeamDefinitions(f, { tokens: -0 }), /limits/);
+});
+test('strength joins follow row identities across six-family construction ordering', () => {
+  const r = compileTeamDefinitions(fixture({ mapText: baseMap + '[Infantry]\n2=Player,INF,64,2,2,2,Guard,0,None\n[Structures]\n0=Player,HQ,256,2,2,0,None\n' }));
+  assert.equal(r.teams.length, 2);
 });
 test('owned frozen outputs and canonical source-aware fingerprints survive caller byte changes', () => {
   const f = fixture(), r = compileTeamDefinitions(f), fingerprint = r.fingerprint;

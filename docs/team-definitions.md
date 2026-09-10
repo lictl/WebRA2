@@ -19,15 +19,17 @@ ScriptTypes, mission ScriptTypes, global TaskForces, mission TaskForces. Global 
 is read from AI.INI for RA2 and AIMD.INI for YR. Each list enumerates source order;
 its numeric keys do not specify runtime indices. Each registration allocates or
 finds a case-folded ID and immediately loads the section with the first allocated
-spelling. Exact section/key spelling matters. Repeated consumed sections/keys are
-rejected instead of guessing their native tie behavior. Named sections alone do
+spelling. Exact section/key spelling matters. Script/task-force registry names longer than 23 characters are rejected because
+their list readers use 24-byte buffers; reference identifiers admit at most 24.
+Repeated consumed sections/keys are rejected instead of guessing their native tie behavior. Named sections alone do
 not load an implicitly referenced definition.
 
 Team fields retain native constructor/current-value defaults and source histories.
 A TeamType House field names a country/alias and selects its first matching house;
 this differs from a placement's literal house owner. YR multiplayer selectors are
-retained as explicit special values. Unknown country allocation and inherited
-country state remain unsupported. Script/TaskForce references may allocate before
+retained as explicit special values. Absent countries are allocated in a bounded component-owned identity list, without
+creating a house. The native random selector is retained separately. Inherited
+country state and truncated names remain unsupported. Script/TaskForce references may allocate before
 those lists are visited. The native TaskForce fallback occurs before Script fallback;
 an empty TaskForce array returns from the team load first. Missing definitions and
 partial loads remain visible.
