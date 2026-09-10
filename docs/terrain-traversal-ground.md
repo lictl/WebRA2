@@ -29,9 +29,9 @@ later collision/land checks. This is a stage of admission, not a proof of every
 locomotor or complete native pathfinding.
 
 `webra2-ordinary-ground-1` applies that relation to the existing eight map-coordinate
-neighbor directions. The packed map's level byte supplies elevation; TMP image
+neighbor directions. This graph supplies the packed map's floor level as the source level, not a current airborne/bridge actor height. The packed map's level byte supplies elevation; TMP image
 height is not added to it. Native map loading stores level and slope in separate
-cell fields; TMP extra-image cover height is also stored separately. For selected,
+cell fields; A value derived from TMP extra-image height is also stored separately; its full downstream semantics are unproved. For selected,
 valid TMP slots in the no-overlay ordinary land path, the component removes only
 the old blanket `ramp`, `tmp-height` and `extra-plane` exclusions. It retains the
 original exclusions in every cell's audit metadata, including raw TMP flags and
