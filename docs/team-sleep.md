@@ -18,10 +18,14 @@ manufacturing script completion. Limits are 50 source instructions and 64 member
 or stop orders per instance; existing aggregate program/transaction bounds still
 apply. Source-program identity must include the new policy before execution.
 
-The new policy's original tests cover source recognition, script jumps/barriers,
-entry/hold/loss, immutable results, malformed identities/ticks, getters and bounds.
-The shared runtime patch and full source/compound validation are in progress in a
-separate private proposal checkout; this checkpoint alone does not enable Sleep.
+Fourteen original tests pass with the proposed shared runtime patch in an isolated
+private checkout. They cover both-profile move-to-Sleep with every-tick pending
+restore, later-line barriers and explicit jumps, in-flight entry stop receipts,
+partial/total member loss, source rejection, forged completion, scheduled order
+ownership, compound rollback, blocked prior movement, dynamic birth/second insertion
+and replay. The standalone policy tests also cover malformed input, getters and bounds.
+The shared patch and full private source validation await coordinator integration;
+the new files alone do not enable Sleep.
 
 [Native provenance](../packages/sim/TEAM_SLEEP_PROVENANCE.md) and the
 [30-range ledger](analysis/team-sleep-native.json) distinguish observed dispatch
