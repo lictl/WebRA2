@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "scope": "Metadata-only initial source waypoint execution audit for the two selected Allied openings; no game execution, mission playback or dynamic waypoint claim.",
+  "policy": "webra2-initial-source-waypoints-1",
+  "nativeLedgerSha256": "39ccd2e1cfff4eafa9ee20973bb619362c871983ebb84b51a0c28b0d618bf719",
+  "profiles": [
+    {
+      "profile": "ra2",
+      "missionSha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+      "initialWaypointsSha256": "89d5280719131455e463b80b3389f93ecb5098a16f8395c8385e08af40be5bd5",
+      "metadataRows": 101,
+      "sourceSupportedRows": 101,
+      "notInitiallyLoadedRows": 0,
+      "zeroRows": 0,
+      "declaredTemplates": 49,
+      "admittedCompleteTemplates": 6,
+      "newlyBlockedTemplates": 0,
+      "activationPlans": 75,
+      "sourceSupportedActivations": 46,
+      "newlyBlockedActivations": 0,
+      "compiledSpawnCatalogs": 1,
+      "compiledRecruitmentCatalogs": 13,
+      "supportedRecruitmentAnchors": 11,
+      "newlyBlockedRecruitmentAnchors": 0,
+      "references": 176,
+      "referenceCounts": {
+        "script3": {
+          "supported-source": 32
+        },
+        "waypoint": {
+          "supported-source": 31,
+          "none-sentinel": 18
+        },
+        "transportWaypoint": {
+          "none-sentinel": 40,
+          "supported-source": 9
+        },
+        "action7": {
+          "supported-source": 25
+        },
+        "action80": {
+          "supported-source": 21
+        }
+      }
+    },
+    {
+      "profile": "yr",
+      "missionSha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+      "initialWaypointsSha256": "d5a12f63cc04f59f8449cf8db27a3a4e21e36084370e4f96d4ae19d40a22b7b8",
+      "metadataRows": 276,
+      "sourceSupportedRows": 276,
+      "notInitiallyLoadedRows": 0,
+      "zeroRows": 0,
+      "declaredTemplates": 102,
+      "admittedCompleteTemplates": 8,
+      "newlyBlockedTemplates": 0,
+      "activationPlans": 104,
+      "sourceSupportedActivations": 83,
+      "newlyBlockedActivations": 0,
+      "compiledSpawnCatalogs": 8,
+      "compiledRecruitmentCatalogs": 1,
+      "supportedRecruitmentAnchors": 1,
+      "newlyBlockedRecruitmentAnchors": 0,
+      "references": 465,
+      "referenceCounts": {
+        "script3": {
+          "supported-source": 178
+        },
+        "waypoint": {
+          "supported-source": 85,
+          "none-sentinel": 17
+        },
+        "transportWaypoint": {
+          "none-sentinel": 99,
+          "supported-source": 3
+        },
+        "action7": {
+          "supported-source": 47
+        },
+        "action80": {
+          "supported-source": 36
+        }
+      }
+    }
+  ],
+  "privateOracle": {
+    "method": "Separate Python raw-source root/member rehash, exact source row/operand comparison and fresh PE reader/dispatch checks; no WebRA2 code imports.",
+    "assertions": 13279,
+    "archiveRoots": 5
+  },
+  "comparisonBaseline": "44bbe8e10a1e786f22b6f6f66416f590b24836a0",
+  "comparisonScope": "Prior script and activation admission functions; prior recruitment anchor selection with current genuine program/source inputs. Identity hashes intentionally differ. Current source coverage is unchanged; this does not prove runtime availability or complete missions."
+}
