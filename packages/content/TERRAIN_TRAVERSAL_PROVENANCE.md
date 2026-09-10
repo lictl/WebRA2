@@ -47,3 +47,7 @@ exotic numeric boundary equivalence are not claimed. Public tests contain origin
 INI text, miniature compressed maps and constructed TMP headers/planes; none are
 retail fixtures. Private comparison uses liblzo2 2.10 for map LZO and separate
 Python LCW, raw TMP, INI, cost and edge implementations.
+
+The original policy-2 [durable identity correction](../../docs/selection-identity.md)
+excludes session-only file handles from the canonical hash while retaining physical
+source checks. It adds no dependency and changes no native traversal interpretation.

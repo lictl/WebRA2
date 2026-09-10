@@ -14,27 +14,42 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
-Current wave: coordinator [authoritative world movement #120 / PR #123](https://github.com/lictl/WebRA2/pull/123);
+Current wave: coordinator [selection-independent save identity #134](https://github.com/lictl/WebRA2/issues/134),
+then [authoritative combat #132](https://github.com/lictl/WebRA2/issues/132);
 browser agent [world orders/save UI #127 / PR #128](https://github.com/lictl/WebRA2/pull/128);
-format agent [native foundation masks #125 / PR #129](https://github.com/lictl/WebRA2/pull/129);
-simulation agent [weapon/projectile/warhead definitions #126 / PR #130](https://github.com/lictl/WebRA2/pull/130).
-Typed entity definitions [PR #122](https://github.com/lictl/WebRA2/pull/122) merged as
-`f172d8db6def090f61b51350dd0b4f29fe8d843e`; placed artwork
-[PR #121](https://github.com/lictl/WebRA2/pull/121) as
-`f2197a810713bb2a21d865a9b2525dacfd3a2fe0`; terrain traversal
-[PR #124](https://github.com/lictl/WebRA2/pull/124) as
-`3ed4e5644f183aee942131ff294ecbbf20da581f`. All have independent exact-head
-COMMENT reviews and successful checks. Both opening artwork previews pass actual
-Chrome/Firefox/Edge/Safari. World core review at `0ecf8b3` resolved the checkpoint
-overlap/static-relocation finding; the new stationary footprint support and native
-content adapter are under independent review. A revived-footprint checkpoint overlap
-finding was fixed with three collision regressions and original-sharing preservation.
-Final private world runs account for all 811/570 placements, bind 1,108/1,478
-stationary footprint cells and preserve moving restore/replay at tick 122.
+format agent [voxel resource preparation #133](https://github.com/lictl/WebRA2/issues/133);
+simulation agent [typed teams/task forces/scripts #131](https://github.com/lictl/WebRA2/issues/131).
+All three workers resumed after the weekly-limit interruption. No essential human
+input is needed. Team definitions have a coherent tested checkpoint; voxel resource
+preparation is implementing the source/attachment policy after static evidence.
+
+World movement [PR #123](https://github.com/lictl/WebRA2/pull/123) merged as
+`7bc2167d88a2ad6ef74ea4a41f53f3dd8b460050`, reviewed at
+`c3f75059d2f3b058d847b8e949e05bf3527d0653` with 623 passing tests
+([final review](https://github.com/lictl/WebRA2/pull/123#pullrequestreview-5160666607)).
 Foundation [PR #129](https://github.com/lictl/WebRA2/pull/129) merged as
-`a97f7b08f05afa943c1bb043713466b1e9a9cb32` after independent split-scope reviews
-and 585 passing checks. The integrated world component now passes 611 checks;
-its final adapter review and actual browser movement integration remain pending. No original mission is playable.
+`a97f7b08f05afa943c1bb043713466b1e9a9cb32`, reviewed at
+`9cd77e21e5781f8dce3d8f8322e4cb0f76287276` with 585 tests
+([integration review](https://github.com/lictl/WebRA2/pull/129#pullrequestreview-5160598887)).
+Weapon definitions [PR #130](https://github.com/lictl/WebRA2/pull/130) merged as
+`55c20f89ac2c36521bfdcd3bead4d708f5f4d4b3`, reviewed at
+`9f240baeeb0d34a5da487b51e23f8240ed406e10` with 597 tests
+([integration review](https://github.com/lictl/WebRA2/pull/130#pullrequestreview-5160648304)).
+Full implementation/private reviews are recorded on each PR; these integration
+reviews separately cover coordinator notice/merge changes. #120 remains open for
+browser integration. All 811/570 opening placements and 1,108/1,478 stationary
+footprint cells are represented; moving checkpoints and replay agree at tick 122.
+
+World UI head `7ed6c52f2ab36f5cb7c69b9c4fda455dea3e42c5` passed 638 tests and
+[independent review](https://github.com/lictl/WebRA2/pull/128#pullrequestreview-5161607942).
+Actual Chrome then exposed #134: traversal hashing included a catalog session handle,
+so equivalent file selections produced different model/save identities. The narrow
+policy-2 correction passes 625 tests and full private normal/reversed-selection
+world, checkpoint and replay equality for both openings; see
+[the correction report](selection-identity.md). Independent review/CI precede merge.
+Preserve immutable pre-fix server4175 and its Chrome evidence. The browser agent
+will freeze corrected bytes and complete actual Chrome/Edge/Firefox/Safari world
+acceptance. No original mission is playable; combat and mission execution remain.
 The media component has complete long-clip playback in Chrome, Edge and Firefox;
 Safari's hidden-page scheduling gap remains [#115](https://github.com/lictl/WebRA2/issues/115),
 and campaign cinematic acceptance remains #12. #103 retains exact-source consumer migrations.
@@ -68,10 +83,10 @@ the coordinator after independent exact-head COMMENT review and successful check
 
 | Role | Current work and exclusive paths | Branch / private worktree |
 | --- | --- | --- |
-| Coordinator | #120 authoritative movement/model/save/replay and native adapters; shared configuration/handoff and independent reviews | `codex/120-world-movement` at root |
+| Coordinator | #134 durable identity, then #132 combat/model/save/replay; shared configuration/handoff and reviews | `codex/134-selection-identity`, then `codex/132-world-combat` at root |
 | browser_feasibility | #127 world orders/save UI; apps/web/**, tests/browser/**, tests/web-ui/terrain.test.ts and focused docs; sole native UI owner | `codex/127-world-ui`, `local/worktrees/world-ui` |
-| mix_reader | #125 native base foundation masks; new content compiler/tests/provenance | `codex/125-foundation-occupancy`, separate private worktree |
-| bootstrap_review | #126 typed weapon/projectile/warhead definitions; new content compiler/tests/provenance | `codex/126-weapon-definitions`, separate private worktree |
+| mix_reader | #133 voxel resource plan/preparation; new content files/tests/provenance | `codex/133-voxel-resources`, `local/worktrees/voxel-resources` |
+| bootstrap_review | #131 typed teams/task forces/scripts; new content files/tests/provenance | `codex/131-team-definitions`, `local/worktrees/team-definitions` |
 
 The shared wire contracts stay unchanged. The browser worker owns the approved
 private terrain protocol v3 for the world UI and named placed-still preview policy.
