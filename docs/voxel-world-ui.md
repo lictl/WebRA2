@@ -61,7 +61,7 @@ heap, garbage collection or browser process peak memory.
 
 ## Checkpoint validation
 
-TypeScript and all 671 public synthetic tests pass. Six new tests exercise the
+TypeScript and all 672 public synthetic tests pass. Seven new tests exercise the
 explicit projection, real original-cube rays, mixed depth/ties, frozen ownership,
 malformed metadata, genuine prepared-resource joins, missing/conditional groups,
 source ownership and unchanged save/replay state. Existing controller/worker tests
@@ -81,7 +81,11 @@ ready types). At scale 8 their bounding boxes span 13.33–61.33 pixels wide and
 pixels, so the declared scale remains reasonable relative to 60×30 cells. These
 measurements establish the chosen preview size, not native calibration.
 
-Independent full composition/pick comparison and actual four-browser acceptance
-are pending at this checkpoint. Safari's automatic running remains tracked in
+An independent Python raw-span VXL decoder, HVA transform, palette and forward-face
+raster matched all 2,457,600 RGBA pixels and object/voxel-ordinal owners across
+centered/focused views of both openings. It verified two retail roots and 32 member
+ranges. This oracle composes against captured unchanged terrain/SHP planes; it
+does not independently reconstruct those existing layers. Actual four-browser
+acceptance is pending at this checkpoint. Safari's automatic running remains tracked in
 [#115](https://github.com/lictl/WebRA2/issues/115); explicit bounded steps can
 validate presentation without overriding hidden-page pause behavior.

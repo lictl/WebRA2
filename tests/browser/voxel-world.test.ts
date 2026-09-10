@@ -52,6 +52,16 @@ test('actual cube rays compose in front, behind and at base ties with immutable 
   }
   const first=composeVoxelWorld(base(4,4),cube(),new Map([['actor',info]]));composeVoxelWorld(base(4,4),cube(),new Map([['actor',{...info,x:3}]]));assert.equal(first.pick(1,1)?.kind==='object'&&first.pick(1,1)!.kind==='object'?(first.pick(1,1) as {object:ObjectInfo}).object.x:null,2);
 });
+test('SHP exact ties retain its source; voxel internal instance ties remain lexicographic',()=>{
+  const voxel=cube(),original=base(4,4),shp={...info,id:'object-9',format:'shp' as const,voxel:null};
+  const basePick={kind:'object' as const,object:shp,canvasX:1,canvasY:1,worldX:1,worldY:1,depth:11};
+  const lower={...original,allocations:{...original.allocations,objects:1},pick(){return basePick;}};
+  const tied=composeVoxelWorld(lower,voxel,new Map([['actor',info]]));assert.equal(tied.pick(1,1)?.kind==='object'?(tied.pick(1,1) as {object:ObjectInfo}).object.id:null,'object-9');
+  const nearer=composeVoxelWorld({...base(4,4),pick(){return {...basePick,depth:10};}},cube(),new Map([['actor',info]]));assert.equal(nearer.pick(1,1)?.kind==='object'?(nearer.pick(1,1) as {object:ObjectInfo}).object.id:null,'object-0');
+  const b=vxl().bytes,atlas=createVoxelAtlas({assets:[{id:'s',kind:'vxl',sha256:sha(b),bytes:b}],parts:[{id:'part',vxlAssetId:'s',vxlSection:0,hva:null,transformPolicy:'openra-hva-bounds-scale'}]}),rgba=new Uint8Array(1024);rgba.set([200,80,20,255],4);
+  const render=(ids:string[])=>renderVoxelFrame({atlas,instances:ids.map(id=>({id,partId:'part',paletteId:'p',modelToView:[4,0,0,0,0,-4,0,0,0,0,1,10]})),palettes:[{id:'p',rgba,remap:null,transparentIndex:0}],viewport:{width:4,height:4,backgroundRgba:[0,0,0,0]},lighting:'unlit'});
+  for(const order of [['z','a'],['a','z']]){const frame=composeVoxelWorld(base(4,4),render(order),new Map([['z',{...info,id:'object-7'}],['a',info]]));assert.equal((frame.pick(1,1) as {object:ObjectInfo}).object.id,'object-0');}
+});
 test('composition and discriminated metadata reject bad frame/part joins, payloads and allocation claims',()=>{
   const f=cube();assert.throws(()=>composeVoxelWorld(base(5,4),f,new Map([['actor',info]])),/frame/);
   assert.throws(()=>composeVoxelWorld(base(4,4),f,new Map([['actor',{...info,voxel:{...info.voxel!,partId:'wrong'}}]])),/owner/);
