@@ -44,7 +44,7 @@ export function mountWorld(root: HTMLElement, controller: TerrainController): ()
   canvas.addEventListener('keydown', key);
   const option = (value: string, text: string) => { const o = document.createElement('option'); o.value = value; o.textContent = text; return o; };
   const details = (element: HTMLElement, values: [string, string][]) => { element.replaceChildren(); for (const [name, value] of values) { const dt = document.createElement('dt'), dd = document.createElement('dd'); dt.textContent = name; dd.textContent = value; element.append(dt, dd); } };
-  let locale = '', selectKey = '', priorEntity = -1;
+  let locale = '', selectKey = '', priorEntity = -1, priorPick: object|null = null;
   const unsubscribe = controller.subscribe(state => {
     const t = (key: string) => worldText(state.locale, key), summary = state.frame?.summary.world, world = state.frame?.world;
     panel.hidden = !summary || !world;
@@ -64,7 +64,8 @@ export function mountWorld(root: HTMLElement, controller: TerrainController): ()
     get('combat-controls').hidden=!summary.combatPolicy;
     const attackTarget=get<HTMLSelectElement>('attack-target');
     const picked=state.selection?.kind==='object'?summary.actors.find(a=>a.objectId===(state.selection?.kind==='object'?state.selection.object.id:'')):undefined;
-    if(picked&&picked.owner!==state.playerId&&Array.from(attackTarget.options).some(o=>o.value===String(picked.id)))attackTarget.value=String(picked.id);
+    const changedPick=state.selection!==priorPick;priorPick=state.selection;
+    if(changedPick&&picked&&picked.owner!==state.playerId&&Array.from(attackTarget.options).some(o=>o.value===String(picked.id)))attackTarget.value=String(picked.id);
     const targetState=world.actors.find(a=>String(a.id)===attackTarget.value);
     for(const option of attackTarget.options){const a=world.actors.find(a=>String(a.id)===option.value);option.disabled=!!a&&(a.health===null||a.health<=0);}
     attackTarget.disabled=state.busy;get<HTMLButtonElement>('attack').disabled=!attackTarget.value||!controller.canAttack(Number(attackTarget.value));
