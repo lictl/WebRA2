@@ -1,10 +1,11 @@
 # Opening-world orders and checkpoints
 
 [#127](https://github.com/lictl/WebRA2/issues/127) connects authoritative cell
-movement to the existing mission viewport. This slice is **in progress**. The
-worker/controller and final native footprint binding have passed original fixture
-and separately labeled private checks; actual four-browser acceptance is pending. No original mission
-is playable or completed by this checkpoint.
+movement to the existing mission viewport. The movement/checkpoint component is
+implemented, with original fixture checks and separately labeled private browser
+evidence. **Safari automatic running remains an open acceptance gate** under
+[#115](https://github.com/lictl/WebRA2/issues/115). No original mission is playable
+or completed by this component.
 
 ## Worker and display boundary
 
@@ -84,10 +85,11 @@ actor's adjacent-cell order, restore its partially completed edge, continue to t
 same terminal state and verify its recorded replay. These are Node File-compatible
 private checks, not native browser input or proof of original mission behavior.
 
-Final acceptance must record the actual
-four-browser input/movement/persistence/lifecycle outcomes and immutable code-only
-bundle identity. Retail files, decoded frames, exported saves/replays and private
-observations remain in ignored `local/` and are never published with this report.
+The [browser report](analysis/world-browser-acceptance.md) records actual input,
+movement, persistence and lifecycle outcomes for all four families, the immutable
+code-only bundle and the remaining Safari gate. Retail files, decoded frames,
+exported saves/replays and private observations remain in ignored `local/` and are
+never published with this report.
 
 The preliminary Chrome run at `7ed6c52` exposed [#134](https://github.com/lictl/WebRA2/issues/134):
 a session file index affected the durable world fingerprint. The corrected policy
