@@ -333,3 +333,9 @@ GPL-3.0-or-later work, composing the existing indexed-audio and verified-source
 components. Distribution includes the [mission audio notice](../packages/content/MISSION_AUDIO_PROVENANCE.md)
 and existing GPL/format notices. No new external decoder dependency, retail registry
 rows, waveform bytes or native listings are included.
+
+The initial object combat-event source adapter and mission dispatch are original
+GPL-3.0-or-later work. Distribution includes the [object event notice](../packages/sim/MISSION_OBJECT_EVENT_PROVENANCE.md)
+and the updated mission/world notices. Pure world/combat observation bookkeeping
+and its original fixtures retain MIT notices. No retail payload, waveform, geometry
+or native executable listing accompanies the distribution.

@@ -148,3 +148,10 @@ The optional original source cell-entry adapter is documented in the
 event1 registration and tag invocation behavior. World-before-cell-before-poll
 ordering is an explicit WebRA2 policy, with no native pointer mutation or generic
 movement callback claim. Existing programs without the adapter retain their identities.
+
+Initial object damage/destruction dispatch is original GPL-3.0-or-later work.
+The [object event report](../../docs/mission-object-events.md) and
+[source notice](MISSION_OBJECT_EVENT_PROVENANCE.md) record the paired callback
+boundary and repeating death latch policy. Private health applications drive the
+compound callback subsequence; public traces do not confer that authority.
+The D03 world/cell/object/poll phase and logical tag lifetime remain explicit.
