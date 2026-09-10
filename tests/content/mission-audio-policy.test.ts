@@ -20,12 +20,12 @@ const value=(r:MissionAudioPolicyCatalog,n:19|21,key:string)=>binding(r,n).value
 
 test('both profiles preserve fresh Defaults history, exact caller overrides and ordered sample partitions',async()=>{
  for(const profile of ['ra2','yr'] as const){
-  const {result:r,input}=await fixture(profile,'[Defaults]\nVolume=90\nPriority=CRITICAL\nType=global\n[SoundList]\n0=Alert\n[Alert]\nSounds=click click click\nControl=all random attack decay loop\nLoop=3\nVolume=50');
+  const {result:r,input}=await fixture(profile,'[Defaults]\nVolume=90\nPriority=CRITICAL\nType=global\n[SoundList]\n0=Alert\n[Alert]\nSounds=click click click click\nControl=all random attack decay loop\nLoop=3\nVolume=50');
   assert.equal(binding(r,19).status,'supported-source');assert.deepEqual(binding(r,19).caller,{type:'global-sound',panning:8192,volume:1,controller:null});
   assert.equal(value(r,19,'Volume').value,50);assert.deepEqual(value(r,19,'Volume').history.map(h=>h.value),[80,90,50]);
   assert.deepEqual(value(r,19,'Priority').history.map(h=>h.value),[2,4,2]);assert.equal(value(r,19,'Type').value,48);
   const p=binding(r,19).selection;assert(p?.kind==='sound-sample-partitions');assert.equal(p.bodyRule,'all-body-random-order');
-  assert.deepEqual([p.attack.length,p.body.length,p.decay.length],[1,1,1]);assert.equal(p.attack[0],p.body[0]);assert.equal(p.loopRule,'finite');assert.equal(p.loopCount,3);
+  assert.deepEqual([p.attack.length,p.body.length,p.decay.length],[1,2,1]);assert.equal(p.attack[0],p.body[0]);assert.equal(p.loopRule,'finite');assert.equal(p.loopCount,3);
   assert(binding(r,19).requiredState.includes('global-audio-rng-sample-selection'));assert(binding(r,19).requiredState.includes('active-instance-limits-and-interrupts'));
   assert.equal(r.runtimeAuthority,false);assert.equal(r.playbackReady,false);assert.equal(r.canStartCampaign,false);assert(Object.isFrozen(p.body));
   assert.equal(missionAudioPolicyContext(r).audio,input.audio);assert.equal(missionAudioPolicyContext(r).cues,input.cues);
@@ -69,6 +69,7 @@ test('type token order clears only exclusive masks and sample alternatives are n
  const {result:r}=await fixture('yr','[SoundList]\n0=Alert\n[Alert]\nSounds=click click\nType=global local screen shroud unshroud\nControl=random');
  assert.equal(value(r,19,'Type').value,16|32|1024);const p=binding(r,19).selection;assert(p?.kind==='sound-sample-partitions');
  assert.deepEqual(p.body,binding(r,19).reference.samples);assert.equal(p.body.length,2);assert.equal(p.bodyRule,'random-body');
+ assert(binding(r,19).requiredState.includes('global-audio-rng-sample-selection'));
 });
 
 test('genuine cue/audio identity, descriptor ownership and durable output resist forged inputs',async()=>{
@@ -102,4 +103,32 @@ test('every unsupported reference and theme occurrence survives; no source resul
  const b=binding(r,19);assert.equal(b.status,'unsupported');assert(b.reference.reasons.every(s=>b.reasons.includes(s)));assert(b.reasons.includes('unverified-audio-reference'));
  assert.equal(binding(r,20).status,'unsupported');assert(binding(r,20).reasons.includes('theme-playback-policy-out-of-scope'));
  assert.deepEqual(r.bindings.map(b=>b.opcode),[19,20,21]);assert.equal(r.runtimeAuthority,false);
+});
+
+
+test('equal-endpoint native random calls do not require an invented RNG draw',async()=>{
+ for(const profile of ['ra2','yr'] as const){
+  const {result:r}=await fixture(profile,'[SoundList]\n0=Alert\n[Alert]\nSounds=click\nControl=random\nFShift=2 2\nDelay=0 0');
+  assert.equal(binding(r,19).status,'supported-source');
+  assert(!binding(r,19).requiredState.some(s=>s.startsWith('global-audio-rng')));
+  assert(binding(r,19).requiredState.includes('audio-update-and-stream-clock'));
+ }
+});
+
+
+test('paired startup numeric policy rejects CRT halfways and truncates stored percent controls',async()=>{
+ for(const profile of ['ra2','yr'] as const){
+  for(const key of ['Volume','MinVolume']){
+   const {result:r}=await fixture(profile,`[Defaults]\n${key}=1.000000178813934326171875\n[SoundList]\n0=Alert\n[Alert]\nSounds=click`);
+   assert.equal(binding(r,19).status,'unsupported');assert.equal(value(r,19,key).value,null);
+  }
+  const {result:r}=await fixture(profile,'[Defaults]\nVolume=31.23456789%\nMinVolume=-31.23456789%\n[SoundList]\n0=Alert\n[Alert]\nSounds=click',
+   '[DialogList]\n0=Notice\n[Notice]\nAllied=allied\nRussian=russian\nYuri=yuri\nVolume=31.23456789%');
+  assert.equal(value(r,19,'Volume').value,0.3123456537723541);
+  assert.equal(value(r,19,'MinVolume').value,-0.3123456537723541);
+  assert.deepEqual(value(r,19,'Volume').history.map(h=>h.value),[80,0.3123456537723541,0.3123456537723541]);
+  assert.equal(value(r,21,'Volume').value,0.3123456537723541);
+  const {result:e}=await fixture(profile,undefined,'[DialogList]\n0=Notice\n[Notice]\nAllied=allied\nRussian=russian\nYuri=yuri\nVolume=1.000000178813934326171875');
+  assert.equal(binding(e,21).status,'unsupported');assert.equal(value(e,21,'Volume').value,null);
+ }
 });

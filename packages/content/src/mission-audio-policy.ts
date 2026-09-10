@@ -90,6 +90,7 @@ export interface MissionAudioPolicyCatalog {
 import { isMissionCueCatalog } from './mission-cues.ts';
 import { isMissionAudioCatalog } from './mission-audio-samples.ts';
 import { cueRecord, cueFreeze, cueFingerprint } from './mission-cue-types.ts';
+import { weaponDecimal, weaponFloatStore } from './weapon-numbers.ts';
 
 export class MissionAudioPolicyError extends Error {
   constructor(readonly code: string) { super(`mission-audio-policy-${code}`); this.name = 'MissionAudioPolicyError'; }
@@ -171,9 +172,10 @@ export function compileMissionAudioPolicy(input: MissionAudioPolicyInput, option
       if(s.length>64||!pattern.test(s))return {value:null,reasons:['unsupported-numeric-source']};
       const n=Number(s.endsWith('%')?s.slice(0,-1):s);
       if(!Number.isFinite(n)||(integer&&(!Number.isInteger(n)||n < -2147483648 || n>2147483647)))return {value:null,reasons:['unsupported-numeric-range']};
-      // Native ReadDouble scans %f (binary32), promotes, then applies a percent suffix.
-      const value=integer?n:Math.fround(n)*(s.endsWith('%')?0.01:1);
-      return Number.isFinite(value)?{value:Object.is(value,-0)?0:value,reasons:[]}:{value:null,reasons:['unsupported-numeric-range']};
+      // Share the reviewed startup-mode ReadDouble subset: reject CRT halfway
+      // ambiguity and truncate percent products instead of assuming nearest.
+      const value=integer?n:weaponDecimal(s);
+      return value!==null&&Number.isFinite(value)?{value:Object.is(value,-0)?0:value,reasons:[]}:{value:null,reasons:['unsupported-numeric-range']};
     }
     function enumeration(s:string,table:ReadonlyMap<string,number>,mode:'one'|'control'|'type'='one'):ReadResult{
       const words=mode==='one'?[s]:tokens(s);if(!words.length)return {value:null,reasons:['unsupported-empty-control']};
@@ -190,11 +192,13 @@ export function compileMissionAudioPolicy(input: MissionAudioPolicyInput, option
       history();loads.push({origin:origin('image-default',null),value,status:'default'});
       for(const stage of (withDefaults?['defaults-section','definition-section']:['definition-section']) as ('defaults-section'|'definition-section')[]){
         charge();const f=(stage==='defaults-section'?defaults:fields).get(key);history();
-        if(f){const result=read(f.value);value=result.value;errors.push(...result.reasons);loads.push({origin:origin(stage,f),value,status:result.reasons.length?'unsupported':'explicit'});}
+        if(f){const result=read(f.value);value=result.value;errors.push(...result.reasons);
+          // Defaults globals are dword stores before the named reader receives
+          // them as defaults; histories retain that actual stored source value.
+          if(stage==='defaults-section'&&['Volume','MinVolume'].includes(key)&&typeof value==='number')value=weaponFloatStore(value);
+          loads.push({origin:origin(stage,f),value,status:result.reasons.length?'unsupported':'explicit'});}
         else {if(stage==='definition-section'&&definitionFallback!==undefined)value=definitionFallback;
           loads.push({origin:origin(stage,null),value,status:stage==='definition-section'&&definitionFallback!==undefined?'default':'retained'});}
-        // Only the Defaults float globals are stored as binary32 between loads.
-        if(stage==='defaults-section'&&['Volume','MinVolume'].includes(key)&&typeof value==='number')value=Math.fround(value);
       }
       const result={key,status:errors.length?'unsupported' as const:'supported-source' as const,value,unit,history:loads,reasons:errors};values.push(result);
       if(errors.length)reasons.push(...errors.map(x=>`${key}:${x}`));return result;
@@ -213,7 +217,7 @@ export function compileMissionAudioPolicy(input: MissionAudioPolicyInput, option
       const loop=field('Loop',0,'native-loop-count-zero-unbounded',s=>number(s,true));
       const attack=field('Attack',0,'source-prefix-sample-count',s=>number(s,true));
       const decay=field('Decay',0,'source-suffix-sample-count',s=>number(s,true));
-      field('VShift',0,'native-random-volume-shift-percent',s=>number(s,true));
+      const vshift=field('VShift',0,'native-configured-volume-shift-percent-before-clamp',s=>number(s,true));
       const delay=field('Delay',[0,0],'native-delay-range',pair);
       const fshift=field('FShift',[0,0],'native-frequency-shift-percent-range',pair);
       const mask=control.value as number|null;let a=attack.value as number|null,d=decay.value as number|null;
@@ -221,7 +225,8 @@ export function compileMissionAudioPolicy(input: MissionAudioPolicyInput, option
       if(mask===null||a===null||d===null||loop.value===null||delay.value===null||fshift.value===null)selectionReasons.push('unresolved-selection-controls');
       if(mask!==null&&a!==null&&d!==null){a=(mask&32)?a||1:0;d=(mask&64)?d||1:0;
         if(a<0||d<0||a+d>=b.samples.length)selectionReasons.push('invalid-sample-partitions');}
-      for(const v of [limit,range,loop])if(typeof v.value==='number'&&v.value<0)reasons.push(`${v.key}:unsupported-negative-native-control`);
+      for(const v of [limit,range])if(typeof v.value==='number'&&v.value<0)reasons.push(`${v.key}:unsupported-negative-native-control`);
+      if(typeof loop.value==='number'&&loop.value<0)selectionReasons.push('Loop:unsupported-negative-native-control');
       for(const v of [delay,fshift])if(Array.isArray(v.value)&&(v.value[0]!>v.value[1]!||v.key==='Delay'&&v.value[0]!<0))selectionReasons.push(`${v.key}:unsupported-range-order`);
       const ok=selectionReasons.length===0&&a!==null&&d!==null&&mask!==null;
       selection={kind:'sound-sample-partitions',status:ok?'supported-source':'unsupported',attack:ok?b.samples.slice(0,a!):[],body:ok?b.samples.slice(a!,b.samples.length-d!):[],decay:ok&&d?b.samples.slice(-d):[],
@@ -229,14 +234,20 @@ export function compileMissionAudioPolicy(input: MissionAudioPolicyInput, option
         attackRule:ok?(a?'random-partition-member':'none'):null,decayRule:ok?(d?'random-partition-member':'none'):null,loopCount:typeof loop.value==='number'?loop.value:null,loopRule:ok?(mask&1?loop.value===0?'unbounded':'finite':'none'):null,reasons:selectionReasons};
       reasons.push(...selectionReasons);
       requireState.push('global-voices-enabled','audio-device-and-controller-pool','active-instance-limits-and-interrupts','mixer-channel-priority','audio-update-and-stream-clock','user-category-volume-and-pan');
-      if(mask!==null&&(mask&2||a||d))requireState.push('global-audio-rng-sample-selection');
-      // Native startup also samples frequency/volume-shift ranges, including zero-width ranges.
-      requireState.push('global-audio-rng-frequency-volume-and-delay','attack-body-decay-loop-cursor');
+      if(ok&&((mask&2)&&b.samples.length-a!-d!>1||a!>1||d!>1))requireState.push('global-audio-rng-sample-selection');
+      // Native equal-endpoint RandomRanged returns without drawing. Ambient uses
+      // an initial lower delay endpoint33; ordinary delay uses the source endpoints.
+      const varyingFrequency=Array.isArray(fshift.value)&&fshift.value[0]!==fshift.value[1];
+      const varyingVolume=typeof vshift.value==='number'&&Math.min(100,Math.max(0,vshift.value))>0;
+      const varyingDelay=Array.isArray(delay.value)&&mask!==null&&((mask&128)?delay.value[1]!==33:
+        delay.value[0]!==delay.value[1]&&((mask&8)!==0||delay.value[1]!>=33));
+      if(varyingFrequency||varyingVolume||varyingDelay)requireState.push('global-audio-rng-frequency-volume-and-delay');
+      requireState.push('attack-body-decay-loop-cursor');
       if(Array.isArray(delay.value)&&delay.value[0]!>=33)requireState.push('delayed-selector-retained-random-index');
     }else if(b.opcode===21){
       caller={type:'eva',typeOverride:2,priorityOverride:-1};
       for(const f of b.fields)if(!EVA_FIELDS.has(f.key))reasons.push(`unsupported-definition-field:${f.key}`);
-      field('Volume',1,'native-stored-binary32',s=>{const v=number(s);return {...v,value:typeof v.value==='number'?Math.fround(v.value):null};});
+      field('Volume',1,'native-stored-binary32',s=>{const v=number(s);return {...v,value:typeof v.value==='number'?weaponFloatStore(v.value):null};});
       field('Type',0,'native-stored-eva-type-overridden-by-action',s=>enumeration(s,EVA_TYPE));
       const priority=field('Priority',1,'native-eva-priority',s=>enumeration(s,EVA_PRIORITY));
       const errors=b.samples.length===1?[]:['eva-requires-one-selected-side-sample'];
