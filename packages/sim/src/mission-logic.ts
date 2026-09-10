@@ -5,6 +5,7 @@ import type { ScenarioLogic } from '../../content/src/scenario-logic.ts';
 import { isMissionCueCatalog, missionCueInstruction, missionCueSourceParameters, type MissionCueCatalog } from '../../content/src/mission-cues.ts';
 import { isMissionCellEntrySource, missionCellEntrySourceBindings, type MissionCellEntrySource } from './mission-cell-entry-source.ts';
 import { isMissionObjectEventSource, missionObjectEventSourceBindings, type MissionObjectEventSource, type MissionObjectEventOpcode } from './mission-object-event-source.ts';
+import { isMissionTeamActionSource, missionTeamActionSourceContext, type MissionTeamActionSource } from './mission-team-action-source.ts';
 import { canonicalHash, canonicalText, parseJson } from './canonical.ts';
 import { identity as contentIdentity } from './validation.ts';
 import type { Digest } from './types.ts';
@@ -13,6 +14,7 @@ export const MISSION_LOGIC_POLICY = 'webra2-mission-poll-2' as const;
 export const MISSION_CUE_DISPATCH_POLICY = 'webra2-source-cue-dispatch-1' as const;
 export const MISSION_CELL_ENTRY_DISPATCH_POLICY = 'webra2-source-cell-entry-dispatch-1' as const;
 export const MISSION_OBJECT_EVENT_DISPATCH_POLICY = 'webra2-source-object-event-dispatch-1' as const;
+export const MISSION_TEAM_ACTION_DISPATCH_POLICY = 'webra2-source-team-action-dispatch-1' as const;
 export const MISSION_TIMING_POLICY = 'yr-static-15-frame-1' as const;
 export const MISSION_LOGIC_LIMITS = Object.freeze({ triggers: 1024, tags: 1024, instructions: 8192,
   eventsPerTrigger: 32, actionsPerTrigger: 128, bindings: 256, instances: 2048, attachments: 1024,
@@ -38,6 +40,7 @@ export interface MissionProgram {
   readonly timingPolicy: typeof MISSION_TIMING_POLICY; readonly difficulty: number;
   readonly contentIdentity: ContentIdentity; readonly source: { readonly id: string; readonly profile: string; readonly sha256: string };
   readonly cueCatalogSha256?: string; readonly cellEntrySourceSha256?: string; readonly objectEventSourceSha256?: string;
+  readonly teamActionSourceSha256?: string;
   readonly sha256: string; readonly triggers: readonly Trigger[]; readonly tags: readonly Tag[];
   readonly canStartCampaign: false; readonly nativeBehaviorVerified: false;
 }
@@ -89,6 +92,8 @@ const programs = new WeakSet<object>();
 const programCues = new WeakMap<MissionProgram, MissionCueCatalog>();
 const programCells = new WeakMap<MissionProgram, MissionCellEntrySource>();
 const programObjects = new WeakMap<MissionProgram, MissionObjectEventSource>();
+const programTeams = new WeakMap<MissionProgram, MissionTeamActionSource>();
+export function missionProgramTeamActions(value: MissionProgram): MissionTeamActionSource | null { program(value); return programTeams.get(value) ?? null; }
 export function missionProgramObjectEvents(value: MissionProgram): MissionObjectEventSource | null { program(value); return programObjects.get(value) ?? null; }
 export function missionProgramCellEntry(value: MissionProgram): MissionCellEntrySource | null { program(value); return programCells.get(value) ?? null; }
 export function missionProgramCues(value: MissionProgram): MissionCueCatalog | null { program(value); return programCues.get(value) ?? null; }
@@ -96,6 +101,7 @@ const cueCodes = new Set([11, 48, 55]);
 function program(value: MissionProgram): void { if (!programs.has(value)) fail('mission-program'); }
 const eventCodes = new Set([0, 8, 13, 14, 27, 28, 36, 37, 47]);
 const objectEventCodes = new Set([6, 7, 44, 48]);
+const teamActionCodes = new Set([4, 7, 80]);
 const actionCodes = new Set([0, 1, 2, 12, 22, 23, 24, 25, 26, 27, 28, 29, 53, 54, 56, 57]);
 function numberToken(value: string, min: number, max: number): number | null {
   if (!/^-?(?:0|[1-9][0-9]{0,9})$/.test(value)) return null;
@@ -103,7 +109,7 @@ function numberToken(value: string, min: number, max: number): number | null {
 }
 
 /** Accepts compiler data, not retail execution closure. Caller authenticates its source/content identities. */
-export async function compileMissionProgram(logic: ScenarioLogic, options: MissionProgramOptions, digest: Digest, cues?: MissionCueCatalog, cells?: MissionCellEntrySource, objects?: MissionObjectEventSource): Promise<MissionCompilation> {
+export async function compileMissionProgram(logic: ScenarioLogic, options: MissionProgramOptions, digest: Digest, cues?: MissionCueCatalog, cells?: MissionCellEntrySource, objects?: MissionObjectEventSource, teams?: MissionTeamActionSource): Promise<MissionCompilation> {
   // Select data through descriptors before any await. Do not clone the compiler's full retained INI/raw payload.
   const config = exact(clone(options), ['contentIdentity', 'difficulty', 'timingPolicy']);
   const content = contentIdentity(config.contentIdentity), difficulty = integer(config.difficulty, 0, 2);
@@ -117,6 +123,10 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
     missionCellEntrySourceBindings(cells).source.sha256 !== source.sha256)) fail('mission-cell-source');
   if (objects !== undefined && (!isMissionObjectEventSource(objects) || objects.profile !== source.profile ||
     missionObjectEventSourceBindings(objects).source.sha256 !== source.sha256)) fail('mission-object-source');
+  if (teams !== undefined && (!isMissionTeamActionSource(teams) || teams.profile !== source.profile ||
+    teams.source.id !== source.id || teams.source.sha256 !== source.sha256)) fail('mission-team-source');
+  const teamContext = teams ? missionTeamActionSourceContext(teams) : null;
+  const teamActions = new Map(teams?.actions.map(a => [a.instructionId, a])), selectedTeams = new Set<string>();
   const cellEvents = new Map(cells?.events.map(e => [e.instructionId, e]));
   const objectEvents = new Map(objects?.events.map(e => [e.instructionId, e]));
   const selectedObjects = new Set<string>();
@@ -189,6 +199,12 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
     const effects: Action[] = [];
     for (const a of actionRow?.values ?? []) {
       const p = a.parameters;
+      if (teams && teamActionCodes.has(a.opcode)) {
+        const selected = teamActions.get(a.id); selectedTeams.add(a.id);
+        if (!selected || selected.triggerId !== id || selected.opcode !== a.opcode || selected.status !== 'supported-source' ||
+          canonicalText(selected.parameters) !== canonicalText(p)) { diagnostic('unsupported-action-team-source', a.id); continue; }
+        effects.push({ id: a.id, opcode: a.opcode, argument: 0, target: null }); accepted('action', a.opcode); continue;
+      }
       if (cues) {
         const reference = missionCueInstruction(cues, a.id), operands = missionCueSourceParameters(cues, a.id);
         if (reference) {
@@ -252,8 +268,18 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
   makeMap(tags);
   // Never certify an unattached cycle or silently omit a required script/team interpreter.
   if (list(field(logic, 'triggerAttachmentCycles'), C.triggers).length) diagnostic('attachment-cycle', '');
-  for (const name of ['teams', 'taskForces', 'scripts', 'orphanSections']) if (list(field(logic, name), C.instructions).length) diagnostic(`unsupported-${name}`, '');
+  for (const name of ['teams', 'taskForces', 'scripts'] as const) {
+    const rows = list(field(logic, name), C.instructions);
+    if (teamContext) {
+      if (canonicalText(rows) !== canonicalText(teamContext.logic[name])) diagnostic('unsupported-team-declaration-identity', name);
+    } else if (rows.length) diagnostic(`unsupported-${name}`, '');
+  }
+  if (list(field(logic, 'orphanSections'), C.instructions).length) diagnostic('unsupported-orphanSections', '');
   if (list(field(logic, 'diagnostics'), C.instructions * 2).length) diagnostic('compiler-diagnostics', '');
+  if (teams) {
+    for (const action of teams.actions) if (!selectedTeams.has(action.instructionId)) diagnostic('unhandled-source-team-action', action.instructionId);
+    if (!teams.wholeSourceReady || teams.diagnostics.length) diagnostic('unsupported-team-source-catalog', '');
+  }
   if (cells) {
     for (const event of cells.events) if (!selectedCells.has(event.instructionId)) diagnostic('unhandled-source-cell-entry', event.instructionId);
     if (cells.diagnostics.length) diagnostic('unsupported-cell-entry-catalog', '');
@@ -274,12 +300,14 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
     operandRows: { events: eventRows, actions: actionRows },
     ...(cues ? { cueCatalogSha256: cues.sha256, cueDispatchPolicy: MISSION_CUE_DISPATCH_POLICY } : {}),
     ...(cells ? { cellEntrySourceSha256: cells.sha256, cellEntryDispatchPolicy: MISSION_CELL_ENTRY_DISPATCH_POLICY } : {}),
-    ...(objects ? { objectEventSourceSha256: objects.sha256, objectEventDispatchPolicy: MISSION_OBJECT_EVENT_DISPATCH_POLICY } : {}) });
+    ...(objects ? { objectEventSourceSha256: objects.sha256, objectEventDispatchPolicy: MISSION_OBJECT_EVENT_DISPATCH_POLICY } : {}),
+    ...(teams ? { teamActionSourceSha256: teams.sha256, teamActionDispatchPolicy: MISSION_TEAM_ACTION_DISPATCH_POLICY } : {}) });
   const sha256 = await canonicalHash(payload, digest);
   const result: MissionProgram = freeze({ schemaVersion: 1, policy: MISSION_LOGIC_POLICY, timingPolicy: MISSION_TIMING_POLICY,
     difficulty, contentIdentity: content, source, sha256, triggers, tags, canStartCampaign: false, nativeBehaviorVerified: false,
     ...(cues ? { cueCatalogSha256: cues.sha256 } : {}), ...(cells ? { cellEntrySourceSha256: cells.sha256 } : {}),
-    ...(objects ? { objectEventSourceSha256: objects.sha256 } : {}) });
+    ...(objects ? { objectEventSourceSha256: objects.sha256 } : {}), ...(teams ? { teamActionSourceSha256: teams.sha256 } : {}) });
+  if (teams) programTeams.set(result, teams);
   programs.add(result); if (cells) programCells.set(result, cells); if (objects) programObjects.set(result, objects); if (cues) programCues.set(result, cues); return freeze({ ...report, program: result, canExecuteTriggerSubset: true });
 }
 
@@ -298,7 +326,7 @@ type TriggerState = { id: string; enabled: boolean; destroyed: boolean; deleted:
 type BindingState = { id: string; tagId: string; attachmentIds: string[]; active: boolean; triggers: TriggerState[] };
 export interface MissionEffect {
   readonly order: number; readonly tick: number; readonly bindingId: string; readonly triggerId: string;
-  readonly instructionId: string; readonly opcode: number; readonly kind: 'action' | 'input' | 'outcome-request' | 'presentation-request';
+  readonly instructionId: string; readonly opcode: number; readonly kind: 'action' | 'input' | 'outcome-request' | 'presentation-request' | 'team-request';
   readonly value: number | boolean | null; readonly target: string | null;
 }
 type Outcome = { order: number; tick: number; opcode: 1 | 2; countryIndex: number };
@@ -546,7 +574,7 @@ export class MissionLogic {
           }
           value = timerRemaining(state.timer, state.nextTick);
         }
-        const kind = a.opcode === 1 || a.opcode === 2 ? 'outcome-request' : cueCodes.has(a.opcode) ? 'presentation-request' : 'action';
+        const kind = a.opcode === 1 || a.opcode === 2 ? 'outcome-request' : cueCodes.has(a.opcode) ? 'presentation-request' : teamActionCodes.has(a.opcode) ? 'team-request' : 'action';
         const order = emit({ bindingId: b.id, triggerId: t.id, instructionId: a.id, opcode: a.opcode, kind, value, target });
         if (a.opcode === 1 || a.opcode === 2) state.lastOutcomeRequest = { order, tick: state.nextTick, opcode: a.opcode, countryIndex: a.argument };
         if (a.opcode === 22) push({ kind: 'force', targets: targets.get(a.target!) ?? [], at: 0 });
@@ -599,6 +627,7 @@ export interface MissionReplay {
 export async function replayMission(p: MissionProgram, input: MissionReplay | string | Uint8Array, digest: Digest): Promise<{ simulation: MissionLogic; effects: MissionEffect[]; verifiedCheckpoints: number }> {
   program(p); if (programCells.has(p)) fail('mission-cell-replay-requires-world');
   if (programObjects.has(p)) fail('mission-object-replay-requires-world');
+  if (programTeams.has(p)) fail('mission-team-replay-requires-world');
   const r = exact(clone(typeof input === 'string' || input instanceof Uint8Array ? parseJson(input) : input), ['schemaVersion', 'initialCheckpoint', 'admissions', 'finalNextTick', 'checkpoints']);
   if (r.schemaVersion !== 1) fail('mission-replay-version');
   const simulation = MissionLogic.restore(p, r.initialCheckpoint), start = simulation.save().nextTick;
