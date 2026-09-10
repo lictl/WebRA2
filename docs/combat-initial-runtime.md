@@ -133,6 +133,15 @@ hashes reconstructed in Python.
 Source fingerprints are RA2
 `7177fdf735e55d5878ca9fd66bbe7d2cb248643d683923c24789383c2a943652`
 and YR `756d954d78ef148f042134badd166de8c17dea8adf5f79446ea6ae54da8d1357`.
+
+Those PR168 fingerprints are historical. The source/world integration in
+[PR174](https://github.com/lictl/WebRA2/pull/174) found that lexicographic actor
+metadata ordering gave `infantry:2` a different actor ID than the verified numeric
+scenario order. The compiler now derives IDs from its independently recompiled
+scenario placements. Fourteen-row tests cover both profiles and reversed textual
+row order. This corrects the existing declared source-index policy and changes
+source/program fingerprints; numerical and ART values are unchanged. Current
+whole-scene identity evidence belongs to the [bridge report](ordinary-infantry-bridge.md).
 All 133 applicable placement ranks are known in these two openings. The private
 96-program run used original opaque weapon IDs and explicit admitted decisions;
 it establishes source/timing/save composition only, not native weapon selection or
