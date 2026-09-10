@@ -149,7 +149,7 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
         const parameters = list(field(v, 'parameters'), 7).map(p => text(p, 4096));
         if (field(v, 'tokenCount') !== parameters.length + 1 || (key === 'events' && field(v, 'discriminator') !== Number(parameters[0]))) fail('mission-framing');
         const ckey = `${namespace}:${opcode}`;
-        let c = coverage.get(ckey); if (!c) { c = { namespace, opcode, occurrences: 0, supported: 0, effectOnly: namespace === 'action' && (opcode === 1 || opcode === 2 || (cues !== undefined && cueCodes.has(opcode))) }; coverage.set(ckey, c); }
+        let c = coverage.get(ckey); if (!c) { c = { namespace, opcode, occurrences: 0, supported: 0, effectOnly: namespace === 'action' && (opcode === 1 || opcode === 2 || (cues !== undefined && cueCodes.has(opcode)) || (teams !== undefined && teamActionCodes.has(opcode))) }; coverage.set(ckey, c); }
         c.occurrences++; return { id: iid, opcode, parameters };
       }) };
     });

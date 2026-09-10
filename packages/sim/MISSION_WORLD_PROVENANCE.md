@@ -49,3 +49,15 @@ The [object event report](../../docs/mission-object-events.md) and
 boundary and repeating death latch policy. Private health applications drive the
 compound callback subsequence; public traces do not confer that authority.
 The D03 world/cell/object/poll phase and logical tag lifetime remain explicit.
+
+The optional mission team phase is original GPL-3.0-or-later composition. Its
+source catalog, runtime and initial flags must share complete genuine authority.
+The compound receives no caller team receipts: its private VM creates ordered
+next-tick requests after the common team/world tick. A checkpoint retains matching
+outer and nested world saves, VM effect order, queued requests, claims, controllers
+and release/Flash history. Host commands and flags remain explicit; competing team
+commands are refused. Initial actor cell/object catalogs and dynamic combat are
+still gated, rather than applied to fabricated source rows for constructed actors.
+The policy is a WebRA2 scheduling choice, not native engine phase equivalence.
+See [source](MISSION_TEAM_ACTION_PROVENANCE.md) and
+[runtime provenance](MISSION_TEAM_RUNTIME_PROVENANCE.md).

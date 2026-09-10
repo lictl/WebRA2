@@ -11,6 +11,7 @@ const digest = async (bytes: Uint8Array) => createHash('sha256').update(bytes).d
 async function setup(options: Parameters<typeof missionTeamFixture>[0] = {}) {
   const f = missionTeamFixture(options), prepared = await prepareMissionBindings(f.bindings, undefined, undefined, undefined, f.source);
   assert.ok(prepared.authority, JSON.stringify(prepared.compilation?.diagnostics));
+  assert.ok(prepared.compilation!.coverage.filter(c => c.namespace === 'action' && [4, 7, 80].includes(c.opcode)).every(c => c.effectOnly));
   const program = prepared.authority.program, initial = { bindings: prepared.authority.bindings, globals: Array<boolean>(50).fill(false), locals: Array<boolean>(100).fill(false) };
   return { ...f, program, initial, vm: () => MissionLogic.create(program, initial) };
 }

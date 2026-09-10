@@ -4,22 +4,29 @@ import type { CommandEnvelope } from '../../contracts/src/index.ts';
 import { canonicalText, parseJson } from './canonical.ts';
 import { isMissionBindingAuthority, type MissionBindingAuthority } from './mission-bindings.ts';
 import { isMissionInitialFlags, type MissionInitialFlags } from './mission-initial-flags.ts';
-import { missionProgramCues, missionProgramCellEntry, missionProgramObjectEvents, MISSION_LOGIC_LIMITS, MISSION_CUE_DISPATCH_POLICY, MissionLogic, type MissionEffect, type MissionInput, type MissionSave, type MissionObjectEventObservation } from './mission-logic.ts';
+import { missionProgramTeamActions, missionProgramCues, missionProgramCellEntry, missionProgramObjectEvents, MISSION_LOGIC_LIMITS, MISSION_CUE_DISPATCH_POLICY, MissionLogic, type MissionEffect, type MissionInput, type MissionSave, type MissionObjectEventObservation } from './mission-logic.ts';
 import { assertWorldModel, createWorldModel, type WorldModel } from './world-model.ts';
 import { combatSourceBridge } from './combat-model.ts';
 import { WorldSimulation, worldStepCombatObservations, type WorldSave, type WorldTrace } from './world.ts';
 import { appendMissionCues, createMissionCueState, restoreMissionCueState, type MissionCueState, type MissionCueEvent } from './mission-cues.ts';
 import { missionCellEntrySourceBindings, type MissionCellEntrySource } from './mission-cell-entry-source.ts';
 import { missionObjectEventSourceBindings, type MissionObjectEventSource, type MissionObjectEventActor } from './mission-object-event-source.ts';
+import { missionTeamActionSourceContext } from './mission-team-action-source.ts';
+import { compileMissionTeamRuntime, type MissionTeamRuntime } from './mission-team-context.ts';
+import { createMissionTeamCheckpoint, restoreMissionTeamCheckpoint, admitMissionTeamInput, stepMissionTeamWorld, missionTeamWorldStep,
+  type MissionTeamCheckpoint, type MissionTeamReceipt, type MissionTeamEvent } from './mission-team-runtime.ts';
+import type { TeamOrder, TeamEvent } from './team-runtime.ts';
 import type { MissionCueCatalog } from '../../content/src/mission-cues.ts';
 import { worldClone, worldHash, worldInteger, worldList, worldPosition, worldRecord, worldSourceHash } from './world-values.ts';
 
 export const MISSION_WORLD_POLICY = 'webra2-mission-world-poll-1' as const;
 export const MISSION_WORLD_CELL_PHASE_POLICY = 'webra2-world-cell-events-before-scenario-poll-1' as const;
 export const MISSION_WORLD_OBJECT_PHASE_POLICY = 'webra2-world-health-callbacks-before-scenario-poll-1' as const;
+export const MISSION_WORLD_TEAM_PHASE_POLICY = 'webra2-world-team-actions-next-tick-1' as const;
 export const MISSION_WORLD_LIMITS = Object.freeze({ ticks: 128, work: 16_777_216, trace: 32768, replayTicks: 10000, admissions: 1024, presentationUnits: 1_048_576 });
 export interface MissionWorldModel {
   readonly policy: typeof MISSION_WORLD_POLICY; readonly sha256: string; readonly worldSha256: string;
+  readonly teamActionSourceSha256?: string; readonly teamRuntimeSha256?: string; readonly teamPhasePolicy?: typeof MISSION_WORLD_TEAM_PHASE_POLICY;
   readonly cellEntrySourceSha256?: string; readonly cellEntryPhasePolicy?: typeof MISSION_WORLD_CELL_PHASE_POLICY;
   readonly objectEventSourceSha256?: string; readonly objectEventPhasePolicy?: typeof MISSION_WORLD_OBJECT_PHASE_POLICY;
   readonly cueCatalogSha256?: string; readonly cueDispatchPolicy?: typeof MISSION_CUE_DISPATCH_POLICY;
@@ -28,11 +35,15 @@ export interface MissionWorldModel {
 }
 export interface MissionWorldCheckpoint {
   readonly schemaVersion: 1; readonly policy: typeof MISSION_WORLD_POLICY; readonly modelSha256: string;
-  readonly world: WorldSave; readonly mission: MissionSave; readonly presentation?: MissionCueState;
+  readonly world: WorldSave; readonly mission: MissionSave; readonly teams?: MissionTeamCheckpoint; readonly presentation?: MissionCueState;
 }
 export interface MissionWorldResult {
-  readonly checkpoint: MissionWorldCheckpoint; readonly effects: readonly MissionEffect[];
+  readonly teams?: MissionWorldTeamEvents; readonly checkpoint: MissionWorldCheckpoint; readonly effects: readonly MissionEffect[];
   readonly worldEvents: readonly WorldTrace[]; readonly work: number; readonly presentation?: MissionWorldPresentation;
+}
+export interface MissionWorldTeamEvents {
+  readonly actions: readonly MissionTeamEvent[]; readonly orders: readonly TeamOrder[];
+  readonly events: readonly (TeamEvent & { tick: number })[];
 }
 export interface MissionWorldPresentationRequest extends MissionCueEvent {
   readonly vmOrder: number; readonly bindingId: string; readonly triggerId: string;
@@ -66,7 +77,7 @@ function freeze<T>(v: T): T {
   if (v && typeof v === 'object' && !Object.isFrozen(v)) { for (const c of Object.values(v)) freeze(c); Object.freeze(v); } return v;
 }
 type Source = { world: WorldModel; bindings: MissionBindingAuthority; flags: MissionInitialFlags; initial: MissionSave; cues: MissionCueCatalog | null;
-  cells: MissionCellEntrySource | null; cellByAddress: ReadonlyMap<number, string>;
+  teams: MissionTeamRuntime | null; cells: MissionCellEntrySource | null; cellByAddress: ReadonlyMap<number, string>;
   objects: MissionObjectEventSource | null; objectActors: ReadonlyMap<number, MissionObjectEventActor> };
 const sources = new WeakMap<MissionWorldModel, Source>();
 function source(model: MissionWorldModel): Source { const s = sources.get(model); if (!s) fail('model'); return s; }
@@ -87,10 +98,11 @@ export function compileMissionWorld(input: {
     definitionsSha256: world.definitionsSha256, entities: world.entities, navigation: world.navigation,
     blocked: world.blocked.map(worldPosition), footprints: world.footprints.map(p => ({ entityId: p.entityId, cells: p.cells.map(worldPosition) })) });
   if (base.sha256 !== bindings.worldSha256 || (world.combat && !combatSourceBridge(world.combat))) fail('world-join');
+  const teamSource = missionProgramTeamActions(bindings.program);
   for (const trigger of bindings.program.triggers) {
     for (const event of trigger.events) if ((event.opcode === 36 || event.opcode === 37) && event.argument >= flags.localCapacity) fail('local-capacity');
     for (const action of trigger.actions) {
-      if (!actions.has(action.opcode) && !(missionProgramCues(bindings.program) && [11, 48, 55].includes(action.opcode))) fail('unimplemented-effect');
+      if (!actions.has(action.opcode) && !(teamSource && [4, 7, 80].includes(action.opcode)) && !(missionProgramCues(bindings.program) && [11, 48, 55].includes(action.opcode))) fail('unimplemented-effect');
       if ((action.opcode === 56 || action.opcode === 57) && action.argument >= flags.localCapacity) fail('local-capacity');
     }
   }
@@ -113,13 +125,22 @@ export function compileMissionWorld(input: {
     // movement-only actors cannot receive its hits and remain represented in the source.
     for (const actor of bridge?.actors ?? []) if (actor.role !== 'movement-only' && objectActors.get(actor.entityId)?.status !== 'supported') fail('object-combat-context');
   }
+  const teams = teamSource ? compileMissionTeamRuntime(teamSource) : null;
+  if (teams) {
+    if (!teamSource!.wholeSourceReady || missionTeamActionSourceContext(teamSource!).bindings.fingerprint !== bindings.catalogSha256 ||
+      teams.baseModelSha256 !== world.sha256) fail('team-source');
+    // Initial actor catalogs cannot authorize newly constructed callbacks. Keep
+    // the complete source gate until dynamic cell/object/combat context is proven.
+    if (cells || objects) fail('team-dynamic-event-context');
+  }
   const initial = MissionLogic.create(bindings.program, { bindings: bindings.bindings, globals: flags.globals, locals: flags.locals }).save();
   const data = { policy: MISSION_WORLD_POLICY, worldSha256: world.sha256, bindingsSha256: bindings.catalogSha256,
     programSha256: bindings.program.sha256, flagsSha256: flags.sha256, canStartCampaign: false as const, nativeBehaviorVerified: false as const,
+    ...(teams ? { teamActionSourceSha256: teamSource!.sha256, teamRuntimeSha256: teams.sha256, teamPhasePolicy: MISSION_WORLD_TEAM_PHASE_POLICY } : {}),
     ...(cues ? { cueCatalogSha256: cues.sha256, cueDispatchPolicy: MISSION_CUE_DISPATCH_POLICY } : {}),
     ...(cells ? { cellEntrySourceSha256: cells.sha256, cellEntryPhasePolicy: MISSION_WORLD_CELL_PHASE_POLICY } : {}),
     ...(objects ? { objectEventSourceSha256: objects.sha256, objectEventPhasePolicy: MISSION_WORLD_OBJECT_PHASE_POLICY } : {}) };
-  const model = freeze({ ...data, sha256: worldHash(data) }); sources.set(model, { world, bindings, flags, initial, cues, cells, cellByAddress, objects, objectActors }); return model;
+  const model = freeze({ ...data, sha256: worldHash(data) }); sources.set(model, { world, bindings, flags, initial, cues, teams, cells, cellByAddress, objects, objectActors }); return model;
 }
 function checkFlags(s: Source, mission: MissionSave): void {
   if (mission.locals.slice(s.flags.localCapacity).some(Boolean) || mission.pending.some(i => i.kind === 'local' && i.index >= s.flags.localCapacity)) fail('local-capacity');
@@ -129,20 +150,25 @@ function checkFlags(s: Source, mission: MissionSave): void {
 }
 export function restoreMissionWorld(model: MissionWorldModel, value: unknown): MissionWorldCheckpoint {
   const s = source(model), raw = typeof value === 'string' || value instanceof Uint8Array ? parseJson(value) : value;
-  const r = worldRecord(worldClone(raw), ['schemaVersion', 'policy', 'modelSha256', 'world', 'mission', ...(s.cues ? ['presentation'] : [])]);
+  const r = worldRecord(worldClone(raw), ['schemaVersion', 'policy', 'modelSha256', 'world', 'mission', ...(s.teams ? ['teams'] : []), ...(s.cues ? ['presentation'] : [])]);
   if (r.schemaVersion !== 1 || r.policy !== MISSION_WORLD_POLICY || r.modelSha256 !== model.sha256) fail('checkpoint-identity');
-  const world = WorldSimulation.restore(s.world, r.world).save(), mission = MissionLogic.restore(s.bindings.program, r.mission).save();
+  if (s.teams && (r.teams as MissionTeamCheckpoint | null)?.pending !== null) fail('team-world');
+  const teams = s.teams ? restoreMissionTeamCheckpoint(s.teams, r.teams) : null;
+  if (teams && (teams.pending || canonicalText(r.world) !== canonicalText(teams.team.world))) fail('team-world');
+  const world = teams ? teams.team.world : WorldSimulation.restore(s.world, r.world).save(), mission = MissionLogic.restore(s.bindings.program, r.mission).save();
+  if (teams && teams.requests.some(q => q.effectOrder < 1 || q.effectOrder >= mission.nextEffectOrder || q.emittedAtTick >= mission.nextTick)) fail('team-vm-cursor');
   if (world.nextTick !== mission.nextTick) fail('clock'); checkFlags(s, mission);
   const cursor = s.cues ? restoreMissionCueState(s.cues, r.presentation) : null;
   if (cursor && (cursor.tick !== Math.max(0, world.nextTick - 1) || cursor.nextSequence > mission.nextEffectOrder - 1 ||
     (world.nextTick === 0 && cursor.nextSequence !== 0))) fail('cue-cursor');
-  return freeze({ schemaVersion: 1, policy: MISSION_WORLD_POLICY, modelSha256: model.sha256, world, mission,
+  return freeze({ schemaVersion: 1, policy: MISSION_WORLD_POLICY, modelSha256: model.sha256, world, mission, ...(teams ? { teams } : {}),
     ...(cursor ? { presentation: cursor } : {}) });
 }
 export function createMissionWorld(model: MissionWorldModel): MissionWorldCheckpoint {
   const s = source(model);
   return restoreMissionWorld(model, { schemaVersion: 1, policy: MISSION_WORLD_POLICY, modelSha256: model.sha256,
     world: WorldSimulation.create(s.world).save(), mission: s.initial,
+    ...(s.teams ? { teams: createMissionTeamCheckpoint(s.teams) } : {}),
     ...(s.cues ? { presentation: createMissionCueState(s.cues) } : {}) });
 }
 export interface MissionWorldAdmission {
@@ -152,7 +178,13 @@ export interface MissionWorldAdmission {
 export function admitMissionWorld(model: MissionWorldModel, value: unknown, input: MissionWorldAdmission): MissionWorldCheckpoint {
   const s = source(model), checkpoint = restoreMissionWorld(model, value), r = worldRecord(input, ['commands', 'flags']);
   const commands = worldList(r.commands, 256), flags = worldList(r.flags, 1024) as MissionInput[];
-  const world = WorldSimulation.restore(s.world, checkpoint.world), mission = MissionLogic.restore(s.bindings.program, checkpoint.mission);
+  const mission = MissionLogic.restore(s.bindings.program, checkpoint.mission);
+  if (s.teams && checkpoint.teams) {
+    const teams = commands.length ? admitMissionTeamInput(s.teams, checkpoint.teams, { commands: commands as CommandEnvelope[], requests: [] }) : checkpoint.teams;
+    mission.enqueue(flags); checkFlags(s, mission.save());
+    return restoreMissionWorld(model, { ...checkpoint, teams, world: teams.team.world, mission: mission.save() });
+  }
+  const world = WorldSimulation.restore(s.world, checkpoint.world);
   world.admitCommands(commands); mission.enqueue(flags); checkFlags(s, mission.save());
   return restoreMissionWorld(model, { ...checkpoint, world: world.save(), mission: mission.save() });
 }
@@ -160,6 +192,7 @@ export function admitMissionWorld(model: MissionWorldModel, value: unknown, inpu
 export function stepMissionWorld(model: MissionWorldModel, value: unknown, ticks = 1, workLimit: number = MISSION_WORLD_LIMITS.work): MissionWorldResult {
   const s = source(model), checkpoint = restoreMissionWorld(model, value);
   worldInteger(ticks, 1, MISSION_WORLD_LIMITS.ticks); worldInteger(workLimit, 0, MISSION_WORLD_LIMITS.work);
+  if (s.teams) return stepMissionTeams(model, checkpoint, ticks, workLimit);
   const world = WorldSimulation.restore(s.world, checkpoint.world), mission = MissionLogic.restore(s.bindings.program, checkpoint.mission);
   const effects: MissionEffect[] = [], worldEvents: WorldTrace[] = [], requests: MissionWorldPresentationRequest[] = []; let work = 0, units = 0;
   let cursor = checkpoint.presentation;
@@ -220,6 +253,47 @@ export function stepMissionWorld(model: MissionWorldModel, value: unknown, ticks
   return freeze({ checkpoint: next, effects, worldEvents, work,
     ...(s.cues ? { presentation: presentation(model, checkpoint.world.nextTick, next, requests) } : {}) });
 }
+/** D03: due requests and controllers advance one world tick, then VM poll emits next-tick requests. */
+function stepMissionTeams(model: MissionWorldModel, checkpoint: MissionWorldCheckpoint, ticks: number, workLimit: number): MissionWorldResult {
+  const s = source(model), runtime = s.teams!, mission = MissionLogic.restore(s.bindings.program, checkpoint.mission);
+  let teams = checkpoint.teams!, cursor = checkpoint.presentation, work = 0, units = 0;
+  const effects: MissionEffect[] = [], worldEvents: WorldTrace[] = [], actions: MissionTeamEvent[] = [], orders: TeamOrder[] = [], events: (TeamEvent & { tick: number })[] = [];
+  const requests: MissionWorldPresentationRequest[] = [];
+  const charge = (n: number) => { if (n > workLimit - work) fail('work-limit'); work += n; };
+  for (let at = 0; at < ticks; at++) {
+    const advanced = stepMissionTeamWorld(runtime, teams, Math.min(runtime.limits.tickWork, workLimit - work)); charge(advanced.work);
+    const receipt = missionTeamWorldStep(advanced), polled = mission.step(); charge(polled.work);
+    if (receipt.step.nextTick !== polled.nextTick || advanced.checkpoint.team.world.nextTick !== polled.nextTick) fail('team-clock');
+    teams = advanced.checkpoint;
+    const incoming: MissionTeamReceipt[] = [];
+    for (const effect of polled.effects) {
+      charge(1); if (effect.kind !== 'team-request') continue;
+      if (![4, 7, 80].includes(effect.opcode)) fail('team-effect');
+      incoming.push({ effectOrder: effect.order, emittedAtTick: effect.tick, dueTick: effect.tick + 1,
+        instructionId: effect.instructionId, bindingId: effect.bindingId, triggerId: effect.triggerId, opcode: effect.opcode as 4 | 7 | 80 });
+    }
+    // No receipt/effect list is accepted from callers. These requests come from
+    // this private VM invocation, after the world's only advance in this tick.
+    if (incoming.length) teams = admitMissionTeamInput(runtime, teams, { requests: incoming, commands: [] });
+    if (s.cues && cursor) {
+      const selected = polled.effects.filter(e => e.kind === 'presentation-request');
+      const appended = appendMissionCues(s.cues, cursor, { tick: polled.nextTick - 1,
+        invocations: selected.map(e => ({ instructionId: e.instructionId, instanceId: e.bindingId })) });
+      const emitted = appended.events.map((event, i) => ({ ...event, vmOrder: selected[i]!.order,
+        bindingId: selected[i]!.bindingId, triggerId: selected[i]!.triggerId }));
+      const used = requestUnits(emitted); units += used; charge(used + emitted.length);
+      if (units > MISSION_WORLD_LIMITS.presentationUnits) fail('cue-payload-limit');
+      if (emitted.length > MISSION_WORLD_LIMITS.trace - requests.length) fail('cue-trace-limit');
+      requests.push(...emitted); cursor = appended.state;
+    }
+    const size = polled.effects.length + advanced.worldEvents.length + advanced.actionEvents.length + advanced.orders.length + advanced.events.length;
+    if (size > MISSION_WORLD_LIMITS.trace - effects.length - worldEvents.length - actions.length - orders.length - events.length) fail('trace-limit');
+    effects.push(...polled.effects); worldEvents.push(...advanced.worldEvents); actions.push(...advanced.actionEvents); orders.push(...advanced.orders); events.push(...advanced.events);
+  }
+  const next = restoreMissionWorld(model, { ...checkpoint, teams, world: teams.team.world, mission: mission.save(), ...(cursor ? { presentation: cursor } : {}) });
+  return freeze({ checkpoint: next, effects, worldEvents, work, teams: { actions, orders, events },
+    ...(s.cues ? { presentation: presentation(model, checkpoint.world.nextTick, next, requests) } : {}) });
+}
 export interface MissionWorldReplay {
   readonly schemaVersion: 1; readonly modelSha256: string; readonly initialCheckpoint: MissionWorldCheckpoint;
   readonly admissions: readonly Readonly<{ nextTick: number; input: MissionWorldAdmission }>[];
@@ -241,11 +315,14 @@ export function replayMissionWorld(model: MissionWorldModel, value: unknown): Mi
     previous = nextTick; return { nextTick, input: { commands, flags } };
   });
   const effects: MissionEffect[] = [], worldEvents: WorldTrace[] = [], requests: MissionWorldPresentationRequest[] = [];
+  const actions: MissionTeamEvent[] = [], orders: TeamOrder[] = [], events: (TeamEvent & { tick: number })[] = [];
   const start = checkpoint.world.nextTick; let units = 0;
   function advance(tick: number): void {
     while (checkpoint.world.nextTick < tick) {
       const step = stepMissionWorld(model, checkpoint, 1, MISSION_WORLD_LIMITS.work - work); work += step.work;
-      if (step.effects.length + step.worldEvents.length > MISSION_WORLD_LIMITS.trace - effects.length - worldEvents.length) fail('replay-trace-limit');
+      const teamCount = step.teams ? step.teams.actions.length + step.teams.orders.length + step.teams.events.length : 0;
+      if (step.effects.length + step.worldEvents.length + teamCount > MISSION_WORLD_LIMITS.trace - effects.length - worldEvents.length - actions.length - orders.length - events.length) fail('replay-trace-limit');
+      if (step.teams) { actions.push(...step.teams.actions); orders.push(...step.teams.orders); events.push(...step.teams.events); }
       if (step.presentation) {
         units += requestUnits(step.presentation.requests);
         if (units > MISSION_WORLD_LIMITS.presentationUnits) fail('replay-cue-payload-limit');
@@ -257,6 +334,6 @@ export function replayMissionWorld(model: MissionWorldModel, value: unknown): Mi
   }
   for (const a of admissions) { advance(a.nextTick); checkpoint = admitMissionWorld(model, checkpoint, a.input); }
   advance(end); if (worldHash(checkpoint) !== r.finalStateSha256) fail('replay-final-hash');
-  return freeze({ checkpoint, effects, worldEvents, work,
+  return freeze({ checkpoint, effects, worldEvents, work, ...(s.teams ? { teams: { actions, orders, events } } : {}),
     ...(s.cues ? { presentation: presentation(model, start, checkpoint, requests) } : {}) });
 }
