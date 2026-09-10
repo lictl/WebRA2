@@ -192,10 +192,11 @@ The standalone native random primitive in `packages/sim/src/native-random.ts` ad
 Electronic Arts Random2/Random3 under GPL-3.0-or-later. Its
 [provenance notice](../packages/sim/NATIVE_RANDOM_PROVENANCE.md) pins the source,
 copyright and modifications. Distributions containing it must retain those notices,
-the GPL license and applicable corresponding source. It is not attached to the
-browser world yet; the build includes its notice for subsequent integration.
+the GPL license and applicable corresponding source. The development build includes it through the optional ordinary numerical world
+policy. Source combat admission in the browser remains a separate integration.
 
-The original native combat numerical stages are GPL-3.0-or-later WebRA2 code.
+The original native combat numerical stages and `ordinary-combat-rules.ts`
+transaction composition are GPL-3.0-or-later WebRA2 code.
 Their [provenance notice](../packages/sim/NATIVE_COMBAT_NUMBERS_PROVENANCE.md)
 records selected native observations and synthetic arithmetic evidence. Preserve
 that notice, GPL text and applicable corresponding source when distributing them.
@@ -217,3 +218,17 @@ Its [provenance notice](../packages/sim/TEAM_RUNTIME_PROVENANCE.md), GPL text an
 corresponding source accompany distribution; the web build includes the notice.
 The move/jump controller and compound world transactions retain their own notice
 separately from the shared destination planner and MIT world simulation.
+
+The original actor death prerequisite compiler and `combat-death-runtime.ts`
+conditional ordinary-human decision helper are GPL-3.0-or-later. Their
+[provenance notice](../packages/content/COMBAT_DEATH_PROVENANCE.md), GPL text
+and corresponding source accompany distribution. The build includes this notice
+separately from animation effects and combat actor initialization. The compiler
+retains conditional effects and source references; the decision helper preserves
+source/current-weapon/veterancy requirements and requests terminal corpse/removal
+work. Neither module applies world damage, samples RNG or schedules a death.
+
+The original source combat veterancy compiler and four-consumer selector are
+GPL-3.0-or-later. The [component notice](../packages/content/COMBAT_VETERANCY_PROVENANCE.md),
+GPL text and corresponding source accompany distribution. The browser build includes
+this notice separately from actor initialization and country/difficulty modifiers.

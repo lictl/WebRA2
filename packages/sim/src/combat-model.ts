@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Original bounded cell-combat policy. A native adapter must admit supported capabilities explicitly.
+import { bindOrdinaryCombatRules, ORDINARY_COMBAT_POLICY, type OrdinaryCombatRules, type OrdinaryCombatBinding } from './ordinary-combat-rules.ts';
 import { worldClone, worldFail, worldHash, worldInteger, worldList, worldRecord, worldSymbol, WORLD_LIMITS as W } from './world-values.ts';
 
 export const COMBAT_POLICY = 'webra2-cell-combat-1' as const;
@@ -20,15 +21,19 @@ export interface CombatActor {
 }
 export interface CombatModelInput {
   readonly weapons: readonly CombatWeapon[]; readonly actors: readonly CombatActor[];
+  readonly ordinary?: OrdinaryCombatRules;
   /** Directed source-owner → target-owner alliances. Same-owner targeting is always forbidden. */
   readonly allies: readonly Readonly<{ playerId: number; allyId: number }>[];
 }
-export interface CombatModel extends CombatModelInput { readonly policy: typeof COMBAT_POLICY; readonly sha256: string }
+export interface CombatModel extends CombatModelInput { readonly policy: typeof COMBAT_POLICY | typeof ORDINARY_COMBAT_POLICY; readonly sha256: string }
 const models = new WeakSet<object>();
+const ordinaryBindings = new WeakMap<object, OrdinaryCombatBinding>();
+export function combatOrdinaryBinding(model: CombatModel): OrdinaryCombatBinding | undefined { assertCombatModel(model); return ordinaryBindings.get(model); }
 export function assertCombatModel(model: CombatModel): void { if (!models.has(model)) worldFail('combat-model'); }
 
 export function createCombatModel(input: CombatModelInput): CombatModel {
-  const r = worldRecord(input, ['weapons', 'actors', 'allies']), ids = new Set<string>();
+  const hasOrdinary=!!input&&Object.hasOwn(input,'ordinary');
+  const r = worldRecord(input, ['weapons', 'actors', 'allies',...(hasOrdinary?['ordinary']:[])]), ids = new Set<string>();
   const weapons = worldList(r.weapons, COMBAT_LIMITS.weapons).map(value => {
     const w = worldRecord(value, ['id', 'damage', 'range', 'minimumRange', 'reloadTicks', 'burst', 'burstDelayTicks', 'delivery', 'speed', 'ground', 'air', 'verses']);
     const id = worldSymbol(w.id); if (ids.has(id)) worldFail('combat-duplicate-weapon'); ids.add(id);
@@ -45,7 +50,7 @@ export function createCombatModel(input: CombatModelInput): CombatModel {
     });
     if (verses.length !== 11) worldFail('combat-verses');
     return Object.freeze({ id, damage: worldInteger(w.damage, 1, W.health), range, minimumRange,
-      reloadTicks: worldInteger(w.reloadTicks, 1, COMBAT_LIMITS.delay), burst: worldInteger(w.burst, 1, COMBAT_LIMITS.burst),
+      reloadTicks: worldInteger(w.reloadTicks, hasOrdinary ? 0 : 1, COMBAT_LIMITS.delay), burst: worldInteger(w.burst, 1, COMBAT_LIMITS.burst),
       burstDelayTicks: worldInteger(w.burstDelayTicks, 1, COMBAT_LIMITS.delay), delivery: w.delivery as CombatWeapon['delivery'], speed,
       ground: w.ground, air: w.air, verses: Object.freeze(verses) });
   }).sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
@@ -63,9 +68,10 @@ export function createCombatModel(input: CombatModelInput): CombatModel {
     const key = playerId * W.players + allyId;
     if (playerId === allyId || alliances.has(key)) worldFail('combat-alliance'); alliances.add(key); return Object.freeze({ playerId, allyId });
   }).sort((a, b) => a.playerId - b.playerId || a.allyId - b.allyId);
-  const common = { policy: COMBAT_POLICY, weapons: Object.freeze(weapons), actors: Object.freeze(actors), allies: Object.freeze(allies) };
+  const ordinary=hasOrdinary?bindOrdinaryCombatRules(r.ordinary as OrdinaryCombatRules,actors,weapons):undefined;
+  const common = { policy: ordinary ? ORDINARY_COMBAT_POLICY : COMBAT_POLICY, ...(ordinary ? {ordinary:r.ordinary as OrdinaryCombatRules} : {}), weapons: Object.freeze(weapons), actors: Object.freeze(actors), allies: Object.freeze(allies) };
   worldClone(common);
-  const model = Object.freeze({ ...common, sha256: worldHash(common) }); models.add(model); return model;
+  const model = Object.freeze({ ...common, sha256: worldHash(common) }); models.add(model); if(ordinary)ordinaryBindings.set(model,ordinary); return model;
 }
 
 export function combatDamage(weapon: CombatWeapon, armor: number): number {
