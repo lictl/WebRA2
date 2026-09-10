@@ -92,10 +92,12 @@ rectangle. These checks are private component evidence, not native browser tests
 The reproducible probe and factual output remain in ignored
 `local/world-controls/preflight.mjs` and `preplanner-facts.json`.
 
-Actual four-browser direct-pointer workflows and final private opening-world
-group/save/replay comparisons remain pending. Native control reported a locked
-Mac and failed automatic unlock; the coordinator requested manual unlock while
-independent implementation continues. The shared planner dependency remains open.
+Actual Chrome direct-pointer workflows and final private opening-world
+group/save/replay comparisons remain pending. The owner unlocked the Mac after
+native control reported failed automatic unlock; normal Chrome access is restored.
+The owner's updated testing priority is Chrome during development, with full
+Firefox/Edge/Safari end-to-end checks deferred until later completion. The shared
+planner dependency remains open.
 The preserved accepted viewport on port 4177 is unchanged. Safari's separate
 automatic-running gate remains [#115](https://github.com/lictl/WebRA2/issues/115);
 explicit-step checks must not be reported as automatic Run acceptance.
