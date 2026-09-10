@@ -33,7 +33,10 @@ independent exact-head review. Public1,126 tests pass, and149 private decodes ma
 9,961,462 scalar FFmpeg samples; one malformed stereo tail remains explicitly rejected.
 [Control groups PR208](https://github.com/lictl/WebRA2/pull/208), issue206, is implemented
 at d76df3c01cd47908140a7b7624d531f106115390 with1,125 public tests and actualChrome
-RA2/YR acceptance at unchanged source2b3ad0e. Root completes final review/merge.
+RA2/YR acceptance at unchanged source2b3ad0e. It merged as
+86f736da07ed3d8718f8e3c2b466ab6fd34246bd after the
+[independent review](https://github.com/lictl/WebRA2/pull/208#pullrequestreview-5166969079)
+and hosted34475171792 passed. Issue206 is closed; PR207 includes the clean UI merge.
 The user continues to preferChrome during development (D17).
 
 Next root slice: compose reviewed changes and their exact GPL notices; then connect

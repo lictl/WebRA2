@@ -94,4 +94,7 @@ A separate comparison with merged main202 runs 64 original programs over 1,536 t
 with 3,264 exact comparisons, including optional cues and cell callbacks but no new
 object source. Programs, work, effects, checkpoints and restored continuation remain
 identical. Private helpers are local/legacy204-{vm,compare}.ts; results stay local.
-Independent review and complete integrated checks remain required before merge.
+The pre-control-group composition passes all 1,137 public tests, 177 document /
+886 local-link checks and the 72-file build from 144 approved inputs. The final
+composition includes separately reviewed control groups208. Independent review and
+complete final integrated checks remain required before merge.
