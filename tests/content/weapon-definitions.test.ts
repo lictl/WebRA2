@@ -223,3 +223,20 @@ test('initial prefix proof remains profile/source bound and duplicate General in
   assert.throws(() => compileWeaponDefinitions({ ...input, rules: fixture({ rules, profile: 'yr' }).rules }), /profile-source/);
   assert.throws(() => compileWeaponDefinitions(input, { history: 1 }), /history-limit/);
 });
+
+test('fresh Rules reconstruction owns a proven null General default and preserves it through an empty read', () => {
+  for (const profile of ['ra2', 'yr'] as const) {
+    const missing = compileWeaponDefinitions(fixture({ profile }));
+    const empty = compileWeaponDefinitions(fixture({ profile, rules: '[General]\nDropPodWeapon=\n' + baseline }));
+    for (const result of [missing, empty]) {
+      assert.equal(result.generalDropPodWeapon.value, null);
+      assert.equal(result.generalDropPodWeapon.status, 'default');
+      assert.equal(result.generalDropPodWeapon.rule, 'fresh-native-rules-constructor');
+      assert.equal(result.generalDropPodWeapon.origin, null);
+      assert(Object.isFrozen(result.generalDropPodWeapon));
+      assert(result.weapons.every(record => record.spellingEvidence === null));
+    }
+    assert.deepEqual(missing.generalDropPodWeapon.history, []);
+    assert.deepEqual(empty.generalDropPodWeapon.history.map(origin => origin.keySpelling), ['DropPodWeapon']);
+  }
+});

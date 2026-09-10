@@ -217,7 +217,7 @@ export function compileWeaponDefinitions(input: { readonly definitions: EntityDe
     }
   }
   let gravity: EntityField<number> = field(3, 'default', 'native-rules-constructor');
-  let generalDropPodWeapon: EntityField<string> = field<string>(null, 'default', 'native-rules-constructor');
+  let generalDropPodWeapon: EntityField<string> = field<string>(null, 'default', 'fresh-native-rules-constructor');
   for (const stage of rv.stages) {
     const layer = stage.layer.id, general = section(layer, 'General'), ge = entry(general, 'Gravity');
     if (ge) {

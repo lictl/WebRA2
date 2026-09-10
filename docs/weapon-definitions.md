@@ -48,7 +48,9 @@ or record makes a complete native allocation-index claim.
 
 The modeled roots are all retained first-two normal-slot histories, including
 overwritten/cleared pointers, the ordered `[Warheads]` registry, and
-`[General] DropPodWeapon`. `generalDropPodWeapon` retains the latter's current
+`[General] DropPodWeapon`. Reconstruction starts from a fresh native Rules object;
+`generalDropPodWeapon` starts as proven null under rule
+`fresh-native-rules-constructor`. The field retains its current
 pointer, explicit clears and assignment history. Empty and
 `none`/`<none>` references are treated separately. Missing/empty property reads
 retain state; nonempty null selectors clear pointer fields. Names over 24 ASCII
@@ -84,7 +86,10 @@ Policy 2 records nullable `spellingEvidence` on just those proven allocations:
 and, for the projectile, its reference origin. Evidence requires an explicit valid
 General root in the first full base/expansion source; missing, empty, cleared,
 wrongly cased or later-only roots do not qualify. A different first-source kind
-does not qualify. A later General replacement or a different projectile allocated
+does not qualify. Reusing native `Init` on an existing Rules object and importing
+native saved pointer state are outside this fresh reconstruction contract; the
+array-reset prefix does not prove those existing pointers become null.
+A later General replacement or a different projectile allocated
 in a subsequent source cannot acquire this evidence. Every source hash and origin
 participates in the result fingerprint. Proof never supplies a missing section,
 renames an exact-case source lookup, or hides unknown fields.

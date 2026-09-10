@@ -80,6 +80,14 @@ projectile spelling. Later case-folded lookup returns the existing object; neith
 lookup replaces its name. The already recorded constructor/property/FindOrAllocate
 ranges establish the preserved spelling and exact source lookup.
 
+The fresh Rules constructors clear the exact General pointer fields: RA2
+`0x6411f2` writes zero to `this+0x4c4`; YR `0x665dd3` writes zero to
+`this+0x5a4`. The complete entry-to-store prefixes below establish EBX=0 and
+its unchanged value at each store. This justifies rule
+`fresh-native-rules-constructor` for the null initial pointer. The subsequent
+`Init` array cleanup does not itself establish a null existing pointer; reused
+Rules objects and native saved pointer state are outside this compiler contract.
+
 The complete General readers have only the absent-section exit before the root
 read; no other direct branch skips it. The additional primary interface locator is
 [RulesClass at the same YRpp pin](https://github.com/Phobos-developers/YRpp/blob/61d0887eb6040cfb36af16d592e9770ceae4dfb2/RulesClass.h).
@@ -102,10 +110,10 @@ initial source pass. Unknown external allocations remain outside the API's scope
 unrelated warhead/weapon/projectile aliases unsupported and reject duplicate source
 sections/keys. No original identifier is hardcoded as a winning projectile.
 
-Thirteen additional code/data ranges total 36,636 bytes. Every code span ends at a
+Fifteen additional code/data ranges total 40,221 bytes. Every code span ends at a
 complete instruction; two data spans pin the General section pointers. The private
 metadata ledger SHA256 is
-`e4a20dee2bf705b19625d553a4b4801dd4e705207288a78f97fb24db504d4678`.
+`fe31d6dcea31fc247d6e59614c3019274df1d55bd78897308bf2160725b8ef04`.
 The private `local/native140/evidence.py` verifies both whole-image hashes, PE
 mappings, range hashes and instruction boundaries with Capstone 5.0.6; no native
 program is executed. The raw-source oracle independently rehashes every retail
@@ -114,6 +122,7 @@ reading compiler evidence as expected values.
 
 | Profile / evidence | VA range | File offset / bytes | SHA256 |
 | --- | --- | --- | --- |
+| RA2 / Fresh Rules constructor through DropPodWeapon null store | `0x640b80–0x6411f8` | 2362240 / 1656 | `6373cca2eea206a9e6117a27775da2004d5725fdd2185ca2926e231075e7e6d5` |
 | RA2 / Initial array reset and first file load | `0x6433a0–0x6436dc` | 2372512 / 828 | `2058cfae1b99ee4c3ee9316b59f1fa0fd70a47fc917f222097bf4da738aa21b5` |
 | RA2 / File registration and General before properties | `0x6437f0–0x643afe` | 2373616 / 782 | `4e1a8514bd4167b8b681ef41fbc0b4a968093103e71cb028d42a4e0e9433e54f` |
 | RA2 / General DropPodWeapon allocation | `0x6484e1–0x648520` | 2393313 / 63 | `e964436bdedf437aafdf742e553ce4ab36886279ec6250e8dbdfed2b6e6d7639` |
@@ -121,6 +130,7 @@ reading compiler evidence as expected values.
 | RA2 / Later CombatDamage and SpecialWeapons calls | `0x643afe–0x643b3e` | 2374398 / 64 | `4a1ffe4af669414426921d5f386418c02f166264ebe232bb3d016813af10b238` |
 | RA2 / Projectile first-name lookup allocation | `0x4650a0–0x465123` | 413856 / 131 | `4e50cf6f282699dca2188f0e7896b306459b66e804f34afec2821f63d6542a91` |
 | RA2 / General section pointer | `0x7a9058–0x7a905c` | 3838040 / 4 | `098feabdb727fc3512722060d0fae00a2d156f46ed605f52ae616ddf8799e016` |
+| YR / Fresh Rules constructor through DropPodWeapon null store | `0x665650–0x665dd9` | 2512464 / 1929 | `ce8c4091f008cb773f3e6330ec684ad01ee3f6ad6846c7e9f87d3e6434a2b55d` |
 | YR / Initial array reset and first file load | `0x6686c0–0x668a2c` | 2524864 / 876 | `66d9ac73fd94f6fd464b43fae2033483073a34de17b1c20428f3dca4d9881e0a` |
 | YR / File registration and General before properties | `0x668bf0–0x668ef5` | 2526192 / 773 | `4e8ae6bc432023dfd74f2b3a85327732cfb1afbe6944b100dcc58a9ac33731d1` |
 | YR / General DropPodWeapon allocation | `0x66ec89–0x66ecc7` | 2550921 / 62 | `c5a8a7fabe2ac12181ff64d5df34ee9a0cfaccdf679d773b920fad87c5b99d12` |
