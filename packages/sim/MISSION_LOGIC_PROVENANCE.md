@@ -135,3 +135,9 @@ constructor now includes the complete return through726133. That ledger supersed
 the older truncated726131 constructor endpoint for this investigation. Source
 attachment/host cleanup is not claimed by the logical D03 tombstone policy.
 All raw bytes, listings and private source projections remain ignored.
+
+The optional source-cue extension admits only genuine same-mission catalog
+references joined to exact instruction operands. Ordered presentation requests
+retain the existing VM lifecycle policy; native presentation remains pending.
+See [source cue dispatch](../../docs/mission-cue-dispatch.md) and the
+[cue source notice](../content/MISSION_CUES_PROVENANCE.md).

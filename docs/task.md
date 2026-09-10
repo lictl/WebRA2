@@ -14,6 +14,25 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
+Current root implementation is [source cue dispatch195](https://github.com/lictl/WebRA2/issues/195)
+in `local/worktrees/mission-cue-dispatch`, branch `codex/195-mission-cue-dispatch`.
+Seven new original tests and31 focused compound/binding tests pass. Fresh438-file
+preflight accepts all75/31 source text/camera/radar references, reducing required
+VM diagnostics367→292 and531→500 while both complete original authorities remain
+null. See [dispatch details](mission-cue-dispatch.md). Whole-source joins, ordered
+private VM requests, cursor continuation and atomic replay are implemented; native
+presentation consumers remain pending. Root source checkpoint7c79bb1 is composed
+with latest main190 before final checks and independent review.
+
+Browser190 has now merged as `d296a36668771f20b2c639ea18c2614b0190121f` at final
+reviewed head `81d045aad873f2f3e2b9d472d69ad67e766b68e6`. Both
+[source/browser evidence](https://github.com/lictl/WebRA2/pull/190#pullrequestreview-5165959156)
+and [final composition](https://github.com/lictl/WebRA2/pull/190#pullrequestreview-5165969689)
+reviews pass with1,068 tests and exact hosted checks. Issues178/180 close within
+their bounded default-player ground/infantry scope. PR198 fixes profile waypoint
+execution and two root review findings; PR199 simplifies the player-facing UI.
+Audio source binding196 continues independently. No human input is needed.
+
 Current wave: source bindings191, cue references192 and mission/world194 have merged.
 Mission/world194 merged as `8e01e97dbfbef741549bd91be6b0223f82b74f46`, reviewed at
 `d28a7c8e5e677aaf8261263ed8247e9c3841b46b` with1,061 composed tests and hosted checks.
