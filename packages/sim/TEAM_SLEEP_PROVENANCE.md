@@ -7,7 +7,7 @@ distributing the composed runtime. Original game content is not included.
 The source semantics were investigated using both pinned executable images without
 execution. [The range ledger](../../docs/analysis/team-sleep-native.json) records
 30 code/data spans, 2074 bytes, image hashes, PE file offsets and complete instruction
-endpoints checked with Capstone 5.0.6. The primary GPL interfaces are
+endpoints checked with Capstone 5.0.6. The primary layout references are
 [YRpp TeamClass](https://github.com/Phobos-developers/YRpp/blob/61d0887eb6040cfb36af16d592e9770ceae4dfb2/TeamClass.h),
 [MissionClass](https://github.com/Phobos-developers/YRpp/blob/61d0887eb6040cfb36af16d592e9770ceae4dfb2/MissionClass.h),
 [TechnoClass](https://github.com/Phobos-developers/YRpp/blob/61d0887eb6040cfb36af16d592e9770ceae4dfb2/TechnoClass.h)
