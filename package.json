@@ -14,7 +14,8 @@
     "check:publication": "node tools/check-publication.mjs",
     "check:evidence": "node tools/check-m0-evidence.mjs",
     "check:performance-tools": "node --test tools/performance/check.test.mjs",
-    "check": "npm run typecheck && npm test && npm run check:performance-tools && npm run check:docs && npm run check:publication && npm run check:evidence && npm run build",
+    "check:gpu-tools": "node --test tools/gpu-performance/check.test.mjs",
+    "check": "npm run typecheck && npm test && npm run check:performance-tools && npm run check:gpu-tools && npm run check:docs && npm run check:publication && npm run check:evidence && npm run build",
     "build": "node tools/web/build.mjs",
     "preview": "node tools/web/serve.mjs",
     "start": "npm run build && npm run preview"
