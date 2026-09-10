@@ -9,7 +9,7 @@ import { findIniSourceSections, findIniSourceEntries, type IniSourceView } from 
 import type { IniOrigin } from './runtime-ini.ts';
 import type { TerrainPreviewAsset } from './terrain-preview.ts';
 
-export const TERRAIN_TRAVERSAL_POLICY = 'webra2-flat-terrain-1' as const;
+export const TERRAIN_TRAVERSAL_POLICY = 'webra2-flat-terrain-2' as const;
 export const TERRAIN_FACTOR_POLICY = 'webra2-exact-staged-land-decimal-f32-1' as const;
 export const TERRAIN_TRAVERSAL_LIMITS = Object.freeze({ cells: 130816, assets: 1024, sourceBytes: 128 * 1024 ** 2,
   mapBytes: 16 * 1024 ** 2, indexSlots: 65536, classes: 8, fields: 32768, graphWork: 8_388_608,
@@ -290,7 +290,13 @@ export function compileTerrainTraversal(input: TerrainTraversalInput, options: P
   const write = (v: unknown): void => { const text = canonicalText(v) + '\n'; if (text.length > cap.outputBytes - hashBytes) fail('output-limit');
     const bytes = new TextEncoder().encode(text); hashBytes += bytes.length; if (hashBytes > cap.outputBytes) fail('output-limit'); hashState.update(bytes); };
   const { land: _land, cells: _cells, movementClasses: _classes, allocations: _allocations, ...header } = result;
-  write(header);
+  // Import-session root handles depend on FileList enumeration. Retain them in
+  // the owned audit result, but bind durable identity to verified physical bytes.
+  // Logical asset IDs/paths and their cell joins remain part of the fingerprint.
+  write({ ...header, assets: header.assets.map(a => ({ ...a, source: {
+    root: { size: a.source.root.size, sha256: a.source.root.sha256 },
+    absoluteOffset: a.source.absoluteOffset, size: a.source.size, sha256: a.source.sha256,
+  } })) });
   for (const row of land) write(row); for (const cell of cells) write(cell);
   for (const c of movementClasses) { const { cells: _rows, ...metadata } = c; write(metadata); for (const cell of c.cells) write(cell); }
   const owned = freeze({ ...result, allocations: freeze({ ...result.allocations, outputBytes: hashBytes }), sha256: hex(hashState.digest()) });

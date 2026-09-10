@@ -197,7 +197,11 @@ The integrated component passes 611 public tests, strict types, 98-document/511-
 validation, publication/M0 guards and a 39-file code/license build from 76 approved
 inputs. This is the component head before the browser world UI is integrated.
 
-| Final private identity | RA2 opening | YR opening |
+The following identities are historical policy-1 values. The
+[selection identity correction](selection-identity.md) records policy-2 identities
+and complete normal/reversed-selection checkpoint and replay comparisons.
+
+| Historical private identity | RA2 opening | YR opening |
 | --- | --- | --- |
 | Adapter SHA256 | `987715d167adfdecd3061e68e7a1795836a1977497f77dc010ba197f8e8cfac0` | `8029afd078edf7899881df1c9a6c478f41fade7c57f9a27c93470e77139756fa` |
 | World model SHA256 | `57bb08af8cdafefc5afb18d8d5f2019725f1fd45e31dbda994ea44218d70cda4` | `fd4126992c8c896f50766a8240aa69dd48e9d4a8e2ff444fb9f9cd5a020c3dff` |
