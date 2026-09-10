@@ -14,9 +14,20 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
+[Running-order PR215](https://github.com/lictl/WebRA2/pull/215) merged as
+11d403eb786e03c13987cb27043c1434cc61c77b after exact-b11cfc0
+[independent review](https://github.com/lictl/WebRA2/pull/215#pullrequestreview-5168209393)
+and hosted34487443100. Issue214 is closed. Full1,201 public tests and actual
+Chrome RA2/YR checks pass. Only app.js changes against the prior browser build;
+all75 HTTP hashes match. Received Stop refusals and accepted-order acknowledgements
+persist across ticks/locales; disabled Move/Enter gestures remain unsubmitted.
+Both profile save/replay/advance/restore identities match. The four early unattributed
+console messages and historical mouse-cause uncertainty remain explicit in the
+[feedback report](running-order-input.md).
+
 Current root work is [dynamic team cell context212](https://github.com/lictl/WebRA2/issues/212)
 in local/worktrees/mission-team-cell-context, branch codex/212-team-cell-context,
-from merged main19b3ec7. The root checkout is also clean main19b3ec7; the earlier
+from merged main19b3ec7. The root checkout is now clean main11d403e; the earlier
 codex/132-source-attack-world branch remains preserved. Node24.20.0 npm ci passed
 in the new root and author worktrees. No human input is needed.
 
@@ -60,13 +71,27 @@ The active wave has exclusive ownership:
   loads and explicit/AI/replacement roots. Missing default houses and initial AI
   gates do not prove lifetime inactivity. This does not add an AI scheduler or
   silently relax the existing source policy.
-- browser_feasibility owns [running-order feedback214](https://github.com/lictl/WebRA2/issues/214)
+- browser_feasibility completed [running-order feedback214](https://github.com/lictl/WebRA2/issues/214)
   and the actual Chrome surface. Busy-order feedback is overwritten by automatic
   step responses; disabled mouse/Enter behavior is being distinguished from the
   canvas shortcut path. Keep command admission unchanged and make acknowledgments
   durable. Use a fresh branch from main211 and preserve frozen servers through4195.
 
-Worker213/214 open linked PRs after coherent commits. Reviewers must inspect exact
+212 functional root02f224c and worker63a48ed pass31 focused tests/types. The
+private no-team comparison covers64 models,1,536 ticks and3,392 exact results.
+Fresh438-file preflight retains254/461 required diagnostics and null authorities.
+All1 RA2 spawn archetypes and2/4 YR archetypes meet the constructor subset;4/1
+initial mobile actors exceed the supported context, so both full invariant gates
+remain false. The source report/native/raw evidence, complete checks and independent
+review are still in progress. browser_feasibility reviews the new source/context
+and root VM/world; its existing common runtime is unchanged. Root distribution
+includes the separate GPL notice. Private local/probe212.mjs and local/team212/
+contain source outputs and must never be published.
+
+[PCM playback216](https://github.com/lictl/WebRA2/issues/216) is queued for
+browser_feasibility after its212 review: bounded genuine decoded-PCM output,
+user-gesture activation and lifecycle, with native selection/mission dispatch
+separate. Worker213 opens a linked PR after coherent evidence commits. Reviewers must inspect exact
 heads outside their authored paths. Continue implementation and routine GitHub
 review/merge work autonomously; Chrome is the development browser per D17.
 

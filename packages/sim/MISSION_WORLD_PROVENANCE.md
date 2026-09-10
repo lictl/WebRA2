@@ -56,8 +56,20 @@ The compound receives no caller team receipts: its private VM creates ordered
 next-tick requests after the common team/world tick. A checkpoint retains matching
 outer and nested world saves, VM effect order, queued requests, claims, controllers
 and release/Flash history. Host commands and flags remain explicit; competing team
-commands are refused. Initial actor cell/object catalogs and dynamic combat are
-still gated, rather than applied to fabricated source rows for constructed actors.
+commands are refused. Initial actor catalogs alone cannot authorize dynamic callbacks. The optional
+team-cell capability described below supplies a complete separate actor context;
+object events and combat still require their own dynamic proof.
 The policy is a WebRA2 scheduling choice, not native engine phase equivalence.
 See [source](MISSION_TEAM_ACTION_PROVENANCE.md) and
 [runtime provenance](MISSION_TEAM_RUNTIME_PROVENANCE.md).
+
+The optional team-cell phase is original GPL-3.0-or-later composition. A genuine
+source capability covers all required future constructors and the supported world
+invariant. After the common runtime advances once, the adapter rebuilds source
+actor context from its complete history, including released births, and derives
+cell entries from the private successful movement receipt. It emits no entry for
+placement, reservation or arrival without movement. Restore and replay reconstruct
+context rather than accepting a saved actor lookup as authority. The additional
+source/phase identity affects only models that opt into this capability. See the
+[team-cell provenance](MISSION_TEAM_CELL_PROVENANCE.md) and
+[compound report](../../docs/mission-team-cell-dispatch.md).
