@@ -166,3 +166,8 @@ under GPL-3.0-or-later; [its notice](../packages/sim/WORLD_CONTENT_PROVENANCE.md
 accompanies the development bundle. The pure world model/movement/replay code
 remains separable original MIT material. No source assets or original saves are
 included in these adapters or their synthetic tests.
+
+The native combat-actor initialization compiler and original fixtures are
+GPL-3.0-or-later. Its [provenance notice](../packages/content/COMBAT_ACTORS_PROVENANCE.md)
+accompanies the development bundle and distinguishes initial source state from
+complete combat or live diplomacy. No native payload or retail rows are shipped.
