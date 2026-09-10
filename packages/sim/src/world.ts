@@ -3,7 +3,8 @@
 import { orderCommands, type CommandEnvelope, type SaveEnvelope } from '../../contracts/src/index.ts';
 import { canonicalText } from './canonical.ts';
 import { findNavigationPath } from './navigation.ts';
-import { COMBAT_ENGINE_VERSION, COMBAT_POLICY } from './combat-model.ts';
+import { COMBAT_ENGINE_VERSION } from './combat-model.ts';
+import { ORDINARY_COMBAT_ENGINE_VERSION, ORDINARY_COMBAT_POLICY } from './ordinary-combat-rules.ts';
 import { attackCombat, createCombatState, stepCombat, stopCombat, validateCombatState, type CombatState } from './combat.ts';
 import { assertWorldModel, worldAddress, worldClone, worldContent, worldEdgeCost, worldFail, worldInteger, worldList, worldPosition,
   worldRecord, WORLD_ENGINE_VERSION, WORLD_LIMITS as C, WORLD_MOTION_POLICY, type WorldModel, type WorldEntityDefinition } from './world-model.ts';
@@ -17,8 +18,8 @@ export type WorldTrace = { tick: number; phase: 'command' | 'navigation' | 'move
 export type WorldStep = { nextTick: number; events: WorldTrace[]; work: { entityVisits: number; navigationExpansions: number; transitions: number } };
 type LiveSave = { -readonly [K in keyof WorldSave]: WorldSave[K] } & { queuedCommands: CommandEnvelope[]; scheduledWork: []; rngStates: Record<string, never> };
 
-const engineVersion = (model: WorldModel) => model.combat ? COMBAT_ENGINE_VERSION : WORLD_ENGINE_VERSION;
-const rulesVersion = (model: WorldModel) => model.combat ? COMBAT_POLICY : WORLD_MOTION_POLICY;
+const engineVersion = (model: WorldModel) => model.combat?.policy===ORDINARY_COMBAT_POLICY ? ORDINARY_COMBAT_ENGINE_VERSION : model.combat ? COMBAT_ENGINE_VERSION : WORLD_ENGINE_VERSION;
+const rulesVersion = (model: WorldModel) => model.combat ? model.combat.policy : WORLD_MOTION_POLICY;
 function command(value: unknown, combat: boolean): CommandEnvelope {
   const r = worldRecord(value, ['schemaVersion', 'tick', 'playerId', 'sequence', 'kind', 'payload']);
   if (r.schemaVersion !== 1 || (r.kind !== 'move' && r.kind !== 'stop' && !(combat && r.kind === 'attack'))) worldFail('world-command-kind');

@@ -13,6 +13,24 @@ consumes caller-supplied factors and does not choose source defaults, countries,
 difficulty, veteran abilities, commands, attack eligibility or death behavior.
 The [component policy](../../docs/native-combat-numbers.md) specifies those limits.
 
+## World transaction composition
+
+[ordinary-combat-rules.ts](src/ordinary-combat-rules.ts) is also original WebRA2
+code under GPL-3.0-or-later, Copyright 2026 WebRA2 contributors. It composes these
+reviewed arithmetic stages with the existing world runtime and separately licensed
+[native random primitive](NATIVE_RANDOM_PROVENANCE.md). No additional third-party
+implementation or retail payload is adopted. The original MIT world/core and test
+files retain their licenses; combined distributions retain the GPL obligations of
+the linked components and their corresponding source.
+
+The [ordinary numerical world policy](../../docs/ordinary-combat.md) explicitly
+chooses stable actor order, one eligible shot per actor per logical tick, one shared
+reload stream and immediate core destruction. It does not claim native global RNG
+ordering, animation cadence, source attack authorization or native death lifecycle.
+There are no new native evidence ranges in this integration: arithmetic and random
+observations remain the independently reviewed primitive ledgers below and in the
+random notice. Public integration fixtures are wholly original.
+
 ## Pinned evidence
 
 Static observations use the supplied Steam Traditional Chinese installation:
