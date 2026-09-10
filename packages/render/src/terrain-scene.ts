@@ -93,6 +93,45 @@ function hash(value: unknown): asserts value is string { if (typeof value !== 's
 interface Cell { sourceRecord: number; x: number; y: number; column: number; row: number; elevation: number; subtile: number }
 interface Sprite { decoded: Pick<DecodedTmpTile, 'pixels' | 'zPixels' | 'mask' | 'extra'>; extraX: number; extraY: number; left: number; top: number; right: number; bottom: number }
 interface Placement { cell: Cell; assetId: string; sprite: Sprite; left: number; top: number; groundY: number }
+const scenes = new WeakMap<TerrainScene, { placements: Placement[]; palette: Uint8Array; cap: Limits }>();
+
+/** Bounded presentation bridge. Descriptors expose no retained planes; copy allocates one sparse patch. */
+export function describeTerrainRasters(scene: TerrainScene) {
+  const data = scenes.get(scene); if (!data) fail('scene-identity');
+  const sprites = [...new Set(data.placements.map(p => p.sprite))];
+  const indices = new Map(sprites.map((s, i) => [s, i]));
+  const { tileWidth, tileHeight } = scene.projection;
+  return {
+    limits: Object.freeze({ ...data.cap }),
+    placements: data.placements.map(p => Object.freeze({ ...p.cell, assetId: p.assetId, left: p.left,
+      top: p.top, groundY: p.groundY, sprite: indices.get(p.sprite)! })),
+    sprites: sprites.map(s => Object.freeze({ left: s.left, top: s.top, right: s.right, bottom: s.bottom,
+      patches: [{ x: 0, y: 0, width: tileWidth, height: tileHeight },
+        ...(s.decoded.extra ? [{ x: s.extraX, y: s.extraY, width: s.decoded.extra.width, height: s.decoded.extra.height }] : [])]
+        .map(rect => Object.freeze({ ...rect, copy() {
+          const rgba = new Uint8Array(rect.width * rect.height * 4), depth = new Int32Array(rect.width * rect.height);
+          const d = s.decoded; let minDepth = 0, maxDepth = 0;
+          // Each patch resolves the entire base/extra policy, including their overlap. No dense union allocation.
+          for (let y = 0; y < rect.height; y++) for (let x = 0; x < rect.width; x++) {
+            const lx = x + rect.x, ly = y + rect.y, baseAt = ly * tileWidth + lx;
+            const base = lx >= 0 && lx < tileWidth && ly >= 0 && ly < tileHeight && d.mask[baseAt] === 1;
+            let covered = base, color = base ? d.pixels[baseAt]! : 0, z = base ? d.zPixels[baseAt]! : 0;
+            const ex = lx - s.extraX, ey = ly - s.extraY;
+            if (d.extra && ex >= 0 && ex < d.extra.width && ey >= 0 && ey < d.extra.height) {
+              const at = ey * d.extra.width + ex, value = d.extra.pixels[at]!;
+              if (value !== 0) { covered = true; color = value; }
+              if (d.extra.zPixels[at]! < 32) z = d.extra.zPixels[at]!;
+            }
+            if (!covered || data.palette[color * 4 + 3] === 0) continue;
+            const at = y * rect.width + x, value = ly - z;
+            depth[at] = value; minDepth = Math.min(minDepth, value); maxDepth = Math.max(maxDepth, value);
+            for (let c = 0; c < 4; c++) rgba[at * 4 + c] = data.palette[color * 4 + c]!;
+          }
+          return { rgba, depth, minDepth, maxDepth };
+        } })),
+    })),
+  };
+}
 
 /** Synchronous CPU construction, intended for a worker. No file/catalog lookup and no inferred asset winner. */
 export function createTerrainScene(input: TerrainSceneInput, options: Partial<Limits> = {}): TerrainScene {
@@ -312,7 +351,7 @@ export function createTerrainScene(input: TerrainSceneInput, options: Partial<Li
         },
       });
   }
-  return Object.freeze({ policy: TERRAIN_SCENE_POLICY, nativeBehaviorVerified: false as const, source, assets: Object.freeze(assets), projection, bounds,
+  const scene = Object.freeze({ policy: TERRAIN_SCENE_POLICY, nativeBehaviorVerified: false as const, source, assets: Object.freeze(assets), projection, bounds,
     diagnostics: Object.freeze(diagnostics), allocations,
     render: (request: TerrainViewport): TerrainFrame => renderFrame(request) as TerrainFrame,
     renderSprites: (request: TerrainViewport, batch: SpriteBatch): SpriteTerrainFrame => {
@@ -320,4 +359,5 @@ export function createTerrainScene(input: TerrainSceneInput, options: Partial<Li
       return renderFrame(request, batch) as SpriteTerrainFrame;
     },
   });
+  scenes.set(scene, { placements, palette, cap }); return scene;
 }
