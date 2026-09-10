@@ -127,8 +127,8 @@ Actual Google Chrome **152.0.7977.83** on 2026-09-10 exercised the immutable
 `adbd0e7` build at localhost4178, with all 438 files chosen through the native
 folder picker. The exact 48-file manifest SHA-256 is
 `69f1faee2c763a4c774ed89bbf97c249f350d66249093cf5d322c195d8c26394`.
-The selected Files remain on-device. The 19-request browser observation contains
-only code/style GETs and a favicon404, with no declared request bodies; the launcher
+The selected Files remain on-device. The browser observation contains 19 requests:
+18 successful code/style GETs and one favicon404, with no declared request bodies; the launcher
 serves no retail paths. This log covers requests reaching the local launcher,
 with the existing `connect-src 'none'` app policy providing the network boundary.
 
@@ -154,7 +154,10 @@ and hides its controls. Both restores and Escape clear UI selection.
 
 Both Chrome queued and tick2 hashes exactly match the private component probe;
 the later native pause ticks are different observations, not earliest arrival
-measurements. The private metadata-only browser record is
+measurements. A separate private `browser-state-probe.mjs` restores the moving
+checkpoints and reproduces both actual tick334/534 browser terminal hashes,
+arrived cells and queued/applied Stop hashes; `browser-state-probe-facts.json`
+records these comparisons. The private metadata-only browser record is
 `local/world-controls/browser-acceptance.json`; `tested-source.json`,
 `tested-manifest.json`, `browser-request-snapshot.json` and the immutable
 `browser-build/dist/` preserve its attribution. No retail images or saves are
@@ -171,13 +174,14 @@ is unchanged. Safari's separate automatic-running gate remains
 [#115](https://github.com/lictl/WebRA2/issues/115). This component does not establish
 native formations, global congestion freedom, attacks or a playable campaign.
 
-Final integration with reviewed main `48bb1908116166e30c01c537923977ba90a77e0c`
-passes all 784 public tests, TypeScript, 123 documents / 634 local links, 432
-publication paths, M0 checks and the 49-output / 108-input build. All 47 unaffected
+Final integration with reviewed main `ec904eff30b59662b19607096cf6f282ea5abb21`
+passes all 808 public tests, TypeScript, 127 documents / 656 local links, 444
+publication paths, M0 checks and the 51-output / 108-input build. All 47 unaffected
 files are byte-identical to the browser-tested manifest, including every runtime
 JS, CSS and HTML file. Only the copied licensing overview changes and the reviewed
-native-numbers component notice is added. Independent HTTP reads verify every one
+native-numbers, combat-modifiers and team-runtime component notices are added.
+Independent HTTP reads verify every one
 of the 48 frozen output hashes; those later audit requests are separate from the
 19-request browser snapshot. Private `final-build-comparison.json`,
 `final-manifest.json` and `http-artifact-audit.json` retain these checks. Final
-manifest SHA-256: `a3550d1ea1ce98e6e5a113b7aad94d229bced7f963fbb774ce46d3220a3dcd17`.
+manifest SHA-256: `1ca54c7254301eccba9e5b8f0342e5dba67add9d37b1809e2a35900d0a3f29bd`.
