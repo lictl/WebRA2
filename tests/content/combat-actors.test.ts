@@ -76,6 +76,17 @@ test('conditional slot controls never silently choose an indexed, gunner, charge
   }
   const clear = def(compileCombatActors(actorInput({ map: mapText + '[TANK]\nClearAllWeapons=yes\n' })));
   assert.equal(clear.normalSlots.mode, 'cleared');
+  for (const profile of ['ra2', 'yr'] as const) {
+    const indexed = def(compileCombatActors(actorInput({ profile, map: mapText + '[TANK]\nTurretCount=1\nWeaponCount=3\nWeapon1=Bolt\nWeapon2=Bolt\nWeapon3=Spare\nClearAllWeapons=yes\n' })));
+    assert.equal(indexed.normalSlots.mode, 'conditional');
+    assert.deepEqual(indexed.normalSlots.reasons, ['turretCount', 'clearAllWeapons']);
+    assert(indexed.rawFields.some(o => o.keySpelling === 'Weapon3' && o.rawValue === 'Spare'));
+  }
+  for (const gate of ['Gunner=yes', 'IsChargeTurret=yes', 'IsGattling=yes']) {
+    const d = def(compileCombatActors(actorInput({ profile: 'yr', map: mapText + `[TANK]\n${gate}\nClearAllWeapons=yes\n` })));
+    assert.equal(d.normalSlots.mode, 'conditional');
+  }
+  assert.equal(def(compileCombatActors(actorInput({ map: mapText + '[TANK]\nTurretCount=invalid\nClearAllWeapons=yes\n' }))).normalSlots.mode, 'unsupported');
   const unknown = def(compileCombatActors(actorInput({ map: mapText + '[TANK]\nTurretCount=invalid\n' })));
   assert.equal(unknown.normalSlots.mode, 'unsupported');
   const ra2 = def(compileCombatActors(actorInput({ map: mapText + '[TANK]\nIsGattling=yes\nUnknownModFlag=7\n' })));

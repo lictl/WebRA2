@@ -40,6 +40,9 @@ the unknown WeaponCount constructor value is not fabricated. Ordinary, condition
 cleared and unsupported slot modes prevent choosing an indexed or dynamic slot
 without a consumer policy. Every loaded raw type field is also retained: this
 bounded component does not classify all actor modifiers or prove weapon capability.
+`ClearAllWeapons` clears only the first two normal/elite slots. Any conditional or
+unknown selector therefore takes priority over `cleared`; numbered slots beyond
+those two must not be treated as an unarmed actor.
 
 Initial map Allies uses comma-only tokenization and exact house names. It records
 unsigned 32-bit masks and directed non-self pairs. Self ownership remains separate.

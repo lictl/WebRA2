@@ -65,6 +65,9 @@ original project code. No combat effect, full diplomacy, reload, dynamic turret,
 elite, veterancy or complete modifier interpretation follows from these typed fields.
 The unknown WeaponCount constructor value remains unsupported; it does not prevent
 the separately evidenced ordinary branch when TurretCount is nonpositive.
+The post-numbered-load clear block (`0x6DB859` RA2 / `0x712A8F` YR, within the pinned
+slot-loading spans) clears only normal/elite slots 0 and 1. A clear flag cannot
+establish an unarmed actor when any conditional selector is active or unknown.
 
 The [component report](../../docs/combat-actors.md) records original synthetic cases,
 private reproduction commands and independent raw-source comparison scope. The

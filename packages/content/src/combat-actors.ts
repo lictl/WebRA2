@@ -164,7 +164,10 @@ export function compileCombatActors(input: { readonly definitions: EntityDefinit
       else if (name === 'turretCount' ? (value.value as number) > 0 : value.value === true) reasons.push(name);
     }
     const unsupported = reasons.some(r => r.startsWith('unknown-'));
-    const mode = !techno ? 'not-applicable' : unsupported ? 'unsupported' : f.clearAllWeapons.value === true ? 'cleared' : reasons.length ? 'conditional' : 'ordinary';
+    // ClearAllWeapons clears only normal/elite slots 0 and 1. Indexed slots 2+
+    // and conditional selectors still require consumer capability rejection.
+    const conditional = reasons.some(r => r !== 'clearAllWeapons');
+    const mode = !techno ? 'not-applicable' : unsupported ? 'unsupported' : conditional ? 'conditional' : f.clearAllWeapons.value === true ? 'cleared' : 'ordinary';
     output.push({ id: type.id, name: type.name, kind: type.kind, fields: f as unknown as CombatActorFields, startingAmmo,
       normalSlots: { mode, reasons }, rawFields: origins });
   }
