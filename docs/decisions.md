@@ -25,6 +25,7 @@ This file is the product decision record; `task.md` is the work-state record.
 | D17 | During development, focus browser testing on Chrome for speed; defer full Firefox/Edge/Safari end-to-end tests until the remaining implementation is finished (owner update 2026-09-10) | Chrome is the active development acceptance target; all four desktop families remain final release scope |
 | D16 | Commit changes during implementation; record blockers as GitHub issues; involve humans only when necessary; proceed with the accepted plan | Agents resolve routine issues autonomously, commit coherent work and preserve blocker evidence; execution starts with planning bootstrap followed by M0 |
 | D18 | Owner raised possible TypeScript performance issues and the need for WebAssembly (2026-09-11) | Bring the performance/TS-WASM gate forward before more broad gameplay expansion. This does not select a native language or authorize a blanket rewrite by assumption |
+| D19 | Proceed with the GPU renderer experiment and target at least 60 FPS (2026-09-11) | Use a 16.67 ms frame budget and measure sustained useful-frame cadence and GPU completion in Chrome; preserve exact CPU output and report refresh limits, stalls and unmeasured campaign scope |
 
 ## Completed question round
 

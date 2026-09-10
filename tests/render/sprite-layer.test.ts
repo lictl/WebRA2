@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { compileScenarioTerrain } from '../../packages/content/src/scenario-terrain.ts';
 import { createTerrainScene, type TerrainSceneInput, type TerrainViewport } from '../../packages/render/src/terrain-scene.ts';
-import { createSpriteAtlas, SPRITE_LAYER_LIMITS, type SpriteAtlasInput, type SpriteBatch, type SpriteObject, type SpritePalette } from '../../packages/render/src/sprite-layer.ts';
+import { createSpriteAtlas, prepareSpriteBatch, SPRITE_LAYER_LIMITS, type SpriteAtlasInput, type SpriteBatch, type SpriteObject, type SpritePalette } from '../../packages/render/src/sprite-layer.ts';
 
 const hash = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
 interface Row { width: number; height: number; x?: number; y?: number; pixels?: number[]; share?: number }
@@ -59,6 +59,21 @@ function terrainInput(elevation = 0): TerrainSceneInput {
     palette: palette().rgba, projection: { tileWidth: 60, tileHeight: 30, elevationStep: 15 } };
 }
 const view: TerrainViewport = { cameraX: 0, cameraY: 0, zoom: 1, width: 60, height: 30, backgroundRgba: [0, 0, 0, 255] };
+test('the exported CPU bridge paints using the same viewport values that passed validation', () => {
+  const input = batch(), expected: unknown[][] = [], actual: unknown[][] = [];
+  prepareSpriteBatch(input, view, 1048576, 64 * 1024 * 1024).paint((...fragment) => expected.push(fragment));
+  const reads = new Map<string, number>();
+  const changing = new Proxy(view, { get(target, key, receiver) {
+    if (typeof key === 'string' && ['cameraX', 'cameraY', 'zoom', 'width'].includes(key)) {
+      reads.set(key, (reads.get(key) ?? 0) + 1);
+      if (reads.get(key)! > 1) return NaN;
+    }
+    return Reflect.get(target, key, receiver);
+  } });
+  prepareSpriteBatch(input, changing, 1048576, 64 * 1024 * 1024).paint((...fragment) => actual.push(fragment));
+  assert.equal(expected.length, 16); assert.deepEqual(actual, expected);
+  assert.deepEqual([...reads.values()], [1, 1, 1, 1]);
+});
 function color(frame: { rgba: Uint8Array; viewport: TerrainViewport }, x: number, y: number): number[] { return [...frame.rgba.subarray((y * frame.viewport.width + x) * 4, (y * frame.viewport.width + x) * 4 + 4)]; }
 
 test('explicit source/frame IDs and canvas offsets place owned SHP rectangles and pick their canvas coordinates', () => {

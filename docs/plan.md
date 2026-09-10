@@ -145,6 +145,23 @@ JS/WASM boundary cost before selecting a migration or native language. Plan GPU
 rendering separately. Preserve deterministic state, numeric/RNG behavior, bounded
 resources, atomic failure, save/replay and the existing mod data interface.
 
+The owner-authorized [GPU experiment225](https://github.com/lictl/WebRA2/issues/225)
+targets at least 60 FPS (1000/60 ms) at the current 960×640 viewport, with a required
+1280×720 stress row. Preserve CPU pixel/depth/pick equivalence, resident bounded
+textures and explicit unsupported rendering layers. Measure sustained useful frame
+submissions/completions, p95/p99 gaps and actual refresh opportunities alongside a
+genuine independent 15 Hz simulation. Do not infer display cadence from submission
+time. Gate product integration on correctness, lifecycle and performance evidence;
+the experiment alone is not a full campaign or four-browser performance pass.
+
+The measured [experiment report](gpu-renderer-experiment.md) supports proceeding to
+[product integration229](https://github.com/lictl/WebRA2/issues/229). Its six primary
+original-workload runs exceeded60 observed GPU completions/s; actual campaign
+performance remains unmeasured. Integrate bounded worker scene/snapshot transport,
+independent presentation and displayed-frame picking while retaining CPU fallback
+for existing layers that the GPU subset cannot represent. Revalidate product input,
+lifecycle, deterministic saves/replays and representative imported content in Chrome.
+
 Exit: reviewed baseline, explicit current-versus-target architecture, migration
 criteria and a linked next performance slice selected from evidence. This is not
 a full-campaign performance pass. Repeat measurements after the next optimization

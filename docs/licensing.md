@@ -94,6 +94,11 @@ the existing app's broader license/provenance set, exact dependency license text
 and corresponding-source/build location. Workload maps, tiles, sprites and commands
 are generated original fixtures. No retail assets or new dependency are included.
 
+The original WebGL2 experiment and its composing diagnostic are GPL-3.0-or-later.
+[GPU provenance](../packages/render/GPU_PROVENANCE.md) distinguishes original GPU
+code from the existing CPU/decoder references. Retain that notice and composed
+notices in diagnostic distributions. No retail textures or new dependency are added.
+
 The original bounded mission trigger interpreter and fixtures are GPL-3.0-or-later;
 [mission runtime provenance](../packages/sim/MISSION_LOGIC_PROVENANCE.md) separates
 factual native analysis from source reuse and preserves the existing compiler
