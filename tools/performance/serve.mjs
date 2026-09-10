@@ -2,14 +2,17 @@
 // Immutable localhost code-only performance routes. No source asset server.
 import { createServer } from 'node:http';
 import { readFile, writeFile, realpath, lstat } from 'node:fs/promises';
-import { resolve, sep } from 'node:path';
+import { resolve, sep, parse } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { repositoryRoot } from './build.mjs';
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const allowedName = /^(?:main\.js|worker\.js|index\.html|LICENSE\.txt|NOTICES\.txt|LICENSES\/GPL-3\.0-or-later\.txt|licenses\/[A-Za-z0-9_.-]+\.txt)$/;
 async function bounded(path, max) {
-  if (await realpath(path) !== resolve(path)) throw Error('Symlink input refused');
+  // macOS may preserve LICENSES/ while accepting the existing licenses/ routes.
+  // Check actual link components instead of confusing case normalization with a link.
+  const absolute = resolve(path); let prefix = parse(absolute).root;
+  for (const part of absolute.slice(prefix.length).split(sep)) { prefix = resolve(prefix, part); if ((await lstat(prefix)).isSymbolicLink()) throw Error('Symlink input refused'); }
   const stat = await lstat(path); if (!stat.isFile() || stat.size > max) throw Error('Input size/type'); return readFile(path);
 }
 export async function servePerformance(directory, port = 4200, root = repositoryRoot) {
