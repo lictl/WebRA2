@@ -4,7 +4,8 @@ import { validArtworkSummary, validObjectPick, type ArtworkSummary, type ObjectP
 import { WORLD_UI, isRetiredWorldActor, validWorldAction, validWorldSummary, validWorldSnapshot, validWorldDocument, validWorldRejection, type WorldAction, type WorldSummary, type WorldSnapshot, type WorldDocument, type WorldRejection } from './world-protocol.ts';
 import { validControlPoints, type WorldControlPoint } from './world-selection.ts';
 import { validVoxelFrame, type VoxelFrameSummary } from './voxel-protocol.ts';
-export const TERRAIN_VERSION = 5;
+import { validCampaignAction, validCampaignResult, campaignPath, type CampaignAction, type CampaignResult } from './campaign-protocol.ts';
+export const TERRAIN_VERSION = 6;
 export const VIEW_LIMIT = Object.freeze({ width: 960, height: 640, files: 4096, path: 4096 });
 export type TerrainProfile = 'ra2' | 'yr';
 export type Zoom = 0.5 | 1 | 2 | 4;
@@ -14,12 +15,12 @@ export type SceneSummary = { world: WorldSummary | null; profile: TerrainProfile
 export type FrameSummary = { retiredObjectIds?: string[]; voxel: VoxelFrameSummary | null; rgbaBytes: number; depthBytes: number; ownerBytes: number; totalPixelBytes: number; samples: number; objectOwnerBytes: number; spriteSamples: number; paletteBytes: number; objects: number };
 export type CellPick = { sourceRecord: number; x: number; y: number; assetId: string; subtile: number; worldX: number; worldY: number; depth: number };
 export type SelectedTerrainFile = { file: File; relativePath: string };
-export type TerrainAction = { type: 'load'; profile: TerrainProfile; files: SelectedTerrainFile[]; width: number; height: number } | { type: 'render'; camera: Camera } | { type: 'focus'; entityId: number } | { type: 'pick'; frameId: number; x: number; y: number } | WorldAction;
+export type TerrainAction = { type: 'load'; profile: TerrainProfile; files: SelectedTerrainFile[]; width: number; height: number } | { type: 'render'; camera: Camera } | { type: 'focus'; entityId: number } | { type: 'pick'; frameId: number; x: number; y: number } | WorldAction | CampaignAction;
 export type FrameResult = { type: 'frame'; controlPoints: WorldControlPoint[]; world: WorldSnapshot | null; frameId: number; camera: Camera; summary: SceneSummary; allocations: FrameSummary; rgba: ArrayBuffer };
 export type ViewportPick = { kind: 'terrain'; cell: CellPick } | ObjectPick | null;
 export type PickResult = { type: 'pick'; frameId: number; selection: ViewportPick };
-export type TerrainResult = FrameResult | PickResult | WorldDocument | WorldRejection;
-export type TerrainReply = { version: 5; id: number; type: 'progress'; sequence: number; progress: TerrainProgress } | { version: 5; id: number; type: 'result'; result: TerrainResult } | { version: 5; id: number; type: 'error'; code: string };
+export type TerrainResult = FrameResult | PickResult | WorldDocument | WorldRejection | CampaignResult;
+export type TerrainReply = { version: 6; id: number; type: 'progress'; sequence: number; progress: TerrainProgress } | { version: 6; id: number; type: 'result'; result: TerrainResult } | { version: 6; id: number; type: 'error'; code: string };
 export function shape(value: unknown, names: readonly string[]): value is Record<string, unknown> {
   if (!value || typeof value !== 'object' || Object.getPrototypeOf(value) !== Object.prototype || Reflect.ownKeys(value).length !== names.length) return false;
   return names.every(n => { const d = Object.getOwnPropertyDescriptor(value, n); return d && 'value' in d; });
@@ -38,7 +39,7 @@ export const dimensions = (w: unknown, h: unknown): boolean => int(w, 1, VIEW_LI
 export function validCamera(v: unknown): v is Camera { return shape(v, ['cameraX','cameraY','zoom','width','height']) && number(v.cameraX) && number(v.cameraY) && [0.5,1,2,4].some(z=>v.zoom===z) && dimensions(v.width,v.height); }
 export function validAction(v: unknown): v is TerrainAction {
   if (!v || typeof v !== 'object') return false;
-  if (validWorldAction(v)) return true;
+  if (validWorldAction(v) || validCampaignAction(v)) return true;
   if (shape(v,['type','entityId']) && v.type==='focus') return int(v.entityId,1,0x7fffffff);
   if (shape(v,['type','profile','files','width','height']) && v.type === 'load') return profileId(v.profile) && dimensions(v.width,v.height) && rows(v.files,VIEW_LIMIT.files) && v.files.length > 0 && v.files.every(f=>shape(f,['file','relativePath']) && f.file instanceof File && typeof f.relativePath === 'string' && f.relativePath.length <= VIEW_LIMIT.path && f.file.name.length <= VIEW_LIMIT.path);
   if (shape(v,['type','camera']) && v.type === 'render') return validCamera(v.camera);
@@ -46,7 +47,7 @@ export function validAction(v: unknown): v is TerrainAction {
 }
 export function validProgress(v: unknown): v is TerrainProgress { return shape(v,['phase','completed','total','bytes']) && ['scan','verify','definitions','mission','theater','tiles','compose','artwork','sprites','voxel-sources','voxels'].some(p=>v.phase===p) && int(v.completed,0,2**34) && int(v.total,0,2**34) && v.completed <= v.total && int(v.bytes,0,2**34); }
 export function validScene(v: unknown): v is SceneSummary {
-  if (!shape(v,['world','profile','mission','contentHash','artwork','mapHash','paletteHash','cells','objects','assets','verifiedBytes','sourceBytes','decodedBytes','decodedSlots','bounds','diagnostics']) || !(v.world === null || validWorldSummary(v.world)) || !profileId(v.profile) || v.mission !== (v.profile==='ra2'?'all01t.map':'all01umd.map') || !hash(v.mapHash) || !hash(v.paletteHash) || !hash(v.contentHash)) return false;
+  if (!shape(v,['world','profile','mission','contentHash','artwork','mapHash','paletteHash','cells','objects','assets','verifiedBytes','sourceBytes','decodedBytes','decodedSlots','bounds','diagnostics']) || !(v.world === null || validWorldSummary(v.world)) || !profileId(v.profile) || !campaignPath(v.mission) || !hash(v.mapHash) || !hash(v.paletteHash) || !hash(v.contentHash)) return false;
   if (!int(v.cells,1,130816) || !int(v.objects,0,32768) || !int(v.assets,1,1024) || !int(v.verifiedBytes,0,2**34) || !int(v.sourceBytes,0,128*1024**2) || !int(v.decodedBytes,0,64*1024**2) || !int(v.decodedSlots,0,65536)) return false;
   return validArtworkSummary(v.artwork,v.objects) && shape(v.bounds,['x','y','width','height']) && number(v.bounds.x) && number(v.bounds.y) && int(v.bounds.width,1,2097152) && int(v.bounds.height,1,2097152) && rows(v.diagnostics,32) && v.diagnostics.every(d=>shape(d,['code','count']) && code(d.code) && int(d.count,0,2**34));
 }
@@ -66,7 +67,7 @@ function validFrameObjects(a: Record<string,unknown>, summary: SceneSummary, wor
   return true;
 }
 export function validResult(v: unknown): v is TerrainResult {
-  if (validWorldDocument(v) || validWorldRejection(v)) return true;
+  if (validWorldDocument(v) || validWorldRejection(v) || validCampaignResult(v)) return true;
   if (shape(v,['type','frameId','selection']) && v.type==='pick') return int(v.frameId,1) && validPick(v.selection);
   if (!shape(v,['type','controlPoints','world','frameId','camera','summary','allocations','rgba']) || v.type!=='frame' || !int(v.frameId,1) || !validCamera(v.camera) || !validScene(v.summary)) return false;
   if (v.summary.world === null ? v.world !== null : !validWorldSnapshot(v.world, v.summary.world)) return false;
