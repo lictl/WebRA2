@@ -171,3 +171,9 @@ The native combat-actor initialization compiler and original fixtures are
 GPL-3.0-or-later. Its [provenance notice](../packages/content/COMBAT_ACTORS_PROVENANCE.md)
 accompanies the development bundle and distinguishes initial source state from
 complete combat or live diplomacy. No native payload or retail rows are shipped.
+
+The scoped invisible-weapon context compiler and its original synthetic tests use
+GPL-3.0-or-later. Its [provenance notice](../packages/content/INSTANT_WEAPONS_PROVENANCE.md)
+records the native observations and conservative caller-context requirements, and
+is included in the development distribution. No native payload or retail fixture
+is included; context eligibility does not authorize combat execution.
