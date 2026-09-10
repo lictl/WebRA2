@@ -33,18 +33,18 @@ test('metadata validation rejects sparse/extra/boxed data, oversized buffers and
 test('bridge admits one request, validates progress and binds result/pick to exact request and displayed frame',async()=>{
   const worker=new FakeWorker(),bridge=new TerrainBridge(worker),signal=new AbortController().signal,progress:number[]=[];
   const first=bridge.request(load,signal,p=>progress.push(p.completed));await assert.rejects(bridge.request(load,signal),/unavailable/);
-  worker.emit({version:6,id:99,type:'result',result:frame(99)});worker.emit({version:6,id:1,type:'progress',sequence:1,progress:{phase:'scan',completed:1,total:2,bytes:10}});
-  assert.equal(worker.sent.length,2);assert.deepEqual(progress,[1]);worker.emit({version:6,id:1,type:'result',result:frame(1)});assert.equal((await first).type,'frame');
-  const picking=bridge.request({type:'pick',frameId:1,x:2,y:2},signal);worker.emit({version:6,id:2,type:'result',result:{type:'pick',frameId:1,selection:null}});assert.deepEqual(await picking,{type:'pick',frameId:1,selection:null});
-  const rendering=bridge.request({type:'render',camera:{...view,cameraX:32}},signal);worker.emit({version:6,id:3,type:'result',result:frame(3)});await assert.rejects(rendering,/invalid/);assert.equal(worker.terminated,1);
+  worker.emit({version:7,id:99,type:'result',result:frame(99)});worker.emit({version:7,id:1,type:'progress',sequence:1,progress:{phase:'scan',completed:1,total:2,bytes:10}});
+  assert.equal(worker.sent.length,2);assert.deepEqual(progress,[1]);worker.emit({version:7,id:1,type:'result',result:frame(1)});assert.equal((await first).type,'frame');
+  const picking=bridge.request({type:'pick',frameId:1,x:2,y:2},signal);worker.emit({version:7,id:2,type:'result',result:{type:'pick',frameId:1,selection:null}});assert.deepEqual(await picking,{type:'pick',frameId:1,selection:null});
+  const rendering=bridge.request({type:'render',camera:{...view,cameraX:32}},signal);worker.emit({version:7,id:3,type:'result',result:frame(3)});await assert.rejects(rendering,/invalid/);assert.equal(worker.terminated,1);
 });
 test('bridge rejects cross-profile metadata, stale pick identity and malformed terminal shape; abort terminates promptly',async()=>{
-  for(const invalid of [{...frame(),frameId:2},{...frame(),summary:{...summary,profile:'yr',mission:'all01umd.map'}},{...frame(),summary:{...summary,diagnostics:[null]}}]){const worker=new FakeWorker(),bridge=new TerrainBridge(worker),promise=bridge.request(load,new AbortController().signal);worker.emit({version:6,id:1,type:'result',result:invalid});await assert.rejects(promise,/invalid/);assert.equal(worker.terminated,1);}
-  const worker=new FakeWorker(),bridge=new TerrainBridge(worker),abort=new AbortController();const promise=bridge.request(load,abort.signal);abort.abort();await assert.rejects(promise,{name:'AbortError'});worker.emit({version:6,id:1,type:'result',result:frame()});assert.equal(worker.terminated,1);
+  for(const invalid of [{...frame(),frameId:2},{...frame(),summary:{...summary,profile:'yr',mission:'all01umd.map'}},{...frame(),summary:{...summary,diagnostics:[null]}}]){const worker=new FakeWorker(),bridge=new TerrainBridge(worker),promise=bridge.request(load,new AbortController().signal);worker.emit({version:7,id:1,type:'result',result:invalid});await assert.rejects(promise,/invalid/);assert.equal(worker.terminated,1);}
+  const worker=new FakeWorker(),bridge=new TerrainBridge(worker),abort=new AbortController();const promise=bridge.request(load,abort.signal);abort.abort();await assert.rejects(promise,{name:'AbortError'});worker.emit({version:7,id:1,type:'result',result:frame()});assert.equal(worker.terminated,1);
 });
-test('obsolete v5 frames cannot enter the v6 campaign session',async()=>{
+test('obsolete v6 frames cannot enter the v7 campaign session',async()=>{
   const worker=new FakeWorker(),bridge=new TerrainBridge(worker),pending=bridge.request(load,new AbortController().signal);
-  worker.emit({version:5,id:1,type:'result',result:frame()});await assert.rejects(pending,/invalid/);assert.equal(worker.terminated,1);
+  worker.emit({version:6,id:1,type:'result',result:frame()});await assert.rejects(pending,/invalid/);assert.equal(worker.terminated,1);
 });
 test('controller cancels long preparation, retains selection, ignores late completion and retries with a fresh worker',async()=>{
   const ports:ReturnType<typeof port>[]=[];const controller=new TerrainController('en',()=>{const p=port();ports.push(p);return p.value;});controller.select(selected());const loading=controller.load();controller.cancel();assert.equal(controller.state.phase,'cancelled');assert.equal(controller.state.files,1);assert.ok(ports[0]!.calls[0]!.signal.aborted);
@@ -70,18 +70,18 @@ test('worker retains scene/picking, transfers only bounded RGBA, preserves expli
   const messages:TerrainReply[]=[],ready=deferred<{scene:ViewportScene;summary:SceneSummary}>();let inheritedPath='';
   const scope:TerrainScope={onmessage:null,postMessage(message,transfer){messages.push(structuredClone(message,{transfer:transfer??[]}));}};
   attachTerrainWorker(scope,async(files,_profile,progress)=>{inheritedPath=files[0]!.webkitRelativePath;progress({phase:'scan',completed:1,total:3,bytes:10});progress({phase:'scan',completed:2,total:3,bytes:20});progress({phase:'scan',completed:3,total:3,bytes:30});return ready.promise;});
-  scope.onmessage!({data:structuredClone({version:6,id:1,action:load})});assert.equal(inheritedPath,'game/sample.mix');assert.equal(messages.length,1);
-  scope.onmessage!({data:{version:6,id:1,type:'ack',sequence:1}});assert.equal(messages.length,2);assert.equal((messages[1] as {progress:{completed:number}}).progress.completed,3);
+  scope.onmessage!({data:structuredClone({version:7,id:1,action:load})});assert.equal(inheritedPath,'game/sample.mix');assert.equal(messages.length,1);
+  scope.onmessage!({data:{version:7,id:1,type:'ack',sequence:1}});assert.equal(messages.length,2);assert.equal((messages[1] as {progress:{completed:number}}).progress.completed,3);
   ready.resolve({scene:fakeScene(),summary});await tick();const result=messages.at(-1)!;assert.equal(result.type,'result');if(result.type!=='result'||result.result.type!=='frame')assert.fail();assert.ok(validResult(result.result));assert.equal(result.result.rgba.byteLength,120*45*4);
-  scope.onmessage!({data:{version:6,id:2,action:{type:'pick',frameId:1,x:30,y:10}}});await tick();assert.equal(messages.at(-1)!.type,'result');
-  scope.onmessage!({data:{version:6,id:3,action:{type:'render',camera:view}}});await tick();scope.onmessage!({data:{version:6,id:4,action:{type:'pick',frameId:1,x:30,y:10}}});await tick();assert.deepEqual(messages.at(-1),{version:6,id:4,type:'error',code:'stale-frame'});
+  scope.onmessage!({data:{version:7,id:2,action:{type:'pick',frameId:1,x:30,y:10}}});await tick();assert.equal(messages.at(-1)!.type,'result');
+  scope.onmessage!({data:{version:7,id:3,action:{type:'render',camera:view}}});await tick();scope.onmessage!({data:{version:7,id:4,action:{type:'pick',frameId:1,x:30,y:10}}});await tick();assert.deepEqual(messages.at(-1),{version:7,id:4,type:'error',code:'stale-frame'});
 });
 test('worker rejects malformed actions and failed preparation without exposing exception text or partial scene',async()=>{
   const messages:TerrainReply[]=[],scope:TerrainScope={onmessage:null,postMessage(m){messages.push(m);}};let attempts=0;
   attachTerrainWorker(scope,async()=>{attempts++;throw new Error('/private/path with data');});
-  scope.onmessage!({data:{version:6,id:1,action:{...load,width:961}}});await tick();assert.equal(attempts,0);assert.equal(messages.at(-1)!.type,'error');
-  scope.onmessage!({data:{version:6,id:2,action:load}});await tick();assert.deepEqual(messages.at(-1),{version:6,id:2,type:'error',code:'unavailable'});
-  scope.onmessage!({data:{version:6,id:3,action:{type:'render',camera:view}}});await tick();assert.equal(messages.at(-1)!.type,'error');
+  scope.onmessage!({data:{version:7,id:1,action:{...load,width:961}}});await tick();assert.equal(attempts,0);assert.equal(messages.at(-1)!.type,'error');
+  scope.onmessage!({data:{version:7,id:2,action:load}});await tick();assert.deepEqual(messages.at(-1),{version:7,id:2,type:'error',code:'unavailable'});
+  scope.onmessage!({data:{version:7,id:3,action:{type:'render',camera:view}}});await tick();assert.equal(messages.at(-1)!.type,'error');
 });
 test('every original terrain UI state has English and Traditional Chinese copy, including prototype-name fallback',()=>{
   for(const locale of ['en','zh-Hant'] as const)for(const key of ['choose','selected','loading','ready','rendering','picking','picked','background','cancelled','failure','tooMany','scan','verify','definitions','mission','theater','tiles','compose','constructor','__proto__'])assert.equal(typeof terrainText(locale,key),'string');
@@ -94,4 +94,18 @@ test('a fast second click cannot move the marker while the first pick owns the r
   click(10,10);click(60,20);assert.deepEqual(marker,[10,10]);assert.equal(p.calls.length,2);assert.equal(canPick(controller.state,60,20),false);
   p.calls[1]!.response.resolve({type:'pick',frameId:1,selection:{kind:'terrain',cell:{sourceRecord:0,x:1,y:2,assetId:'tile',subtile:0,worldX:10,worldY:10,depth:0}}});await tick();assert.deepEqual(marker,[10,10]);assert.equal(controller.state.selection?.kind,'terrain');assert.equal(controller.state.selection?.kind==='terrain' && controller.state.selection.cell.worldX,10);
   click(-1,10);assert.deepEqual(marker,[10,10]);controller.dispose();
+});
+
+test('only replay validation receives a longer deadline; all work still aborts and clears its timer',async(t)=>{
+ t.mock.timers.enable({apis:['setTimeout']});
+ const worker=new FakeWorker(),bridge=new TerrainBridge(worker),signal=new AbortController().signal;
+ const first=bridge.request(load,signal);worker.emit({version:7,id:1,type:'result',result:frame(1)});await first;
+ let ended=false;const replay=bridge.request({type:'world-replay-validate',text:'{}'},signal);const rejected=assert.rejects(replay,/timeout/).then(()=>{ended=true;});
+ t.mock.timers.tick(30_000);await Promise.resolve();assert.equal(ended,false);assert.equal(worker.terminated,0);
+ t.mock.timers.tick(149_999);await Promise.resolve();assert.equal(ended,false);
+ t.mock.timers.tick(1);await rejected;assert.equal(worker.terminated,1);
+ const normalWorker=new FakeWorker(),normal=new TerrainBridge(normalWorker),loaded=normal.request(load,signal);normalWorker.emit({version:7,id:1,type:'result',result:frame(1)});await loaded;
+ const operation=normal.request({type:'world-save'},signal),short=assert.rejects(operation,/timeout/);t.mock.timers.tick(30_000);await short;assert.equal(normalWorker.terminated,1);
+ const cancelWorker=new FakeWorker(),cancel=new TerrainBridge(cancelWorker),abort=new AbortController(),opened=cancel.request(load,abort.signal);cancelWorker.emit({version:7,id:1,type:'result',result:frame(1)});await opened;
+ const pending=cancel.request({type:'world-replay-validate',text:'{}'},abort.signal),aborted=assert.rejects(pending,{name:'AbortError'});abort.abort();await aborted;t.mock.timers.tick(180_000);assert.equal(cancelWorker.terminated,1);
 });

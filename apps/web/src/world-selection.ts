@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2026 WebRA2 contributors. Display-frame anchors and UI-only selection.
+import { locateWorldActor } from './infantry-slot-projection.ts';
 import { WORLD_UI, worldInt, worldRecord, worldRows, type WorldSummary, type WorldSnapshot } from './world-protocol.ts';
 
 export type WorldControlPoint = { entityId: number; x: number; y: number };
@@ -28,7 +29,7 @@ export function actorsInBox(points: readonly WorldControlPoint[], box: Selection
   return points.filter(p => p.x >= box.left && p.x <= box.right && p.y >= box.top && p.y <= box.bottom).map(p => p.entityId);
 }
 
-/** Project authoritative whole-cell positions using the retained verified terrain locator. */
+/** Project authoritative saved cell/slot positions using the retained verified terrain locator. */
 export function projectControlPoints(summary: WorldSummary | null, snapshot: WorldSnapshot | null, camera: { cameraX: number; cameraY: number; zoom: number; width: number; height: number }, locate?: (x: number, y: number) => { x: number; y: number } | null): WorldControlPoint[] {
   if (!summary || !snapshot || !locate) return [];
   const points: WorldControlPoint[] = [];
@@ -36,7 +37,7 @@ export function projectControlPoints(summary: WorldSummary | null, snapshot: Wor
     const actor = snapshot.actors[i]!, info = summary.actors[i];
     if (!info || info.id !== actor.id) throw new Error('world-ui-control-join');
     if (!info.movable || actor.health === null || actor.health <= 0) continue;
-    const point = locate(actor.x, actor.y); if (!point) continue;
+    const point = locateWorldActor(summary,actor,locate); if (!point) continue;
     const x = Math.floor((point.x - camera.cameraX) * camera.zoom), y = Math.floor((point.y - camera.cameraY) * camera.zoom);
     if (!Number.isSafeInteger(x) || !Number.isSafeInteger(y)) throw new Error('world-ui-control-point');
     if (x >= 0 && y >= 0 && x < camera.width && y < camera.height) points.push({ entityId: actor.id, x, y });

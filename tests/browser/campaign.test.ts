@@ -9,7 +9,7 @@ import type {TerrainAction,TerrainResult,TerrainReply} from '../../apps/web/src/
 import {campaignPlan,campaignFrame} from './campaign.fixture.ts';
 import {campaignText,campaignReason} from '../../apps/web/src/campaign-i18n.ts';
 const files=[new File(['Original'],'original.mix')],scan={type:'campaign-scan' as const,profile:'ra2' as const,files:files.map(file=>({file,relativePath:'local/'+file.name}))};
-class Worker extends EventTarget{sent:unknown[]=[];terminated=0;postMessage(v:unknown){this.sent.push(v);}terminate(){this.terminated++;}emit(result:unknown,id:number,version=6){this.dispatchEvent(new MessageEvent('message',{data:structuredClone({version,id,type:'result',result})}));}}
+class Worker extends EventTarget{sent:unknown[]=[];terminated=0;postMessage(v:unknown){this.sent.push(v);}terminate(){this.terminated++;}emit(result:unknown,id:number,version=7){this.dispatchEvent(new MessageEvent('message',{data:structuredClone({version,id,type:'result',result})}));}}
 const tick=()=>new Promise<void>(resolve=>setImmediate(resolve));
 test('campaign metadata rejects stale hashes, mismatched shapes and payload-bearing nested rows',()=>{
  const plan=campaignPlan();assert.equal(validCampaignResult({type:'campaign-plan',plan}),true);assert.ok(validCampaignAction(scan));
@@ -41,7 +41,7 @@ test('controller retains selected File identities across back/retry and discards
 test('worker retains one catalog session, releases old scene on back, and disposes catalog on replacement',async()=>{
  const messages:TerrainReply[]=[],scope:TerrainScope={onmessage:null,postMessage(message,transfer){messages.push(structuredClone(message,{transfer:transfer??[]}));}};let opened=0,disposed=0,loads=0;
  attachTerrainWorker(scope,async()=>{throw Error('legacy unused');},async(selected,profile)=>{opened++;assert.equal(selected[0]!.webkitRelativePath,'local/original.mix');const plan=campaignPlan(profile);return {plan,dispose(){disposed++;},async load(fp,id){assert.equal(fp,plan.fingerprint);loads++;const sample=campaignFrame(1,profile,id);return {summary:sample.summary,scene:{render(viewport){return {viewport,rgba:new Uint8Array(viewport.width*viewport.height*4),allocations:sample.allocations,pick(){return null;}};}}};}};});
- const send=async(id:number,action:TerrainAction)=>{scope.onmessage!({data:structuredClone({version:6,id,action})});await tick();return messages.at(-1)!;};
+ const send=async(id:number,action:TerrainAction)=>{scope.onmessage!({data:structuredClone({version:7,id,action})});await tick();return messages.at(-1)!;};
  await send(1,scan);const plan=campaignPlan();await send(2,{type:'campaign-launch',fingerprint:plan.fingerprint,entryId:'allied',width:120,height:45});assert.equal(loads,1);
  await send(3,{type:'campaign-back',fingerprint:plan.fingerprint});const stale=await send(4,{type:'pick',frameId:2,x:1,y:1});assert.equal(stale.type,'error');assert.equal(disposed,0);
  await send(5,{type:'campaign-launch',fingerprint:plan.fingerprint,entryId:'soviet',width:120,height:45});assert.equal(opened,1);assert.equal(loads,2);await send(6,{...scan,profile:'yr'});assert.equal(disposed,1);assert.equal(opened,2);

@@ -4,9 +4,11 @@ export const WORLD_UI = Object.freeze({ policy: 'webra2-world-ui-1', entities: 2
 export type WorldPlayer = { id: number; houseId: string; name: string };
 export type WorldCombatRole = 'attacker' | 'target-only' | 'movement-only';
 export type WorldCombatState = { targetId: number|null; readyTick: number; windupUntil: number|null; deathSequence: 11|12|null; deathUntil: number|null; corpseIndex: number|null };
-export type WorldActorInfo = { combatRole?: WorldCombatRole; id: number; rowId: string; objectId: string; typeId: string; owner: number | null; kind: string; movable: boolean; maximumHealth: number | null; reasons: string[]; omittedReasons: number };
-export type WorldSummary = { combatPolicy?: 'webra2-source-standing-infantry-combat-1'; policy: 'webra2-world-ui-1'; modelHash: string; motionPolicy: string; defaultPlayerId: number | null; players: WorldPlayer[]; actors: WorldActorInfo[]; limitations: string[]; omittedLimitations: number; truncatedFields: number };
-export type WorldActor = { combat?: WorldCombatState; id: number; x: number; y: number; health: number | null; goalX: number | null; goalY: number | null; nextX: number | null; nextY: number | null; routeLength: number; progress: number; edgeCost: number | null; waitTicks: number };
+export type InfantrySubcell = 2 | 3 | 4;
+export const INFANTRY_UI_POLICY = 'webra2-directed-infantry-slots-1' as const;
+export type WorldActorInfo = { initialSubcell?: InfantrySubcell | null; combatRole?: WorldCombatRole; id: number; rowId: string; objectId: string; typeId: string; owner: number | null; kind: string; movable: boolean; maximumHealth: number | null; reasons: string[]; omittedReasons: number };
+export type WorldSummary = { infantryPolicy?: typeof INFANTRY_UI_POLICY; infantryCatalogHash?: string; combatPolicy?: 'webra2-source-standing-infantry-combat-1'; policy: 'webra2-world-ui-1'; modelHash: string; motionPolicy: string; defaultPlayerId: number | null; players: WorldPlayer[]; actors: WorldActorInfo[]; limitations: string[]; omittedLimitations: number; truncatedFields: number };
+export type WorldActor = { subcell?: InfantrySubcell | null; reservedSubcell?: InfantrySubcell | null; combat?: WorldCombatState; id: number; x: number; y: number; health: number | null; goalX: number | null; goalY: number | null; nextX: number | null; nextY: number | null; routeLength: number; progress: number; edgeCost: number | null; waitTicks: number };
 /** Presentation only: keep a pending death's standing art until its saved lifecycle completes. */
 export function isRetiredWorldActor(actor: WorldActor): boolean { return actor.health===0 && !(actor.combat?.deathSequence!=null && actor.combat.corpseIndex===null); }
 export type WorldEvent = { tick: number; phase: 'command' | 'navigation' | 'movement' | 'combat'; kind: string; entityId: number; cell: number | null; value: number | null };
@@ -46,14 +48,17 @@ export function validWorldAction(v: unknown): v is WorldAction {
   return (stop || move) && v.type === 'world-order' && worldInt(v.playerId, 0, 65535) && worldInt(v.entityId, 1);
 }
 export function validWorldSummary(v: unknown): v is WorldSummary {
+  const slots = !!v && typeof v==='object' && Object.getOwnPropertyDescriptor(v,'motionPolicy')?.value==='webra2-cell-motion-2';
   const source = !!v && typeof v==='object' && Object.hasOwn(v,'combatPolicy');
-  if (!worldRecord(v, ['policy', 'modelHash', 'motionPolicy', 'defaultPlayerId', 'players', 'actors', 'limitations', 'omittedLimitations', 'truncatedFields', ...(source?['combatPolicy']:[])]) || v.policy !== WORLD_UI.policy || !worldHashText(v.modelHash) || v.motionPolicy !== 'webra2-cell-motion-1' || !nullableInt(v.defaultPlayerId, 65535) || !worldRows(v.players, WORLD_UI.players) || !worldRows(v.actors, WORLD_UI.entities) || !worldRows(v.limitations, 32) || !v.limitations.every(s => label(s, 128)) || !worldInt(v.omittedLimitations, 0, 65535) || !worldInt(v.truncatedFields, 0, 65535)) return false;
+  if (!worldRecord(v, ['policy', 'modelHash', 'motionPolicy', 'defaultPlayerId', 'players', 'actors', 'limitations', 'omittedLimitations', 'truncatedFields', ...(slots?['infantryPolicy','infantryCatalogHash']:[]), ...(source?['combatPolicy']:[])]) || v.policy !== WORLD_UI.policy || !worldHashText(v.modelHash) || v.motionPolicy !== (slots?'webra2-cell-motion-2':'webra2-cell-motion-1') || !nullableInt(v.defaultPlayerId, 65535) || !worldRows(v.players, WORLD_UI.players) || !worldRows(v.actors, WORLD_UI.entities) || !worldRows(v.limitations, 32) || !v.limitations.every(s => label(s, 128)) || !worldInt(v.omittedLimitations, 0, 65535) || !worldInt(v.truncatedFields, 0, 65535)) return false;
+  if(slots && (v.infantryPolicy!==INFANTRY_UI_POLICY || !worldHashText(v.infantryCatalogHash)))return false;
   if(source && v.combatPolicy!=='webra2-source-standing-infantry-combat-1')return false;
   const players = new Set<number>(), rows = new Set<string>(), objects = new Set<string>(); let lastId = 0, characters = (v.limitations as string[]).reduce((n, s) => n + s.length, 0);
   for (const p of v.players) { if (!worldRecord(p, ['id', 'houseId', 'name']) || !worldInt(p.id, 0, 65535) || players.has(p.id) || !label(p.houseId) || !label(p.name, 128)) return false; players.add(p.id); characters += p.houseId.length + p.name.length; }
   if (v.defaultPlayerId !== null && !players.has(v.defaultPlayerId)) return false;
   for (const a of v.actors) {
-    if (!worldRecord(a, ['id', 'rowId', 'objectId', 'typeId', 'owner', 'kind', 'movable', 'maximumHealth', 'reasons', 'omittedReasons', ...(source?['combatRole']:[])]) || !worldInt(a.id, lastId + 1) || !label(a.rowId) || rows.has(a.rowId) || !label(a.objectId) || objects.has(a.objectId) || !label(a.typeId) || !(a.owner === null || worldInt(a.owner, 0, 65535) && players.has(a.owner)) || !['infantry', 'unit', 'aircraft', 'structure', 'terrain', 'smudge'].some(k => k === a.kind) || typeof a.movable !== 'boolean' || !nullableInt(a.maximumHealth, 1_000_000) || !worldRows(a.reasons, 8) || !a.reasons.every(r => label(r, 128)) || !worldInt(a.omittedReasons, 0, 65535)) return false;
+    if (!worldRecord(a, ['id', 'rowId', 'objectId', 'typeId', 'owner', 'kind', 'movable', 'maximumHealth', 'reasons', 'omittedReasons', ...(slots?['initialSubcell']:[]), ...(source?['combatRole']:[])]) || !worldInt(a.id, lastId + 1) || !label(a.rowId) || rows.has(a.rowId) || !label(a.objectId) || objects.has(a.objectId) || !label(a.typeId) || !(a.owner === null || worldInt(a.owner, 0, 65535) && players.has(a.owner)) || !['infantry', 'unit', 'aircraft', 'structure', 'terrain', 'smudge'].some(k => k === a.kind) || typeof a.movable !== 'boolean' || !nullableInt(a.maximumHealth, 1_000_000) || !worldRows(a.reasons, 8) || !a.reasons.every(r => label(r, 128)) || !worldInt(a.omittedReasons, 0, 65535)) return false;
+    if(slots && !(a.initialSubcell===null || worldInt(a.initialSubcell,2,4) && a.kind==='infantry' && a.movable))return false;
     if(source && !['attacker','target-only','movement-only'].includes(a.combatRole as string))return false;
     if(source && a.combatRole!=='movement-only' && (a.kind!=='infantry'||a.maximumHealth===null||a.maximumHealth===0||a.owner===null))return false;
     if (a.movable && (a.owner === null || a.maximumHealth === null || a.maximumHealth === 0)) return false;
@@ -64,11 +69,16 @@ export function validWorldSummary(v: unknown): v is WorldSummary {
 export function validWorldSnapshot(v: unknown, summary?: WorldSummary): v is WorldSnapshot {
   if (!worldRecord(v, ['modelHash', 'revision', 'nextTick', 'stateHash', 'queuedCommands', 'actors', 'events', 'omittedEvents']) || !worldHashText(v.modelHash) || !worldHashText(v.stateHash) || !worldInt(v.revision) || !worldInt(v.nextTick, 0, 1_000_000_000) || !worldInt(v.queuedCommands, 0, 256) || !worldRows(v.actors, WORLD_UI.entities) || !worldRows(v.events, WORLD_UI.trace) || !worldInt(v.omittedEvents, 0, 32768)) return false;
   if (summary && (summary.modelHash !== v.modelHash || summary.actors.length !== v.actors.length)) return false;
+  const slots=summary?.motionPolicy==='webra2-cell-motion-2', claims=new Set<string>();
   let lastId = 0, routes = 0;
   for (let i = 0; i < v.actors.length; i++) {
     const a = v.actors[i], info = summary?.actors[i], combat = !!a && typeof a==='object' && Object.hasOwn(a,'combat');
-    if (!worldRecord(a, ['id', 'x', 'y', 'health', 'goalX', 'goalY', 'nextX', 'nextY', 'routeLength', 'progress', 'edgeCost', 'waitTicks',...(combat?['combat']:[])]) || !worldInt(a.id, lastId + 1) || !worldInt(a.x, 0, 511) || !worldInt(a.y, 0, 511) || !nullableInt(a.health, 1_000_000) || !pair(a.goalX, a.goalY) || !pair(a.nextX, a.nextY) || !worldInt(a.routeLength, 0, 16384) || !worldInt(a.progress, 0, 362 * 65535) || !(a.edgeCost === null || worldInt(a.edgeCost, 1, 362 * 65535)) || !worldInt(a.waitTicks, 0, 15)) return false;
+    if (!worldRecord(a, ['id', 'x', 'y', 'health', 'goalX', 'goalY', 'nextX', 'nextY', 'routeLength', 'progress', 'edgeCost', 'waitTicks',...(slots?['subcell','reservedSubcell']:[]),...(combat?['combat']:[])]) || !worldInt(a.id, lastId + 1) || !worldInt(a.x, 0, 511) || !worldInt(a.y, 0, 511) || !nullableInt(a.health, 1_000_000) || !pair(a.goalX, a.goalY) || !pair(a.nextX, a.nextY) || !worldInt(a.routeLength, 0, 16384) || !worldInt(a.progress, 0, 362 * 65535) || !(a.edgeCost === null || worldInt(a.edgeCost, 1, 362 * 65535)) || !worldInt(a.waitTicks, 0, 15)) return false;
     if ((info && (info.id !== a.id || (a.health === null ? info.maximumHealth !== null : info.maximumHealth === null || a.health > info.maximumHealth))) || (a.routeLength >= 2 ? a.nextX === null || a.edgeCost === null : a.nextX !== null || a.edgeCost !== null) || (a.progress > 0 && (a.edgeCost === null || a.progress >= a.edgeCost))) return false;
+    if(slots){
+      if(info?.initialSubcell===null){if(a.subcell!==null||a.reservedSubcell!==null)return false;}
+      else if(!worldInt(a.subcell,2,4)||!(a.reservedSubcell===null||worldInt(a.reservedSubcell,2,4))||((a.progress as number)>0)!==(a.reservedSubcell!==null))return false;
+    }
     if(info && combat !== (info.combatRole==='attacker'||info.combatRole==='target-only'))return false;
     if(combat){
       const c=a.combat;
@@ -77,6 +87,9 @@ export function validWorldSnapshot(v: unknown, summary?: WorldSummary): v is Wor
       if(c.deathSequence===null ? c.deathUntil!==null||c.corpseIndex!==null : c.deathUntil===null||a.health!==0||c.targetId!==null||c.windupUntil!==null)return false;
       if(c.deathUntil!==null && (c.corpseIndex===null ? c.deathUntil<(v.nextTick as number) : c.deathUntil>=(v.nextTick as number)))return false;
       if(c.targetId!==null&&summary&&!summary.actors.some(x=>x.id===c.targetId&&(x.combatRole==='attacker'||x.combatRole==='target-only')))return false;
+    }
+    if(slots && a.subcell!==null && !isRetiredWorldActor(a as unknown as WorldActor)){
+      for(const key of [`${a.x}:${a.y}:${a.subcell}`,...(a.reservedSubcell===null?[]:[`${a.nextX}:${a.nextY}:${a.reservedSubcell}`])]){if(claims.has(key))return false;claims.add(key);}
     }
     routes += a.routeLength; lastId = a.id;
   }

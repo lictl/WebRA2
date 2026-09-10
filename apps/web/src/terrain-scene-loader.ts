@@ -48,7 +48,7 @@ export async function loadCatalogMission(catalog:BrowserCatalog,request:Omit<Cam
     const still=createPlacedStill(preview.terrain,preview.objects,artwork);
     const summary={profile,mission,contentHash:content.contentIdentity.manifestSha256,artwork:still.artwork,mapHash:terrainScene.source.sha256,paletteHash:preview.paletteSource.sha256,cells:terrainScene.allocations.cells,objects:preview.objects.placements.length,assets:terrainScene.assets.length,verifiedBytes:readBytes(),sourceBytes:terrainScene.allocations.sourceSnapshotBytes,decodedBytes:terrainScene.allocations.decodedPlaneBytes,decodedSlots:terrainScene.allocations.decodedSlots,bounds:{...terrainScene.bounds},diagnostics:[...terrainScene.diagnostics,...still.batch.atlas.diagnostics].map(d=>({...d}))};
     if(!world)summary.diagnostics.push({code:'world-unsupported-required-footprint',count:1});
-    const joins=world?{modelHash:world.model.sha256,actors:world.placements.map((p,index)=>({objectId:`object-${index}`,id:p.entityId,rowId:p.rowId}))}:null;
+    const joins=world?{modelHash:world.model.sha256,motionPolicy:world.model.motionPolicy,actors:world.placements.map((p,index)=>({objectId:`object-${index}`,id:p.entityId,rowId:p.rowId}))}:null;
     const base=joins?createWorldViewport(terrainScene,preview.terrain,still,joins):createPlacedViewport(terrainScene,still);
     const composed=createVoxelWorldViewport(base,preview.terrain,preview.objects,still.artwork,plan,voxels,joins);
     return {scene:composed.scene,summary:{...summary,artwork:composed.artwork},...(world?{world}:{})};

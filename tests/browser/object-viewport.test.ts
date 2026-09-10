@@ -106,7 +106,7 @@ test('real sprite frames survive pending death, completed retirement and restore
   const states=[alive,pending,completed,restored],frames=states.map((s,i)=>wire(s,i+1));
   for(let i=0;i<frames.length;i++){
     const frame=frames[i]!,action:TerrainAction=i===0?{type:'load',profile:'ra2',files:[{file:file('original.mix',new Uint8Array(1)),relativePath:''}],width:180,height:120}:i===3?{type:'world-restore',text:'{}'}:{type:'world-step',ticks:1};
-    const result=bridge.request(action,signal);worker.emit({version:6,id:i+1,type:'result',result:frame});assert.equal((await result).type,'frame');
+    const result=bridge.request(action,signal);worker.emit({version:7,id:i+1,type:'result',result:frame});assert.equal((await result).type,'frame');
     assert.equal(frame.summary.artwork.rendered,1);assert.equal(frame.allocations.objects,i===2?0:1);assert.deepEqual(frame.allocations.retiredObjectIds,i===2?[info.id]:[]);
   }
   assert.equal(worker.terminated,0);bridge.dispose();
@@ -130,4 +130,34 @@ test('unavailable dead artwork is never reported as retired prepared artwork',as
   const frame=scene.render({...camera,backgroundRgba:[0,0,0,255]},snapshot);
   assert.equal(frame.allocations.objects,0);assert.equal(frame.allocations.retiredObjectIds!.length,4);assert.deepEqual(frame.allocations.retiredObjectIds,[...still.objects.keys()].sort());
   assert.equal(still.artwork.rendered,4);assert.equal(still.artwork.unavailable,2);
+});
+
+test('settled native slots shift original SHP color/depth/pick planes without subtracting an initial offset',async()=>{
+ const m=mission.slice(0,mission.indexOf('[Units]')),f=await fixture({mission:m}),still=createPlacedStill(f.terrain,f.objects,f.preview),info=[...still.objects.values()][0]!;
+ const join={modelHash:'f'.repeat(64),motionPolicy:'webra2-cell-motion-2',actors:[{id:1,objectId:info.id,rowId:'original'}]};
+ const view={...camera,backgroundRgba:[0,0,0,255] as const},scene=createWorldViewport(terrainScene(f.terrain),f.terrain,still,join);
+ const snapshot=(subcell:2|3|4):WorldSnapshot=>({modelHash:'f'.repeat(64),revision:0,nextTick:0,stateHash:'a'.repeat(64),queuedCommands:0,actors:[{id:1,x:2,y:2,health:100,goalX:null,goalY:null,nextX:null,nextY:null,routeLength:0,progress:0,edgeCost:null,waitTicks:0,subcell,reservedSubcell:null}],events:[],omittedEvents:0});
+ const baseline=createWorldViewport(terrainScene(f.terrain),f.terrain,still,{...join,motionPolicy:'webra2-cell-motion-1'}).render(view,snapshot(2));
+ const picks: {x:number;y:number;depth:number;color:Uint8Array}[]=[];
+ for(let y=0;y<view.height;y++)for(let x=0;x<view.width;x++){const p=baseline.pick(x,y);if(p?.kind==='object')picks.push({x,y,depth:p.depth,color:baseline.rgba.slice((y*view.width+x)*4,(y*view.width+x)*4+4)});}
+ assert(picks.length>0);
+ const frames=[];
+ for(const [slot,dx,dy] of [[2,15,0],[3,-15,0],[4,0,8]] as const){
+  const frame=scene.render(view,snapshot(slot));frames.push(frame);
+  for(const p of picks){const next=frame.pick(p.x+dx,p.y+dy);assert.equal(next?.kind,'object');if(next?.kind!=='object')assert.fail();assert.equal(next.object.id,info.id);assert.equal(next.depth,p.depth+dy);assert.deepEqual(frame.rgba.slice(((p.y+dy)*view.width+p.x+dx)*4,((p.y+dy)*view.width+p.x+dx)*4+4),p.color);}
+ }
+ join.motionPolicy='webra2-cell-motion-1'; // The scene captured the descriptor before later work.
+ assert.deepEqual(scene.render(view,snapshot(4)).rgba,frames[2]!.rgba);
+ for(let i=0;i<frames.length;i++){const [dx,dy]=[[15,0],[-15,0],[0,8]][i]!;assert.equal(frames[i]!.pick(picks[0]!.x+dx!,picks[0]!.y+dy!)?.kind,'object');}
+});
+
+test('two original infantry sharing a cell retain distinct slot artwork and frame ownership through Stop/retirement',async()=>{
+ const m=mission.slice(0,mission.indexOf('[Units]')),f=await fixture({mission:m}),one=createPlacedStill(f.terrain,f.objects,f.preview),object=one.batch.objects[0]!,info=one.objects.get(object.id)!;
+ const still={...one,batch:{...one.batch,objects:[{...object,id:'object-0'},{...object,id:'object-1'}]},objects:new Map([['object-0',{...info,id:'object-0'}],['object-1',{...info,id:'object-1'}]])};
+ const summary={modelHash:'f'.repeat(64),motionPolicy:'webra2-cell-motion-2',actors:[1,2].map(id=>({id,objectId:`object-${id-1}`,rowId:`original:${id}`}))};
+ const scene=createWorldViewport(terrainScene(f.terrain),f.terrain,still,summary),view={...camera,backgroundRgba:[0,0,0,255] as const};
+ const snapshot:WorldSnapshot={modelHash:summary.modelHash,revision:0,nextTick:0,stateHash:'a'.repeat(64),queuedCommands:0,actors:[2,3].map((subcell,i)=>({id:i+1,x:2,y:2,health:100,goalX:null,goalY:null,nextX:null,nextY:null,routeLength:0,progress:0,edgeCost:null,waitTicks:0,subcell:subcell as 2|3,reservedSubcell:null})),events:[],omittedEvents:0};
+ const shared=scene.render(view,snapshot),a=shared.pick(105,29),b=shared.pick(75,29);assert.equal(a?.kind,'object');assert.equal(b?.kind,'object');if(a?.kind!=='object'||b?.kind!=='object')assert.fail();assert.equal(a.object.id,'object-0');assert.equal(b.object.id,'object-1');
+ snapshot.actors[0]!.health=0;const retired=scene.render(view,snapshot);assert.deepEqual(retired.allocations.retiredObjectIds,['object-0']);assert.equal(retired.pick(75,29)?.kind,'object');assert.equal(shared.pick(105,29)?.kind,'object');
+ snapshot.actors[0]!.health=100;assert.deepEqual(scene.render(view,snapshot).rgba,shared.rgba);
 });
