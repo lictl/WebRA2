@@ -89,6 +89,13 @@ export function compileMissionTeamRuntime(source: MissionTeamActionSource, lower
   cap.tick = Math.min(cap.tick, program.limits.tick); cap.tickWork = Math.min(cap.tickWork, program.limits.replayWork);
   cap.replayWork = Math.min(cap.replayWork, program.limits.replayWork); cap.trace = Math.min(cap.trace, program.limits.trace);
   if (program.modelSha256 !== base.sha256 || program.worldSha256 !== data.world.sha256) fail('program-world');
+  for (const c of [...data.spawnCatalogs, ...data.recruitmentCatalogs]) {
+    cap.retries = Math.min(cap.retries, c.limits.retries); cap.retryTicks = Math.min(cap.retryTicks, c.limits.retryTicks);
+    cap.pending = Math.min(cap.pending, c.limits.pending); cap.requests = Math.min(cap.requests, c.limits.replayAdmissions);
+    cap.tick = Math.min(cap.tick, c.limits.tick); cap.tickWork = Math.min(cap.tickWork, c.limits.replayWork);
+    cap.replayWork = Math.min(cap.replayWork, c.limits.replayWork); cap.trace = Math.min(cap.trace, c.limits.trace);
+  }
+  for (const c of data.recruitmentCatalogs) cap.history = Math.min(cap.history, c.limits.history);
   for (const c of data.spawnCatalogs) if (teamSpawnCatalogData(c).world.model.sha256 !== base.sha256) fail('spawn-world');
   const actorRows = new Map<number, TeamRecruitmentActor>();
   for (const c of data.recruitmentCatalogs) {
