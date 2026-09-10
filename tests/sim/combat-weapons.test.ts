@@ -51,12 +51,21 @@ test('special effects, physical projectiles, splash, bursts and healing retain u
 });
 
 test('presentation deferrals retain exact origins without deciding damage or readiness from artwork', () => {
-  const source = fixture({ gun: 'Report=original-shot\nAnim=original-flash\n', projectile: 'Image=original-ray\n', warhead: 'AnimList=original-impact\n' });
+  const source = fixture({ gun: 'Report=original-shot\n', projectile: 'Image=original-ray\n', warhead: 'ShakeXlo=1\n' });
   const r = compileCombatWeapons({ weapons: source }), w = r.records[0]!;
-  assert.equal(w.status, 'ready'); assert.deepEqual(w.deferredPresentation.map(o => o.keySpelling), ['Report', 'Anim', 'Image', 'AnimList']);
+  assert.equal(w.status, 'ready'); assert.deepEqual(w.deferredPresentation.map(o => o.keySpelling), ['Report', 'Image', 'ShakeXlo']);
   assert(w.deferredPresentation.every(o => o.sourceSha256 === source.sources[0]!.sourceSha256));
   assert.equal(combatDamage(w.model!, 0), 5);
   assert(r.actorRequirements.includes('standing-unmodified-armor-and-damage'));
+});
+
+test('animation references require gameplay closure before publishing an executable model', () => {
+  for (const mod of ['[Beam]\nAnim=Effect\n', '[Impact]\nAnimList=Effect\n', '[Beam]\nOccupantAnim=Effect\n']) {
+    const w = compileCombatWeapons({ weapons: fixture({ mod: mod + '[Effect]\nDamage=50\nMakeInfantry=1\n' }) }).records[0]!;
+    assert.equal(w.status, 'unsupported'); assert.equal(w.model, null);
+    assert(w.reasons.some(r => r.endsWith(':animation-gameplay-closure-required')));
+    assert(!w.deferredPresentation.some(o => /Anim/.test(o.keySpelling)));
+  }
 });
 
 test('a later explicit supported override can clear a special effect while history stays source-bound', () => {

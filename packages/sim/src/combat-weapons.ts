@@ -29,10 +29,11 @@ type RecordFields = WeaponRecord<unknown>;
 const weaponTrue = new Set(['decloakToFire', 'revealOnFire', 'fireWhileMoving', 'fireInTransport']);
 const projectileTrue = new Set(['inviso', 'aa', 'ag']);
 const warheadTrue = new Set(['bullets', 'affectsAllies']);
+const animationReferences = new Set(['Anim', 'OccupantAnim', 'AssaultAnim', 'OpenToppedAnim', 'AnimList']);
 const presentation = {
-  weapon: new Set(['Report', 'Anim', 'OccupantAnim', 'AssaultAnim', 'OpenToppedAnim']),
+  weapon: new Set(['Report']),
   projectile: new Set(['Image', 'Shadow', 'FirersPalette']),
-  warhead: new Set(['AnimList', 'InfDeath', 'ShakeXlo', 'ShakeXhi', 'ShakeYlo', 'ShakeYhi', 'Bright', 'CombatLightSize', 'CLDisableBlue', 'CLDisableGreen']),
+  warhead: new Set(['ShakeXlo', 'ShakeXhi', 'ShakeYlo', 'ShakeYhi', 'Bright', 'CombatLightSize', 'CLDisableBlue', 'CLDisableGreen']),
 };
 
 /** Admit the named standing/direct subset, retaining every excluded behavior as a reason. Actor admission is separate. */
@@ -59,7 +60,8 @@ export function compileCombatWeapons(input: { readonly weapons: WeaponDefinition
       }
       for (const origin of record.unhandledFields) {
         charge();
-        if (presentation[record.kind].has(origin.keySpelling)) deferredPresentation.push(origin);
+        if (animationReferences.has(origin.keySpelling)) reasons.push(`${record.id}:${origin.keySpelling}:animation-gameplay-closure-required`);
+        else if (presentation[record.kind].has(origin.keySpelling)) deferredPresentation.push(origin);
         else reasons.push(`${record.id}:${origin.keySpelling}:uninterpreted-field`);
       }
     };

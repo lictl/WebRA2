@@ -103,15 +103,16 @@ trajectories, healing, special-effect flags, unknown gameplay fields, pending
 allocation closure and unsupported numeric states. The broader pure core's
 tracked/fixed-cell and burst policies are not thereby mapped to native content.
 
-Audio/image/selected animation and lighting directives retain exact source origins
-as deferred presentation. They are not executed by this policy; in particular,
-the projection does not certify absence of animation-side gameplay effects.
+Audio, image and lighting directives retain exact source origins as deferred
+presentation. Animation references, including Anim and AnimList, require separate
+source-bound gameplay closure and block admission: animations may apply damage or
+create actors, so they cannot be classified as presentation alone.
 Prone damage and distance falloff do not apply within its standing, zero-spread
 contract. Native rounding, projectile obstruction, firing animation delays,
 veterancy, transport/garrison, deployment, cloak, rearm, target pursuit and special
 death behavior remain outside this first runtime contract.
 
-Six original source-graph tests cover both profiles, exact numeric projection,
+Seven original source-graph tests cover both profiles, exact numeric projection,
 unsupported effects/unknown fields, source-preserving overrides, deferred origins,
 genuine factory identity and lower bounds. The factory caps 1,024 weapons and
 32,768 logical weapon/field/origin visits; existing canonical byte/node bounds also
@@ -120,8 +121,9 @@ published on failure.
 
 A separately labeled private probe freshly hashes and reads the selected rules,
 art and opening maps, compiles the entity and weapon graph, then applies this
-policy. Both profiles currently yield one admitted direct weapon (of 85/117).
-The remaining records carry explicit capability reasons; this count is neither
+policy. Both profiles currently yield zero admitted weapons (of 85/117); even
+otherwise ordinary candidates have unverified animation/effect dependencies.
+Every record carries explicit capability reasons; this count is neither
 a playable-combat claim nor evidence of complete native weapon compatibility.
 The source data and full projections remain ignored in
 `local/combat-capabilities/`. Actor admission and a full source/world comparison

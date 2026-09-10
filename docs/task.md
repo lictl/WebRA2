@@ -61,8 +61,9 @@ Its14 original tests cover targeting, firing, exact factors, impacts/death,
 atomic bounds and save/replay, plus independent generated checks. The current
 root integration also adds6 source-bound direct-weapon tests and passes685
 public tests,109docs/567links and43outputs/95inputs. The weapon admission policy
-currently admits one direct weapon per opening and retains all other unsupported
-reasons; it does not make original combat playable. Next join the reviewed139
+currently admits no retail weapon: review identified unverified animation-side
+gameplay, so animation references now block executable admission. All other
+unsupported reasons remain; original combat is not playable. Next join the reviewed139
 actor state and140 corrected weapon graph with genuine WorldContent, then
 privately verify source identity/admission/combat checkpoints before attack UI.
 The browser agent independently integrates complete ready voxel still parts.
