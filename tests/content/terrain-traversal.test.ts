@@ -134,3 +134,28 @@ test('same root identities cannot conflict and exact serialized-output budget re
   const r = compileTerrainTraversal(f); assert.equal(compileTerrainTraversal(f, { outputBytes: r.allocations.outputBytes }).sha256, r.sha256);
   assert.throws(() => compileTerrainTraversal(f, { outputBytes: r.allocations.outputBytes - 1 }), /output-limit/);
 });
+
+test('durable traversal identity ignores session root handles and resource enumeration order', () => {
+  const f = fixture(), a = f.assets[0]!, bytes = a.bytes.slice(); bytes[bytes.length - 1] = 1;
+  const b = { ...a, id: 'second', path: 'second.urb', bytes, sha256: hash(bytes),
+    source: { root: { sourceId: 'second-root', size: bytes.length, sha256: hash(bytes) }, absoluteOffset: 0, size: bytes.length, sha256: hash(bytes) } };
+  const choices = f.choices.map((c, i) => ({ ...c, assetId: i % 2 ? b.id : a.id }));
+  const original = compileTerrainTraversal({ ...f, assets: [a, b], choices });
+  const reordered = compileTerrainTraversal({ ...f, assets: [b, a].map((asset, i) => ({ ...asset,
+    source: { ...asset.source, root: { ...asset.source.root, sourceId: `file:${400 - i}` } } })), choices: [...choices].reverse() });
+  assert.equal(original.sha256, reordered.sha256);
+  assert.deepEqual(original.movementClasses, reordered.movementClasses);
+  assert.notEqual(original.assets[0]!.source.root.sourceId, reordered.assets[0]!.source.root.sourceId);
+  assert.equal(original.allocations.outputBytes, reordered.allocations.outputBytes);
+  assert.throws(() => compileTerrainTraversal({ ...f, assets: [a, { ...b, source: { ...b.source,
+    root: { ...b.source.root, sourceId: a.source.root.sourceId } } }], choices }), /root-identity/);
+});
+
+test('durable traversal identity still binds verified bytes, physical roots and logical asset roles', () => {
+  const f = fixture(), a = f.assets[0]!, original = compileTerrainTraversal(f), bytes = a.bytes.slice(); bytes[bytes.length - 1] = 1;
+  const changed = { ...a, bytes, sha256: hash(bytes), source: { ...a.source, sha256: hash(bytes), root: { ...a.source.root, sha256: hash(bytes) } } };
+  const variants = [changed, { ...a, path: 'renamed.urb' }, { ...a, source: { ...a.source, root: { ...a.source.root, sha256: 'd'.repeat(64) } } },
+    { ...a, source: { ...a.source, absoluteOffset: 1, root: { ...a.source.root, size: a.bytes.length + 1 } } }];
+  for (const asset of variants) assert.notEqual(compileTerrainTraversal({ ...f, assets: [asset] }).sha256, original.sha256);
+  assert.throws(() => compileTerrainTraversal({ ...f, assets: [{ ...a, bytes }] }), /asset-hash/);
+});
