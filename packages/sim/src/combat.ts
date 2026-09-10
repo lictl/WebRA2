@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
-import { combatDeathBinding, combatOrdinaryBinding, combatDamage, COMBAT_LIMITS as C, type CombatActor, type CombatWeapon } from './combat-model.ts';
+import { combatInfantryPrograms, combatDeathBinding, combatOrdinaryBinding, combatDamage, COMBAT_LIMITS as C, type CombatActor, type CombatWeapon } from './combat-model.ts';
 import { worldAddress, worldFail, worldInteger, worldList, worldPosition, worldRecord, WORLD_LIMITS as W } from './world-values.ts';
 import { canonicalText } from './canonical.ts';
 import { createNativeRandom, restoreNativeRandom, nextNativeReloadJitter, nextNativeRandomWord, NATIVE_RELOAD_MAX_DRAWS, type NativeRandomState } from './native-random.ts';
 import { ordinaryCombatDamage, ordinaryCombatReload, ordinaryCombatMaximumReload } from './ordinary-combat-rules.ts';
+import { createInfantryFiringState, restoreInfantryFiring, saveInfantryFiring, transitionInfantryFiring, inspectDueInfantryShot, type InfantryFiringSave, type InfantryFiringState } from './infantry-firing.ts';
 import { ordinaryDeathActor, ordinaryDeathWeapon, ordinaryDeathDuration } from './ordinary-death-rules.ts';
 import type { WorldModel } from './world-model.ts';
 import type { WorldEntity } from './world.ts';
@@ -14,17 +15,26 @@ export type CombatImpact = { id: number; sourceId: number; targetId: number; wea
   launchTick: number; dueTick: number; from: number; aim: number };
 export type OrdinaryDeathRecord = { entityId:number; sourceId:number; weaponId:string; victimOwner:number; sourceOwner:number;
   sequence:11|12; startedTick:number; completionTick:number; corpseIndex:number|null };
-export type CombatState = { deaths?:OrdinaryDeathRecord[]; actors: CombatOrderState[]; impacts: CombatImpact[]; nextImpactId: number; ordinaryRandom?: {state:{[K in keyof NativeRandomState]:NativeRandomState[K]};draws:number} };
+type SavedValue<T> = T extends readonly (infer E)[] ? SavedValue<E>[] : T extends object ? { [K in keyof T]: SavedValue<T[K]> } : T;
+export type CombatState = { infantryFiring?:SavedValue<InfantryFiringSave>[]; deaths?:OrdinaryDeathRecord[]; actors: CombatOrderState[]; impacts: CombatImpact[]; nextImpactId: number; ordinaryRandom?: {state:{[K in keyof NativeRandomState]:NativeRandomState[K]};draws:number} };
 type Emit = (kind: string, entityId: number, cell?: number | null, value?: number | null) => void;
 const alive = (e: WorldEntity | undefined): e is WorldEntity => !!e && e.health !== null && e.health > 0;
 function clearBurst(a: CombatOrderState): void { a.weaponId = null; a.burstRemaining = 0; a.burstTick = 0; }
 function clearOrder(a: CombatOrderState): void { a.targetId = null; clearBurst(a); }
-export function stopCombat(state: CombatState, entityId: number): void {
+function cancelFiring(model:WorldModel,state:CombatState,entityId:number):void {
+  const programs=combatInfantryPrograms(model.combat!);if(!programs)return;
+  const i=programs.findIndex(p=>p.actorId===entityId);if(i<0)return;
+  const program=programs[i]!,prior=restoreInfantryFiring(program,state.infantryFiring![i]);
+  state.infantryFiring![i]=saveInfantryFiring(program,transitionInfantryFiring(program,prior,{kind:'cancel'}).state);
+}
+export function stopCombat(model:WorldModel,state: CombatState, entityId: number): void {
+  cancelFiring(model,state,entityId);
   const a = state.actors.find(a => a.entityId === entityId); if (a) clearOrder(a);
 }
 export function createCombatState(model: WorldModel): CombatState {
   const ordinary=combatOrdinaryBinding(model.combat!);
-  return { ...(combatDeathBinding(model.combat!)?{deaths:[]}:{}), ...(ordinary?{ordinaryRandom:{state:createNativeRandom(ordinary.seed),draws:0}}:{}), actors: model.combat!.actors.map(a => ({ entityId: a.entityId, targetId: null, weaponId: null,
+  const firing=combatInfantryPrograms(model.combat!);
+  return { ...(firing?{infantryFiring:firing.map(p=>saveInfantryFiring(p,createInfantryFiringState(p)))}:{}), ...(combatDeathBinding(model.combat!)?{deaths:[]}:{}), ...(ordinary?{ordinaryRandom:{state:createNativeRandom(ordinary.seed),draws:0}}:{}), actors: model.combat!.actors.map(a => ({ entityId: a.entityId, targetId: null, weaponId: null,
     readyTick: 0, burstRemaining: 0, burstTick: 0, ammo: a.initialAmmo })), impacts: [], nextImpactId: 1 };
 }
 function distanceSquared(from: number, to: number): number {
@@ -54,8 +64,8 @@ function weaponLegal(w: CombatWeapon, target: CombatActor, model:WorldModel,sour
 }
 
 export function validateCombatState(model: WorldModel, input: unknown, entities: WorldEntity[], nextTick: number): CombatState {
-  const config = model.combat!,ordinary=combatOrdinaryBinding(config),death=combatDeathBinding(config);
-  const r = worldRecord(input, ['actors', 'impacts', 'nextImpactId',...(ordinary?['ordinaryRandom']:[]),...(death?['deaths']:[])]);
+  const config = model.combat!,ordinary=combatOrdinaryBinding(config),death=combatDeathBinding(config),firing=combatInfantryPrograms(config);
+  const r = worldRecord(input, ['actors', 'impacts', 'nextImpactId',...(ordinary?['ordinaryRandom']:[]),...(death?['deaths']:[]),...(firing?['infantryFiring']:[])]);
   const byId = new Map(entities.map(e => [e.id, e])), actorsById = new Map(config.actors.map(a => [a.entityId, a]));
   const weapons = new Map(config.weapons.map(w => [w.id, w]));
   const rows = worldList(r.actors, C.actors); if (rows.length !== config.actors.length) worldFail('combat-save-actors');
@@ -91,6 +101,20 @@ export function validateCombatState(model: WorldModel, input: unknown, entities:
     if (ids.has(id) || dueTick < priorTick || dueTick === priorTick && id <= priorId) worldFail('combat-save-impact-order');
     ids.add(id); priorTick = dueTick; priorId = id; impacts.push({ id, sourceId, targetId, weaponId: w.id, launchTick, dueTick, from, aim });
   }
+  let infantryFiring:CombatState['infantryFiring'];
+  if(firing){
+    const rows=worldList(r.infantryFiring,firing.length);if(rows.length!==firing.length)worldFail('infantry-save-coverage');
+    infantryFiring=rows.map((value,i)=>{
+      const p=firing[i]!,s=restoreInfantryFiring(p,value),a=actors.find(a=>a.entityId===p.actorId)!,entity=byId.get(p.actorId)!;
+      if(s.tick!==nextTick||s.rearm!==null&&s.rearm.shotTick>=nextTick||s.rearm!==null&&a.readyTick!==s.rearm.shotTick+s.rearm.nativeRof||s.rearm===null&&a.readyTick!==0)worldFail('infantry-save-clock');
+      if(s.pending&&(s.pending.startedTick>=nextTick||s.pending.targetId!==a.targetId||s.pending.weaponId!==actorsById.get(p.actorId)!.weapons[0]||!alive(entity)||entity.goal!==null))worldFail('infantry-save-pending');
+      if(a.burstRemaining||a.weaponId!==null||a.burstTick!==0)worldFail('infantry-save-burst');
+      const d=actorsById.get(p.actorId)!;
+      if(d.initialAmmo>=0&&a.ammo!==d.initialAmmo-s.shots)worldFail('infantry-save-ammo');
+      if(s.rearm!==null&&![0,1,2].some(j=>ordinaryCombatReload(ordinary!,p.actorId,d.weapons[0]!,j as 0|1|2)===s.rearm!.nativeRof))worldFail('infantry-save-reload');
+      return saveInfantryFiring(p,s);
+    });
+  }
   let deaths:OrdinaryDeathRecord[]|undefined;
   if(death){
     let prior=0;const definitions=new Map(model.entities.map(d=>[d.id,d]));
@@ -115,12 +139,12 @@ export function validateCombatState(model: WorldModel, input: unknown, entities:
   if(ordinary){
     const random=worldRecord(r.ordinaryRandom,['state','draws']),state=restoreNativeRandom(random.state);
     const draws=worldInteger(random.draws,0,nextTick*C.shotsPerTick*NATIVE_RELOAD_MAX_DRAWS+(deaths?.filter(d=>d.corpseIndex!==null).length??0));
-    if(draws<(deaths?.filter(d=>d.corpseIndex!==null).length??0))worldFail('death-save-random-count');
+    if(draws<(deaths?.filter(d=>d.corpseIndex!==null).length??0)+(infantryFiring?.reduce((n,s)=>n+s.state.shots,0)??0))worldFail('death-save-random-count');
     if(state.disabled||state.index1!==draws%250)worldFail('ordinary-save-random-cursor');
     if(draws===0&&canonicalText(state)!==canonicalText(createNativeRandom(ordinary.seed)))worldFail('ordinary-save-random-seed');
     ordinaryRandom={state,draws};
   }
-  return { actors, impacts, nextImpactId,...(deaths?{deaths}:{}),...(ordinaryRandom?{ordinaryRandom}:{}) };
+  return { actors, impacts, nextImpactId,...(infantryFiring?{infantryFiring}:{}),...(deaths?{deaths}:{}),...(ordinaryRandom?{ordinaryRandom}:{}) };
 }
 
 /** An accepted attack holds its target; moving into range is an explicit move order in this first policy. */
@@ -130,14 +154,16 @@ export function attackCombat(model: WorldModel, state: CombatState, entities: Wo
   if (!a || !d?.weapons.length) { emit('unsupported-weapon', sourceId); return false; }
   if (!target || !alive(entities.find(e => e.id === targetId)) || !targetLegal(model, sourceId, targetId)) { emit('illegal-target', sourceId, null, targetId); return false; }
   if (!d.weapons.some(id => weaponLegal(model.combat!.weapons.find(w => w.id === id)!, target,model,sourceId))) { emit('ineffective-weapon', sourceId, null, targetId); return false; }
-  clearBurst(a); a.targetId = targetId; emit('attack-accepted', sourceId, null, targetId); return true;
+  cancelFiring(model,state,sourceId);clearBurst(a); a.targetId = targetId; emit('attack-accepted', sourceId, null, targetId); return true;
 }
 
 /** After movement: scheduled impacts by due tick/ID, then firing by entity ID. Work is charged before each operation. */
 export function stepCombat(model: WorldModel, state: CombatState, entities: WorldEntity[], tick: number, emit: Emit): number {
-  const config = model.combat!,ordinary=combatOrdinaryBinding(config),death=combatDeathBinding(config), byId = new Map(entities.map(e => [e.id, e]));
+  const config = model.combat!,ordinary=combatOrdinaryBinding(config),death=combatDeathBinding(config),firing=combatInfantryPrograms(config), byId = new Map(entities.map(e => [e.id, e]));
   const actors = new Map(config.actors.map(a => [a.entityId, a])), orders = new Map(state.actors.map(a => [a.entityId, a]));
   const weapons = new Map(config.weapons.map(w => [w.id, w])); let work = 0, shots = 0;
+  const programs=new Map(firing?.map(p=>[p.actorId,p])??[]),schedules=new Map<number,InfantryFiringState>(firing?.map((p,i)=>[p.actorId,restoreInfantryFiring(p,state.infantryFiring![i])])??[]);
+  const cancel=(id:number)=>{const p=programs.get(id);if(p)schedules.set(id,transitionInfantryFiring(p,schedules.get(id)!,{kind:'cancel'}).state);};
   const charge = (count=1) => { if (count>C.operationsPerTick-work)worldFail('combat-work-limit');work+=count; };
   if(ordinary)state.ordinaryRandom!.state=restoreNativeRandom(state.ordinaryRandom!.state);
   if(death){
@@ -159,7 +185,7 @@ export function stepCombat(model: WorldModel, state: CombatState, entities: Worl
     emit('damaged', targetId, worldAddress(target.x, target.y), damage);
     if (target.health === 0) {
       target.goal = null; target.route = []; target.progress = 0; target.waitTicks = 0;
-      const order = orders.get(target.id); if (order) clearOrder(order);
+      const order = orders.get(target.id); if (order) clearOrder(order);cancel(target.id);
       if(death){
         const sequence=(ordinaryDeathWeapon(death,w.id)!.infDeath+10) as 11|12;
         const completionTick=tick+ordinaryDeathDuration(death,target.id,sequence);if(completionTick>=W.tick)worldFail('death-completion-horizon');
@@ -174,13 +200,25 @@ export function stepCombat(model: WorldModel, state: CombatState, entities: Worl
   for (const p of state.impacts) if (p.dueTick === tick) hit(p.sourceId, p.targetId, weapons.get(p.weaponId)!, p.aim);
   state.impacts = state.impacts.filter(p => p.dueTick !== tick);
   for (const a of state.actors) {
-    charge(); if (a.targetId === null) continue;
+    charge(); if (a.targetId === null) {cancel(a.entityId);continue;}
     const source = byId.get(a.entityId)!, target = byId.get(a.targetId), d = actors.get(a.entityId)!;
-    if (!alive(source) || !alive(target)) { clearOrder(a); continue; }
-    if (!a.ammo) { clearBurst(a); continue; }
+    if (!alive(source) || !alive(target)) { clearOrder(a);cancel(a.entityId); continue; }
+    if (!a.ammo) { clearBurst(a);cancel(a.entityId); continue; }
     const from = worldAddress(source.x, source.y), aim = worldAddress(target.x, target.y), targetDefinition = actors.get(target.id)!;
     let weapon: CombatWeapon | undefined;
-    if (a.burstRemaining) {
+    const firingProgram=programs.get(a.entityId);
+    if(firingProgram){
+      let schedule=schedules.get(a.entityId)!;
+      weapon=weapons.get(d.weapons[0]!)!;
+      if(!weaponLegal(weapon,targetDefinition,model,source.id)||!inRange(weapon,from,aim)){cancel(a.entityId);continue;}
+      if(!schedule.pending){
+        if(tick<a.readyTick||schedule.rearm!==null&&tick<=schedule.rearm.shotTick)continue;
+        schedule=transitionInfantryFiring(firingProgram,schedule,{kind:'begin',targetId:target.id,weaponId:weapon.id}).state;
+        schedules.set(a.entityId,schedule);emit('fire-started',source.id,aim,target.id);
+      }
+      if(!inspectDueInfantryShot(firingProgram,schedule))continue;
+      a.weaponId=weapon.id;a.burstRemaining=1;
+    }else if (a.burstRemaining) {
       weapon = weapons.get(a.weaponId!)!;
       if (!inRange(weapon, from, aim)) { clearBurst(a); continue; }
       if (tick < a.burstTick) continue;
@@ -199,6 +237,10 @@ export function stepCombat(model: WorldModel, state: CombatState, entities: Worl
       random.draws=worldInteger(random.draws+draw.drawCount,0,Number.MAX_SAFE_INTEGER);random.state=draw.state;
       a.readyTick=tick+ordinaryCombatReload(ordinary,source.id,weapon.id,draw.value);
       emit('reload-sampled',source.id,null,draw.value);
+      if(firingProgram){
+        const due=inspectDueInfantryShot(firingProgram,schedules.get(source.id)!)!;
+        schedules.set(source.id,transitionInfantryFiring(firingProgram,schedules.get(source.id)!,{kind:'resolve',stateHash:due.stateHash,attemptId:due.attemptId,targetId:due.targetId,weaponId:due.weaponId,decision:'admitted',nativeRof:a.readyTick-tick}).state);
+      }
     }else a.readyTick = tick + weapon.reloadTicks;
     if (weapon.delivery === 'instant') hit(source.id, target.id, weapon, aim);
     else {
@@ -210,7 +252,8 @@ export function stepCombat(model: WorldModel, state: CombatState, entities: Worl
     if (!a.burstRemaining || !a.ammo || !alive(target)) clearBurst(a);
   }
   // A later actor may kill an earlier actor's target; no dangling live orders survive the phase.
-  for (const a of state.actors) { charge(); if (a.targetId !== null && !alive(byId.get(a.targetId))) clearOrder(a); }
+  for (const a of state.actors) { charge(); if (a.targetId !== null && !alive(byId.get(a.targetId))) {clearOrder(a);cancel(a.entityId);} }
+  if(firing)state.infantryFiring=firing.map(p=>{charge();return saveInfantryFiring(p,transitionInfantryFiring(p,schedules.get(p.actorId)!,{kind:'advance',tick:tick+1}).state);});
   state.impacts.sort((a, b) => a.dueTick - b.dueTick || a.id - b.id); return work;
 }
 
