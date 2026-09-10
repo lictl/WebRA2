@@ -27,10 +27,19 @@ rank/side effects and combat/lifecycle capability are not established by health
 assignment. A compiled catalog is movement capability, not campaign readiness.
 
 Only the catalog factory can authenticate the program/source/archetype relationship;
-only validated source records can create a dynamic context. There is no public
+only validated source records can create a dynamic context. The existing team
+adapter consumes this brand, verifies exact prefixes and preserves prior instances;
+it cannot accept an arbitrary replacement model. There is no public
 arbitrary-model branding function. Reconstructed records describe a structural save,
 not an unforgeable history of past occupancy. Live insertions separately check
 current anchors, active reservations and living foundation cells, and recompute
 pending proposals before publishing the new model.
 
 See [the focused report](../../docs/team-spawning.md) for limits and evidence scope.
+
+The component-owned request/retry/compound replay is original WebRA2 policy. It
+executes no native trigger conditions and makes no native Scenario RNG neutrality
+claim. The pending checkpoint includes the complete candidate state and is verified
+by recomputation; source requests and replay admissions remain separate from
+already committed spawn records. A request exhausted by the finite retry policy
+is retained as exhausted rather than interpreted as a completed team script.

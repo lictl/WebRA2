@@ -55,3 +55,13 @@ test('historical actor IDs remain allocated after death and no future record can
  const context=restoreTeamSpawnContext(f.catalog,future);
  assert.throws(()=>prepareTeamSpawnInsertion(f.catalog,context,one.world,actionId),/future-record/);
 });
+
+test('living native foundation cells block insertion and become available only after the owning building dies',()=>{
+ const f=fixture({infantryRows:'',waypoint:'0=2004',extraRules:'[BuildingTypes]\n0=Depot\n[Depot]\nStrength=1000',extraArt:'[Depot]\nFoundation=2x1',extraMap:'[Actions]\nSpawn=1,80,1,Squad,0,0,0,0,A\n[Structures]\n0=Commander,Depot,256,3,2,0,None'}, {radius:0,candidates:1});
+ assert.ok(teamSpawnContextData(f.context).model.footprints.some(p=>p.cells.includes(4+512*2)));
+ assert.equal(prepareTeamSpawnInsertion(f.catalog,f.context,f.world,actionId).status,'blocked');
+ const dead=JSON.parse(JSON.stringify(f.world));dead.state.entities[0].health=0;
+ const plan=prepareTeamSpawnInsertion(f.catalog,f.context,dead,actionId);assert.equal(plan.status,'ready');
+ const next=commitTeamSpawnInsertion(f.catalog,f.context,dead,plan);assert.equal(next.world.state.entities[0]!.health,0);
+ assert.deepEqual([next.record.actors[0]!.x,next.record.actors[0]!.y],[4,2]);
+});

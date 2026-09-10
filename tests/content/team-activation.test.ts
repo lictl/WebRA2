@@ -32,3 +32,9 @@ test('bounded source compilation and accessor inputs fail without invoking gette
  let called=0;const hostile={...input};Object.defineProperty(hostile,'teams',{get(){called++;return f.teams},enumerable:true});
  assert.throws(()=>compileTeamActivationSource(hostile),/input/);assert.equal(called,0);
 });
+
+test('literal team and waypoint whitespace is preserved rather than silently normalized into a native match',()=>{
+ const a=source(teamSpawnFixture({extraMap:'[Actions]\nOne=1,80,1, Squad,0,0,0,0,A\nTwo=1,80,1,Squad,0,0,0,0, A'}));
+ assert.equal(a.plans[0]!.teamOperand.raw,' Squad');assert.equal(a.plans[0]!.teamId,null);
+ assert.ok(a.plans.every(p=>p.status==='unsupported'));
+});
