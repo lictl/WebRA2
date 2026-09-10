@@ -27,7 +27,11 @@ counts and the catalog's native-reference metadata remain separate from dispatch
 
 All model actors remain in `actors`. Ordinary mobile infantry and units with an
 initial literal house join are supported under the current ground, uncloaked,
-nontransport, fixed-owner world policy. Static or unavailable actors retain reasons
+nontransport, fixed-owner world policy. A full 14-field source row, initial
+OnBridge=0, and for units follower=-1 are required. Source mission, bridge, follower
+and full origin remain in the audit row; rank/group/recruitment are not event1
+selector operands. The source encoding must retain native bytes; decoded UTF-16
+or UTF-8 BOM documents cannot grant source authority. Static or unavailable actors retain reasons
 without poisoning otherwise valid event/cell source identity. The compound runtime
 must reject an initially living movable actor without a supported route; it must
 not silently omit its future arrival. Bridge layers, cloak transitions, capture,
@@ -48,7 +52,7 @@ source objects have their own upstream bounds. Limits may only be lowered and do
 not change semantic fingerprints. New records are deeply frozen; source origins
 and references are shared only from already immutable factory-owned objects.
 
-Seven original tests cover both profiles, shared tags, scenario memberships,
+Eleven original tests cover both profiles, shared tags, scenario memberships,
 first-house versus same-country owner mismatch, wildcard and malformed operands,
 unresolved references, stationary actors, brand/descriptor boundaries and atomic
 limits. Native range metadata and private opening comparisons are being finalized

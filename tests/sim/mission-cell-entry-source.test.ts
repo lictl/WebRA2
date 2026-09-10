@@ -24,11 +24,12 @@ function packed(raw: Uint8Array, literal: boolean): string {
   }
   return Buffer.concat(blocks).toString('base64');
 }
-function missionBindingsFixture({profile='ra2' as 'ra2'|'yr', mapEncoding='utf8' as 'utf8'|'latin1', extraRules='', extraInfantryTypes='', extraArt='', waypoint='0=3003', extraMap='[Actions]\nSpawn=1,80,1,Squad,0,0,0,0,A', rivalCountry='Red', speed=128, infantryRows='0=Commander,Walker,256,2,2,0,Guard,0,None\n1=Commander,Walker,256,2,3,0,Guard,0,None\n2=Rival,Walker,256,4,2,0,Guard,0,None'}={}) {
+function missionBindingsFixture({profile='ra2' as 'ra2'|'yr', mapEncoding='utf8' as 'utf8'|'latin1'|'utf16le', mapBom=false, extraRules='', extraInfantryTypes='', extraArt='', waypoint='0=3003', extraMap='[Actions]\nSpawn=1,80,1,Squad,0,0,0,0,A', rivalCountry='Red', speed=128, infantryRows='0=Commander,Walker,256,2,2,0,Guard,0,None,0,-1,0,1,1\n1=Commander,Walker,256,2,3,0,Guard,0,None,0,-1,0,1,1\n2=Rival,Walker,256,4,2,0,Guard,0,None,0,-1,0,1,1'}={}) {
   const xy = [[1,3],[2,2],[3,1],[2,3],[3,2],[2,4],[3,3],[4,2],[3,4],[4,3]];
   const raw = new Uint8Array(114), view = new DataView(raw.buffer);
   xy.forEach(([x,y], i) => { view.setUint16(i*11,x!,true);view.setUint16(i*11+2,y!,true);view.setUint16(i*11+4,1,true); });
-  const bytes = new Uint8Array(Buffer.from(`[Basic]\nNewINIFormat=4\nPlayer=Commander\n[Map]\nSize=0,0,3,2\nLocalSize=0,0,3,2\nTheater=URBAN\n[Houses]\n0=Commander\n1=Rival\n[Commander]\nCountry=Blue\n[Rival]\nCountry=${rivalCountry}\n[Infantry]\n${infantryRows}\n[Waypoints]\n${waypoint}\n[IsoMapPack5]\n1=${packed(raw,true)}\n[OverlayPack]\n1=${packed(new Uint8Array(262144).fill(255),false)}\n[OverlayDataPack]\n1=${packed(new Uint8Array(262144),false)}\n${extraMap}`, mapEncoding));
+  let bytes = new Uint8Array(Buffer.from(`[Basic]\nNewINIFormat=4\nPlayer=Commander\n[Map]\nSize=0,0,3,2\nLocalSize=0,0,3,2\nTheater=URBAN\n[Houses]\n0=Commander\n1=Rival\n[Commander]\nCountry=Blue\n[Rival]\nCountry=${rivalCountry}\n[Infantry]\n${infantryRows}\n[Waypoints]\n${waypoint}\n[IsoMapPack5]\n1=${packed(raw,true)}\n[OverlayPack]\n1=${packed(new Uint8Array(262144).fill(255),false)}\n[OverlayDataPack]\n1=${packed(new Uint8Array(262144),false)}\n${extraMap}`, mapEncoding));
+  if(mapBom) bytes=new Uint8Array(Buffer.concat([mapEncoding==='utf16le'?Buffer.from([255,254]):Buffer.from([239,187,191]),bytes]));
   const base = encode(`[Countries]\n0=Blue\n1=Red\n[Clear]\nFoot=1\n[InfantryTypes]\n0=Walker\n${extraInfantryTypes}\n[Walker]\nStrength=100\nSpeed=${speed}\nLocomotor={4A582744-9839-11D1-B709-00A024DDAFD1}\n${extraRules}`);
   const artBytes = encode('[Original]\nValue=1\n'+extraArt), source = {id:'map',profile,sha256:hash(bytes)};
   const rules = compileRuntimeIni(profile,[{id:'base',profile,order:0,kind:'base',sourceSha256:hash(base),bytes:base},
@@ -48,8 +49,8 @@ function missionBindingsFixture({profile='ra2' as 'ra2'|'yr', mapEncoding='utf8'
 
 import {compileMissionBindings} from '../../packages/sim/src/mission-bindings.ts';
 import {compileMissionCellEntrySource,isMissionCellEntrySource,missionCellEntrySourceBindings} from '../../packages/sim/src/mission-cell-entry-source.ts';
-function fixture({profile='ra2' as 'ra2'|'yr',events='Start=1,1,0,0',cells='3003=Shared\n2004=Shared',extraMap='',extraRules='',rivalCountry='Red',speed=128}={}){
-  return compileMissionBindings(missionBindingsFixture({profile,speed,extraRules,rivalCountry,extraMap:`[Triggers]\nStart=Blue,<none>,Start,0,1,1,1,0\n[Tags]\nShared=2,Sharing,Start\n[Events]\n${events}\n[Actions]\nStart=1,28,0,1,0,0,0,0,A\n[CellTags]\n${cells}\n${extraMap}`}));
+function fixture({profile='ra2' as 'ra2'|'yr',events='Start=1,1,0,0',cells='3003=Shared\n2004=Shared',extraMap='',extraRules='',rivalCountry='Red',speed=128,infantryRows=undefined as string|undefined}={}){
+  return compileMissionBindings(missionBindingsFixture({profile,speed,extraRules,rivalCountry,infantryRows,extraMap:`[Triggers]\nStart=Blue,<none>,Start,0,1,1,1,0\n[Tags]\nShared=2,Sharing,Start\n[Events]\n${events}\n[Actions]\nStart=1,28,0,1,0,0,0,0,A\n[CellTags]\n${cells}\n${extraMap}`}));
 }
 
 test('both profiles preserve exact event operands, shared cell tag and source scenario membership',()=>{
@@ -117,4 +118,40 @@ test('every limit fails atomically, counts reference expansion, and source ident
   assert.throws(()=>compileMissionCellEntrySource({bindings:fixture({events:'Start=1,1,0,99'})},{diagnostics:0}));
   for(const cap of [{work:Infinity},{events:-0},{constructor:1},{work:262145}])assert.throws(()=>compileMissionCellEntrySource({bindings},cap));
   assert.equal(compileMissionCellEntrySource({bindings},{events:1,cells:2,actors:3}).sha256,source.sha256);
+});
+
+
+test('decoded BOM metadata cannot grant byte-native cell source identity',()=>{
+  for(const profile of ['ra2','yr'] as const)for(const mapEncoding of ['utf8','utf16le'] as const){
+    const f=missionBindingsFixture({profile,mapEncoding,mapBom:true,extraMap:'[Triggers]\nStart=Blue,<none>,Start,0,1,1,1,0\n[Tags]\nShared=2,Sharing,Start\n[Events]\nStart=1,1,0,-1\n[Actions]\nStart=0\n[CellTags]\n3003=Shared'});
+    const s=compileMissionCellEntrySource({bindings:compileMissionBindings(f)});assert.equal(s.events.length,1);assert.ok(s.diagnostics.some(d=>d.code==='native-byte-encoding'));
+  }
+});
+
+
+test('bridge and incomplete native rows remain ineligible; veterancy does not change event owner selection',()=>{
+  for(const profile of ['ra2','yr'] as const){
+    for(const [tail,reason]of [['0,-1,1,1,1','initial-bridge-layer'],['','unsupported-source-row-framing']] as const){
+      const s=compileMissionCellEntrySource({bindings:fixture({profile,infantryRows:'0=Commander,Walker,256,2,2,2,Guard,0,None'+(tail?','+tail:'')})});
+      assert.equal(s.actors[0]!.status,'unsupported');assert.ok(s.actors[0]!.reasons.includes(reason));assert.deepEqual(s.diagnostics,[]);
+    }
+    const veteran=compileMissionCellEntrySource({bindings:fixture({profile,infantryRows:'0=Commander,Walker,256,2,2,2,Guard,0,None,100,-1,0,1,1'})});
+    assert.equal(veteran.actors[0]!.status,'supported');assert.equal(veteran.actors[0]!.onBridge,false);assert.equal(veteran.actors[0]!.sourceMission,'Guard');
+  }
+});
+
+
+test('ordinary Unit source joins retain mission and gate bridge/follower state in both profiles',()=>{
+  const extraRules='[VehicleTypes]\n0=Roller\n[Roller]\nStrength=100\nSpeed=128\nSpeedType=Foot\nLocomotor={4A582741-9839-11D1-B709-00A024DDAFD1}';
+  for(const profile of ['ra2','yr'] as const)for(const [bridge,follower,reason]of [['0','-1',null],['1','-1','initial-bridge-layer'],['0','0','initial-follower-link']] as const){
+    const s=compileMissionCellEntrySource({bindings:fixture({profile,extraRules,extraMap:`[Units]\n0=Commander,Roller,256,3,3,0,Guard,None,0,-1,${bridge},${follower},1,1`})});
+    const a=s.actors.find(a=>a.kind==='unit')!;assert.ok(a);assert.equal(a.sourceMission,'Guard');assert.equal(a.onBridge,bridge==='1');assert.equal(a.followerIndex,Number(follower));
+    if(reason){assert.equal(a.status,'unsupported');assert.ok(a.reasons.includes(reason));}else assert.equal(a.status,'supported');
+    assert.deepEqual(s.diagnostics,[]);
+  }
+});
+
+test('unresolved initial type retains its authenticated placeholder actor without fabricated route',()=>{
+  const s=compileMissionCellEntrySource({bindings:fixture({infantryRows:'0=Commander,MissingType,256,2,2,2,Guard,0,None,0,-1,0,1,1'})});
+  assert.equal(s.actors.length,1);assert.equal(s.actors[0]!.status,'unsupported');assert.equal(s.actors[0]!.typeId,'unresolved-1');assert.ok(s.diagnostics.length);
 });
