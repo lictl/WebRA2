@@ -229,11 +229,13 @@ exact float32 YR). The selector re-evaluates EXPLODES using the genuine
 [reviewed veterancy source](combat-veterancy.md); a caller-supplied enabled flag
 cannot replace that join. Rookie states can remain eligible when an inactive
 veteran branch is unknown; an active or unknown EXPLODES branch is blocked.
-The victim's current weapon must join a known normal source link and must have
+The victim's current weapon must join a known normal source link, be a loaded typed
+record and must have
 Suicide false. An armed victim cannot omit that current weapon. Unknown normal
 weapon links also prevent admission. The distinct attacker must join an infantry
-or unit placement, and its attack weapon must link to the exact supplied typed
-warhead. Firing/impact eligibility is checked by the separate combat components.
+or unit placement, and its loaded typed attack weapon must link to the exact supplied typed
+warhead. Case/allocation ambiguities and unloaded records fail both incoming and
+current-weapon joins, including for nonlethal metadata decisions. Firing/impact eligibility is checked by the separate combat components.
 
 `victim` and `attacker` each retain runtime `id`, source `rowId`, `typeId` and
 `ownerId`. This initial seam requires unchanged source ownership and original
@@ -271,7 +273,7 @@ Selections accept only exact plain data records and bounded primitive scalars,
 copy identities before returning, and reject extra fields/accessors/boxed values.
 No successful result is returned after a failed budget or input check.
 
-The [9 original tests](../tests/content/combat-death-runtime.test.ts) exercise both
+The [10 original tests](../tests/content/combat-death-runtime.test.ts) exercise both
 profiles and InfDeath outcomes, all-candidate/transitive closure, inactive versus
 lethal branches, every current-context condition, source and current weapon joins,
 rank/storage boundaries, malformed inputs, ownership and lower budgets. No source

@@ -151,3 +151,24 @@ test('source-bound current veterancy gates only active or unknown EXPLODES and p
     assert.equal(selectOrdinaryInfantryDeath(up, { ...us, lethal: false, context: { ...context(), veterancy: 1 } }).status, 'nonlethal');
   }
 });
+
+
+test('incoming and current weapons independently require loaded typed records in both profiles', () => {
+  for (const profile of ['ra2', 'yr'] as const) {
+    const f = fixture({ profile, typeFields: 'Secondary=Safe', ruleExtra: '[Safe]\nProjectile=Ray\nWarhead=Hit\n',
+      middle: ['[PERSON]\nPrimary=pulse\n'] });
+    const p = compileOrdinaryDeath(f), s = selection(f);
+    assert.equal(f.weapons.weapons.find(w => w.id === 'weapon:pulse')!.status, 'unsupported');
+    assert.equal(f.weapons.weapons.find(w => w.id === 'weapon:safe')!.status, 'typed');
+    for (const lethal of [false, true]) {
+      assert.equal(selectOrdinaryInfantryDeath(p, { ...s, lethal }).status, 'unsupported');
+      const currentOnly = selectOrdinaryInfantryDeath(p, { ...s, attackWeaponId: 'weapon:safe', lethal });
+      assert.ok(currentOnly.reasons.includes('current-weapon-join')); assert.ok(!currentOnly.reasons.includes('attack-weapon-warhead-join'));
+      const incomingOnly = selectOrdinaryInfantryDeath(p, { ...s, currentWeaponId: 'weapon:safe', lethal });
+      assert.ok(incomingOnly.reasons.includes('attack-weapon-warhead-join')); assert.ok(!incomingOnly.reasons.includes('current-weapon-join'));
+    }
+    const unloaded = fixture({ profile, middle: ['[PERSON]\nPrimary=Missing\n'] }), up = compileOrdinaryDeath(unloaded);
+    assert.equal(unloaded.weapons.weapons.find(w => w.id === 'weapon:missing')!.loadStages.length, 0);
+    assert.ok(selectOrdinaryInfantryDeath(up, { ...selection(unloaded), currentWeaponId: 'weapon:missing' }).reasons.includes('current-weapon-join'));
+  }
+});

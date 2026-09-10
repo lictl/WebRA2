@@ -206,10 +206,11 @@ export function selectOrdinaryInfantryDeath(plan: OrdinaryDeath, selection: Ordi
   if (!type) add('victim-type');
   if (saved.unknownWeapons.has(victim.typeId) || saved.unknownWeapons.has(attacker.typeId)) add('unknown-normal-weapon-links');
   if (!attackingType || !['infantry', 'unit'].includes(attackingType.kind)) add('ordinary-ground-attacker-required');
-  if (!weapon || !saved.normalWeapons.get(attacker.typeId)?.has(attackWeaponId) || weapon.fields.warhead.status === 'unsupported' ||
+  if (!weapon || weapon.status !== 'typed' || !weapon.loadStages.length || !saved.normalWeapons.get(attacker.typeId)?.has(attackWeaponId) || weapon.fields.warhead.status === 'unsupported' ||
     typeof weapon.fields.warhead.value !== 'string' || weapon.fields.warhead.value !== warheadId) add('attack-weapon-warhead-join');
   if (!warhead || warhead.status !== 'typed' || !warhead.loadStages.length) add('warhead-source-unsupported');
-  if (currentWeaponId !== null && (!saved.normalWeapons.get(victim.typeId)?.has(currentWeaponId) || !saved.weapons.has(currentWeaponId))) add('current-weapon-join');
+  if (currentWeaponId !== null) { const current = saved.weapons.get(currentWeaponId);
+    if (!saved.normalWeapons.get(victim.typeId)?.has(currentWeaponId) || !current || current.status !== 'typed' || !current.loadStages.length) add('current-weapon-join'); }
   if (currentWeaponId === null && saved.normalWeapons.get(victim.typeId)?.size) add('armed-victim-current-weapon-required');
   if (!c.complete) add('complete-authoritative-context-required');
   if (s.lethal) {
