@@ -86,7 +86,7 @@ These are static content comparisons, not original-game execution tests.
 The [aggregate census](analysis/team-definitions-census.json) pins all eight physical
 input sources, result and independent projection hashes, opcode counts and diagnostic
 counts. The [native range ledger](analysis/team-definitions-native.json) pins 55
-ranges totaling 12,925 bytes across the two executable images. Each range records
+ranges totaling 12,950 bytes across the two executable images. Each range records
 virtual address, file offset, size, SHA-256 and a narrow interpretation. Metadata
 contains no original INI values, artwork, executable bytes or disassembly.
 

@@ -11,10 +11,10 @@
         {
           "id": "global-ai-file",
           "vaStart": "0x512f98",
-          "vaEndExclusive": "0x512fd0",
+          "vaEndExclusive": "0x512fd3",
           "offset": 1126296,
-          "size": 56,
-          "sha256": "e56d96139c4242b107d7076382490701c6c2e969c553b679ede877caac69ea51",
+          "size": 59,
+          "sha256": "112b459c723922a554c4e16974025835b154d3975759d5324b56573007894f54",
           "interpretation": "Global AI file is read into the INI object later used for global team/script/task-force lists.",
           "evidence": "static-byte-range-and-inspected-native-path"
         },
@@ -61,10 +61,10 @@
         {
           "id": "taskforce-constructor",
           "vaStart": "0x6b6850",
-          "vaEndExclusive": "0x6b6910",
+          "vaEndExclusive": "0x6b6912",
           "offset": 2844752,
-          "size": 192,
-          "sha256": "9890093236dd4c1598e5af7235d3c04fc113aebcb4f32452d93b60e6bff4169e",
+          "size": 194,
+          "sha256": "7a4b7b8250f1291658f04c3514dcff1a6980c8b3c5732fd172b5aa1ab11df6b7",
           "interpretation": "Group -1, zero count/global flag and empty six-member storage.",
           "evidence": "static-byte-range-and-inspected-native-path"
         },
@@ -101,10 +101,10 @@
         {
           "id": "taskforce-reference-allocation",
           "vaStart": "0x6b6fb0",
-          "vaEndExclusive": "0x6b7080",
+          "vaEndExclusive": "0x6b7084",
           "offset": 2846640,
-          "size": 208,
-          "sha256": "09db0bf15ff219c064c905838d26321fe782089c9b869a264444236539d5a38f",
+          "size": 212,
+          "sha256": "d77a41a06ffc4ea2e4d1e616e070f44d99415071ab8d7bfab826d2067cf4aa87",
           "interpretation": "Case-folded reference FindOrAllocate and none sentinels.",
           "evidence": "static-byte-range-and-inspected-native-path"
         },
@@ -171,10 +171,10 @@
         {
           "id": "country-constructor",
           "vaStart": "0x4f90f0",
-          "vaEndExclusive": "0x4f9370",
+          "vaEndExclusive": "0x4f9371",
           "offset": 1020144,
-          "size": 640,
-          "sha256": "1582405d25bca578730e3601eaaccf2c5ebf7bc61c980d38cc99f6c77d53a8e6",
+          "size": 641,
+          "sha256": "fa41870dfe8ee395e52f22ac8494c49d3ada2ef200420bc5083fd33f476ac9b1",
           "interpretation": "Direct country constructor appends identity; no house is allocated by this path.",
           "evidence": "static-byte-range-and-inspected-native-path"
         },
@@ -261,10 +261,10 @@
         {
           "id": "guard-operand",
           "vaStart": "0x6b8135",
-          "vaEndExclusive": "0x6b8190",
+          "vaEndExclusive": "0x6b8191",
           "offset": 2851125,
-          "size": 91,
-          "sha256": "16f9f9ada0f98911c3653094597bc4a0c8c5669892fb247d1d4c533be77d1b81",
+          "size": 92,
+          "sha256": "6cb5d053a4c1d6977a35a471f54bd3c8928625ff34bea69beb83735af17a01cb",
           "interpretation": "Guard entry multiplies the operand by 15 native frame units.",
           "evidence": "static-byte-range-and-inspected-native-path"
         },
@@ -289,10 +289,10 @@
         {
           "id": "global-ai-file",
           "vaStart": "0x52d357",
-          "vaEndExclusive": "0x52d390",
+          "vaEndExclusive": "0x52d392",
           "offset": 1233751,
-          "size": 57,
-          "sha256": "fa6dc68d5bd07d9211ab3111bcad27ee218d4f8a50e994175d62da656df3f4e7",
+          "size": 59,
+          "sha256": "7db140d2136d514b8abd2faf76dc43611ace767230930c98d0ecc78a75f7e9c9",
           "interpretation": "Global AI file is read into the INI object later used for global team/script/task-force lists.",
           "evidence": "static-byte-range-and-inspected-native-path"
         },
@@ -309,10 +309,10 @@
         {
           "id": "team-constructor",
           "vaStart": "0x6f06e0",
-          "vaEndExclusive": "0x6f08ea",
+          "vaEndExclusive": "0x6f08ec",
           "offset": 3081952,
-          "size": 522,
-          "sha256": "47c38465a766f08de7b2d52d71973edaa1bf4edbd35e10715b86ac2b6c854c2d",
+          "size": 524,
+          "sha256": "c3b45ce3fa384a36f58f4488b8b1035659bfb3292f139f83df6fc8234cdf628f",
           "interpretation": "Team scalar/flag/reference defaults and array append.",
           "evidence": "static-byte-range-and-inspected-native-path"
         },
@@ -339,10 +339,10 @@
         {
           "id": "taskforce-constructor",
           "vaStart": "0x6e7e80",
-          "vaEndExclusive": "0x6e7f40",
+          "vaEndExclusive": "0x6e7f42",
           "offset": 3047040,
-          "size": 192,
-          "sha256": "ae1738375ec5402e9f70987bbffc7e1bfb9b5567c6e27f72fd372cc55f2578da",
+          "size": 194,
+          "sha256": "47e311ddf68790c41a16d8abd6a4a1d6cc8f1c4e5a273e3b879f43fbea4ca126",
           "interpretation": "Group -1, zero count/global flag and empty six-member storage.",
           "evidence": "static-byte-range-and-inspected-native-path"
         },
@@ -379,10 +379,10 @@
         {
           "id": "taskforce-reference-allocation",
           "vaStart": "0x6e85f0",
-          "vaEndExclusive": "0x6e86c0",
+          "vaEndExclusive": "0x6e86c4",
           "offset": 3048944,
-          "size": 208,
-          "sha256": "0d954befeb8c5089f2a70a498c1100d0e6c8f0305cea167ef4d0b8472e3b4a36",
+          "size": 212,
+          "sha256": "ee3587a7469229a535af27535a2efa5e32483ddd3a90f071fb01e8ac2c7220d6",
           "interpretation": "Case-folded reference FindOrAllocate and none sentinels.",
           "evidence": "static-byte-range-and-inspected-native-path"
         },
@@ -449,20 +449,20 @@
         {
           "id": "country-constructor",
           "vaStart": "0x5113f0",
-          "vaEndExclusive": "0x511670",
+          "vaEndExclusive": "0x511671",
           "offset": 1119216,
-          "size": 640,
-          "sha256": "0758f002609cb73064c38886801fcb8d5572dc593d929b7da98ce8166d093fec",
+          "size": 641,
+          "sha256": "5a67ae0d90a4e8caeb82cd9ecd8254e9d68bf19096f59975ac5b6db9a4cc0156",
           "interpretation": "Direct country constructor appends identity; no house is allocated by this path.",
           "evidence": "static-byte-range-and-inspected-native-path"
         },
         {
           "id": "house-by-country",
           "vaStart": "0x502d30",
-          "vaEndExclusive": "0x502dc0",
+          "vaEndExclusive": "0x502dc3",
           "offset": 1060144,
-          "size": 144,
-          "sha256": "e89c23e0e19b5d83fd092541969b3c68dedee04ded490e30ffa665068349debe",
+          "size": 147,
+          "sha256": "e31feb0d68fb51a45319b059b88906e27ea5f368bbf81aaf62fce0c4150749ed",
           "interpretation": "First house whose country index equals the requested country index.",
           "evidence": "static-byte-range-and-inspected-native-path"
         },

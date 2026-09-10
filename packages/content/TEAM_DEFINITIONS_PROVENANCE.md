@@ -19,7 +19,7 @@ The bounded research uses RA2 game.exe SHA-256
 and YR gamemd.exe SHA-256
 `3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600`.
 The [55-range ledger](../../docs/analysis/team-definitions-native.json) records
-12,925 bytes of inspected caller/constructor/property/dispatch evidence. The
+12,950 bytes of inspected caller/constructor/property/dispatch evidence. The
 [private aggregate comparison](../../docs/analysis/team-definitions-census.json)
 pins source identities and independent projection hashes. Both executable files
 are rehashed before any range is read.
