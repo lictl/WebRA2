@@ -10,6 +10,7 @@ import { compileScenarioTerrain } from '../../packages/content/src/scenario-terr
 import { compileFoundationOccupancy } from '../../packages/content/src/foundation-occupancy.ts';
 import { compileEntityDefinitions } from '../../packages/content/src/entity-definitions.ts';
 import { compileTerrainTraversal } from '../../packages/content/src/terrain-traversal.ts';
+import { compileTerrainTraversalGround } from '../../packages/content/src/terrain-traversal-ground.ts';
 import { compileWorldContent, isWorldContent, WORLD_CONTENT_LIMITS } from '../../packages/sim/src/world-content.ts';
 import { WorldSimulation } from '../../packages/sim/src/world.ts';
 import { WorldReplayRecorder, replayWorld } from '../../packages/sim/src/world-replay.ts';
@@ -26,10 +27,10 @@ function packed(raw: Uint8Array, lzo: boolean): string {
   return Buffer.concat(blocks).toString('base64');
 }
 
-function fixture({profile='ra2' as 'ra2'|'yr',extraRules='',player='Commander',foundation='1x1'}={}) {
+function fixture({profile='ra2' as 'ra2'|'yr',extraRules='',player='Commander',foundation='1x1',ramp=0}={}) {
   const xy=[[1,3],[2,2],[3,1],[2,3],[3,2],[2,4],[3,3],[4,2],[3,4],[4,3]];
   const raw=new Uint8Array(114),v=new DataView(raw.buffer);
-  xy.forEach(([x,y],i)=>{v.setUint16(i*11,x!,true);v.setUint16(i*11+2,y!,true);v.setUint16(i*11+4,1,true);});
+  xy.forEach(([x,y],i)=>{v.setUint16(i*11,x!,true);v.setUint16(i*11+2,y!,true);v.setUint16(i*11+4,1,true);if(ramp&&i===3)raw[i*11+9]=1;});
   const mapBytes=encode(`[Basic]\nNewINIFormat=4\nPlayer=${player}\n[Map]\nSize=0,0,3,2\nLocalSize=0,0,3,2\nTheater=URBAN\n[Houses]\n0=Commander\n1=Rival\n[Commander]\nCountry=Blue\n[Rival]\nCountry=Blue\n[Infantry]\n0=Commander,Walker,256,2,2,0,Guard,0,None\n[Units]\n0=Rival,Driver,128,4,3,0,Guard,None\n[Aircraft]\n0=Commander,Plane,256,1,3,0,Guard,None\n[Structures]\n0=Commander,Depot,256,4,2,0,None\n[Terrain]\n4002=Tree\n[Smudge]\n0=Mark,3,1,0\n[IsoMapPack5]\n1=${packed(raw,true)}\n[OverlayPack]\n1=${packed(new Uint8Array(262144).fill(255),false)}\n[OverlayDataPack]\n1=${packed(new Uint8Array(262144),false)}\n`);
   const base=encode(`[Countries]\n0=Blue\n[Clear]\nFoot=1\nTrack=1\nWheel=1\n[InfantryTypes]\n0=Walker\n[VehicleTypes]\n0=Driver\n[AircraftTypes]\n0=Plane\n[BuildingTypes]\n0=Depot\n[TerrainTypes]\n0=Tree\n[SmudgeTypes]\n0=Mark\n[Walker]\nStrength=100\nSpeed=50\nLocomotor={4A582744-9839-11D1-B709-00A024DDAFD1}\n[Driver]\nStrength=200\nSpeed=30\nLocomotor={4A582741-9839-11D1-B709-00A024DDAFD1}\n[Plane]\nStrength=100\nSpeed=30\n[Depot]\nStrength=1000\n[Tree]\nName=Original tree\n`+extraRules), artBytes=encode(`[Depot]\nFoundation=${foundation}\n`);
   const source={id:'map',profile,sha256:hash(mapBytes)};
@@ -38,6 +39,7 @@ function fixture({profile='ra2' as 'ra2'|'yr',extraRules='',player='Commander',f
   const objects=compileScenarioObjects({profile,source,bytes:mapBytes});
   const definitions=compileEntityDefinitions({objects,rules,art}), terrain=compileScenarioTerrain({profile,source,bytes:mapBytes});
   const data=new Uint8Array(1872),dv=new DataView(data.buffer);for(const [at,n] of [[0,1],[4,1],[8,60],[12,30],[16,20],[32,952],[56,2]])dv.setUint32(at!,n!,true);
+  data[62]=ramp;
   const digest=hash(data), contentIdentity={profile,manifestSha256:'a'.repeat(64),rulesSha256:'b'.repeat(64),orderedModHashes:[]};
   const traversal=compileTerrainTraversal({contentIdentity,terrain,mapBytes,rules:createIniSourceView(rules),assets:[{id:'tiles',path:'original.urb',sha256:digest,bytes:data,source:{root:{sourceId:'root',size:data.length,sha256:digest},absoluteOffset:0,size:data.length,sha256:digest}}],choices:terrain.cells.map(c=>({sourceRecord:c.sourceRecord,assetId:'tiles',subtile:0})),movementClasses:[{id:'foot',speedType:0},{id:'wheel',speedType:2},{id:'winged',speedType:4}]});
   return {mapBytes,rules,definitions,traversal,footprints:compileFoundationOccupancy({definitions})};
@@ -93,4 +95,21 @@ test('required base footprints must be genuine, source-bound and supported, with
  const empty=compileWorldContent(fixture({foundation:'0x0'}));
  assert.equal(empty.model.entities.find(e=>e.rowId==='structures:0')!.blocksCell,false);
  assert.equal(empty.model.footprints.length,0);
+});
+
+
+test('genuine ordinary ground graphs enable ramp movement while keeping footprints, identities and replay authoritative',()=>{
+ for(const profile of ['ra2','yr'] as const){const f=fixture({profile,ramp:1}),flat=compileWorldContent(f),ground=compileTerrainTraversalGround({base:f.traversal});
+  const world=compileWorldContent({...f,traversal:ground});assert.equal(world.traversalSha256,ground.sha256);assert.notEqual(world.model.sha256,flat.model.sha256);
+  assert.deepEqual(world.model.footprints,flat.model.footprints);assert.deepEqual(world.model.blocked,flat.model.blocked);assert.equal(world.canStartCampaign,false);
+  const id=world.placements.find(p=>p.rowId==='infantry:0')!.entityId;assert.equal(flat.model.entities.find(e=>e.id===id)!.movementPerTick,0);
+  const r=new WorldReplayRecorder(world.model);r.admitCommands([{schemaVersion:1,tick:0,playerId:0,sequence:0,kind:'move',payload:{entityId:id,x:2,y:3}}]);r.step();
+  assert.ok(r.save().state.entities.find(e=>e.id===id)!.progress>0);assert.throws(()=>WorldSimulation.restore(flat.model,r.save()));
+  const restored=WorldSimulation.restore(world.model,r.save());assert.deepEqual(restored.step(12),r.step(12));assert.deepEqual(restored.save(),r.save());
+  const e=r.save().state.entities.find(e=>e.id===id)!;assert.deepEqual([e.x,e.y,e.goal],[2,3,null]);assert.deepEqual(replayWorld(world.model,r.document()).simulation.save(),r.save());
+  assert.throws(()=>compileWorldContent({...f,traversal:{...ground}}),/factory/);
+  assert.throws(()=>compileWorldContent({...f,traversal:new Proxy(ground,{})}),/factory/);
+  assert.throws(()=>compileWorldContent({...f,traversal:ground,rules:fixture({profile,ramp:1,extraRules:'[Extra]\nKey=1\n'}).rules}),/rule-sources/);
+  assert.throws(()=>compileWorldContent({...f,traversal:compileTerrainTraversalGround({base:fixture({profile:profile==='ra2'?'yr':'ra2',ramp:1}).traversal})}),/profile-source/);
+ }
 });

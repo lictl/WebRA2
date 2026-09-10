@@ -3,6 +3,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { compileOrdinaryInfantryBridge, evaluateOrdinaryInfantryAttack, isOrdinaryInfantryBridge, ORDINARY_INFANTRY_BRIDGE_LIMITS } from '../../packages/sim/src/ordinary-infantry-bridge.ts';
+import { isTerrainTraversalGround } from '../../packages/content/src/terrain-traversal-ground.ts';
+import { bindOrdinaryInfantryWorld } from '../../packages/sim/src/source-infantry-world.ts';
 import { WorldSimulation } from '../../packages/sim/src/world.ts';
 import { WorldReplayRecorder, replayWorld } from '../../packages/sim/src/world-replay.ts';
 import { ordinaryFixture, ordinaryWorld } from './ordinary-infantry-fixture.ts';
@@ -136,4 +138,26 @@ test('resource caps cannot be raised and failed context queries leave the checkp
   assert.deepEqual(evaluateOrdinaryInfantryAttack(b, m, s.save(), { sourceId: 1, targetId: 2 }).reasons, ['context-cell-limit']); assert.equal(s.saveText(), before);
   const c = compileOrdinaryInfantryBridge(f, { contextWork: 0 }), cm = ordinaryWorld(f, c);
   assert.throws(() => evaluateOrdinaryInfantryAttack(c, cm, WorldSimulation.create(cm).save(), { sourceId: 1, targetId: 2 }), /context-work/);
+});
+
+
+test('ground navigation pins its own world identity without widening the inherited flat shot context',()=>{
+ for(const profile of ['ra2','yr'] as const){const flat=ordinaryFixture({profile}),ground=ordinaryFixture({profile,ground:true}),ramp=ordinaryFixture({profile,ground:true,ramp:1});
+  const b=compileOrdinaryInfantryBridge(ground),m=ordinaryWorld(ground,b);assert.equal(b.pins.traversal,ground.traversal.sha256);
+  assert.notEqual(b.baseModelSha256,flat.world.model.sha256);assert.equal(evaluateOrdinaryInfantryAttack(b,m,WorldSimulation.create(m).save(),{sourceId:1,targetId:2}).status,'eligible');
+  const rb=compileOrdinaryInfantryBridge(ramp),rm=ordinaryWorld(ramp,rb);assert.ok(ramp.world.model.entities.every(e=>e.movementPerTick>0));
+  assert.equal(evaluateOrdinaryInfantryAttack(rb,rm,WorldSimulation.create(rm).save(),{sourceId:1,targetId:2}).status,'unsupported');
+  assert.ok(isTerrainTraversalGround(ramp.traversal));const base=ramp.traversal.base;assert.throws(()=>compileOrdinaryInfantryBridge({...ramp,traversal:base}),/fingerprint-join/);
+  assert.throws(()=>compileOrdinaryInfantryBridge({...ramp,traversal:{...ramp.traversal}}),/factory/);
+  assert.throws(()=>compileOrdinaryInfantryBridge({...ramp,traversal:new Proxy(ramp.traversal,{})}),/factory/);
+ }
+});
+
+
+test('source-bound ground worlds execute only inherited eligible shots and keep rejected ramp attacks harmless',()=>{
+ for(const profile of ['ra2','yr'] as const)for(const ramp of [0,1]){const f=ordinaryFixture({profile,ground:true,ramp}),b=compileOrdinaryInfantryBridge(f),m=bindOrdinaryInfantryWorld(b,f.world.model),r=new WorldReplayRecorder(m);
+  r.admitCommands([{schemaVersion:1,tick:0,playerId:0,sequence:0,kind:'attack',payload:{entityId:1,targetId:2}}]);r.step(2);
+  const restored=WorldSimulation.restore(m,r.save());assert.deepEqual(restored.step(20),r.step(20));assert.deepEqual(restored.save(),r.save());
+  assert.equal(r.save().state.entities[1]!.health===100,ramp===1);assert.deepEqual(replayWorld(m,r.document()).simulation.save(),r.save());
+ }
 });

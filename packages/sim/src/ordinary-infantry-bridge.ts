@@ -11,6 +11,7 @@ import { isCombatInitialRuntime, createInfantryFiringProgram, type CombatInitial
 import { isCombatDeath, type CombatDeath } from '../../content/src/combat-death.ts';
 import { isOrdinaryDeath, selectOrdinaryInfantryDeath, type OrdinaryDeath, type OrdinaryDeathDecision } from '../../content/src/combat-death-runtime.ts';
 import { isTerrainTraversal, type TerrainTraversal } from '../../content/src/terrain-traversal.ts';
+import { isTerrainTraversalGround, type TerrainTraversalGround } from '../../content/src/terrain-traversal-ground.ts';
 import { combatActorFingerprint } from '../../content/src/combat-actor-values.ts';
 import { isWorldContent, type WorldContent } from './world-content.ts';
 import { compileCombatWeapons } from './combat-weapons.ts';
@@ -29,7 +30,7 @@ type Limits = { -readonly [K in keyof typeof ORDINARY_INFANTRY_BRIDGE_LIMITS]: n
 export interface OrdinaryInfantryBridgeInput {
   readonly world: WorldContent; readonly definitions: EntityDefinitions; readonly actors: CombatActors; readonly weapons: WeaponDefinitions;
   readonly instant: InstantWeaponContexts; readonly effects: AnimationEffects; readonly modifiers: CombatModifiers; readonly veterancy: CombatVeterancy;
-  readonly initial: CombatInitialRuntime; readonly death: CombatDeath; readonly ordinaryDeath: OrdinaryDeath; readonly traversal: TerrainTraversal;
+  readonly initial: CombatInitialRuntime; readonly death: CombatDeath; readonly ordinaryDeath: OrdinaryDeath; readonly traversal: TerrainTraversal | TerrainTraversalGround;
   readonly seed: number; readonly sequence11Ticks: number; readonly sequence12Ticks: number;
 }
 export interface OrdinaryInfantryActor {
@@ -72,7 +73,7 @@ function settings(options: Partial<Limits>): Limits {
 function authenticate(i: OrdinaryInfantryBridgeInput): void {
   if (!isWorldContent(i.world) || !isEntityDefinitions(i.definitions) || !isCombatActors(i.actors) || !isWeaponDefinitions(i.weapons) ||
     !isInstantWeaponContexts(i.instant) || !isAnimationEffects(i.effects) || !isCombatModifiers(i.modifiers) || !isCombatVeterancy(i.veterancy) ||
-    !isCombatInitialRuntime(i.initial) || !isCombatDeath(i.death) || !isOrdinaryDeath(i.ordinaryDeath) || !isTerrainTraversal(i.traversal)) fail('factory');
+    !isCombatInitialRuntime(i.initial) || !isCombatDeath(i.death) || !isOrdinaryDeath(i.ordinaryDeath) || (!isTerrainTraversal(i.traversal) && !isTerrainTraversalGround(i.traversal))) fail('factory');
   const d = i.definitions, a = i.actors, w = i.weapons;
   if (i.world.definitionsSha256 !== d.fingerprint || a.entityFingerprint !== d.fingerprint || w.entityFingerprint !== d.fingerprint ||
     i.instant.weaponDefinitionsSha256 !== w.fingerprint || i.instant.entityDefinitionsSha256 !== d.fingerprint ||
@@ -202,7 +203,8 @@ export function compileOrdinaryInfantryBridge(input: OrdinaryInfantryBridgeInput
   const fingerprint = combatActorFingerprint({ ...data, seed, sequence11Ticks, sequence12Ticks }, cap.serializedBytes);
   const result = Object.freeze({ ...data, fingerprint });
   bridges.set(result, { input: i, rows: new Map(rows.map(r => [r.entityId, r])), programs: new Map(programs.map(p => [p.actorId, p])),
-    terrain: new Map(i.traversal.cells.map(c => [c.x + 512 * c.y, c])), movementHash: movementHash(i.world.model) }); return result;
+    // Ground traversal widens navigation only. Retain flat shot-context exclusions until separately proved.
+    terrain: new Map((isTerrainTraversalGround(i.traversal) ? i.traversal.base : i.traversal).cells.map(c => [c.x + 512 * c.y, c])), movementHash: movementHash(i.world.model) }); return result;
 }
 
 function joined(bridge: OrdinaryInfantryBridge, model: WorldModel): Private {

@@ -6,6 +6,7 @@ import { assembleScenarioDefinitions } from '../../content/src/scenario-construc
 import { createIniSourceView, findIniSourceSections, findIniSourceEntries } from '../../content/src/ini-source-view.ts';
 import { isEntityDefinitions, type EntityDefinitions, type EntityField } from '../../content/src/entity-definitions.ts';
 import { isTerrainTraversal, type TerrainTraversal } from '../../content/src/terrain-traversal.ts';
+import { isTerrainTraversalGround, type TerrainTraversalGround } from '../../content/src/terrain-traversal-ground.ts';
 import { isFoundationOccupancy, type FoundationOccupancy } from '../../content/src/foundation-occupancy.ts';
 import type { RuntimeIni } from '../../content/src/runtime-ini.ts';
 import { canonicalText } from './canonical.ts';
@@ -19,7 +20,7 @@ export const WORLD_CONTENT_LIMITS = Object.freeze({ mapBytes: 16 * 1024 ** 2, en
 type Limits = { -readonly [K in keyof typeof WORLD_CONTENT_LIMITS]: number };
 export interface WorldContentInput {
   readonly mapBytes: Uint8Array; readonly rules: RuntimeIni;
-  readonly definitions: EntityDefinitions; readonly traversal: TerrainTraversal;
+  readonly definitions: EntityDefinitions; readonly traversal: TerrainTraversal | TerrainTraversalGround;
   readonly footprints: FoundationOccupancy;
 }
 export interface WorldPlacement {
@@ -67,13 +68,13 @@ export const isWorldContent = (input: unknown): input is WorldContent => !!input
 export function compileWorldContent(input: WorldContentInput, options: Partial<Limits> = {}): WorldContent {
   worldRecord(input, ['mapBytes', 'rules', 'definitions', 'traversal', 'footprints']); const cap = limits(options);
   const definitions = input.definitions, traversal = input.traversal, occupancy = input.footprints;
-  if (!isEntityDefinitions(definitions) || !isTerrainTraversal(traversal) || !isFoundationOccupancy(occupancy)) fail('factory');
+  if (!isEntityDefinitions(definitions) || (!isTerrainTraversal(traversal) && !isTerrainTraversalGround(traversal)) || !isFoundationOccupancy(occupancy)) fail('factory');
   if (definitions.profile !== traversal.contentIdentity.profile || canonicalText(definitions.source) !== canonicalText(traversal.source)) fail('profile-source');
   if (occupancy.profile !== definitions.profile || occupancy.definitionsSha256 !== definitions.fingerprint ||
     canonicalText(occupancy.source) !== canonicalText(definitions.source)) fail('footprint-source');
   const rules = createIniSourceView(input.rules);
   if (rules.profile !== definitions.profile || canonicalText(input.rules.layers) !== canonicalText(definitions.sources.rules) ||
-    canonicalText(input.rules.layers) !== canonicalText(traversal.ruleLayers)) fail('rule-sources');
+    canonicalText(input.rules.layers) !== canonicalText((isTerrainTraversalGround(traversal) ? traversal.base : traversal).ruleLayers)) fail('rule-sources');
   const bytes = ownedMap(input.mapBytes, cap.mapBytes);
   if (Array.from(sha256(bytes), b => b.toString(16).padStart(2, '0')).join('') !== definitions.source.sha256) fail('map-hash');
   const objects = compileScenarioObjects({ profile: definitions.profile, source: definitions.source, bytes }, { objects: cap.entities, houses: cap.players });
