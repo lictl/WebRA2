@@ -153,7 +153,7 @@ function computeTick(runtime: MissionTeamRuntime, base: MissionTeamCheckpoint, w
     actionEvents.push({ tick, requestId: request.id, instructionId: request.instructionId, kind: record.kind, recordOrdinal: record.ordinal });
   }
   const before = missionTeamContextData(context), roster = bindMissionTeamActors(context);
-  const step = commitTeamTick(roster, prepareTeamTick(roster, team), budget - work); charge(step.work); team = step.checkpoint;
+  const step = commitTeamTick(roster, prepareTeamTick(roster, team, budget - work), budget - work); charge(step.work); team = step.checkpoint;
   const actualStep = teamWorldStep(before.model, step);
   for (const instance of step.checkpoint.team.instances) {
     if (instance.phase !== 'finished' && instance.phase !== 'lost') continue;
