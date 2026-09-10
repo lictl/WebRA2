@@ -2,6 +2,7 @@
 // Original complete mission/team source fixtures.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { canonicalText } from '../../packages/sim/src/canonical.ts';
 import { createHash } from 'node:crypto';
 import { missionTeamFixture } from './mission-team-fixture.ts';
 import { compileMissionTeamActionSource } from '../../packages/sim/src/mission-team-action-source.ts';
@@ -64,4 +65,20 @@ test('source readiness, exact bindings and complete declaration/operand identity
   assert.equal((await prepareMissionBindings(f.bindings, undefined, undefined, undefined, partial)).authority, null);
   const automatic = missionTeamFixture({ extraTeam: 'Waypoint=A\nAutocreate=yes' });
   assert.equal((await prepareMissionBindings(automatic.bindings, undefined, undefined, undefined, automatic.source)).authority, null);
+});
+
+test('large complete declaration comparisons use bounded source shape and preserve mismatch diagnostics', async () => {
+  const names = Array.from({ length: 80 }, (_, i) => 'Original' + i);
+  const extraMap = '[Triggers]\nStart=Blue,<none>,Start,0,1,1,1,0\n[Tags]\nShared=0,Shared,Start\n[Events]\nStart=1,8,0,0\n[Actions]\nStart=1,4,1,Squad,0,0,0,0,A\n[ScriptTypes]\n' +
+    names.map((n, i) => i + '=' + n).join('\n') + '\n' + names.map(n => '[' + n + ']\n' + Array.from({ length: 12 }, (_, i) => i + '=50,1').join('\n')).join('\n');
+  const f = missionTeamFixture({ extraMap }), logic = missionBindingSourceContext(f.bindings).logic;
+  assert.throws(() => canonicalText(logic.scripts), /json-structure-limit/);
+  const options = { contentIdentity: f.world.model.contentIdentity, difficulty: 1 as const, timingPolicy: MISSION_TIMING_POLICY };
+  const clone = structuredClone(logic), result = await compileMissionProgram(clone, options, digest, undefined, undefined, undefined, f.source);
+  assert.equal(result.program, null); assert.ok(!result.diagnostics.some(d => d.code === 'unsupported-team-declaration-identity'));
+  Object.defineProperty(clone.scripts[0]!, 'name', { value: 'Changed' });
+  assert.ok((await compileMissionProgram(clone, options, digest, undefined, undefined, undefined, f.source)).diagnostics.some(d => d.code === 'unsupported-team-declaration-identity'));
+  let calls = 0; Object.defineProperty(clone.scripts[0]!, 'name', { get() { calls++; return 'Original0'; } });
+  assert.ok((await compileMissionProgram(clone, options, digest, undefined, undefined, undefined, f.source)).diagnostics.some(d => d.code === 'unsupported-team-declaration-identity'));
+  assert.equal(calls, 0);
 });

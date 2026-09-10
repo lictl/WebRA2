@@ -108,6 +108,29 @@ function numberToken(value: string, min: number, max: number): number | null {
   const n = Number(value); return Number.isSafeInteger(n) && !Object.is(n, -0) && n >= min && n <= max ? n : null;
 }
 
+/** Compare against the genuine catalog's bounded source shape, without serializing
+ * all retained rows through the much smaller simulation-save JSON budget. */
+function sameTeamDeclaration(value: unknown, source: unknown): boolean {
+  if (Object.is(value, source)) return true;
+  if (source === null || typeof source !== 'object') return false;
+  if (Array.isArray(source)) {
+    if (!Array.isArray(value) || Object.getPrototypeOf(value) !== Array.prototype) return false;
+    const length = Object.getOwnPropertyDescriptor(value, 'length');
+    if (!length || !('value' in length) || length.value !== source.length || Reflect.ownKeys(value).length !== source.length + 1) return false;
+    return source.every((item, i) => {
+      const d = Object.getOwnPropertyDescriptor(value, String(i));
+      return !!d && 'value' in d && d.enumerable === true && sameTeamDeclaration(d.value, item);
+    });
+  }
+  if (!value || typeof value !== 'object' || ![Object.prototype, null].includes(Object.getPrototypeOf(value))) return false;
+  const keys = Object.keys(source);
+  if (Reflect.ownKeys(value).length !== keys.length) return false;
+  return keys.every(key => {
+    const d = Object.getOwnPropertyDescriptor(value, key);
+    return !!d && 'value' in d && d.enumerable === true && sameTeamDeclaration(d.value, (source as Record<string, unknown>)[key]);
+  });
+}
+
 /** Accepts compiler data, not retail execution closure. Caller authenticates its source/content identities. */
 export async function compileMissionProgram(logic: ScenarioLogic, options: MissionProgramOptions, digest: Digest, cues?: MissionCueCatalog, cells?: MissionCellEntrySource, objects?: MissionObjectEventSource, teams?: MissionTeamActionSource): Promise<MissionCompilation> {
   // Select data through descriptors before any await. Do not clone the compiler's full retained INI/raw payload.
@@ -271,7 +294,7 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
   for (const name of ['teams', 'taskForces', 'scripts'] as const) {
     const rows = list(field(logic, name), C.instructions);
     if (teamContext) {
-      if (canonicalText(rows) !== canonicalText(teamContext.logic[name])) diagnostic('unsupported-team-declaration-identity', name);
+      if (!sameTeamDeclaration(rows, teamContext.logic[name])) diagnostic('unsupported-team-declaration-identity', name);
     } else if (rows.length) diagnostic(`unsupported-${name}`, '');
   }
   if (list(field(logic, 'orphanSections'), C.instructions).length) diagnostic('unsupported-orphanSections', '');
