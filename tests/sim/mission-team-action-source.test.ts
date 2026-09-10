@@ -54,6 +54,7 @@ test('missing catalogs and unsupported operands remain explicit even with a genu
     const f = fixture({ extraMap: `[Triggers]\nStart=Blue,<none>,Start,0,1,1,1,0\n[Events]\nStart=1,13,0,0\n[Actions]\nStart=1,80,1,${name},0,0,0,0,A` }, false);
     const s = compileMissionTeamActionSource(f.input); assert.equal(s.actions.length, 1); assert.equal(s.actions[0]!.status, 'unsupported');
     assert.equal(s.actions[0]!.parameters[1], name); assert(s.actions[0]!.reasons.length > 1);
+    assert.equal(s.diagnosticResolutions.find(d => d.code === 'external-allocation-paths-unmodeled')!.status, 'required');
   }
 });
 
@@ -79,6 +80,7 @@ test('automatic and unknown fields cannot gain whole-source admission through a 
     const f = fixture({ extraTeam: `Waypoint=A\n${key}=yes` }), s = compileMissionTeamActionSource(f.input);
     assert(f.program); assert.equal(s.allActionsSupported, true); assert.equal(s.wholeSourceReady, false);
     assert(s.declarations.teams[0]!.reasons.includes(`automatic-team-behavior:${key.toLowerCase()}`));
+    assert.equal(s.diagnosticResolutions.find(d => d.code === 'external-allocation-paths-unmodeled')!.status, 'required');
   }
   const f = fixture({ extraTeam: 'Waypoint=A\nMysteryField=1' }), s = compileMissionTeamActionSource(f.input);
   assert.equal(s.wholeSourceReady, false); assert(s.declarations.teams[0]!.reasons.includes('unhandled-field:MysteryField'));
@@ -131,5 +133,36 @@ test('input descriptor snapshots, dense array bounds and aggregate lower limits 
     assert.throws(() => compileMissionTeamActionSource(f.input, { [key]: -1 }));
   }
   assert.throws(() => compileMissionTeamActionSource(f.input, { catalogs: 1 }));
-  f.input.programs.length = 0; assert.equal(missionTeamActionSourceContext(compileMissionTeamActionSource(fixture().input)).programs.length, 1);
+  const owned = compileMissionTeamActionSource(f.input); f.input.programs.length = 0;
+  assert.equal(missionTeamActionSourceContext(owned).programs.length, 1);
+});
+
+test('diagnostic resolutions are narrow, source indexed and never erase unrelated unknowns', () => {
+  for (const profile of ['ra2', 'yr'] as const) {
+    const f = fixture({ profile, script: '0=3,0\n1=11,0\nName=Original display name' }), s = compileMissionTeamActionSource(f.input);
+    // A complete program proves the operand even though the name's native use is outside this component.
+    assert(f.program); assert(s.diagnosticResolutions.some(d => d.code === 'unsupported-script-operand' && d.rule === 'complete-program-script'));
+    assert(s.diagnostics.some(d => d.code === 'unhandled-field:Name')); assert.equal(s.wholeSourceReady, false);
+    for (const r of s.diagnosticResolutions) {
+      assert.equal(r.subjectId, s.sourceDiagnostics.definitions[r.sourceIndex]!.subjectId);
+      assert.equal(r.code, s.sourceDiagnostics.definitions[r.sourceIndex]!.code);
+      if (r.status === 'required') assert(s.diagnostics.some(d => d.namespace === 'definitions' && d.code === r.code && d.subjectId === r.subjectId));
+    }
+    const unavailable = fixture({ profile, extraTeam: 'Waypoint=A\nPriority=uncertain' }, false), u = compileMissionTeamActionSource(unavailable.input);
+    assert.equal(u.wholeSourceReady, false); assert(u.diagnosticResolutions.every(r => r.status === 'required'));
+    assert(u.sourceDiagnostics.definitions.some(d => d.code !== 'external-allocation-paths-unmodeled' && d.code !== 'unsupported-script-operand'));
+  }
+});
+
+test('a later complete script cannot erase a diagnostic for an earlier different source row', () => {
+  for (const profile of ['ra2', 'yr'] as const) {
+    const f = fixture({ profile, script: '0=999,1', extraMap:
+      '[Triggers]\nStart=Blue,<none>,Start,0,1,1,1,0\n[Events]\nStart=1,13,0,0\n[Actions]\nStart=1,80,1,Squad,0,0,0,0,A\n'+
+      '[ScriptTypes]\n0=Route\n[Route]\n0=11,0' });
+    assert(f.program); const s = compileMissionTeamActionSource(f.input), script = s.declarations.scripts.find(d => d.id === 'script:route')!;
+    assert.equal(script.definition!.steps[0]!.opcode, 11); assert.equal(script.definition!.stepLoads[0]!.steps[0]!.opcode, 999);
+    const rows = s.diagnosticResolutions.filter(d => d.code === 'unsupported-script-operand');
+    assert.deepEqual(rows.map(d => d.status), ['required', 'resolved']); assert.equal(s.wholeSourceReady, false);
+    assert.equal(s.sourceDiagnostics.definitions[rows[0]!.sourceIndex]!.origin!.layerId, 'ai');
+  }
 });
