@@ -14,8 +14,10 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
-Current wave: coordinator [authoritative combat #132 / PR137](https://github.com/lictl/WebRA2/pull/137);
-browser agent [voxel world presentation #141](https://github.com/lictl/WebRA2/issues/141);
+Current wave: coordinator [actor modifiers and firing/death #147](https://github.com/lictl/WebRA2/issues/147),
+continuing [authoritative combat #132](https://github.com/lictl/WebRA2/issues/132) after the
+reviewed [core/source-preparation checkpoint PR137](https://github.com/lictl/WebRA2/pull/137);
+browser agent [RTS selection and group orders #149](https://github.com/lictl/WebRA2/issues/149);
 format agent [invisible weapon context #145](https://github.com/lictl/WebRA2/issues/145);
 simulation agent [animation effect closure #146](https://github.com/lictl/WebRA2/issues/146).
 No essential human input is needed. Finish reviewed slices and continue through
@@ -32,10 +34,11 @@ Recent reviewed merges:
 | Voxel resource preparation | [136](https://github.com/lictl/WebRA2/pull/136), `c2e135851b4d9d08c2baaa31cdeef2420beb5c12` | 637 tests; source/private review on PR, [notice review](https://github.com/lictl/WebRA2/pull/136#pullrequestreview-5161845408) |
 | Typed teams/task forces/scripts | [138](https://github.com/lictl/WebRA2/pull/138), `3bbb1821b21e0995d3be37cabc02c4c57ced583d` | 650 tests; [source review](https://github.com/lictl/WebRA2/pull/138#pullrequestreview-5161835060), [integration review](https://github.com/lictl/WebRA2/pull/138#pullrequestreview-5161911619) |
 | Browser movement/checkpoints | [128](https://github.com/lictl/WebRA2/pull/128), `4ae578ec540b0c54c821e1068d83611d80684349` | 640 tests; source and final browser-evidence COMMENT reviews on PR |
+| Voxel world presentation | [144](https://github.com/lictl/WebRA2/pull/144), `33519f4aae4d27b52a46a10660829d43d7aafb39` | 672 tests; exact source and final four-browser evidence COMMENT reviews on PR |
 | Initial weapon spelling proof | [142](https://github.com/lictl/WebRA2/pull/142), `c9ab75a280eaed4956de0b986ac2258210527f05` | 644 tests; [review](https://github.com/lictl/WebRA2/pull/142#pullrequestreview-5162066332) |
 | Combat actor initialization | [143](https://github.com/lictl/WebRA2/pull/143), `21588d19fa5d870163a6aaad38cdc40c017c9ba6` | 678 tests; source review on PR, [integration review](https://github.com/lictl/WebRA2/pull/143#pullrequestreview-5162128139) |
 
-Issues131,133,134,139,140 are closed. #127 and parent120 remain open for the Safari
+Issues131,133,134,139,140,141 are closed. #127 and parent120 remain open for the Safari
 automatic-running acceptance row shared with115; GitHub unexpectedly closed127
 during squash, so the coordinator reopened it with the exact remaining criterion.
 Both opening worlds have matching model/moving-save/replay identities in actual
@@ -76,9 +79,16 @@ check1,381 rows/9,681 scalar leaves and14 complete native ranges/3,660 bytes.
 The new source-bound combat roster now joins genuine WorldContent with actor,
 entity and weapon results; six tests and a private38,067-leaf composition oracle
 verify1,381row joins and44/69 initial-state candidates. It remains preparation only
-with canExecuteCombat=false. Require145 obstruction/impact context,146 animation
-effects and source-bound actor modifiers before enabling weapons. Privately verify source identity/admission/combat checkpoints before attack UI.
-The browser agent independently integrates complete ready voxel still parts.
+with canExecuteCombat=false. Its exact7cb9e42 [independent review](https://github.com/lictl/WebRA2/pull/137#pullrequestreview-5162315791)
+passes716 public tests and13 additional reviewer cases, and independently reproduces
+the full source preparation and raw actor/entity/composition oracles. Require145
+obstruction/impact context,146 animation effects and147 source-bound actor modifiers
+before enabling weapons. PR137 is a reviewed core/preparation checkpoint;132 stays
+open for actual source combat and browser attack integration.
+The final integration with reviewed144 passes723 public tests,112docs/592links,
+408 publication paths and44outputs/105inputs; the new integration changes no
+source-adapter or core implementation.
+The reviewed voxel still browser integration is merged; the next browser slice is149.
 Team/script runtime and mission/world trigger integration follow these foundations.
 
 The media component has complete long-clip playback in Chrome, Edge and Firefox;
@@ -113,17 +123,27 @@ the coordinator after independent exact-head COMMENT review and successful check
 
 | Role | Current work and exclusive paths | Branch / private worktree |
 | --- | --- | --- |
-| Coordinator | #132 combat/model/save/replay and native capability adapter; shared configuration/handoff and reviews | `codex/132-world-combat` at root |
-| browser_feasibility | #141 voxel world presentation; apps/web/**, tests/browser/**, tests/web-ui/** and focused docs; sole native UI owner | `codex/141-voxel-world-ui`, `local/worktrees/voxel-world-ui` |
+| Coordinator | #132 combat checkpoint, then #147 actor modifiers/firing/death; shared configuration/handoff and reviews | `codex/132-world-combat` at root; next `codex/147-combat-modifiers` |
+| browser_feasibility | #149 RTS selection/group orders/HUD; apps/web/**, tests/browser/**, tests/web-ui/** and focused docs; sole native UI owner | `codex/149-world-controls`, `local/worktrees/world-controls` |
 | mix_reader | #145 invisible-weapon impact/obstruction context; new content source/tests/provenance | `codex/145-instant-weapons`, `local/worktrees/instant-weapons` |
 | bootstrap_review | #146 animation gameplay-effect closure; new content source/tests/provenance | `codex/146-animation-effects`, `local/worktrees/animation-effects` |
 
-Voxel UI draft [PR144](https://github.com/lictl/WebRA2/pull/144) has a frozen4177
-bundle and independent private voxel-over-base composition oracle; actual browser
-acceptance and independent implementation review are in progress. Its retained
-preview metadata must not enter gameplay identity. The shared wire contracts stay unchanged. The browser worker owns the approved
-private terrain protocol v4 proposal for voxel/SHP world presentation; gameplay
-model/save identity must remain independent of that presentation.
+Voxel UI [PR144](https://github.com/lictl/WebRA2/pull/144) merged after exact-head
+source and final browser-evidence review. All four actual browser families passed
+both openings using explicit steps, moving tick-2 local save/Stop/restore, tick-22
+source picks and exact replay, language retention, cancellation/retry and disposal.
+The coordinator independently reproduced all2,457,600 voxel-over-base pixels and
+verified the42-file final/frozen/HTTP manifest. Base terrain/SHP planes in that oracle
+were captured inputs. See [the precise report](voxel-world-ui.md); no new Run,
+file export/import, reload, timing or campaign acceptance is implied. Preserve4177.
+Preview metadata and app-private terrain protocol v4 never enter gameplay identity.
+
+Invisible impact context [PR148](https://github.com/lictl/WebRA2/pull/148) is under
+coordinator review. Animation closure146 is in progress, including profile-specific
+source/load order. Root147 private analysis establishes difficulty/country modifier
+paths and native reload jitter; the format agent independently investigates the
+native RNG/scheduling subtask while the coordinator owns modifier/type/death work.
+All source execution gates remain explicit; no essential human input is needed.
 The accepted preview server4174 remains immutable, alongside prior4173/media8767. The coordinator
 owns navigation/world motion; the simulation worker owns typed-definition policy. New world
 integration must join those policies deliberately before exposing native orders.

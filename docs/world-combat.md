@@ -2,8 +2,9 @@
 
 [Issue #132](https://github.com/lictl/WebRA2/issues/132) extends the original
 [world runtime](world-movement.md) with an optional privately branded combat model.
-This is a working component checkpoint. Native capability admission, private
-opening actor comparisons and browser attack integration remain. The original core
+This is a reviewed core and source-preparation checkpoint. Initial private source
+actor comparisons pass; executable native capability and browser attack integration
+remain under132,145,146 and147. The original core
 has an independent exact-head review at abcdfd0 in PR137.
 No original mission is playable.
 
