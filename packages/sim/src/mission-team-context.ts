@@ -63,6 +63,7 @@ import { teamSpawnCatalogData } from './team-spawn-context.ts';
 import { teamRecruitmentCatalogData, type TeamRecruitmentActor } from './team-recruitment-catalog.ts';
 import { createWorldModel, WORLD_MOTION_POLICY, type WorldEntityDefinition } from './world-model.ts';
 import { navigationCell } from './navigation.ts';
+import { teamSleepFlow } from './team-sleep-policy.ts';
 import { worldHash, worldInteger, worldList, worldRecord, worldSymbol, WORLD_LIMITS, worldAddress } from './world-values.ts';
 import { missionTeamFail as fail, missionTeamSnapshot } from './mission-team-values.ts';
 const runtimes = new WeakMap<object, MissionTeamRuntimeData>();
@@ -132,7 +133,20 @@ export function restoreMissionTeamContext(runtime: MissionTeamRuntime, input: un
     if (kind === 'released') {
       const r = worldRecord(raw, ['kind', 'ordinal', 'instanceId', 'atTick', 'reason']), instanceId = worldSymbol(r.instanceId), claim = active.get(instanceId);
       if (!claim || r.ordinal !== ordinal || (r.reason !== 'finished' && r.reason !== 'lost')) fail('release-record');
-      const atTick = worldInteger(r.atTick, Math.max(tick, claim.bornAtTick + 1), cap.tick); tick = atTick;
+      let earliest = claim.bornAtTick + 1;
+      if (r.reason === 'finished') {
+        const steps = program.templates.find(t => t.id === claim.teamId)!.steps;
+        if (!teamSleepFlow(steps).canFinish) fail('release-unfinishable-script');
+        // D03 executes at most one instruction update per tick. Move additionally
+        // observes arrival on a later update; the final finished update is separate.
+        let cursor = 0, updates = 1;
+        while (cursor < steps.length) {
+          const step = steps[cursor]!; updates += step.opcode === 3 ? 2 : 1;
+          cursor = step.opcode === 6 ? step.target : cursor + 1;
+        }
+        earliest = claim.bornAtTick + updates;
+      }
+      const atTick = worldInteger(r.atTick, Math.max(tick, earliest), cap.tick); tick = atTick;
       for (const id of claim.actorIds) { const state = eligibility.get(id); if (!state || state.claimedBy !== instanceId) fail('release-ownership');
         eligibility.set(id, { ...state, claimedBy: null, releasedMissionUnverified: true }); bindings.delete(id); }
       memberCount -= claim.actorIds.length; active.delete(instanceId);
