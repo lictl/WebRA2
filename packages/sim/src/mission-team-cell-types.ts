@@ -28,17 +28,18 @@ export interface MissionTeamCellArchetype {
   readonly kind: 'infantry' | 'unit';
   readonly actionIds: readonly string[];
   readonly catalogSha256s: readonly string[];
-  readonly fields: Readonly<{
+  readonly fields: MissionTeamCellTypeFields;
+  /** Constructor/source prerequisites only; not a claim about all native future mutations. */
+  readonly constructorEligibility: 'supported' | 'unsupported';
+  readonly reasons: readonly string[];
+}
+export type MissionTeamCellTypeFields = Readonly<{
     cloakable: EntityField<boolean>;
     passengers: EntityField<number>;
     veteranAbilities: EntityField<readonly CombatAbility[]>;
     eliteAbilities: EntityField<readonly CombatAbility[]>;
     locomotor: EntityField<LocomotorDefinition>;
   }>;
-  /** Constructor/source prerequisites only; not a claim about all native future mutations. */
-  readonly constructorEligibility: 'supported' | 'unsupported';
-  readonly reasons: readonly string[];
-}
 export interface MissionTeamCellSourceAction {
   readonly instructionId: string;
   readonly catalogSha256: string | null;
@@ -50,6 +51,11 @@ export interface MissionTeamCellSourceAction {
 export interface MissionTeamCellWorldInvariant {
   readonly policy: 'webra2-independent-ground-team-cell-1';
   readonly navigation: 'authenticated-flat-source-no-overlay';
+  /** Additional type/placement prerequisites for every initially alive movable actor. */
+  readonly initialActors: readonly Readonly<{
+    entityId: number; typeId: string; fields: MissionTeamCellTypeFields;
+    status: 'supported' | 'unsupported'; reasons: readonly string[];
+  }>[];
   readonly initialCloakProviders: readonly Readonly<{
     entityId: number; typeId: string; cloakGenerator: EntityField<boolean>;
     status: 'inactive' | 'unsupported';
