@@ -145,7 +145,12 @@ and class/cost/exit record. Internal canonical records use sorted UTF-16 object
 keys, exact array order and ECMAScript finite-number JSON, each terminated by
 LF. The header omits the three row collections and allocation counters; land and
 cell records follow, then class metadata followed by its cells. Allocation
-counters and lower-limit choices do not alter semantic identity.
+counters and lower-limit choices do not alter semantic identity. Policy
+`webra2-flat-terrain-2` also excludes the import-session `root.sourceId` handle
+from the hashed asset header: file-picker enumeration can change that handle.
+The owned audit result still retains it and rejects conflicting roots within a
+session. Logical asset IDs/paths, verified root size/hash and member offset/size/hash
+remain bound. See [the save identity correction](selection-identity.md).
 `allocations.outputBytes` counts exactly that canonical hash stream, not heap RSS
 or the size of pretty-printed JSON.
 
@@ -156,11 +161,11 @@ node --import tsx --test tests/content/terrain-traversal.test.ts
 npm run check
 ```
 
-Ten original tests cover both profiles, all 16 land-code mappings, exact case,
+Twelve original tests cover both profiles, all 16 land-code mappings, exact case,
 absent/current/default factors, duplicates, float boundaries, impassability,
 directed masks and navigation, elevation/ramp/overlay/ice/extra boundaries,
 malicious properties, source/profile/map/slot joins, physical aliases, resource
-caps, immutable ownership and reproducible hashes. Private map/TMP/INI records
+caps, immutable ownership, selection-order independence and byte-sensitive hashes. Private map/TMP/INI records
 are absent from public tests.
 
 The ignored private probe prepares both openings with the actual selected profile,
@@ -179,9 +184,10 @@ decodes LCW independently, reads TMP header fields, and rederives costs/exits.
 | All eight class-cell records / directed edges | 26,273 / 191,868 | 61,328 / 454,822 |
 | Full field/origin/cost/edge comparisons | Exact | Exact |
 
-Canonical identities are
+Historical policy-1 identities from that private comparison are
 `ca4e33ecb18fad72c61fd8614375d7ad9c86514c0d0c9a2ba089e3706550bda0` (RA2) and
 `903f4591ae800a8f5bd4952acf4bc5eae304e5c8a1cc434bba441bd39b3218f5` (YR).
+Policy-2 identities are recorded in [the correction report](selection-identity.md).
 This proves the stated compiler policy and private source joins; it does not
 establish native route or mission playability. The next consumer is the
 coordinator's authoritative world adapter, with independent entity speed,
