@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "scope": "private source metadata; no original execution",
+  "comparisons": 432,
+  "profiles": [
+    {
+      "profile": "ra2",
+      "missionSha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+      "bindingsSha256": "5e602be74dbff27ae16a2bbb618df3244e2bc80a10cfe658039168016c2f6a60",
+      "flagsSha256": "afa1f87b5ad18d7eeaa806c6c90f30f6c1d7e576c60d53446727e6c1d789e6af",
+      "localCapacity": 50,
+      "localDeclarations": 2,
+      "initialTrueLocals": 1,
+      "initialTrueGlobals": 0,
+      "diagnostics": 0,
+      "initializationReady": true,
+      "wholeOriginalProgramExecutable": false
+    },
+    {
+      "profile": "yr",
+      "missionSha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+      "bindingsSha256": "e839e63e8b14b22e051188127bc4514ef421537804878797f321b576bd5111af",
+      "flagsSha256": "b82818937b829daf6fdf26152e80b0e37fb06f287aeb7a1ca9d8dc6c2b159aa7",
+      "localCapacity": 100,
+      "localDeclarations": 62,
+      "initialTrueLocals": 1,
+      "initialTrueGlobals": 0,
+      "diagnostics": 0,
+      "initializationReady": true,
+      "wholeOriginalProgramExecutable": false
+    }
+  ]
+}
