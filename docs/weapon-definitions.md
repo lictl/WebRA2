@@ -15,8 +15,10 @@ if (!isWeaponDefinitions(weapons)) throw new Error('unowned definitions');
 `definitions` must carry the same-module factory brand. Its ordered rules layer
 identities must exactly match `rules`; the exact-case source view validates the
 frozen rules structure. The result includes the entity fingerprint, all rules
-source pins, component policy `webra2-weapon-definitions-1`, and its own canonical
-SHA256. Sorted object keys, ordered arrays, JSON scalar spelling and UTF-8 are
+source pins, component policy `webra2-weapon-definitions-2`, and its own canonical
+SHA256. The current policy is `webra2-weapon-definitions-2`; it supersedes policy 1
+after the allocation-prefix correction in [#140](https://github.com/lictl/WebRA2/issues/140).
+Sorted object keys, ordered arrays, JSON scalar spelling and UTF-8 are
 hashed incrementally. It exposes no mutable maps. Copies and JSON deserialization
 do not recreate the brand; this API does not authenticate bytes or load saves.
 
@@ -45,15 +47,18 @@ or record makes a complete native allocation-index claim.
 ## Staged load policy
 
 The modeled roots are all retained first-two normal-slot histories, including
-overwritten/cleared pointers, plus the ordered `[Warheads]` registry. Empty and
+overwritten/cleared pointers, the ordered `[Warheads]` registry, and
+`[General] DropPodWeapon`. `generalDropPodWeapon` retains the latter's current
+pointer, explicit clears and assignment history. Empty and
 `none`/`<none>` references are treated separately. Missing/empty property reads
 retain state; nonempty null selectors clear pointer fields. Names over 24 ASCII
 characters and unsupported selector syntax produce explicit unsupported references.
 
-Within a rules layer, known warhead registry allocation precedes normal entity
-links. Normal-slot root discovery uses stable source line order; competing case
-spellings are unsupported because other native allocation paths are outside this
-scope. The native property sequence is weapons, projectiles, warheads, then weapon
+Within a rules layer, known warhead registry allocation precedes the General root,
+which precedes normal entity links. Normal-slot root discovery uses stable source
+line order; competing case spellings remain unsupported except for the narrow
+initial-prefix proof below. Other native allocation paths are outside this scope.
+The native property sequence is weapons, projectiles, warheads, then weapon
 speed calculation. A weapon first created by `AirburstWeapon`/`ShrapnelWeapon`
 during the projectile pass therefore waits until the next layer's weapon pass.
 Earlier sections are never copied into that newly allocated object retrospectively.
@@ -62,7 +67,36 @@ Other normal/elite slots, special/general references, animation references and
 implicit allocation paths remain outside the modeled roots. They can affect first
 spelling and whether a definition existed in an earlier layer. Native indices and
 global closure remain unverified even if every field in this subset is typed.
-Referenced spelling conflicts and absent loaded sections remain unsupported.
+Unproven spelling conflicts and absent loaded sections remain unsupported.
+
+### Initial allocation spelling evidence
+
+Both pinned `Rules::Init` paths empty the weapon and projectile arrays before the
+first `Read_File`. Its registry readers allocate types; `Read_General` then reads
+`DropPodWeapon` before the object property passes. The first weapon it allocates
+therefore owns its original name spelling. That first weapon's initial explicit
+`Projectile` read similarly establishes the first projectile name. Native lookup
+compares IDs without ASCII case, while property loading uses the retained first
+spelling. Later references with a different case do not rename either object.
+
+Policy 2 records nullable `spellingEvidence` on just those proven allocations:
+`initial-general-weapon` or `initial-general-projectile`, with the General origin
+and, for the projectile, its reference origin. Evidence requires an explicit valid
+General root in the first full base/expansion source; missing, empty, cleared,
+wrongly cased or later-only roots do not qualify. A different first-source kind
+does not qualify. A later General replacement or a different projectile allocated
+in a subsequent source cannot acquire this evidence. Every source hash and origin
+participates in the result fingerprint. Proof never supplies a missing section,
+renames an exact-case source lookup, or hides unknown fields.
+
+The bounded native caller audit distinguishes the later CombatDamage DeathWeapon,
+SpecialWeapons projectile references, normal/elite/death/occupy type slots,
+superweapon references, projectile-created weapons and COM construction paths.
+They do not precede the proven initial General prefix on this fresh initialization
+path. They remain outside complete allocation reconstruction. This correction
+does not certify restored native saves, extension loaders, arbitrary runtime
+allocations, normal-slot ordering, or a complete native array index. All unrelated
+case ambiguities keep their unsupported gate; `nativeAllocationComplete` stays false.
 
 Exact section/key spelling is used. Repeated consumed sections or any repeated
 key in a consumed definition section reject the input; no CRC tie policy is guessed.
@@ -138,12 +172,16 @@ These are static data comparisons, not original-game execution or campaign tests
 | Opening content | Weapon / projectile / warhead records | Compared fields | Unsupported own records |
 | --- | --- | --- | --- |
 | RA2 Allied opening | 85 / 33 / 76 | 8,298 | 2 |
-| YR Allied opening | 117 / 35 / 111 | 11,352 | 3 |
+| YR Allied opening | 117 / 35 / 111 | 11,352 | 2 |
 
 Both resolve their normal root-link identities. Two weapons per profile have
-negative range inputs outside the supported calculated-speed domain. YR also has
-a retained allocation-spelling ambiguity that propagates to 38 referencing records.
-Thus neither profile claims a fully typed root closure. Special gameplay effects,
+negative range inputs outside the supported calculated-speed domain. The initial
+prefix supplies two source-bound spelling proofs per profile. In YR it resolves
+one projectile ambiguity and the unsupported status formerly propagated to 38
+referencing records. The independent raw-source oracle checks the new General
+history, allocation order, proof origins and all own/descendant statuses as well
+as the existing 19,650 fields. Both profiles retain two unsupported own records
+and two unsupported closures. Neither claims a fully typed root closure. Special gameplay effects,
 weapon selection and unhandled properties remain required even for typed records.
 Exact content/result/range digests and references are in
 [component provenance](../packages/content/WEAPON_DEFINITIONS_PROVENANCE.md).
@@ -154,6 +192,7 @@ Private reproduction, with original files locally present:
 node --import tsx local/probe.ts
 python3 local/entity-oracle.py
 python3 local/weapon-oracle.py
+python3 local/native140/evidence.py # requires private Capstone 5.0.6 environment
 ```
 
 The ignored scripts and source bytes are intentionally absent from public CI.

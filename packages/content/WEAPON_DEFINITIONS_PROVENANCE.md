@@ -24,8 +24,8 @@ policies have [their own provenance](ENTITY_DEFINITIONS_PROVENANCE.md).
 
 | Observation | Component consequence | Boundary |
 | --- | --- | --- |
-| Native weapon/projectile/warhead objects append to their own lists; FindOrAllocate rejects none selectors, compares IDs case-insensitively and preserves first spelling. Member-section lookups use that spelling. | Scoped allocation retains first names, raw origins and phase; competing case spellings remain unsupported. | All allocation sources and native indices are not established. |
-| Per-source property dispatch visits weapons, projectiles, warheads, then CalculateSpeed; loop counts are re-read. Projectile airburst/shrapnel fields allocate weapons after their pass. | Late weapons wait for a later source layer; no retrospective section load. | Starts at genuine first-two normal-slot histories and Warheads registry. Elite, other numbered and implicit/special roots remain unmodeled. |
+| Native weapon/projectile/warhead objects append to their own lists; FindOrAllocate rejects none selectors, compares IDs case-insensitively and preserves first spelling. Member-section lookups use that spelling. | Scoped allocation retains first names, raw origins and phase. Policy 2 admits the initial General weapon/projectile spelling proof below; other competing spellings remain unsupported. | All allocation sources and native indices are not established. |
+| Per-source property dispatch visits weapons, projectiles, warheads, then CalculateSpeed; loop counts are re-read. Projectile airburst/shrapnel fields allocate weapons after their pass. | Late weapons wait for a later source layer; no retrospective section load. | Starts at genuine first-two normal-slot histories, Warheads registry and the General DropPodWeapon root. Elite, other numbered and implicit/special roots remain unmodeled. |
 | Constructors initialize weapon Damage/ROF/Range/MinimumRange/Speed to 0 and Burst to 1; properties pass current state as defaults. Range uses ReadDouble default -1, scales 256 and converts to integer. Speed uses the same clamped-percent helper as entities. | Native integer units and explicit current-default rules. | No cadence, ammo, targeting or damage execution claim. |
 | Projectile rules fields include AA/AG/ROT, motion and collision flags, numeric parameters and airburst/shrapnel references. Rotates/Flat are read from global art and an Image-selected section. | Rules fields are typed; Rotates/Flat are deliberately not typed from rules. | Full ObjectType/Image/art-dependent projectile state remains required. |
 | Warhead construction fills 11 double Verses with 1; a present section supplies eleven 100% tokens as missing-key default, but empty ReadString returns 0. Percent Verses uses atoi; nonpercent uses atof. | Present-section missing resets are source-pinned; empty retains. Exact 11-token bounded policy with percent integer-prefix conversion and dyadic nonpercent subset. | Malformed lists are unsupported, not emulated native out-of-bounds reads. |
@@ -47,15 +47,19 @@ No source rows or decoded payloads are published here.
 
 | Profile | Weapon compiler fingerprint | Independent whole projection SHA256 |
 | --- | --- | --- |
-| RA2 | `4441fb38cded9db1cb707395ec16666ef4f2d7b6c512ced6e7ff05052a1a5fc7` | `0dfdcea40b57b32fdb56252cf3582c88584af70662ae291983ce3b2a3b6ff67e` |
-| YR | `d0b0d0eafdac62d88251ad4fb129687e474da05306d11edb60aa7f21ffb6410b` | `a2e49a809a3865549a09a85e3f581f11acb10b569b2287617e5d1df5296f1161` |
+| RA2 | `f4ae3be7e032c0620f229ee1b470b978539c95fb1d00ab3dc42522f7de4bed82` | `3d0110e0fd2e67ef54ec3ad6807bcbcb15a8c2002bc9fd6e70f49a07d2d4a9f6` |
+| YR | `1f68f5a7fb0d967971219103c77d1d1897a0b2747d0b83a1527f856629c5b28a` | `657cd9fe933a55a1883b634713de9dd4ab53304ad77985bacdd2b7d46c40970c` |
 
 The projection includes every record identity, allocation/reference/load order,
 all 19,650 typed field values/statuses/origins/histories and reset provenance.
+The policy-2 projection additionally compares General root history, spelling proof
+origins, record status, unsupported reasons and the complete descendant closure.
 Python and JS integral floats are normalized before canonical comparison hashing.
 RA2 has 194 records; YR has 263. Two negative-range speed cases per profile remain
-unsupported; YR also retains one allocation-spelling ambiguity. Consumer closure
-support propagates these limitations. These counts concern selected static sources.
+unsupported. The initial prefix resolves one YR projectile case ambiguity and
+38 previously propagated unsupported reference closures. Two own records and two
+closures remain unsupported per profile. Each has two source-bound spelling proofs.
+These counts concern selected static sources, not executable combat support.
 
 Ignored scripts: `local/probe.ts`, `local/entity-oracle.py`,
 `local/weapon-oracle.py`, `local/native126/{probe.py,make-evidence.py,sqrt-table.py}`.
@@ -64,7 +68,67 @@ All 16,384 mathematically generated mantissas match each native table. The table
 hash is `0a03bb84ceab037ab48004c1bfb0156279a21e7c6fbc6089a052118bfe31a248`.
 Native tables and disassembly listings remain ignored, outside public artifacts.
 
-## Native range ledger
+## Policy 2 initial-prefix evidence (#140)
+
+The same pinned images establish a narrower first-spelling proof than a complete
+native allocation model. Both initializers destroy weapon/projectile entries until
+their list counts are zero, then call the first file loader. Before the first
+property dispatch, that loader registers types and calls General. General's
+`DropPodWeapon` is the first weapon allocation on this path. Its weapon is visited
+first, and that weapon's explicit initial `Projectile` read owns the first
+projectile spelling. Later case-folded lookup returns the existing object; neither
+lookup replaces its name. The already recorded constructor/property/FindOrAllocate
+ranges establish the preserved spelling and exact source lookup.
+
+The complete General readers have only the absent-section exit before the root
+read; no other direct branch skips it. The additional primary interface locator is
+[RulesClass at the same YRpp pin](https://github.com/Phobos-developers/YRpp/blob/61d0887eb6040cfb36af16d592e9770ceae4dfb2/RulesClass.h).
+Its comments are not relied on as evidence of property dispatch; the actual native
+callers and virtual passes were inspected. The audit separates later CombatDamage
+DeathWeapon, SpecialWeapons projectile selectors, type property
+readers, projectile children, superweapon properties and null-name COM factories.
+A bounded executable-section scan found 12/14 direct weapon-allocator call sites
+(RA2/YR), four direct projectile-allocator call sites in each image, and no direct
+caller or stored absolute target for the alternate projectile index allocator.
+This scan is a cross-check of the inspected fresh initialization path, not an
+exhaustive proof about computed calls or extension/runtime behavior.
+
+Only an explicit initial base/expansion General root receives evidence. Empty/null,
+missing, case-mismatched section/key, later-source and noninitial root cases stay
+unproven. Native General pointer history is preserved through empty reads, clears
+and replacements. The first projectile proof applies only to that first weapon's
+initial source pass. Unknown external allocations remain outside the API's scope;
+`nativeAllocationComplete` remains false. Public original tests deliberately keep
+unrelated warhead/weapon/projectile aliases unsupported and reject duplicate source
+sections/keys. No original identifier is hardcoded as a winning projectile.
+
+Thirteen additional code/data ranges total 36,636 bytes. Every code span ends at a
+complete instruction; two data spans pin the General section pointers. The private
+metadata ledger SHA256 is
+`e4a20dee2bf705b19625d553a4b4801dd4e705207288a78f97fb24db504d4678`.
+The private `local/native140/evidence.py` verifies both whole-image hashes, PE
+mappings, range hashes and instruction boundaries with Capstone 5.0.6; no native
+program is executed. The raw-source oracle independently rehashes every retail
+source and models this prefix before its existing reference allocation, without
+reading compiler evidence as expected values.
+
+| Profile / evidence | VA range | File offset / bytes | SHA256 |
+| --- | --- | --- | --- |
+| RA2 / Initial array reset and first file load | `0x6433a0–0x6436dc` | 2372512 / 828 | `2058cfae1b99ee4c3ee9316b59f1fa0fd70a47fc917f222097bf4da738aa21b5` |
+| RA2 / File registration and General before properties | `0x6437f0–0x643afe` | 2373616 / 782 | `4e1a8514bd4167b8b681ef41fbc0b4a968093103e71cb028d42a4e0e9433e54f` |
+| RA2 / General DropPodWeapon allocation | `0x6484e1–0x648520` | 2393313 / 63 | `e964436bdedf437aafdf742e553ce4ab36886279ec6250e8dbdfed2b6e6d7639` |
+| RA2 / Complete General reader and section gate | `0x647f40–0x64b682` | 2391872 / 14146 | `2db2e54c7a458361f8fa060e9d5f2f1063901e520e44155ab203f371c13f4e7e` |
+| RA2 / Later CombatDamage and SpecialWeapons calls | `0x643afe–0x643b3e` | 2374398 / 64 | `4a1ffe4af669414426921d5f386418c02f166264ebe232bb3d016813af10b238` |
+| RA2 / Projectile first-name lookup allocation | `0x4650a0–0x465123` | 413856 / 131 | `4e50cf6f282699dca2188f0e7896b306459b66e804f34afec2821f63d6542a91` |
+| RA2 / General section pointer | `0x7a9058–0x7a905c` | 3838040 / 4 | `098feabdb727fc3512722060d0fae00a2d156f46ed605f52ae616ddf8799e016` |
+| YR / Initial array reset and first file load | `0x6686c0–0x668a2c` | 2524864 / 876 | `66d9ac73fd94f6fd464b43fae2033483073a34de17b1c20428f3dca4d9881e0a` |
+| YR / File registration and General before properties | `0x668bf0–0x668ef5` | 2526192 / 773 | `4e8ae6bc432023dfd74f2b3a85327732cfb1afbe6944b100dcc58a9ac33731d1` |
+| YR / General DropPodWeapon allocation | `0x66ec89–0x66ecc7` | 2550921 / 62 | `c5a8a7fabe2ac12181ff64d5df34ee9a0cfaccdf679d773b920fad87c5b99d12` |
+| YR / Complete General reader and section gate | `0x66d530–0x671e99` | 2544944 / 18793 | `7562c49086fd7bb2c5e56fcf39b9db6f4727658a85ad8201e2af016aebd91374` |
+| YR / Later CombatDamage and SpecialWeapons calls | `0x668ef5–0x668f63` | 2526965 / 110 | `6e79c584598434e69f39d96131cd5075f979dbb9749bfa3e5cc4599cd6479fcc` |
+| YR / General section pointer | `0x7f0c9c–0x7f0ca0` | 4131996 / 4 | `67f0f446862123cb7bd1266f61c4de693058873c90beee546046cddbfddf4769` |
+
+## Original numeric/property native range ledger
 
 Images: RA2 `game.exe`, 5,077,312 bytes,
 SHA256 `73288c03b58d370be268ca6d156b4e33bfdb2066dc980359467d8852ff3b00df`;
