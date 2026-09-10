@@ -68,3 +68,7 @@ identity and genuine VM dispatch before any later consumer is admitted.
 When these modules become reachable in a distributed bundle, include this notice
 and the existing GPL/INI/CSF dependency notices in both bundle and source mapping.
 Shared build/licensing integration belongs to the coordinator.
+
+The exact source-operand accessor retains immutable compiler-owned parameters for
+the subsequent [authenticated VM join](../../docs/mission-cue-dispatch.md). It
+does not change reference catalog fingerprints or authorize arbitrary invocation.

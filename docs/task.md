@@ -14,6 +14,13 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
+Current root implementation is [source cue dispatch195](https://github.com/lictl/WebRA2/issues/195)
+in `local/worktrees/mission-cue-dispatch`, branch `codex/195-mission-cue-dispatch`.
+It joins genuine cue references to complete source VM programs and compound save/replay,
+then emits bounded requests from actual private VM steps. Native presentation consumers
+and whole campaign admission remain pending. PR192 distribution and PR194 corrected
+initialization have separate reviews; final merges and hosted checks remain tracked.
+
 Current wave: [source combat PR177](https://github.com/lictl/WebRA2/pull/177) merged
 as `cfdba372c16eeee945e9972b9f4a45cc11f16391` after957 tests, both bounded actual
 Chrome scenarios, hosted checks and [final independent review](https://github.com/lictl/WebRA2/pull/177#pullrequestreview-5164526784)
