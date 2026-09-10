@@ -85,7 +85,7 @@ inside a simulation transaction.
 
 ## Verification
 
-Nine original tests cover both local capacities/defaults; malformed source and
+Ten original tests cover both local capacities/defaults; malformed source and
 forged authorities; source ownership and limits; complete model joins; pending
 commands/flags; every-boundary restore; exact replay; whole-request rollback; forged
 initial flags/attachments/clocks; explicit outcome requests; and source-bound ground
