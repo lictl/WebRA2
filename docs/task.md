@@ -23,7 +23,8 @@ for [issue175](https://github.com/lictl/WebRA2/issues/175), while browser_feasib
 implements the [campaign chooser179](https://github.com/lictl/WebRA2/issues/179),
 mix_reader implements [ground traversal178](https://github.com/lictl/WebRA2/issues/178),
 and bootstrap_review investigates [allied infantry passage180](https://github.com/lictl/WebRA2/issues/180).
-Coordinator also starts [trigger lifecycle182](https://github.com/lictl/WebRA2/issues/182).
+Coordinator integrates ground world navigation and source infantry occupancy;
+[trigger lifecycle182](https://github.com/lictl/WebRA2/issues/182) has a reviewed VM extension.
 
 Recruitment integrates the complete source TaskForce selector, append-only claim and
 release history, persistent Flash50 and compound save/replay. Source and shared-runtime
@@ -43,15 +44,34 @@ See [the recruitment report](team-recruitment.md) for D03 selection/retry choice
 initial MissionClass assumptions, conservative released-actor gating and partial-loss
 limits. General combat and complete original mission preflight remain unfinished.
 
-Trigger lifecycle182 is WORKING in `local/worktrees/trigger-lifecycle`, branch
-`codex/182-trigger-lifecycle`, on main5459dc1. New poll2 VM forcing22/deletion12
-and eight original tests are implemented; full checks and independent review follow.
-The [lifecycle report](mission-trigger-lifecycle.md) explicitly distinguishes RA2
-immediate native deletion from YR deferred destruction and the VM's logical
-tombstones. Action55 is radar, not forcing; both openings have zero action22
-occurrences, and only RA2's opening has one action12. Neither whole opening becomes
-executable. Ground compiler [PR183](https://github.com/lictl/WebRA2/pull/183) is ready
-for independent source review; its world/loader adapter remains coordinator work.
+Trigger VM [PR184](https://github.com/lictl/WebRA2/pull/184) merged as
+`e8902bf4941621920e3fc6e1e8b7c065080a7984` at reviewed head
+`fdb8d69594ce6eed7b943b088985d78a8314dba4`, after984 tests and hosted checks.
+The [independent review](https://github.com/lictl/WebRA2/pull/184#pullrequestreview-5164836296)
+adds506 programs/7518 assertions and reproduces34 native ranges/3796 bytes.
+The [lifecycle report](mission-trigger-lifecycle.md) distinguishes RA2 immediate
+native deletion from YR deferred destruction and the VM's logical tombstones.
+Action55 is radar, not forcing; both openings have zero action22 occurrences,
+and only RA2's opening has one action12. Neither whole opening becomes executable;
+automatic source attachment creation/deletion remains outside this VM.
+
+Ground [PR183](https://github.com/lictl/WebRA2/pull/183) is WORKING in
+`local/worktrees/ground-integration`, branch `codex/178-ground-integration`.
+Worker source21f6cae is preserved; root7bba382 adds genuine world/source-combat
+joins, original flat shot-context exclusions, three integration tests and the
+bundle notice. On main5459dc1,988 tests/types,152 docs/773 links,526 publication
+paths and62 code/license outputs from131 inputs pass. Main184 is then merged;
+composed checks and independent root-adapter review are pending. Root reproduces
+both private graph fingerprints and independently rehashes all38 native ranges /
+3105 bytes with complete code endpoints. The author's separate Python raw reader
+reproduces all430 TMP selections,21816 cells,94901 class rows and718726 edges.
+The original RA2 occupied component expands90 to701 cells but reaches none of24
+currently supported firing cells; this is not the default-player acceptance gate.
+[Infantry passage180](https://github.com/lictl/WebRA2/issues/180) has source/helper
+checkpoint620a83a and a private available-slot result through the original allied
+blocker. Root world/save/reservation integration and actual Chrome remain next.
+Campaign chooser179 separately owns retained-file worker/UI/loader edits; no
+original mission is playable and no human input is currently required.
 
 [Sleep PR171](https://github.com/lictl/WebRA2/pull/171) merged as
 `1025eb2b06908372b562d6f6e66aec6e990bef03` after923 checks and its

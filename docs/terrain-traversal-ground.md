@@ -14,9 +14,13 @@ The frozen result includes the genuine `base`, `baseSha256`, source/content
 identity, raw cells with both `baseBlockers` and current `blockers`, movement-class
 rows, a new SHA-256 and resource counters. It has its own
 `isTerrainTraversalGround` brand; it deliberately does not impersonate the older
-flat compiler. The coordinator owns a subsequent world/loader adapter. Neither
-this compiler nor a graph created from it can clear an entity's footprint or
-change alliances.
+flat compiler. `compileWorldContent` accepts either genuine graph and binds the
+selected graph identity to navigation, models and saves. Rule/source authentication
+still checks the immutable base. The source infantry bridge pins the selected
+world graph but deliberately reads the base graph's flat cells for shot context;
+a newly traversable ramp does not authorize an unverified shot. Neither compiler
+can clear an entity's footprint or change alliances. Browser loader adoption and
+infantry reservation integration remain separate work.
 
 ## Supported stage and explicit policy
 
@@ -87,6 +91,9 @@ both crossing directions, high-endpoint-only and multi-level rejection, distinct
 image height, unknown bytes, every retained exclusion, exact land costs, Winged
 handling, immutable authority, reflection boundaries, conservative caps,
 selection-stable identity and navigation's diagonal/occupied-cell behavior.
+Three additional both-profile integration tests cover genuine/forged world joins,
+original static blockers, ramp movement, changed save identity, every selected
+restore/replay boundary, and source-bound flat shots versus rejected ramp shots.
 
 A private fresh438-file catalog run prepared both opening profiles using explicit
 base-only physical TMP selections. An independent Python reader rehashed five
