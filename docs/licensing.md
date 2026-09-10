@@ -187,3 +187,10 @@ GPL-3.0-or-later. Its [provenance notice](../packages/content/ANIMATION_EFFECTS_
 is included in the development distribution. The notice distinguishes covered
 gameplay-effect classifications from excluded native instance/death/splash contexts;
 no animation assets, retail rows or native listings are distributed.
+
+The standalone native random primitive in `packages/sim/src/native-random.ts` adapts
+Electronic Arts Random2/Random3 under GPL-3.0-or-later. Its
+[provenance notice](../packages/sim/NATIVE_RANDOM_PROVENANCE.md) pins the source,
+copyright and modifications. Distributions containing it must retain those notices,
+the GPL license and applicable corresponding source. It is not attached to the
+browser world yet; the build includes its notice for subsequent integration.
