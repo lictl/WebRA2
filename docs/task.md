@@ -14,6 +14,41 @@ sampling, ownership and compatibility boundaries. GPU backend, original oracle
 fixtures and actual Chrome sustained/lifecycle evidence remain in progress; the
 20 CPU checks are not a GPU correctness or 60 FPS pass.
 
+Latest checkpoint: integration 7f9e14b includes the WebGL2 backend, 28 GPU packet
+tests, 13 backend lifecycle/call tests and the CPU bridge sampling correction
+866d8c9. The composed full check at f89663f passed 1,270 public tests, 5 baseline
+tool tests and 8 GPU tool tests; the CPU correction adds one passing regression.
+The final collector additionally passes 9 GPU tool tests. Independent preparation
+and backend source reviews have no remaining findings; final-head GitHub COMMENT
+reviews and final measurement integration are still pending.
+
+[Issue228](https://github.com/lictl/WebRA2/issues/228) records a result-collection
+failure: a multi-megabyte report in DOM made the diagnostic unresponsive. The first
+report was eventually recovered from a native saved page and independently audited
+at 120.114 completed frames/s, 9.1 ms p95 gap and matching 1,050-tick replay; it is
+preliminary evidence, excluded from the corrected final run pool. Collector
+ee3634eef42155debf8d553369203bc299eb2f2c keeps full JSON in a capped local Blob
+download, with a compact visible summary and URL revocation. Actual Chrome download
+of the complete correctness report succeeds.
+
+The final original-only build is frozen at port4209 in
+local/worktrees/gpu-performance/local/gpu/final-6, manifest SHA256
+1aa4d91c64f8e9eb9470dbd2d9e98623337773c53571a1816c5a693f2225fcfc,
+70 outputs / 67 inputs. Its 84 viewport variants (46,501 pixels) pass integer and
+default framebuffer RGBA, every depth/owner/pick, forced loss/restoration and double
+disposal. browser_feasibility is collecting the final 12-run matrix there; inspect
+the completed JSON files and live agent state before resuming. Keep heavy local
+checks paused during its timing windows. Raw reports are original data and remain
+ignored; do not mix them with the recovered preliminary run or earlier builds.
+
+Next: finish the matrix and Chrome GPU-backend observation, independently audit raw
+rates/windows/tick/replay ledgers and exact build inputs, finalize the experiment
+report/provenance/handoff, run required checks, obtain exact-head recorded reviews,
+then ordinary merge of PR227. The root private audit script is
+local/worktrees/gpu-renderer-integration/local/audit-gpu-results.mjs. Production
+renderer integration remains a separate next slice; the game app still uses CPU
+composition and no original campaign is claimed playable by this experiment.
+
 The 960×640 app viewport is the primary gate, with 1280×720 as a required renderer
 stress row. Measure GPU completion and sustained distinct-frame cadence against
 1000/60 ms, including a genuine 15 Hz worker simulation. CPU submission time alone
