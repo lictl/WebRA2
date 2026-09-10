@@ -247,13 +247,20 @@ export function compileMissionTeamActionSource(input: MissionTeamActionInput, lo
   const declarationsComplete = Object.values(declarationRows).every(rows => rows.every(d => d.status === 'supported-source')) && !logic.orphanSections.length;
   const allActionsSupported = actions.every(a => a.status === 'supported-source');
   const representedScripts = new Map(declarationRows.scripts.map(d => [d.id, d]));
+  const currentScriptOrigins = new Map<string, Set<string>>();
+  for (const d of declarationRows.scripts) if (d.programSha256s.length && d.definition) {
+    const origins = new Set<string>();
+    for (const s of d.definition.steps) { charge(); origins.add(hash(s.origin)); }
+    currentScriptOrigins.set(d.id, origins);
+  }
   const literalClosure = declarationsComplete && allActionsSupported && definitions.lateCountryAllocations.length === 0 &&
     actions.every(a => a.plan.teamOperand.lookup === 'literal' && a.teamId !== null) &&
     definitions.teams.every(t => t.script.status === 'resolved' && t.taskForce.status === 'resolved' && t.tag.status === 'none');
   const diagnosticResolutions: MissionTeamActionDiagnosticResolution[] = definitions.diagnostics.map((d, sourceIndex) => {
     charge(); let rule: MissionTeamActionDiagnosticResolution['rule'] = null, refs: readonly string[] = [];
     const script = representedScripts.get(d.subjectId);
-    if (d.code === 'unsupported-script-operand' && script?.status === 'supported-source' && script.programSha256s.length) {
+    if (d.code === 'unsupported-script-operand' && script?.definition?.numericFramingComplete && script.programSha256s.length &&
+      d.origin && currentScriptOrigins.get(d.subjectId)?.has(hash(d.origin))) {
       rule = 'complete-program-script'; refs = script.programSha256s;
     } else if (d.code === 'external-allocation-paths-unmodeled' && d.subjectId === 'program' && literalClosure) {
       rule = 'literal-complete-declarations'; refs = programs.map(p => p.sha256);
