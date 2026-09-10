@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Original miniature source fixtures; no installation data.
 import test from 'node:test';
+import { createHash } from 'node:crypto';
+import { compileRuntimeIni } from '../../packages/content/src/runtime-ini.ts';
+import { compileTeamDefinitions } from '../../packages/content/src/team-definitions.ts';
 import assert from 'node:assert/strict';
 import { teamSpawnFixture } from './team-spawn-fixture.ts';
 import { compileTeamActivationSource } from '../../packages/content/src/team-activation.ts';
@@ -133,4 +136,21 @@ test('exact key repeats, reload spelling, native token truncation, and aggregate
   assert.equal(compileMissionTeamAllocationSource(h.input).references[0]!.status,'unsupported');
   for(const options of [{references:1},{tokens:17},{roots:0},{history:0},{diagnostics:0}])
     assert.throws(()=>compileMissionTeamAllocationSource(h.input,options));
+});
+
+
+test('independent rules and AI tables may reuse a layer ID without crossing source namespaces', () => {
+  for(const profile of ['ra2','yr'] as const){
+    const f=fixture({profile});
+    const bytes=new TextEncoder().encode('[TeamTypes]\n0=Squad\n[Squad]\nName=Separate source\nHouse=Blue\nScript=Route\nTaskForce=Troop\n[ScriptTypes]\n0=Route\n[Route]\n0=11,0\n[TaskForces]\n0=Troop\n[Troop]\n0=1,Walker');
+    const ai=compileRuntimeIni(profile,[{id:'base',profile,kind:'base',order:0,sourceSha256:createHash('sha256').update(bytes).digest('hex'),bytes}]);
+    const teams=compileTeamDefinitions({definitions:f.definitions,rules:f.rules,ai,mission:f.mission});
+    const activation=compileTeamActivationSource({teams,definitions:f.definitions,rules:f.rules,mission:f.mission});
+    const bindings=compileMissionBindings({world:f.world,definitions:f.definitions,rules:f.rules,mission:f.mission,difficulty:1});
+    const source=compileMissionTeamActionSource({bindings,activation,programs:[],spawnCatalogs:[],recruitmentCatalogs:[]});
+    const out=compileMissionTeamAllocationSource({...f.input,source,ai});
+    assert.equal(out.declarations[0]!.nativeName.value,'Separate source');
+    assert.equal(out.declarations[0]!.nativeName.loads[0]!.origin!.sourceSha256,ai.layers[0]!.sourceSha256);
+    assert.notEqual(ai.layers[0]!.sourceSha256,f.rules.layers[0]!.sourceSha256);
+  }
 });

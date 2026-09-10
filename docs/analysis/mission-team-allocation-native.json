@@ -1,0 +1,506 @@
+{
+  "schemaVersion": 1,
+  "scope": "Fresh-campaign source metadata only. No original executable execution, AI scheduling, lifetime inactivity or native allocation closure claim.",
+  "images": [
+    {
+      "profile": "ra2",
+      "filename": "game.exe",
+      "size": 5077312,
+      "sha256": "73288c03b58d370be268ca6d156b4e33bfdb2066dc980359467d8852ff3b00df",
+      "ranges": [
+        {
+          "id": "abstract-name-constructor-prefix",
+          "nature": "code",
+          "vaStart": "0x410580",
+          "vaEndExclusive": "0x41066e",
+          "offset": 66944,
+          "size": 238,
+          "sha256": "462c2dea1f718cc6df4f277373fed66f9d36b318311accf7196182954f9937f2",
+          "interpretation": "Constructor prefix stores bounded ID and initializes Name from that stored ID; nonnull genuine source identifiers only.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "abstract-name-properties",
+          "nature": "code",
+          "vaStart": "0x4107e0",
+          "vaEndExclusive": "0x410904",
+          "offset": 67552,
+          "size": 292,
+          "sha256": "0b92e77d68ceaece533296ba3904c4f37bfecf26a10049562cd2ad097087eb83",
+          "interpretation": "Exact ID section; Name current-value default, 49-byte read buffer and 48-byte terminated Name storage; UIName is distinct.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "abstract-name-checksum-prefix",
+          "nature": "code",
+          "vaStart": "0x410960",
+          "vaEndExclusive": "0x410984",
+          "offset": 67936,
+          "size": 36,
+          "sha256": "8638f5c0d4ae1f81ffaa65a4e0167508524ea8852fb022ac44e98e6569f57204",
+          "interpretation": "Base checksum prefix consumes stored ID and Name; no checksum neutrality claim.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "team-id-name-lookup",
+          "nature": "code",
+          "vaStart": "0x6bf260",
+          "vaEndExclusive": "0x6bf2c1",
+          "offset": 2880096,
+          "size": 97,
+          "sha256": "78bef9e8f8e3a73e875a74601804591f52fa0ea757a8b01eac2b5c0368d7a295",
+          "interpretation": "Each allocated TeamType compares ID then Name with case-insensitive comparison; first matching allocation wins.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "team-event-reference-call",
+          "nature": "code",
+          "vaStart": "0x6e694e",
+          "vaEndExclusive": "0x6e6964",
+          "offset": 3041614,
+          "size": 22,
+          "sha256": "20ea64e23e929753be79d127824fc45d8e21035213704f89d87c4ca5a8b97a4b",
+          "interpretation": "Event discriminator-one parser calls TeamType ID/Name lookup and stores the returned pointer.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "all-source-list-order",
+          "nature": "code",
+          "vaStart": "0x65f63b",
+          "vaEndExclusive": "0x65f6a9",
+          "offset": 2487867,
+          "size": 110,
+          "sha256": "d44c4546582c4ef6a9424ea8a2616d81a428c5e73bbb6138b9c07b4ebcb15f84",
+          "interpretation": "Global then mission Team/Script/TaskForce loads precede trigger/tag and global then mission AITriggerType loads.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "ai-constructor-enabled-default",
+          "nature": "code",
+          "vaStart": "0x41c5c0",
+          "vaEndExclusive": "0x41c63b",
+          "offset": 116160,
+          "size": 123,
+          "sha256": "2a3e2cf4f8435991b27f0eaae29075661a80e497ff320c53735fd0f98d7b1fef",
+          "interpretation": "Fresh AITriggerType constructor writes IsEnabled=false; difficulty bytes initially true. This is not a loaded-save reset.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "ai-list-load-and-enable",
+          "nature": "code",
+          "vaStart": "0x41d540",
+          "vaEndExclusive": "0x41d6e8",
+          "offset": 120128,
+          "size": 424,
+          "sha256": "be77e040c3883e6df336b1c469925220d8b4d3dfd96d7505997ae222126ac2d4",
+          "interpretation": "Enumerate exact source entry keys; first case-insensitive ID allocation, property reload, per-load IsGlobal, global enable, then mission Enable rows; false clears in campaign mode.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "ai-source-properties",
+          "nature": "code",
+          "vaStart": "0x41d7e0",
+          "vaEndExclusive": "0x41dd55",
+          "offset": 120800,
+          "size": 1397,
+          "sha256": "2bd2d2463852727af7cd9e53fdf57713f75850e2c089a0162e37af991c257b9d",
+          "interpretation": "512-byte row input, comma tokens, 23-byte terminated Team1/Team2 input and ID/Name joins, IsForSkirmish and three difficulty flags; remaining conditions are not executed.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "ai-campaign-condition-gates",
+          "nature": "code",
+          "vaStart": "0x41ca21",
+          "vaEndExclusive": "0x41cac5",
+          "offset": 117281,
+          "size": 164,
+          "sha256": "08b7cb1490f07414d5441c10847a3c07c8ad6e67dd2b40ea57a11384614684dc",
+          "interpretation": "IsGlobal plus IgnoreGlobalAITriggers and IsEnabled can reject; IsForSkirmish is checked only outside campaign mode; campaign difficulty chooses one of three flags.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "house-ai-selector-and-allocation",
+          "nature": "code",
+          "vaStart": "0x4e4646",
+          "vaEndExclusive": "0x4e469f",
+          "offset": 935494,
+          "size": 89,
+          "sha256": "d8b5adad87a9147394cf82cb9e802140b06832985c579ed0219fb15923981ccc",
+          "interpretation": "House caller selects candidate templates then supplies its own House to CreateTeam; missing template default House does not prove inactivity.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "ai-selector-context",
+          "nature": "code",
+          "vaStart": "0x6bed50",
+          "vaEndExclusive": "0x6bf252",
+          "offset": 2878800,
+          "size": 1282,
+          "sha256": "b352ac722371c67f25862e3ca25dc245ed3c6a1bc0f2def21c0743100f214578",
+          "interpretation": "Candidate selector consumes house AI state, AITriggerType conditions, current teams and Scenario RNG; retained as required unimplemented scheduling, not an inert source list.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "create-team-house-priority",
+          "nature": "code",
+          "vaStart": "0x6bec80",
+          "vaEndExclusive": "0x6bed0a",
+          "offset": 2878592,
+          "size": 138,
+          "sha256": "54a39ee9595d34dba0d18c4aeabc4f6ff0a33a18b773a8790c47a88946f0fad3",
+          "interpretation": "Caller-supplied House takes priority over template Owner; YR has further selector fallback. Allocation/max behavior is not reproduced by the source graph.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "script18-replacement-constructor",
+          "nature": "code",
+          "vaStart": "0x6b8026",
+          "vaEndExclusive": "0x6b807a",
+          "offset": 2850854,
+          "size": 84,
+          "sha256": "8a5b68d3e29900e808c81e418a3b105ccfdf42faf77b26d7b52eaa45dae5b46e",
+          "interpretation": "Opcode18 indexes TeamType array with stored script argument, constructs with current team House, and transfers members; the source graph retains the candidate and gates execution.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "secondary-replacement-helper",
+          "nature": "code",
+          "vaStart": "0x6bb3b0",
+          "vaEndExclusive": "0x6bb41f",
+          "offset": 2864048,
+          "size": 111,
+          "sha256": "2dc504b8641cb137e310ce21c887f969fa966946692f6e7c615e2ee0db5c558c",
+          "interpretation": "Additional helper constructs indexed TeamType using current team House and transfers members; callers are explicitly not closed here.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "reused-team-properties",
+          "nature": "code",
+          "vaStart": "0x6bf330",
+          "vaEndExclusive": "0x6bf76e",
+          "offset": 2880304,
+          "size": 1086,
+          "sha256": "6e90d5fa96930f57865c31da18ba359e12f2c79c308034b2b3793c0c5a8519be",
+          "interpretation": "Current-value scalar defaults, country/house/tag/waypoint/reference reads, TaskForce then Script fallback.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "reused-script-properties",
+          "nature": "code",
+          "vaStart": "0x668c10",
+          "vaEndExclusive": "0x668cd7",
+          "offset": 2526224,
+          "size": 199,
+          "sha256": "a657c705d7eb523da85728439181dba1e0505c096b85e080f735012f232e6de1",
+          "interpretation": "Probe literal keys 0 through 49, reset and compact present rows.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "reused-taskforce-properties",
+          "nature": "code",
+          "vaStart": "0x6b6df0",
+          "vaEndExclusive": "0x6b6ecb",
+          "offset": 2846192,
+          "size": 219,
+          "sha256": "7bb2c574ba9e7977471990c4b797290368329d91ca189565687302b8d76b16e8",
+          "interpretation": "Reset six literal slots, skip empty/unresolved types, compact member count, current Group default.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "reused-numeric-dispatch",
+          "nature": "code",
+          "vaStart": "0x6b7da7",
+          "vaEndExclusive": "0x6b7dcb",
+          "offset": 2850215,
+          "size": 36,
+          "sha256": "d2e766ef68c2916b8142cb54913504b24399f5daf470a43ea51d552596778b8f",
+          "interpretation": "Native script opcode bounds and dispatch table reference.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "script18-dispatch-entry",
+          "nature": "pointer",
+          "vaStart": "0x6b87b0",
+          "vaEndExclusive": "0x6b87b4",
+          "offset": 2852784,
+          "size": 4,
+          "sha256": "8b4f228bf8d093787772b35fde539a8f15cf53c54d50875171e5655bdf767256",
+          "interpretation": "Opcode18 table entry, indexed by the reused numeric dispatcher.",
+          "evidence": "paired-pinned-data-and-call-site"
+        },
+        {
+          "id": "ai-read-ini-vtable-entry",
+          "nature": "pointer",
+          "vaStart": "0x79b7e4",
+          "vaEndExclusive": "0x79b7e8",
+          "offset": 3782628,
+          "size": 4,
+          "sha256": "e0cd2fe03d5224f9d3e5507a9b65eb39e43ef28123e7518f5204f138950cdc1a",
+          "interpretation": "AITriggerType vtable +0x64 maps the list loader virtual call to the source property reader.",
+          "evidence": "paired-pinned-data-and-call-site"
+        },
+        {
+          "id": "name-property-key",
+          "nature": "literal",
+          "vaStart": "0x7ce2a4",
+          "vaEndExclusive": "0x7ce2a8",
+          "offset": 3990180,
+          "size": 4,
+          "sha256": "dcd1d5223f73b3a965c07e3ff5dbee3eedcfedb806686a05b9b3868a2c3d6d50",
+          "interpretation": "Name property key consumed by the paired AbstractType source readers.",
+          "evidence": "paired-pinned-data-and-call-site"
+        }
+      ]
+    },
+    {
+      "profile": "yr",
+      "filename": "gamemd.exe",
+      "size": 5286208,
+      "sha256": "3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600",
+      "ranges": [
+        {
+          "id": "abstract-name-constructor-prefix",
+          "nature": "code",
+          "vaStart": "0x410800",
+          "vaEndExclusive": "0x4108ee",
+          "offset": 67584,
+          "size": 238,
+          "sha256": "11be1777ff396728e649d0954f72fdb5f7f6c38a93dcca52aca13ee4cd0baea1",
+          "interpretation": "Constructor prefix stores bounded ID and initializes Name from that stored ID; nonnull genuine source identifiers only.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "abstract-name-properties",
+          "nature": "code",
+          "vaStart": "0x410a60",
+          "vaEndExclusive": "0x410b8b",
+          "offset": 68192,
+          "size": 299,
+          "sha256": "302413ea9928adf0e7e11198ea9b7e8155af973b809a60743a3c3dd1144bbaaf",
+          "interpretation": "Exact ID section; Name current-value default, 49-byte read buffer and 48-byte terminated Name storage; UIName is distinct.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "abstract-name-checksum-prefix",
+          "nature": "code",
+          "vaStart": "0x410be0",
+          "vaEndExclusive": "0x410c04",
+          "offset": 68576,
+          "size": 36,
+          "sha256": "347c1e94a669e2166d51471aa50af1a362d288caaebcbdad25f031dd5da10f19",
+          "interpretation": "Base checksum prefix consumes stored ID and Name; no checksum neutrality claim.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "team-id-name-lookup",
+          "nature": "code",
+          "vaStart": "0x6f0fc0",
+          "vaEndExclusive": "0x6f1021",
+          "offset": 3084224,
+          "size": 97,
+          "sha256": "a5002928f3ba901dc208de747fc186d098952d4f0ed33c27a7af488c7ca0f862",
+          "interpretation": "Each allocated TeamType compares ID then Name with case-insensitive comparison; first matching allocation wins.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "team-event-reference-call",
+          "nature": "code",
+          "vaStart": "0x71f593",
+          "vaEndExclusive": "0x71f5a5",
+          "offset": 3274131,
+          "size": 18,
+          "sha256": "9c7636a674f4d816857510182f8ebd62e68ff02dd199a33cfaf8ead4155cdecb",
+          "interpretation": "Event discriminator-one parser calls TeamType ID/Name lookup and stores the returned pointer.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "all-source-list-order",
+          "nature": "code",
+          "vaStart": "0x68797a",
+          "vaEndExclusive": "0x6879e8",
+          "offset": 2652538,
+          "size": 110,
+          "sha256": "d83a6701e7d60fb3601e7fd6c354790ad3176a299a4781c1e345cd5817436b55",
+          "interpretation": "Global then mission Team/Script/TaskForce loads precede trigger/tag and global then mission AITriggerType loads.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "ai-constructor-enabled-default",
+          "nature": "code",
+          "vaStart": "0x41e350",
+          "vaEndExclusive": "0x41e3cb",
+          "offset": 123728,
+          "size": 123,
+          "sha256": "722e946898c1c953ac80704d9299f1ce93a8812d9d5fe007732e5d98a59812b3",
+          "interpretation": "Fresh AITriggerType constructor writes IsEnabled=false; difficulty bytes initially true. This is not a loaded-save reset.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "ai-list-load-and-enable",
+          "nature": "code",
+          "vaStart": "0x41f2e0",
+          "vaEndExclusive": "0x41f488",
+          "offset": 127712,
+          "size": 424,
+          "sha256": "40429ab7c7d1b53046aca128917d4beebcdd51a6b5c76013f046c5668bec753d",
+          "interpretation": "Enumerate exact source entry keys; first case-insensitive ID allocation, property reload, per-load IsGlobal, global enable, then mission Enable rows; false clears in campaign mode.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "ai-source-properties",
+          "nature": "code",
+          "vaStart": "0x41f580",
+          "vaEndExclusive": "0x41fb01",
+          "offset": 128384,
+          "size": 1409,
+          "sha256": "abb868ba1f550b2b2f26d26c4754ab4461ddaa785c0c95f2d08d25e855b8ed16",
+          "interpretation": "512-byte row input, comma tokens, 23-byte terminated Team1/Team2 input and ID/Name joins, IsForSkirmish and three difficulty flags; remaining conditions are not executed.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "ai-campaign-condition-gates",
+          "nature": "code",
+          "vaStart": "0x41e7b1",
+          "vaEndExclusive": "0x41e855",
+          "offset": 124849,
+          "size": 164,
+          "sha256": "c9433670ae5de471883850f13c7aae9694bbbb65dd574e3b6ef663a28ff66a20",
+          "interpretation": "IsGlobal plus IgnoreGlobalAITriggers and IsEnabled can reject; IsForSkirmish is checked only outside campaign mode; campaign difficulty chooses one of three flags.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "house-ai-selector-and-allocation",
+          "nature": "code",
+          "vaStart": "0x4f8a63",
+          "vaEndExclusive": "0x4f8abb",
+          "offset": 1018467,
+          "size": 88,
+          "sha256": "238f5ce01bf984b11be563ca1a340adc6d75fb8aa86a867d3143936bb76ed56f",
+          "interpretation": "House caller selects candidate templates then supplies its own House to CreateTeam; missing template default House does not prove inactivity.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "ai-selector-context",
+          "nature": "code",
+          "vaStart": "0x6f0ab0",
+          "vaEndExclusive": "0x6f0fb8",
+          "offset": 3082928,
+          "size": 1288,
+          "sha256": "4fbc0785025a62785db74f8a88d58ced3c250f5df079ad0526d7348a2e0194b1",
+          "interpretation": "Candidate selector consumes house AI state, AITriggerType conditions, current teams and Scenario RNG; retained as required unimplemented scheduling, not an inert source list.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "create-team-house-priority",
+          "nature": "code",
+          "vaStart": "0x6f09c0",
+          "vaEndExclusive": "0x6f0a6e",
+          "offset": 3082688,
+          "size": 174,
+          "sha256": "a0498528b3b32e4304f0a3c407ad0f33ab81e55cb2c31f8549fca2b82f3778b3",
+          "interpretation": "Caller-supplied House takes priority over template Owner; YR has further selector fallback. Allocation/max behavior is not reproduced by the source graph.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "script18-replacement-constructor",
+          "nature": "code",
+          "vaStart": "0x6e96bd",
+          "vaEndExclusive": "0x6e9713",
+          "offset": 3053245,
+          "size": 86,
+          "sha256": "808108abfac3a94b32f9789e4c6ef1897bc18f7dfa416c109d54b6c8927485a2",
+          "interpretation": "Opcode18 indexes TeamType array with stored script argument, constructs with current team House, and transfers members; the source graph retains the candidate and gates execution.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "secondary-replacement-helper",
+          "nature": "code",
+          "vaStart": "0x6ecfb0",
+          "vaEndExclusive": "0x6ed021",
+          "offset": 3067824,
+          "size": 113,
+          "sha256": "12e34223fa3e36d08238c4f1a93f3d0fa0fd129b902784692b0f04eabd7de3e1",
+          "interpretation": "Additional helper constructs indexed TeamType using current team House and transfers members; callers are explicitly not closed here.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "reused-team-properties",
+          "nature": "code",
+          "vaStart": "0x6f1090",
+          "vaEndExclusive": "0x6f1542",
+          "offset": 3084432,
+          "size": 1202,
+          "sha256": "00095cfdb2b6b11b862f6f1cbf0694eda75d78ecdd207504bcbc65458735c2e1",
+          "interpretation": "Current-value scalar defaults, country/house/tag/waypoint/reference reads, TaskForce then Script fallback.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "reused-script-properties",
+          "nature": "code",
+          "vaStart": "0x6918a0",
+          "vaEndExclusive": "0x69196f",
+          "offset": 2693280,
+          "size": 207,
+          "sha256": "f264bf89ad0b5a762667e564f581d5fc6d0781f2a1b388ee215250740b2a9c4d",
+          "interpretation": "Probe literal keys 0 through 49, reset and compact present rows.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "reused-taskforce-properties",
+          "nature": "code",
+          "vaStart": "0x6e8420",
+          "vaEndExclusive": "0x6e8500",
+          "offset": 3048480,
+          "size": 224,
+          "sha256": "32954e6feb33d228827faaed961009b8301e621eb29c37e92e45bf0b419399dd",
+          "interpretation": "Reset six literal slots, skip empty/unresolved types, compact member count, current Group default.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "reused-numeric-dispatch",
+          "nature": "code",
+          "vaStart": "0x6e9436",
+          "vaEndExclusive": "0x6e9462",
+          "offset": 3052598,
+          "size": 44,
+          "sha256": "e35da7e8d67872ec2a32eb9301703785a0b3da1e244048c0fe83d0df268f371e",
+          "interpretation": "Native script opcode bounds and dispatch table reference.",
+          "evidence": "paired-static-bytes-and-inspected-control-flow"
+        },
+        {
+          "id": "script18-dispatch-entry",
+          "nature": "pointer",
+          "vaStart": "0x6e9fbc",
+          "vaEndExclusive": "0x6e9fc0",
+          "offset": 3055548,
+          "size": 4,
+          "sha256": "10abba6410f94a5626fa17cef980fce3523fc4c622b2f8c923ad0f2389a21ce7",
+          "interpretation": "Opcode18 table entry, indexed by the reused numeric dispatcher.",
+          "evidence": "paired-pinned-data-and-call-site"
+        },
+        {
+          "id": "ai-read-ini-vtable-entry",
+          "nature": "pointer",
+          "vaStart": "0x7e2ab4",
+          "vaEndExclusive": "0x7e2ab8",
+          "offset": 4074164,
+          "size": 4,
+          "sha256": "b4c64f47e8b7adffd66f09da9b7cf70caf4d3f12e76815ac88a52a14d032e542",
+          "interpretation": "AITriggerType vtable +0x64 maps the list loader virtual call to the source property reader.",
+          "evidence": "paired-pinned-data-and-call-site"
+        },
+        {
+          "id": "name-property-key",
+          "nature": "literal",
+          "vaStart": "0x817854",
+          "vaEndExclusive": "0x817858",
+          "offset": 4290644,
+          "size": 4,
+          "sha256": "dcd1d5223f73b3a965c07e3ff5dbee3eedcfedb806686a05b9b3868a2c3d6d50",
+          "interpretation": "Name property key consumed by the paired AbstractType source readers.",
+          "evidence": "paired-pinned-data-and-call-site"
+        }
+      ]
+    }
+  ]
+}

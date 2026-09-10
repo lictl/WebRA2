@@ -191,10 +191,8 @@ export function compileMissionTeamAllocationSource(input: MissionTeamAllocationI
   function diagnostic(subjectId: string, code: string, origin: IniOrigin | null = null): void {
     charge(); if (diagnostics.length >= cap.diagnostics) fail('diagnostic-limit'); diagnostics.push({ subjectId, code, origin });
   }
-  const stageById = new Map<string, { view: IniSourceView; encoding: string }>();
   for (const view of [rv, av]) for (const stage of view.stages) {
-    charge(); if (stageById.has(stage.layer.id)) fail('source-layer-alias');
-    stageById.set(stage.layer.id, { view, encoding: stage.layer.encoding });
+    charge();
     for (const section of stage.sections) {
       charge(1 + section.entries.length); const size = 1 + section.entries.length;
       if (size > cap.occurrences - occurrences) fail('occurrence-limit'); occurrences += size;
@@ -218,14 +216,14 @@ export function compileMissionTeamAllocationSource(input: MissionTeamAllocationI
     const originHashes = new Set<string>();
     for (const o of d.unhandledFields) { charge(); originHashes.add(hash(o)); }
     for (const l of d.loads) {
-      charge(); remember(); const stage = stageById.get(l.layerId);
-      if (!stage) fail('name-source-stage');
-      const s = section(stage.view, l.layerId, d.name);
+      charge(); remember(); const view = l.phase.startsWith('global-') ? av : mv, stage = view.stages[0]!;
+      if (stage.layer.id !== l.layerId || stage.layer.sourceSha256 !== l.sourceSha256) fail('name-source-stage');
+      const s = section(view, l.layerId, d.name);
       if ((s?.line ?? null) !== l.sectionLine) fail('name-load-identity');
       const e = s ? entry(s, 'Name') : undefined, reasons: string[] = [], before = value;
       if (e) {
         if (!originHashes.has(hash(e.origin))) fail('name-origin-identity');
-        if (stage.encoding !== 'byte-preserving-ascii-compatible') reasons.push('unsupported-name-encoding');
+        if (stage.layer.encoding !== 'byte-preserving-ascii-compatible') reasons.push('unsupported-name-encoding');
         if (!printable(e.value, 48)) reasons.push('empty-nonascii-or-truncated-name');
         if (e.origin.rawValue.includes(';')) reasons.push('name-native-comment-semantics');
         value = reasons.length ? null : e.value;
@@ -271,7 +269,7 @@ export function compileMissionTeamAllocationSource(input: MissionTeamAllocationI
       if (seen.has(canonical)) fail('ai-key-alias'); seen.add(canonical);
       if (!printable(e.key, 24) || none(e.key)) fail('ai-identifier');
       let row = aiRecords.get(canonical);
-      if (!row) { if (aiRecords.size >= cap.declarations) fail('ai-declaration-limit');
+      if (!row) { if (allDefinitions.length + aiRecords.size >= cap.declarations) fail('ai-declaration-limit');
         row = { id: `ai-trigger:${canonical}`, storedId: e.key, allocationIndex: aiRecords.size, loads: [], enables: [], initialEnabled: false }; aiRecords.set(canonical, row); }
       let count = 1; for (const ch of e.value) { charge(); if (ch === ',') count++; }
       if (count > cap.tokens - tokens) fail('token-limit'); tokens += count;
