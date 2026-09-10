@@ -1,0 +1,320 @@
+{
+  "schemaVersion": 1,
+  "scope": "private read-only source compilation and WebRA2 reinforcement/movement/persistent Sleep/save/replay; no original game execution, automatic trigger firing, combat acquisition or browser acceptance",
+  "programPolicy": "webra2-existing-team-cells-2",
+  "sleepPolicy": "webra2-team-sleep-stationary-1",
+  "nativeLedgerSha256": "e6f49295f0e06ebec354d712cc726d46d2b254a069e43c08705a5bc521d7ef4c",
+  "oracleScope": "Separate Python raw AI/mission numeric script framing plus Sleep-only coverage delta from reviewed #160 baseline; unchanged non-Sleep capability gates reuse baseline. Type/logic source projections equal baseline; YR final world saves and complete non-hash trace contents equal all eight baseline cases. Not an independent implementation of native actor AI.",
+  "profiles": [
+    {
+      "profile": "ra2",
+      "modelSha256": "fc6d08a841b9460777ec7f6eb46a924cfb45879e38cf9bcf70e31869a892033e",
+      "worldSha256": "ab12455599ad530bf0c59758302fa0158b57f73cc710f648914158c4abe16a5b",
+      "entitiesSha256": "8bd4958889dab7ef34219a6320819de7862acc34bf804d76749705dd69faecef",
+      "teamsSha256": "a4cb866b8dbada4b728481a0668a66ac1527896600737007454518d990258361",
+      "missionSha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+      "inputs": [
+        {
+          "role": "rules",
+          "path": "rules.ini",
+          "source": {
+            "root": {
+              "sourceId": "file:424",
+              "size": 281888480,
+              "sha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914"
+            },
+            "absoluteOffset": 118552784,
+            "size": 541915,
+            "sha256": "fd1e95cea0306ea78049dc81c8cd816e18c28c496872a1ff02edd50bd082062f"
+          }
+        },
+        {
+          "role": "art",
+          "path": "art.ini",
+          "source": {
+            "root": {
+              "sourceId": "file:424",
+              "size": 281888480,
+              "sha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914"
+            },
+            "absoluteOffset": 118306944,
+            "size": 245825,
+            "sha256": "b477f861063a9509e87b7836b78190204c73bea5ea5595a842c456f5920ea223"
+          }
+        },
+        {
+          "role": "ai",
+          "path": "ai.ini",
+          "source": {
+            "root": {
+              "sourceId": "file:424",
+              "size": 281888480,
+              "sha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914"
+            },
+            "absoluteOffset": 118221968,
+            "size": 84972,
+            "sha256": "1feac6ddea6886b177ddf7e5f8580b7a99a63f12684f2cbb42831671bb7a8a79"
+          }
+        },
+        {
+          "role": "mission",
+          "path": "all01t.map",
+          "source": {
+            "root": {
+              "sourceId": "file:152",
+              "size": 3823604,
+              "sha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74"
+            },
+            "absoluteOffset": 308,
+            "size": 146240,
+            "sha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c"
+          }
+        }
+      ],
+      "sourcePlanCount": 75,
+      "sourceSupportedPlans": 46,
+      "sourceOracle": {
+        "profile": "ra2",
+        "checkedRawScripts": 90,
+        "checkedRawScriptRows": 345,
+        "checkedTemplateRows": 49,
+        "checkedCoverageLeaves": 311,
+        "sourceSleepStepOccurrences": 3,
+        "newCompleteTemplates": 3,
+        "completeTemplates": 3,
+        "reinforcementCases": 1,
+        "subsequentRestoreComparisons": 188,
+        "pendingSourceReplays": 1,
+        "sleepCases": [
+          {
+            "caseIndex": 0,
+            "enteredAt": 168,
+            "finalNextTick": 189,
+            "persistentFrames": 20,
+            "stopOrders": 1,
+            "traceFrames": 188,
+            "finalStateSha256": "16b8a7f0828f9248168317cf7f7fbea379790e3db52cf73b6d56defbcd97fd15"
+          }
+        ],
+        "unchangedPriorWorldCases": 0,
+        "unchangedPriorTraceFrames": 0,
+        "coverageSha256": "4781b4265eabbe8413a011bab0e261b96e7e481fc48c7421001862fcc6802d2c"
+      },
+      "cases": [
+        {
+          "index": 0,
+          "catalogSha256": "86e43218bdf98422e2fd28506787c74bdafd71b9dcee7282ec46cb67602a7cd1",
+          "spawnedActors": 1,
+          "movedActors": 1,
+          "containsSleep": true,
+          "finalPhases": [
+            "sleep"
+          ],
+          "finalNextTick": 189,
+          "restoredSubsequentCheckpoints": 188,
+          "finalStateSha256": "16b8a7f0828f9248168317cf7f7fbea379790e3db52cf73b6d56defbcd97fd15",
+          "postInitialTickTraceSha256": "e35a272105785517e995efd6770c4fd44cbef8ea1349530635ff87da03152317"
+        }
+      ]
+    },
+    {
+      "profile": "yr",
+      "modelSha256": "eade1c1a47973815741a3a966947b225b5cc1baed963093b726498b6e844ab92",
+      "worldSha256": "b732c8aeadf9abd0651276ee1ce63e76fed214bea7e6be193b2fcc1ef4779e09",
+      "entitiesSha256": "466aee504dc6e46482b9b54b810f45b5e885b9debd8abc2df784203d622b717f",
+      "teamsSha256": "1350dd4b29e197c56e51e6a0fd48f57983e137c3c23e999a64f0411baccc245b",
+      "missionSha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+      "inputs": [
+        {
+          "role": "rules",
+          "path": "rulesmd.ini",
+          "source": {
+            "root": {
+              "sourceId": "file:403",
+              "size": 4813968,
+              "sha256": "0c0a64e741bdecdc3843a0beb6bb1f58aa2df5b86eb3bc4a953821ec98f3d6ec"
+            },
+            "absoluteOffset": 2220316,
+            "size": 743215,
+            "sha256": "3d341ef8a13a4b5ab24af2eef48ac94931ac2bb87d950fe3330a07e2d25672ef"
+          }
+        },
+        {
+          "role": "art",
+          "path": "artmd.ini",
+          "source": {
+            "root": {
+              "sourceId": "file:426",
+              "size": 204527696,
+              "sha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d"
+            },
+            "absoluteOffset": 6378496,
+            "size": 336535,
+            "sha256": "e1f0378394313c04ebbd5073f47785ee3e46f1b3c62d65724e8f3c310ee7ba31"
+          }
+        },
+        {
+          "role": "ai",
+          "path": "aimd.ini",
+          "source": {
+            "root": {
+              "sourceId": "file:426",
+              "size": 204527696,
+              "sha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d"
+            },
+            "absoluteOffset": 6239952,
+            "size": 138538,
+            "sha256": "5df41eaec00a78d0760ef5eecdf27d65ae1cd537309c7eac973318266986f89d"
+          }
+        },
+        {
+          "role": "mission",
+          "path": "all01umd.map",
+          "source": {
+            "root": {
+              "sourceId": "file:416",
+              "size": 4419780,
+              "sha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3"
+            },
+            "absoluteOffset": 260,
+            "size": 301077,
+            "sha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0"
+          }
+        }
+      ],
+      "sourcePlanCount": 104,
+      "sourceSupportedPlans": 83,
+      "sourceOracle": {
+        "profile": "yr",
+        "checkedRawScripts": 182,
+        "checkedRawScriptRows": 833,
+        "checkedTemplateRows": 102,
+        "checkedCoverageLeaves": 645,
+        "sourceSleepStepOccurrences": 3,
+        "newCompleteTemplates": 0,
+        "completeTemplates": 7,
+        "reinforcementCases": 8,
+        "subsequentRestoreComparisons": 312,
+        "pendingSourceReplays": 8,
+        "sleepCases": [],
+        "unchangedPriorWorldCases": 8,
+        "unchangedPriorTraceFrames": 312,
+        "coverageSha256": "63bd473329d487b164436ad79f964a06c15a76b9f87cd6757ed08a43dc4aa22f"
+      },
+      "cases": [
+        {
+          "index": 0,
+          "catalogSha256": "de9a0e059f3d561c888f72ceb5b11299649db7f7461911ab74e4480f0f504ce7",
+          "spawnedActors": 1,
+          "movedActors": 1,
+          "containsSleep": false,
+          "finalPhases": [
+            "moving"
+          ],
+          "finalNextTick": 40,
+          "restoredSubsequentCheckpoints": 39,
+          "finalStateSha256": "488a9cc8bee1ce2a9a4c3e6884d6dbc24a6b9e6eb3147acf3ec61c54c810a0a8",
+          "postInitialTickTraceSha256": "8a31ea0bf2ef491aa153332d597caa3089cc3275a68fcb09c179c6ef53cf2031"
+        },
+        {
+          "index": 1,
+          "catalogSha256": "2520dd7bbc77397b6979446463a92c746d9fa41f5db1c7fc9e1ac633567f0879",
+          "spawnedActors": 3,
+          "movedActors": 3,
+          "containsSleep": false,
+          "finalPhases": [
+            "moving"
+          ],
+          "finalNextTick": 40,
+          "restoredSubsequentCheckpoints": 39,
+          "finalStateSha256": "4518c7e950a2ada441f42f101d1943031eee1817581ce4f94a3d159eb8b3b20c",
+          "postInitialTickTraceSha256": "8c094d26742263dd6ef2e1c87567f66204b3c2b86353eb7ff99e146ca594227d"
+        },
+        {
+          "index": 2,
+          "catalogSha256": "6d57c57f73bb39e2f0b78d0acfe9cee77aa22ba4e4d9172726e35085ae006fb9",
+          "spawnedActors": 1,
+          "movedActors": 1,
+          "containsSleep": false,
+          "finalPhases": [
+            "moving"
+          ],
+          "finalNextTick": 40,
+          "restoredSubsequentCheckpoints": 39,
+          "finalStateSha256": "6a97f12d76067bddfdc43c8efc6b533474df62fde467f3c72597030e272aa144",
+          "postInitialTickTraceSha256": "b96a47422296f04896893bbb0e01ce88e15801f7b2d2aa337e873b32ec40aec7"
+        },
+        {
+          "index": 3,
+          "catalogSha256": "3abba5ded56259ecd0efc37cbe465f06f551a484fdee2772224c67887ed30a04",
+          "spawnedActors": 1,
+          "movedActors": 1,
+          "containsSleep": false,
+          "finalPhases": [
+            "moving"
+          ],
+          "finalNextTick": 40,
+          "restoredSubsequentCheckpoints": 39,
+          "finalStateSha256": "7afabeffc63852a9f0e52da689a8fb1c232795c71586fd3814ea3cc3830556a7",
+          "postInitialTickTraceSha256": "d87dd494de8a3b666a5939607557d0f0f7321a7b783596058947156646665f85"
+        },
+        {
+          "index": 4,
+          "catalogSha256": "48e492cf6e503c6b54307806875350897ec59a5c5303385902bf50768aa13cbc",
+          "spawnedActors": 1,
+          "movedActors": 1,
+          "containsSleep": false,
+          "finalPhases": [
+            "moving"
+          ],
+          "finalNextTick": 40,
+          "restoredSubsequentCheckpoints": 39,
+          "finalStateSha256": "b65ed6aa59553db96c2497b9f62abfef85aa24bbf0497cf8a88d7f2c33e9d0ec",
+          "postInitialTickTraceSha256": "7daabd094a115806cac2527f9a4570b6978a6c6fad52e5eb09349228bc74b6bf"
+        },
+        {
+          "index": 5,
+          "catalogSha256": "7e4ad1dcea7f2fa000bb2e929aca17a1a47c418fe458d759653cac917ddd9c4d",
+          "spawnedActors": 1,
+          "movedActors": 1,
+          "containsSleep": false,
+          "finalPhases": [
+            "moving"
+          ],
+          "finalNextTick": 40,
+          "restoredSubsequentCheckpoints": 39,
+          "finalStateSha256": "e66a08b17ae60e173836823692f9686c0dda837e09b7d0904f3195d118d8fe1d",
+          "postInitialTickTraceSha256": "98969b4a5f2840e4251da1a375579d3f6591246eee4f8ac398d40696d21e3072"
+        },
+        {
+          "index": 6,
+          "catalogSha256": "72e994fcd30288ad727d746a5c6891931c4d6c5c35ce2a802a8241922782082e",
+          "spawnedActors": 1,
+          "movedActors": 1,
+          "containsSleep": false,
+          "finalPhases": [
+            "moving"
+          ],
+          "finalNextTick": 40,
+          "restoredSubsequentCheckpoints": 39,
+          "finalStateSha256": "bf650c1cf9fda94898af534eaf2e85a65c6eaa514d51a4620f03ed35ac64e6b1",
+          "postInitialTickTraceSha256": "22ee80d067527f6b51a286c00bca78357a36b182932b129120a216c7447d1de1"
+        },
+        {
+          "index": 7,
+          "catalogSha256": "d1295b89afbc9044749f803a35efb0194376ae3f35ea859af459c6b02f0c5ab4",
+          "spawnedActors": 3,
+          "movedActors": 3,
+          "containsSleep": false,
+          "finalPhases": [
+            "moving"
+          ],
+          "finalNextTick": 40,
+          "restoredSubsequentCheckpoints": 39,
+          "finalStateSha256": "e8ce51e8826e80c185124379b04742f2897b58b96441e8adfc159803ebe8c918",
+          "postInitialTickTraceSha256": "8c289ad1aa24d56d7f105903d363ab2b28bdc543482ed041248e27af7e27a924"
+        }
+      ]
+    }
+  ]
+}

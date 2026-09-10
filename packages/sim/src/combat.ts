@@ -107,7 +107,7 @@ export function validateCombatState(model: WorldModel, input: unknown, entities:
     infantryFiring=rows.map((value,i)=>{
       const p=firing[i]!,s=restoreInfantryFiring(p,value),a=actors.find(a=>a.entityId===p.actorId)!,entity=byId.get(p.actorId)!;
       if(s.tick!==nextTick||s.rearm!==null&&s.rearm.shotTick>=nextTick||s.rearm!==null&&a.readyTick!==s.rearm.shotTick+s.rearm.nativeRof||s.rearm===null&&a.readyTick!==0)worldFail('infantry-save-clock');
-      if(s.pending&&(s.pending.startedTick>=nextTick||s.pending.targetId!==a.targetId||s.pending.weaponId!==actorsById.get(p.actorId)!.weapons[0]||!alive(entity)||entity.goal!==null))worldFail('infantry-save-pending');
+      if(s.pending&&(s.pending.dueTick<nextTick||s.pending.startedTick>=nextTick||s.pending.targetId!==a.targetId||s.pending.weaponId!==actorsById.get(p.actorId)!.weapons[0]||!alive(entity)||entity.goal!==null||a.ammo===0||!weaponLegal(weapons.get(s.pending.weaponId)!,actorsById.get(s.pending.targetId)!,model,p.actorId)||!inRange(weapons.get(s.pending.weaponId)!,worldAddress(entity.x,entity.y),worldAddress(byId.get(s.pending.targetId)!.x,byId.get(s.pending.targetId)!.y))))worldFail('infantry-save-pending');
       if(a.burstRemaining||a.weaponId!==null||a.burstTick!==0)worldFail('infantry-save-burst');
       const d=actorsById.get(p.actorId)!;
       if(d.initialAmmo>=0&&a.ammo!==d.initialAmmo-s.shots)worldFail('infantry-save-ammo');
