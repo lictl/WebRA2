@@ -154,3 +154,16 @@ test('independent rules and AI tables may reuse a layer ID without crossing sour
     assert.notEqual(ai.layers[0]!.sourceSha256,f.rules.layers[0]!.sourceSha256);
   }
 });
+
+test('one aggregate work cap reserves all three nested views before outer joins', () => {
+  for (const profile of ['ra2', 'yr'] as const) {
+    const f = fixture({ profile }), baseline = compileMissionTeamAllocationSource(f.input);
+    // This original fixture previously accepted807 outer units despite496 more
+    // nested units. Its largest view needs236 units, so eight reserved shares
+    // require1888; at1887 each view receives only235. Rejection has no cache effect.
+    assert.throws(() => compileMissionTeamAllocationSource(f.input, { work: 807 }), /work-limit/);
+    assert.throws(() => compileMissionTeamAllocationSource(f.input, { work: 1887 }), /work-limit/);
+    assert.equal(compileMissionTeamAllocationSource(f.input, { work: 1888 }).sha256, baseline.sha256);
+    assert.equal(compileMissionTeamAllocationSource(f.input).sha256, baseline.sha256);
+  }
+});

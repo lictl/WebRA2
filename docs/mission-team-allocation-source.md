@@ -94,12 +94,16 @@ occurrences,32,768 aggregate typed and AI declarations,131,072 roots
 and references,262,144 history/edge records,524,288 comma tokens,131,072 diagnostics,
 4,194,304 work units,2,000,000 input traversal nodes,64Mi decoded characters and
 64MiB canonical output. Budgets cover shadowed source, lookups and candidate
-expansion. Caller getters are not invoked; typed-array ownership uses intrinsic
+expansion. Each of the three nested exact INI views reserves one eighth of the
+configured work cap before any view runs; unused view allowance is not refunded.
+The compiler's own traversal and joins share the remaining five eighths plus
+integer-division remainder. Thus independently counted nested work cannot reuse
+the outer budget. Caller getters are not invoked; typed-array ownership uses intrinsic
 accessors. No filesystem, clock, network, DOM or unseeded RNG enters the module.
 
 ## Validation and observed corpus
 
-Nine original test cases exercise both profiles, default/retained/overridden
+Ten original test cases exercise both profiles, default/retained/overridden
 Names, alias precedence and source timing, fresh and overridden AI enable state,
 difficulty/skirmish distinctions, missing houses, automatic and script18 roots,
 whole-history unknowns, source mutations, descriptor ownership, factory brands,

@@ -178,7 +178,12 @@ export function compileMissionTeamAllocationSource(input: MissionTeamAllocationI
   // Profile is checked through descriptors before any imported table traversal.
   for (const table of [r.rules, r.ai]) if (!table || typeof table !== 'object' || Object.getOwnPropertyDescriptor(table, 'profile')?.value !== source.profile) fail('profile');
   const rules = snapshot(r.rules) as RuntimeIni, ai = snapshot(r.ai) as RuntimeIni;
-  const sourceLimits = { stages: cap.stages, occurrences: cap.occurrences, nodes: cap.nodes, characters: cap.characters, work: cap.work };
+  // Reserve disjoint work allowances before invoking any nested view. The three
+  // private view counters cannot refund or reuse these units; the remaining
+  // five eighths (plus division remainder) bounds this compiler's own work.
+  const viewWork = Math.floor(cap.work / 8);
+  charge(viewWork * 3);
+  const sourceLimits = { stages: cap.stages, occurrences: cap.occurrences, nodes: cap.nodes, characters: cap.characters, work: viewWork };
   const rv = createIniSourceView(rules, sourceLimits), av = createIniSourceView(ai, sourceLimits);
   if (rv.stages.length + av.stages.length > cap.stages || av.stages.length !== 1 || av.stages[0]!.layer.kind === 'map') fail('source-stages');
   if (hash(rules.layers) !== hash(definitions.sources.rules) || hash(ai.layers) !== hash(definitions.sources.ai)) fail('source-pins');
