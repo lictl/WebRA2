@@ -14,6 +14,26 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
+Current root slice is [object combat events204](https://github.com/lictl/WebRA2/issues/204)
+in local/worktrees/mission-object-events, branch codex/204-mission-object-events.
+The first checkpoint retains immutable world health-application facts while
+preserving public traces and save formats. Root owns existing combat/world/VM
+contracts and compound dispatch. bootstrap_review owns the separate genuine source
+adapter and paired native callback evidence. Source opcode admission is pending;
+see the [working report](mission-object-events.md).
+
+mix_reader implements [audio decoding205](https://github.com/lictl/WebRA2/issues/205)
+in a separate worktree; browser_feasibility owns [control groups206](https://github.com/lictl/WebRA2/issues/206)
+and actual Chrome acceptance. No human input is needed.
+
+Cell-entry202 merged as 5430a7482733d93c94074fe826c7ab97b33f6ce9, reviewed at
+31f775811e733889ba474e51f5b9a876c8620273. Its
+[final composition review](https://github.com/lictl/WebRA2/pull/202#pullrequestreview-5166647010)
+passes with 1,117 public tests, exact hosted34472781609, 174 documents/870 links,
+616 publication paths and71 code/license outputs from144 inputs. Issue201 is closed;
+all12 JavaScript/CSS/HTML outputs remain identical to merged main203. The source
+and complete-preflight limits in the historical checkpoint below remain applicable.
+
 Current [cell-entry PR202](https://github.com/lictl/WebRA2/pull/202) is being
 composed with merged main203 in `local/worktrees/mission-cell-entry`, branch
 `codex/201-mission-cell-entry`. Source/runtime head

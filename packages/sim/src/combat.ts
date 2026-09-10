@@ -19,6 +19,11 @@ export type OrdinaryDeathRecord = { entityId:number; sourceId:number; weaponId:s
 type SavedValue<T> = T extends readonly (infer E)[] ? SavedValue<E>[] : T extends object ? { [K in keyof T]: SavedValue<T[K]> } : T;
 export type CombatState = { infantryFiring?:SavedValue<InfantryFiringSave>[]; deaths?:OrdinaryDeathRecord[]; actors: CombatOrderState[]; impacts: CombatImpact[]; nextImpactId: number; ordinaryRandom?: {state:{[K in keyof NativeRandomState]:NativeRandomState[K]};draws:number} };
 type Emit = (kind: string, entityId: number, cell?: number | null, value?: number | null) => void;
+/** A completed health application, including zero damage. This is not a native trigger callback. */
+export interface CombatDamageObservation {
+  readonly tick: number; readonly sourceId: number; readonly targetId: number; readonly weaponId: string;
+  readonly damage: number; readonly healthBefore: number; readonly healthAfter: number;
+}
 const alive = (e: WorldEntity | undefined): e is WorldEntity => !!e && e.health !== null && e.health > 0;
 function clearBurst(a: CombatOrderState): void { a.weaponId = null; a.burstRemaining = 0; a.burstTick = 0; }
 function clearOrder(a: CombatOrderState): void { a.targetId = null; clearBurst(a); }
@@ -159,7 +164,8 @@ export function attackCombat(model: WorldModel, state: CombatState, entities: Wo
 }
 
 /** After movement: scheduled impacts by due tick/ID, then firing by entity ID. Work is charged before each operation. */
-export function stepCombat(model: WorldModel, world: WorldState, tick: number, emit: Emit): number {
+export function stepCombat(model: WorldModel, world: WorldState, tick: number, emit: Emit,
+  observeDamage?: (value: CombatDamageObservation) => void): number {
   const state=world.combat!,entities=world.entities,sourceBridge=combatSourceBridge(model.combat!);let contextWork=0;
   const config = model.combat!,ordinary=combatOrdinaryBinding(config),death=combatDeathBinding(config),firing=combatInfantryPrograms(config), byId = new Map(entities.map(e => [e.id, e]));
   const actors = new Map(config.actors.map(a => [a.entityId, a])), orders = new Map(state.actors.map(a => [a.entityId, a]));
@@ -183,7 +189,8 @@ export function stepCombat(model: WorldModel, world: WorldState, tick: number, e
   function hit(sourceId: number, targetId: number, w: CombatWeapon, aim: number): void {
     charge(); const target = byId.get(targetId);
     if (!alive(target) || w.delivery === 'fixed-cell' && worldAddress(target.x, target.y) !== aim) { emit('impact-missed', sourceId, aim, targetId); return; }
-    const damage = Math.min(target.health!, damageFor(model,sourceId,w,actors.get(targetId)!)); target.health! -= damage;
+    const healthBefore = target.health!;
+    const damage = Math.min(healthBefore, damageFor(model,sourceId,w,actors.get(targetId)!)); target.health! -= damage;
     emit('damaged', targetId, worldAddress(target.x, target.y), damage);
     if (target.health === 0) {
       target.goal = null; target.route = []; target.progress = 0; target.waitTicks = 0;
@@ -198,6 +205,7 @@ export function stepCombat(model: WorldModel, world: WorldState, tick: number, e
         emit('death-sequence',target.id,worldAddress(target.x,target.y),sequence);
       }else emit('destroyed', target.id, worldAddress(target.x, target.y), sourceId);
     }
+    observeDamage?.({ tick, sourceId, targetId, weaponId: w.id, damage, healthBefore, healthAfter: target.health! });
   }
   for (const p of state.impacts) if (p.dueTick === tick) hit(p.sourceId, p.targetId, weapons.get(p.weaponId)!, p.aim);
   state.impacts = state.impacts.filter(p => p.dueTick !== tick);

@@ -7,7 +7,7 @@ import { createInfantryOccupancy, initialInfantrySlots, type InfantrySlotState, 
 import { ORDINARY_DEATH_ENGINE_VERSION, ORDINARY_DEATH_POLICY } from './ordinary-death-rules.ts';
 import { SOURCE_INFANTRY_COMBAT_POLICY, SOURCE_INFANTRY_COMBAT_ENGINE_VERSION, INFANTRY_COMBAT_POLICY, INFANTRY_COMBAT_ENGINE_VERSION, COMBAT_ENGINE_VERSION } from './combat-model.ts';
 import { ORDINARY_COMBAT_ENGINE_VERSION, ORDINARY_COMBAT_POLICY } from './ordinary-combat-rules.ts';
-import { combatDyingActorIds, attackCombat, createCombatState, stepCombat, stopCombat, validateCombatState, validateSourceCombatState, type CombatState } from './combat.ts';
+import { combatDyingActorIds, attackCombat, createCombatState, stepCombat, stopCombat, validateCombatState, validateSourceCombatState, type CombatState, type CombatDamageObservation } from './combat.ts';
 import { assertWorldModel, worldAddress, worldClone, worldContent, worldEdgeCost, worldFail, worldInteger, worldList, worldPosition,
   worldRecord, WORLD_ENGINE_VERSION, WORLD_INFANTRY_ENGINE_VERSION, WORLD_LIMITS as C, WORLD_MOTION_POLICY, type WorldModel, type WorldEntityDefinition } from './world-model.ts';
 
@@ -19,6 +19,18 @@ export type WorldState = { modelSha256: string; entities: WorldEntity[]; plannin
 export type WorldSave = SaveEnvelope<WorldState>;
 export type WorldTrace = { tick: number; phase: 'command' | 'navigation' | 'movement' | 'combat'; kind: string; entityId: number; cell: number | null; value: number | null };
 export type WorldStep = { nextTick: number; events: WorldTrace[]; work: { entityVisits: number; navigationExpansions: number; transitions: number } };
+export interface WorldStepCombatObservations {
+  readonly modelSha256: string; readonly fromNextTick: number; readonly toNextTick: number;
+  readonly damage: readonly CombatDamageObservation[];
+}
+const stepCombatObservations = new WeakMap<object, { model: WorldModel; value: WorldStepCombatObservations }>();
+/** Only the exact returned step and its genuine model can expose privately retained facts. */
+export function worldStepCombatObservations(model: WorldModel, step: unknown): WorldStepCombatObservations {
+  assertWorldModel(model);
+  const entry = step && typeof step === 'object' ? stepCombatObservations.get(step) : undefined;
+  if (!entry || entry.model !== model) worldFail('world-step-combat-observations');
+  return entry.value;
+}
 type LiveSave = { -readonly [K in keyof WorldSave]: WorldSave[K] } & { queuedCommands: CommandEnvelope[]; scheduledWork: []; rngStates: Record<string, never> };
 
 const engineVersion = (model: WorldModel) => model.infantryPassage ? WORLD_INFANTRY_ENGINE_VERSION : model.combat?.policy===SOURCE_INFANTRY_COMBAT_POLICY ? SOURCE_INFANTRY_COMBAT_ENGINE_VERSION : model.combat?.policy===INFANTRY_COMBAT_POLICY ? INFANTRY_COMBAT_ENGINE_VERSION : model.combat?.policy===ORDINARY_DEATH_POLICY ? ORDINARY_DEATH_ENGINE_VERSION : model.combat?.policy===ORDINARY_COMBAT_POLICY ? ORDINARY_COMBAT_ENGINE_VERSION : model.combat ? COMBAT_ENGINE_VERSION : WORLD_ENGINE_VERSION;
@@ -178,6 +190,7 @@ export class WorldSimulation {
     worldInteger(ticks, 1, C.stepTicks); if (ticks > C.tick - this.nextTick) worldFail('world-tick-overflow');
     worldInteger(workLimit, 0, C.replayWork);
     const save = worldClone(this.#value), events: WorldTrace[] = [], definitions = new Map(this.#model.entities.map(e => [e.id, e]));
+    const fromNextTick = save.nextTick, damage: CombatDamageObservation[] = [];
     const bindings = new Map(this.#model.navigation.map(b => [b.grid.movementClass, b]));
     const work = { entityVisits: 0, navigationExpansions: 0, transitions: 0 };
     const footprintWork = this.#model.footprints.reduce((sum, p) => sum + p.cells.length, 0);
@@ -295,7 +308,10 @@ export class WorldSimulation {
       }
       // Phase 4: due death completions, impacts, then stable-ID firing. Completed deaths release cells next tick.
       if (state.combat) work.transitions += stepCombat(this.#model, state, save.nextTick,
-        (kind, id, cell, value) => emit('combat', kind, id, cell, value));
+        (kind, id, cell, value) => emit('combat', kind, id, cell, value), value => {
+          if (damage.length >= C.trace) worldFail('world-damage-observation-limit');
+          damage.push(Object.freeze({ ...value }));
+        });
       if (slots.size && state.combat) {
         const dying = combatDyingActorIds(state.combat), blockedHeads = new Map<number, Set<number>>();
         for (const id of dying) { const e = byId.get(id)!, at = worldAddress(e.x, e.y), owners = blockedHeads.get(at) ?? new Set<number>(); owners.add(id); blockedHeads.set(at, owners); }
@@ -315,7 +331,12 @@ export class WorldSimulation {
       if (work.entityVisits + work.navigationExpansions + work.transitions > workLimit) worldFail('world-work-limit');
       save.nextTick++;
     }
-    this.#value = validateSave(this.#model, save); return { nextTick: this.nextTick, events, work };
+    this.#value = validateSave(this.#model, save);
+    const result = { nextTick: this.nextTick, events, work };
+    const value = Object.freeze({ modelSha256: this.#model.sha256, fromNextTick, toNextTick: this.nextTick,
+      damage: Object.freeze(damage) });
+    stepCombatObservations.set(result, { model: this.#model, value });
+    return result;
   }
 }
 
