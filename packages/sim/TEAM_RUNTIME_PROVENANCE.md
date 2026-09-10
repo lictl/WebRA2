@@ -86,3 +86,13 @@ and [TActionClass entry points](https://github.com/Phobos-developers/YRpp/blob/6
 locate CreateTeam, SpawnTeam and SpawnTeamAtWP. Their native semantics have not
 been admitted by this component. No new dependency or copied implementation is
 introduced by these header references.
+
+The optional complete-program union and private single-commit world receipt are
+original WebRA2 integration mechanisms under the same license. The union requires
+genuine programs with identical source/world/waypoint identities, exact overlapping
+templates and aggregate limits no greater than any input. Its separate policy and
+source program hashes do not alter existing compilation identities. The world
+receipt retains only the exact committed step/model pair without extending public
+save/result shapes. Neither mechanism establishes native team activation timing
+or dynamic actor authority; those remain part of
+[mission/team integration210](https://github.com/lictl/WebRA2/issues/210).
