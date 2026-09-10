@@ -53,15 +53,34 @@ remain separate work. The source capability is scoped to its documented construc
 and supported transition conditions; it does not grant automatic AI or native
 allocation closure.
 
-The first combined checkpoint passes31 focused original tests and type checking.
+The combined implementation passes31 focused original tests and type checking.
 Six new compound fixtures cover both profiles, birth versus movement, released
 actors, next-tick requests, cue order, every-boundary restore/replay, genuine source
 joins, future-constructor rejection and atomic resource failure. The related source,
 context, existing cell and existing team-world tests also pass. A separate private
 comparison against merged main211 passes3,392 exact comparisons across64 original
 models and1,536 ticks, including existing cell/object/cue combinations; identities,
-saves, traces, work, batches and replay match. Complete source-corpus, full-suite
-and independent review gates are still in progress.
+saves, traces, work, batches and replay match. That comparison relocates the old
+world adapter while reusing current dependencies; it is not an independent old-VM
+binary comparison. The final integrated suite passes1,219 tests/types,189 documents/955 links,
+674 publication paths, M0 and76 code/license outputs from145 inputs. The reviewer
+independently repeats the full suite and final source checks; hosted checks and
+its final-head COMMENT remain the last merge gates.
+
+The [source report](mission-team-cell-context.md) records19,756 raw source checks
+across five rehashed roots/eight members,56 native ranges/19,425 bytes/77 assertions,
+and private200/128-tick common-runtime cases with7,913 separate projection checks.
+The reviewer independently reproduced each. Those runtime cases use explicit
+component requests while whole-source readiness is false; they do not execute an
+original mission. Final source work accounting reserves two fixed construction
+counters and seven disjoint configurable counters. Fresh default-budget source
+facts remain byte-identical; both original fixtures pass8,395,216 and reject8,395,215.
+
+The build includes the exact separate GPL notice. Against the frozen215 browser
+build,11/12 JavaScript/CSS/HTML outputs are byte-identical; terrain.js adds only the
+private traversal WeakMap declaration and factory registration. The new source/VM
+adapter is not exposed in the browser yet. Existing actual Chrome215 evidence
+therefore remains the browser baseline; this headless change has no new UI run.
 
 A fresh [whole-source census](analysis/mission-team-cell-dispatch-census.json) reads
 all438 local files and preserves complete declarations/instructions. It retains

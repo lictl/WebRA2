@@ -75,25 +75,36 @@ The active wave has exclusive ownership:
   independent review of212 source/context and root integration in
   local/reviews/mission-team-cell-212. Preserve frozen servers through4197.
 
-212 functional root02f224c and worker63a48ed pass31 focused tests/types. The
-private no-team comparison covers64 models,1,536 ticks and3,392 exact results.
-Fresh438-file preflight retains254/461 required diagnostics and null authorities.
-All1 RA2 spawn archetypes and2/4 YR archetypes meet the constructor subset;4/1
-initial mobile actors exceed the supported context, so both full invariant gates
-remain false. Full1,219 original tests/types,189 documents/950 links,671 tracked
-publication paths, M0 and76 outputs/145 inputs passed before the final census
-commit; document/publication checks will be repeated for the final evidence head.
-The native/raw evidence and independent review are still in progress. browser_feasibility reviews the new source/context
-and root VM/world; its existing common runtime is unchanged. Root distribution
-includes the separate GPL notice. Private local/probe212.mjs and local/team212/
-contain source outputs and must never be published.
+212 integrated code8cf3f9a includes final worker303bc6b, with31 focused tests
+and final full1,219 passing:189 docs/955 links,674 publication paths, M0,
+76 outputs/145 approved inputs. Native56 ranges/19,425 bytes/77 checks, raw19,756
+source assertions, private200/128-tick context/replay and7,913 projection assertions
+have independent reproduction. Source work now reserves two fixed counters and
+seven disjoint configurable counters;8,395,216 passes and8,395,215 rejects in both
+original fixtures. Fresh default-budget source hashes are unchanged. The existing
+no-team comparison covers64 original models/1,536 ticks/3,392 exact results while
+reusing current dependencies. Fresh438-file complete preflight still has null
+opening authorities and254/461 required diagnostics. Independent full checks and fresh source reproduction pass. Hosted checks and
+exact-head COMMENT review follow this evidence-only handoff update before ordinary merge.
 
-[PCM playback216](https://github.com/lictl/WebRA2/issues/216) is queued for
-browser_feasibility after its212 review: bounded genuine decoded-PCM output,
-user-gesture activation and lifecycle, with native selection/mission dispatch
-separate. Worker213 opens a linked PR after coherent evidence commits. Reviewers must inspect exact
-heads outside their authored paths. Continue implementation and routine GitHub
-review/merge work autonomously; Chrome is the development browser per D17.
+[Allocation PR218](https://github.com/lictl/WebRA2/pull/218) is source-reviewed at
+242979cc0aafeb09b1e1b0a61cdf696d20e25090 by root. Its aggregate work allowance finding
+is fixed;10 original cases and independent fresh438/raw49,788+22,436/native102 checks
+pass. The earlier full independent suite passed1,206; author final1,207 and
+hosted34490074735 pass. Existing source diagnostics and all runtime/campaign gates
+remain unchanged. Root next composes the exact source with merged212, packages its
+notice and updates the handoff; a nonauthor reviews that final composition.
+
+[PCM playback216](https://github.com/lictl/WebRA2/issues/216) is next for
+browser_feasibility after final212 review: bounded genuine decoded-PCM output,
+user-gesture activation and lifecycle, actual Chrome original-tone evidence.
+[Sound/EVA policy219](https://github.com/lictl/WebRA2/issues/219) is independently
+assigned to bootstrap_review, new content-only source policy from genuine cue/audio
+catalogs with explicit fresh-process initialization. Native caller overrides,
+controls and sample partitions retain unknown runtime state; source preparation
+never chooses a random alternative or grants playback authority. Root owns shared
+contracts, VM/world/browser composition, distribution, handoff and ordinary merges.
+Chrome remains the development browser under D17. No human input is needed.
 
 [Object combat PR207](https://github.com/lictl/WebRA2/pull/207) merged as
 3543b567d6c652ea0648a3f5832fbcee18156ddc, reviewed at
