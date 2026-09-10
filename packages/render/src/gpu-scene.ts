@@ -44,6 +44,13 @@ function frameData(frame: GpuFrame): OwnedFrame { const data = frames.get(frame)
 export function compileGpuScene(terrainScene: TerrainScene, batch?: SpriteBatch, options: Partial<GpuPrepareLimits> = {}): GpuScene {
   const cap = limits(options), terrain = describeTerrainRasters(terrainScene);
   for (const key of ['samples', 'viewportDimension', 'viewportPixels', 'coordinate'] as const) cap[key] = Math.min(cap[key], terrain.limits[key]);
+  for (const p of terrain.placements) {
+    const sprite = terrain.sprites[p.sprite]!;
+    for (const coordinate of [p.left, p.top, p.left + sprite.left, p.top + sprite.top,
+      p.left + sprite.right, p.top + sprite.bottom, sprite.left, sprite.top, sprite.right, sprite.bottom]) {
+      integer(coordinate, -cap.coordinate, cap.coordinate, 'gpu-coordinate-limit');
+    }
+  }
   const sprites = batch === undefined ? null : describeSpriteRasters(batch, cap.coordinate);
   const sources = [...terrain.sprites.flatMap(s => s.patches), ...(sprites?.resources ?? [])];
   if (sources.length > cap.rasters) fail('gpu-raster-count');
