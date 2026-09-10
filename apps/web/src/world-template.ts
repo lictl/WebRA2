@@ -8,6 +8,8 @@ export const worldTemplate = `<section class="world-panel" hidden aria-labelledb
   <div class="world-panel-switch" role="group"><button id="world-open-orders" data-world="ordersPanel" aria-controls="world-orders-panel" aria-expanded="true"></button><button id="world-open-saves" data-world="savesPanel" aria-controls="world-saves-panel" aria-expanded="false"></button><button id="world-open-diagnostics" data-world="diagnosticsPanel" aria-controls="world-diagnostics-panel" aria-expanded="false"></button></div>
   <div class="world-panel-body">
     <section id="world-orders-panel" aria-labelledby="world-open-orders">
+      <p class="scope-note" id="world-group-help" data-world="controlGroupsHelp"></p>
+      <p id="world-group-notice" role="status" aria-live="polite" aria-atomic="true"></p>
       <div class="world-selection-heading"><p id="world-selection-status" role="status" aria-live="polite"></p><button id="world-clear" class="quiet" data-world="clearSelection"></button></div>
       <ul id="world-hud" class="world-hud"></ul><p id="world-hud-omitted" class="scope-note"></p>
       <p class="scope-note world-empty-selection" id="world-selection-help" data-world="selectionHelp"></p>
@@ -17,7 +19,7 @@ export const worldTemplate = `<section class="world-panel" hidden aria-labelledb
         <p class="scope-note" data-world="keyboardSelection"></p><button id="world-picked" data-world="picked"></button>
         <form id="world-target"><label><span data-world="targetX"></span><input id="world-x" type="number" min="0" max="511" step="1" required value="1"></label><label><span data-world="targetY"></span><input id="world-y" type="number" min="0" max="511" step="1" required value="1"></label><button id="world-move" data-world="move"></button></form>
       </details>
-      <details class="world-help"><summary data-world="controlsHelp"></summary><p class="scope-note" data-world="directControls"></p><p class="scope-note" data-world="timing"></p><div id="world-camera-help"></div></details>
+      <details class="world-help"><summary data-world="controlsHelp"></summary><p class="scope-note" data-world="directControls"></p><p class="scope-note" data-world="timing"></p><p class="scope-note" data-world="controlGroupsScope"></p><div id="world-camera-help"></div></details>
     </section>
     <section id="world-saves-panel" aria-labelledby="world-open-saves" hidden>
       <h3 data-world="persistence"></h3><p class="scope-note" data-world="storage"></p>

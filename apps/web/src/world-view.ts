@@ -2,8 +2,9 @@
 // Copyright 2026 WebRA2 contributors. No timers or rendered positions enter simulation state.
 import type { TerrainController } from './terrain-controller.ts';
 import type { SaveSlot } from './world-storage.ts';
-import { worldText, worldEventText } from './world-i18n.ts';
+import { worldText, worldEventText, controlGroupText } from './world-i18n.ts';
 import { worldShortcut } from './terrain-gestures.ts';
+import { controlGroupShortcut } from './world-control-groups.ts';
 import { WorldTickSchedule } from './world-scheduler.ts';
 import './world.css';
 import { worldTemplate } from './world-template.ts';
@@ -49,6 +50,8 @@ export function mountWorld(root: HTMLElement, controller: TerrainController): ()
   const sourceHome = root.querySelector<HTMLElement>('#terrain-static-details');
   const place = (parent: Element | null, child: Element | null) => { if (parent && child && child.parentElement !== parent) parent.append(child); };
   const key = (event: KeyboardEvent) => {
+    const state=controller.state,group=controlGroupShortcut(event,event.target===canvas&&document.activeElement===canvas&&!canvas.isContentEditable,state.phase==='ready'&&!state.busy&&!state.verifyingReplay);
+    if(group&&controller.controlGroup(group.slot,group.assign)){event.preventDefault();return;}
     const action = worldShortcut(event.key, event.target === canvas, event); if (!action || event.repeat) return;
     event.preventDefault(); controller.cancelInteraction();
     if (action === 'run') toggleRunning(); else if (action === 'stop') void controller.order(); else if (action === 'clear') controller.clearSelection(); else movePicked();
@@ -87,6 +90,7 @@ export function mountWorld(root: HTMLElement, controller: TerrainController): ()
     attackTarget.disabled=state.busy;get<HTMLButtonElement>('attack').disabled=!attackTarget.value||!controller.canAttack(Number(attackTarget.value));
     get('attack-status').textContent=targetState?`${t('health')}: ${targetState.health} · ${t(targetState.health===0?(targetState.combat?.corpseIndex===null?'dying':'destroyed'):'alive')}`:'';
     get('selection-help').hidden = state.selectedEntities.length > 0;
+    get('group-notice').textContent=controlGroupText(state.locale,state.controlGroupFeedback);
     get('selection-status').textContent = `${t('selectionCount')}: ${state.selectedEntities.length} / 64`;
     const hud = get('hud'); hud.replaceChildren();
     for (const id of state.selectedEntities.slice(0, 8)) {
