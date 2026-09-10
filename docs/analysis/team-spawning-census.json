@@ -1,0 +1,260 @@
+{
+  "schemaVersion": 1,
+  "scope": "private read-only source compilation and WebRA2 movement/compound replay; no original game execution, trigger firing or browser acceptance",
+  "nativeLedgerSha256": "17661c06c01ecc2306393d4fcb1bb747dd7f2686f76537c418b41e87e1757de4",
+  "profiles": [
+    {
+      "profile": "ra2",
+      "activationSha256": "d4fd15dd4a639efed18ad6a5756c42bf7b35eff0422637c094cdb9011067908d",
+      "sourceOracle": {
+        "profile": "ra2",
+        "sourcePlanCount": 75,
+        "sourcePlanScalarLeaves": 2429,
+        "assertions": 2430,
+        "missionSha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+        "projectionSha256": "c3e1aa9604b69187001e58e3d22606871036046d20f6a969e2c929d5aed60fe2",
+        "sourceSupported": 46,
+        "completeScriptSpawnActions": 0,
+        "completeScriptSpawnTeams": 0
+      },
+      "inputs": [
+        {
+          "role": "rules",
+          "path": "rules.ini",
+          "source": {
+            "root": {
+              "sourceId": "file:424",
+              "size": 281888480,
+              "sha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914"
+            },
+            "absoluteOffset": 118552784,
+            "size": 541915,
+            "sha256": "fd1e95cea0306ea78049dc81c8cd816e18c28c496872a1ff02edd50bd082062f"
+          }
+        },
+        {
+          "role": "art",
+          "path": "art.ini",
+          "source": {
+            "root": {
+              "sourceId": "file:424",
+              "size": 281888480,
+              "sha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914"
+            },
+            "absoluteOffset": 118306944,
+            "size": 245825,
+            "sha256": "b477f861063a9509e87b7836b78190204c73bea5ea5595a842c456f5920ea223"
+          }
+        },
+        {
+          "role": "ai",
+          "path": "ai.ini",
+          "source": {
+            "root": {
+              "sourceId": "file:424",
+              "size": 281888480,
+              "sha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914"
+            },
+            "absoluteOffset": 118221968,
+            "size": 84972,
+            "sha256": "1feac6ddea6886b177ddf7e5f8580b7a99a63f12684f2cbb42831671bb7a8a79"
+          }
+        },
+        {
+          "role": "mission",
+          "path": "all01t.map",
+          "source": {
+            "root": {
+              "sourceId": "file:152",
+              "size": 3823604,
+              "sha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74"
+            },
+            "absoluteOffset": 308,
+            "size": 146240,
+            "sha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c"
+          }
+        }
+      ],
+      "runtime": {
+        "mode": "each eligible source action in isolation from the same selected base world",
+        "finalReplayComparisons": 0,
+        "runs": []
+      }
+    },
+    {
+      "profile": "yr",
+      "activationSha256": "c209e79331b773a7cc8b212ce9e3f52970b0e2daaedf856c09311e1b66a45e52",
+      "sourceOracle": {
+        "profile": "yr",
+        "sourcePlanCount": 104,
+        "sourcePlanScalarLeaves": 3349,
+        "assertions": 3350,
+        "missionSha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+        "projectionSha256": "04cb8f852b43ca9c1499ff228e47e91b823b91508809cb9a4c9e49847414d9a3",
+        "sourceSupported": 83,
+        "completeScriptSpawnActions": 8,
+        "completeScriptSpawnTeams": 7
+      },
+      "inputs": [
+        {
+          "role": "rules",
+          "path": "rulesmd.ini",
+          "source": {
+            "root": {
+              "sourceId": "file:403",
+              "size": 4813968,
+              "sha256": "0c0a64e741bdecdc3843a0beb6bb1f58aa2df5b86eb3bc4a953821ec98f3d6ec"
+            },
+            "absoluteOffset": 2220316,
+            "size": 743215,
+            "sha256": "3d341ef8a13a4b5ab24af2eef48ac94931ac2bb87d950fe3330a07e2d25672ef"
+          }
+        },
+        {
+          "role": "art",
+          "path": "artmd.ini",
+          "source": {
+            "root": {
+              "sourceId": "file:426",
+              "size": 204527696,
+              "sha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d"
+            },
+            "absoluteOffset": 6378496,
+            "size": 336535,
+            "sha256": "e1f0378394313c04ebbd5073f47785ee3e46f1b3c62d65724e8f3c310ee7ba31"
+          }
+        },
+        {
+          "role": "ai",
+          "path": "aimd.ini",
+          "source": {
+            "root": {
+              "sourceId": "file:426",
+              "size": 204527696,
+              "sha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d"
+            },
+            "absoluteOffset": 6239952,
+            "size": 138538,
+            "sha256": "5df41eaec00a78d0760ef5eecdf27d65ae1cd537309c7eac973318266986f89d"
+          }
+        },
+        {
+          "role": "mission",
+          "path": "all01umd.map",
+          "source": {
+            "root": {
+              "sourceId": "file:416",
+              "size": 4419780,
+              "sha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3"
+            },
+            "absoluteOffset": 260,
+            "size": 301077,
+            "sha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0"
+          }
+        }
+      ],
+      "runtime": {
+        "mode": "each eligible source action in isolation from the same selected base world",
+        "finalReplayComparisons": 8,
+        "runs": [
+          {
+            "index": 0,
+            "catalogSha256": "4e6cd9b81e0d3fe842363cec60231c4802d83efb38b0bcbc4687460c9c955ffc",
+            "members": 1,
+            "spawnedActors": 1,
+            "actorsMovedByTick40": 1,
+            "initialTickOrders": 1,
+            "restoredSubsequentCheckpoints": 39,
+            "finalNextTick": 40,
+            "finalStateSha256": "dbbce39c42ec0d05bdc4bb1af29311d33d53e761986775370d1ea3495ca21d92",
+            "postInitialTickTraceSha256": "184d21c84ca91fbf22106053f64ef9bf85add0e3cf1400ac7f097fbca10e9960"
+          },
+          {
+            "index": 1,
+            "catalogSha256": "5e3dc2b7834d62b519d4cc0bf26c9a5a124b4d30c59fbbcf62944cf1d038f586",
+            "members": 3,
+            "spawnedActors": 3,
+            "actorsMovedByTick40": 3,
+            "initialTickOrders": 3,
+            "restoredSubsequentCheckpoints": 39,
+            "finalNextTick": 40,
+            "finalStateSha256": "89c490ca4281f5a8d37c0c550194d04305e44b0fa6fc2e385839d835c54dace9",
+            "postInitialTickTraceSha256": "700d675bc3f902d76098b1f7a49e731796419c0e2384cda9b6417d78b5d67976"
+          },
+          {
+            "index": 2,
+            "catalogSha256": "c31f0beb7715855b4feea1e878bf56e9c5ca2952d951b20fbefe9704934a900a",
+            "members": 1,
+            "spawnedActors": 1,
+            "actorsMovedByTick40": 1,
+            "initialTickOrders": 1,
+            "restoredSubsequentCheckpoints": 39,
+            "finalNextTick": 40,
+            "finalStateSha256": "332c68399d78c3034ec3baec2350d1655f57d204e734016403498cb6f617b09d",
+            "postInitialTickTraceSha256": "a3979072b35f7e53ccbde03b5ca59c1096dd69ac27dbd9d961f5d856b2cf90ae"
+          },
+          {
+            "index": 3,
+            "catalogSha256": "20c6e000c274dfe8bc483911ccbde9bc1ec2c843270e57725fbbc5b68d005659",
+            "members": 1,
+            "spawnedActors": 1,
+            "actorsMovedByTick40": 1,
+            "initialTickOrders": 1,
+            "restoredSubsequentCheckpoints": 39,
+            "finalNextTick": 40,
+            "finalStateSha256": "769929fc0cf0dd24463dd480fa3d3e63de8cf2ec1b4ce3b485f344393aaa0ed3",
+            "postInitialTickTraceSha256": "5e71d189193ea81e1c69828869bc69b941f2ab3a842171464d0faf1e22176ae5"
+          },
+          {
+            "index": 4,
+            "catalogSha256": "e5d65a3b0e8cd4d29a6892ec09e352f6ed5ca0ef0b209fe5b79ef23f3f8da184",
+            "members": 1,
+            "spawnedActors": 1,
+            "actorsMovedByTick40": 1,
+            "initialTickOrders": 1,
+            "restoredSubsequentCheckpoints": 39,
+            "finalNextTick": 40,
+            "finalStateSha256": "544e4e7da099ef3f4881578ba465a85597da90ce774ee05ff4bd886cb2aff787",
+            "postInitialTickTraceSha256": "697da774492a8f2cab9046d71c92b3a78e734a700d189fbc38d92b1cef7c563d"
+          },
+          {
+            "index": 5,
+            "catalogSha256": "338558b59854570a5629dd5486378e0b6c118fafcd1bb32fc54e1f8d8f46fa91",
+            "members": 1,
+            "spawnedActors": 1,
+            "actorsMovedByTick40": 1,
+            "initialTickOrders": 1,
+            "restoredSubsequentCheckpoints": 39,
+            "finalNextTick": 40,
+            "finalStateSha256": "779b87b1d329fe1fa753989f35deed17e4ddadd6f5ccb335f32626c5db1dbf7d",
+            "postInitialTickTraceSha256": "a54ebf599affe30eb29556a21a45887ace5af5fbfc312d4849d9d4404bf673d4"
+          },
+          {
+            "index": 6,
+            "catalogSha256": "0e330c62e76f67aa163d636b6adf36f1fad34dee82eab37e9bd7504907f33b3b",
+            "members": 1,
+            "spawnedActors": 1,
+            "actorsMovedByTick40": 1,
+            "initialTickOrders": 1,
+            "restoredSubsequentCheckpoints": 39,
+            "finalNextTick": 40,
+            "finalStateSha256": "c6ea01df5191c7fedd48d6fc08bae27d8ceb5f1e38b7622fda6866fd1f5ed33f",
+            "postInitialTickTraceSha256": "dadaca324b657832a1f704bada69bd1aed782eab204645ae1080fb55c9ffe09b"
+          },
+          {
+            "index": 7,
+            "catalogSha256": "4d5b9db1e07f42a8c94ee58ae215612e1c19d3840b4dffe5a692d95bbb541309",
+            "members": 3,
+            "spawnedActors": 3,
+            "actorsMovedByTick40": 3,
+            "initialTickOrders": 3,
+            "restoredSubsequentCheckpoints": 39,
+            "finalNextTick": 40,
+            "finalStateSha256": "924a44d0d94c742ecb7efc827e84dbeb4ac46fb67ed4e40e29defcca4f64f9c2",
+            "postInitialTickTraceSha256": "f12e03d82657b021d463d2a58b352548e1572b4e011a7d85885cfe0aa46f88b0"
+          }
+        ]
+      }
+    }
+  ]
+}
