@@ -2,7 +2,7 @@
 // Original content-bound world model. Native interpretation belongs to the content adapter.
 import type { ContentIdentity } from '../../contracts/src/index.ts';
 import { canonicalText } from './canonical.ts';
-import { assertCombatModel, type CombatModel } from './combat-model.ts';
+import { combatDeathBinding, assertCombatModel, type CombatModel } from './combat-model.ts';
 import { worldFail, worldRecord, worldList, worldInteger, worldSymbol as symbol, worldSourceHash as hash, worldContent, worldAddress, worldPosition, worldHash, WORLD_LIMITS } from './world-values.ts';
 export * from './world-values.ts';
 import { navigationCell, NAVIGATION_POLICY, type NavigationGrid } from './navigation.ts';
@@ -101,6 +101,11 @@ export function createWorldModel(input: WorldModelInput): WorldModel {
     for (const a of combat!.actors) {
       const d = byId.get(a.entityId);
       if (!d || d.maximumHealth === null || a.weapons.length > 0 && d.owner === null) worldFail('world-combat-actor');
+    }
+    const death=combatDeathBinding(combat!);
+    if(death)for(const a of death.rules.actors){
+      const d=byId.get(a.entityId)!;
+      if(d.kind!=='infantry'||d.owner===null||!d.blocksCell||d.initialHealth===0||d.navigationClass===null||footprintIds.has(d.id))worldFail('world-death-actor');
     }
   }
   const common = { policy: WORLD_MODEL_POLICY, motionPolicy: WORLD_MOTION_POLICY, contentIdentity, sourceSha256, definitionsSha256,

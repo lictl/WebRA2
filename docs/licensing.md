@@ -248,3 +248,9 @@ GPL-3.0-or-later WebRA2 code. Distributions include the
 and applicable corresponding source. The web build includes both notices. The
 source compiler and pure scheduler adopt no new external dependency; live
 attack admission and world resolution are separate integration work.
+
+The optional ordinary world death policy is original GPL-3.0-or-later WebRA2 code.
+Its [notice](../packages/sim/ORDINARY_DEATH_PROVENANCE.md), GPL text and applicable
+corresponding source accompany distributions. The browser build includes the notice
+separately from native source death preparation and random arithmetic. Existing MIT
+world modules compose this policy; no new external dependency is adopted.
