@@ -31,6 +31,8 @@ Recent reviewed merges:
 
 | Component | PR / merge SHA | Exact-head evidence |
 | --- | --- | --- |
+| Native combat arithmetic | [157](https://github.com/lictl/WebRA2/pull/157), `48bb1908116166e30c01c537923977ba90a77e0c` | 772 tests; independent source and final integration COMMENT reviews on PR; numerical stages only |
+| Shared group destinations | [156](https://github.com/lictl/WebRA2/pull/156), `f7ece4216bc520d889a8350407c5dabcb383e055` | 765 tests; independent source and final distribution COMMENT reviews on PR; explicit WebRA2 policy |
 | Native random primitive | [154](https://github.com/lictl/WebRA2/pull/154), `a35c989b4d35f3b635de54d7c3c20dc6ef6d9130` | 759 tests; independent source and [integration review](https://github.com/lictl/WebRA2/pull/154#pullrequestreview-5162531908); explicit state only, global sequencing remains open |
 | Invisible impact context | [148](https://github.com/lictl/WebRA2/pull/148), `fae39c705cdbe3d20fa78768eb4c225d18bbe962` | 733 tests; source review and [integration review](https://github.com/lictl/WebRA2/pull/148#pullrequestreview-5162400221); context only, no weapon execution |
 | Animation effect closure | [150](https://github.com/lictl/WebRA2/pull/150), `7a8c5e66dde9068cd4c21ac088dcb4e496b6ff08` | 747 tests; source review and [integration review](https://github.com/lictl/WebRA2/pull/150#pullrequestreview-5162434183); ordinary effect classification only |
@@ -131,7 +133,7 @@ the coordinator after independent exact-head COMMENT review and successful check
 
 | Role | Current work and exclusive paths | Branch / private worktree |
 | --- | --- | --- |
-| Coordinator | #147 actor modifiers/firing/death; shared configuration/handoff and reviews | `codex/147-combat-modifiers` at root |
+| Coordinator | #147 actor modifiers/firing/death; shared configuration/handoff and reviews | `codex/147-house-modifiers` at root |
 | browser_feasibility | #149 RTS selection/group orders/HUD; apps/web/**, tests/browser/**, tests/web-ui/** and focused docs; sole native UI owner | `codex/149-world-controls`, `local/worktrees/world-controls` |
 | mix_reader | Shared group planner review, then #155 actor death prerequisites; new content source/tests/provenance | `codex/155-combat-death`, `local/worktrees/combat-death` (creating); preserved `local/worktrees/native-random` |
 | bootstrap_review | #152 source-bound team movement transactions and reusable group destination policy; new sim source/tests/provenance | `codex/152-team-runtime`, `local/worktrees/team-runtime` |
@@ -151,9 +153,11 @@ animation closure [PR150](https://github.com/lictl/WebRA2/pull/150) are merged.
 The coordinator independently reproduced their complete native range ledgers,
 source projections and extra adversarial cases. Current main passes747 public
 tests,116 docs/607 links and46 build outputs/105 inputs. These components do not
-authorize attacks by themselves. Root147 private analysis establishes campaign
-house difficulty/country modifier paths and firing/death dependencies;151 implements
-the separately reviewed random primitive without attaching native global sequencing.
+authorize attacks by themselves. Root147 now implements source-bound country and explicit per-house difficulty
+modifiers. Reviewed157 supplies bounded numerical stages;151 supplies the native
+random primitive. Neither is attached to original combat yet.155 investigates
+ordinary actor death prerequisites, including rules DeathAnims references versus
+global-art animation definitions.
 
 Team152 implements existing bound members and source-admitted script movement/jumps,
 with atomic world/team checkpoints. Its distinct per-member destination assignment
