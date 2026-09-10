@@ -1,0 +1,442 @@
+{
+  "schemaVersion": 1,
+  "method": "static-pinned-PE-ranges; code endpoints checked with Capstone 5.0.6; no executable run",
+  "scope": "action4/7/80 operand and branch, ordinary TaskForce creation, initial health; not native placement/timing/RNG equivalence",
+  "images": [
+    {
+      "profile": "ra2",
+      "executable": "game.exe",
+      "size": 5077312,
+      "sha256": "73288c03b58d370be268ca6d156b4e33bfdb2066dc980359467d8852ff3b00df",
+      "ranges": [
+        {
+          "label": "action-loader",
+          "kind": "code",
+          "start": "0x6ad860",
+          "endExclusive": "0x6adaad",
+          "offset": 2807904,
+          "size": 589,
+          "sha256": "b53ee2766373b290952c8114f5f9f3471b4edf3898239d47157e239403d6cb66"
+        },
+        {
+          "label": "literal-team-find-or-allocate",
+          "kind": "code",
+          "start": "0x6bfb10",
+          "endExclusive": "0x6bfb93",
+          "offset": 2882320,
+          "size": 131,
+          "sha256": "d66776c946dd3118de9e5146670d005df154534ea9fdc17755d757661640d0a7"
+        },
+        {
+          "label": "execute-dispatch",
+          "kind": "code",
+          "start": "0x6adae0",
+          "endExclusive": "0x6adb18",
+          "offset": 2808544,
+          "size": 56,
+          "sha256": "5fc5216e2013d7d51bbca53a0dbfef9ac834d1183b06de8e5d88c929f7814fac"
+        },
+        {
+          "label": "create-team-action",
+          "kind": "code",
+          "start": "0x6aec7d",
+          "endExclusive": "0x6aecb3",
+          "offset": 2813053,
+          "size": 54,
+          "sha256": "2a6b84da5e738539790d3f5ab60f5dfb0998ada3ecfb485eb56f261e8dd6dc46"
+        },
+        {
+          "label": "reinforcement-actions",
+          "kind": "code",
+          "start": "0x6aecd4",
+          "endExclusive": "0x6aed1f",
+          "offset": 2813140,
+          "size": 75,
+          "sha256": "2e15480ee0c62a0e97d8d716760e11bc06335170f6d14d9e03026e9edb46498a"
+        },
+        {
+          "label": "create-team-allocation",
+          "kind": "code",
+          "start": "0x6bec80",
+          "endExclusive": "0x6bed0a",
+          "offset": 2878592,
+          "size": 138,
+          "sha256": "54a39ee9595d34dba0d18c4aeabc4f6ff0a33a18b773a8790c47a88946f0fad3"
+        },
+        {
+          "label": "reinforcement-source-and-waypoint",
+          "kind": "code",
+          "start": "0x639970",
+          "endExclusive": "0x639a82",
+          "offset": 2333040,
+          "size": 274,
+          "sha256": "2f0b3b5a5552d0cc97656775fb68e83b2bad4a86831f307bf044b9e0b71d0add"
+        },
+        {
+          "label": "reinforcement-actor-generator",
+          "kind": "code",
+          "start": "0x639da0",
+          "endExclusive": "0x63a04a",
+          "offset": 2334112,
+          "size": 682,
+          "sha256": "c969ba2b250045937cbcd5d47ca740a90d2ffa499dfa30fa401619853ca0a5c8"
+        },
+        {
+          "label": "infantry-create-object",
+          "kind": "code",
+          "start": "0x509ef0",
+          "endExclusive": "0x509f1b",
+          "offset": 1089264,
+          "size": 43,
+          "sha256": "77299e156b6b6cb7e95ee5199682e33ad687f6b7c0d1bd2dc3f388c91203ea4e"
+        },
+        {
+          "label": "unit-create-object",
+          "kind": "code",
+          "start": "0x70aa80",
+          "endExclusive": "0x70aaab",
+          "offset": 3189376,
+          "size": 43,
+          "sha256": "c697f3315abc2e834a12812c9e6a3b5d3a5b953b68e8a5bc1ad25ac6b0f27c62"
+        },
+        {
+          "label": "infantry-constructor-init-call",
+          "kind": "code",
+          "start": "0x4ff640",
+          "endExclusive": "0x4ff734",
+          "offset": 1046080,
+          "size": 244,
+          "sha256": "870130bc190f012aa61c4beca61e9b81991f091531864227fe6d3079c79db9a4"
+        },
+        {
+          "label": "infantry-health-init",
+          "kind": "code",
+          "start": "0x4ff941",
+          "endExclusive": "0x4ff959",
+          "offset": 1046849,
+          "size": 24,
+          "sha256": "019a3b5b10071fecfdd9f105f01970517c93ea6e8acc55441fbf7d813b0877ad"
+        },
+        {
+          "label": "unit-health-init",
+          "kind": "code",
+          "start": "0x6fa5c6",
+          "endExclusive": "0x6fa5fa",
+          "offset": 3122630,
+          "size": 52,
+          "sha256": "d97089f6e2128026f1d76e22cd82b08d689022f782e853ac8a2f09e4d7c9543e"
+        },
+        {
+          "label": "infantry-type-vtable-write",
+          "kind": "code",
+          "start": "0x509c3b",
+          "endExclusive": "0x509c41",
+          "offset": 1088571,
+          "size": 6,
+          "sha256": "83c2ff473e82f138b4e17ed1f8c5eb0c1c9edbac4314a8a8eaf75df1e1146bed"
+        },
+        {
+          "label": "unit-type-vtable-write",
+          "kind": "code",
+          "start": "0x70a6ef",
+          "endExclusive": "0x70a6f5",
+          "offset": 3188463,
+          "size": 6,
+          "sha256": "0c1c622ec4a147d93812f9364e9192b9be6cf676944c5f02ed3f61acf9803f73"
+        },
+        {
+          "label": "mode-one-team",
+          "kind": "data",
+          "start": "0x6adab4",
+          "endExclusive": "0x6adab8",
+          "offset": 2808500,
+          "size": 4,
+          "sha256": "5f690e0d9994c6c33ee8de8394bd3bc7a7aa022a90258dfc62806631fc50c23f",
+          "uint32Value": "0x6ad8c7"
+        },
+        {
+          "label": "mode-five-team",
+          "kind": "data",
+          "start": "0x6adac4",
+          "endExclusive": "0x6adac8",
+          "offset": 2808516,
+          "size": 4,
+          "sha256": "5f690e0d9994c6c33ee8de8394bd3bc7a7aa022a90258dfc62806631fc50c23f",
+          "uint32Value": "0x6ad8c7"
+        },
+        {
+          "label": "action-four-entry",
+          "kind": "data",
+          "start": "0x6af760",
+          "endExclusive": "0x6af764",
+          "offset": 2815840,
+          "size": 4,
+          "sha256": "59f2984ece37d5228b9bb68afde488d2cce00062059aab72c521942970608a73",
+          "uint32Value": "0x6aec7d"
+        },
+        {
+          "label": "action-seven-entry",
+          "kind": "data",
+          "start": "0x6af76c",
+          "endExclusive": "0x6af770",
+          "offset": 2815852,
+          "size": 4,
+          "sha256": "f3a0d01aec76bc67d138b7f61fc06b59356eee6c9968cbbe080b6e5ca434484d",
+          "uint32Value": "0x6aecd4"
+        },
+        {
+          "label": "action-eighty-entry",
+          "kind": "data",
+          "start": "0x6af890",
+          "endExclusive": "0x6af894",
+          "offset": 2816144,
+          "size": 4,
+          "sha256": "727811d4f2ccaf44e7dbc5020c243159f68ab1b954516150e58bf02c1f801a60",
+          "uint32Value": "0x6aecf6"
+        },
+        {
+          "label": "infantry-create-slot",
+          "kind": "data",
+          "start": "0x7a3b04",
+          "endExclusive": "0x7a3b08",
+          "offset": 3816196,
+          "size": 4,
+          "sha256": "2142b00db424011533d950d687c2429488deb116b9dd73e42dcde0bb05290a5b",
+          "uint32Value": "0x509ef0"
+        },
+        {
+          "label": "unit-create-slot",
+          "kind": "data",
+          "start": "0x7ae3b4",
+          "endExclusive": "0x7ae3b8",
+          "offset": 3859380,
+          "size": 4,
+          "sha256": "6a1822d84713eb9849288a33e7d150b7153a1f82d59c876449f3bae29ed62793",
+          "uint32Value": "0x70aa80"
+        }
+      ]
+    },
+    {
+      "profile": "yr",
+      "executable": "gamemd.exe",
+      "size": 5286208,
+      "sha256": "3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600",
+      "ranges": [
+        {
+          "label": "action-loader",
+          "kind": "code",
+          "start": "0x6dd5b0",
+          "endExclusive": "0x6dd87d",
+          "offset": 3003824,
+          "size": 717,
+          "sha256": "4c10f8e7bb69e52af2e0405b71fe405d3b46d9f09ecd5497bf567386b0a03806"
+        },
+        {
+          "label": "literal-team-find-or-allocate",
+          "kind": "code",
+          "start": "0x6f1920",
+          "endExclusive": "0x6f19a3",
+          "offset": 3086624,
+          "size": 131,
+          "sha256": "d17bdc42a0f0c65be02aa57e6d656032519ecd0a1700b400b61df0f33c57cc11"
+        },
+        {
+          "label": "execute-dispatch",
+          "kind": "code",
+          "start": "0x6dd8b0",
+          "endExclusive": "0x6dd8ee",
+          "offset": 3004592,
+          "size": 62,
+          "sha256": "1ca5f0ea2f71687b8c44779f82f912bde7a722986102d9ae905b6c678d61714d"
+        },
+        {
+          "label": "create-team-action",
+          "kind": "code",
+          "start": "0x6deb57",
+          "endExclusive": "0x6deb8d",
+          "offset": 3009367,
+          "size": 54,
+          "sha256": "2a904ec74f74859d8cbd4bb95814b95f9f0f1f977b5d85cb3e4d58d600d2916b"
+        },
+        {
+          "label": "reinforcement-actions",
+          "kind": "code",
+          "start": "0x6debae",
+          "endExclusive": "0x6debf9",
+          "offset": 3009454,
+          "size": 75,
+          "sha256": "46991051d94b6883b73444f2c8b01d6787f1df7018eb3c725446e0a9cdc04fc8"
+        },
+        {
+          "label": "create-team-allocation",
+          "kind": "code",
+          "start": "0x6f09c0",
+          "endExclusive": "0x6f0a6e",
+          "offset": 3082688,
+          "size": 174,
+          "sha256": "a0498528b3b32e4304f0a3c407ad0f33ab81e55cb2c31f8549fca2b82f3778b3"
+        },
+        {
+          "label": "reinforcement-source-and-waypoint",
+          "kind": "code",
+          "start": "0x65d8e0",
+          "endExclusive": "0x65d9ec",
+          "offset": 2480352,
+          "size": 268,
+          "sha256": "6fa227d4121c1422e7cbba8d7894eb1e779fbf0a2f335dfb02e3c8de54520775"
+        },
+        {
+          "label": "reinforcement-actor-generator",
+          "kind": "code",
+          "start": "0x65dd30",
+          "endExclusive": "0x65e00e",
+          "offset": 2481456,
+          "size": 734,
+          "sha256": "aa51ebcbcae2674b8534e5f6be4f682de07b2b12ff01277ec605512b5bca7dcf"
+        },
+        {
+          "label": "team-owner-resolution",
+          "kind": "code",
+          "start": "0x6f2070",
+          "endExclusive": "0x6f209c",
+          "offset": 3088496,
+          "size": 44,
+          "sha256": "e4efb3f76c36cf253571890ab0016c0b6ac90059ede4034abea58fbcb205af59"
+        },
+        {
+          "label": "infantry-create-object",
+          "kind": "code",
+          "start": "0x523b10",
+          "endExclusive": "0x523b3b",
+          "offset": 1194768,
+          "size": 43,
+          "sha256": "a88de2be3fbe5b4d6b4bc70e1fda921d456e851ea5a8c7a39ef53b676ea17873"
+        },
+        {
+          "label": "unit-create-object",
+          "kind": "code",
+          "start": "0x747560",
+          "endExclusive": "0x74758b",
+          "offset": 3437920,
+          "size": 43,
+          "sha256": "ee64dabe508ce6e891bfc27ddfa798f4353cf5e1e7fdff2b368a09d79fe9bf4e"
+        },
+        {
+          "label": "infantry-constructor-init-call",
+          "kind": "code",
+          "start": "0x517a50",
+          "endExclusive": "0x517b44",
+          "offset": 1145424,
+          "size": 244,
+          "sha256": "a81cc0d1b5b0b739d15a0a4278629cd8b9cef04ba91f797bee02be1a527b483b"
+        },
+        {
+          "label": "infantry-health-init",
+          "kind": "code",
+          "start": "0x517d51",
+          "endExclusive": "0x517d69",
+          "offset": 1146193,
+          "size": 24,
+          "sha256": "448b5c7eb24838b62617bbad9cd561f66719aa22162042ad3d844bcf66aca103"
+        },
+        {
+          "label": "unit-health-init",
+          "kind": "code",
+          "start": "0x735592",
+          "endExclusive": "0x7355c6",
+          "offset": 3364242,
+          "size": 52,
+          "sha256": "176283a3a0ecc224788c4edf47c9b8de84fe297f3458325d7d3ec7023b9c49ac"
+        },
+        {
+          "label": "infantry-type-vtable-write",
+          "kind": "code",
+          "start": "0x5237e8",
+          "endExclusive": "0x5237ee",
+          "offset": 1193960,
+          "size": 6,
+          "sha256": "bdd9cfd6e93d2c2eac50f899be197542c095585b3193c8327831081cd4d8ad4e"
+        },
+        {
+          "label": "unit-type-vtable-write",
+          "kind": "code",
+          "start": "0x7471bf",
+          "endExclusive": "0x7471c5",
+          "offset": 3436991,
+          "size": 6,
+          "sha256": "8f9b4c10fd29e2cdc99008f5be9a551d7247a93dc5c0235660741d51a115424b"
+        },
+        {
+          "label": "mode-one-team",
+          "kind": "data",
+          "start": "0x6dd884",
+          "endExclusive": "0x6dd888",
+          "offset": 3004548,
+          "size": 4,
+          "sha256": "a4d2be21ea2506b33c9d2ddad6bf708ef5adce0e2255fe70076de38e17672d5c",
+          "uint32Value": "0x6dd61f"
+        },
+        {
+          "label": "mode-five-team",
+          "kind": "data",
+          "start": "0x6dd894",
+          "endExclusive": "0x6dd898",
+          "offset": 3004564,
+          "size": 4,
+          "sha256": "a4d2be21ea2506b33c9d2ddad6bf708ef5adce0e2255fe70076de38e17672d5c",
+          "uint32Value": "0x6dd61f"
+        },
+        {
+          "label": "action-four-entry",
+          "kind": "data",
+          "start": "0x6dfdf8",
+          "endExclusive": "0x6dfdfc",
+          "offset": 3014136,
+          "size": 4,
+          "sha256": "d00254576126cc3cda57061e695a5619644b95d7bddfcb9cc369565754c142f9",
+          "uint32Value": "0x6deb57"
+        },
+        {
+          "label": "action-seven-entry",
+          "kind": "data",
+          "start": "0x6dfe04",
+          "endExclusive": "0x6dfe08",
+          "offset": 3014148,
+          "size": 4,
+          "sha256": "e31afd0f49dd87df40ccfe170adaaa4d6de594272987b3faab8afa572adc4607",
+          "uint32Value": "0x6debae"
+        },
+        {
+          "label": "action-eighty-entry",
+          "kind": "data",
+          "start": "0x6dff28",
+          "endExclusive": "0x6dff2c",
+          "offset": 3014440,
+          "size": 4,
+          "sha256": "95e4b2c42e991872ae0e8bba5eac45e13da1714ea47b62d28a9e96735850f08b",
+          "uint32Value": "0x6debd0"
+        },
+        {
+          "label": "infantry-create-slot",
+          "kind": "data",
+          "start": "0x7eb69c",
+          "endExclusive": "0x7eb6a0",
+          "offset": 4109980,
+          "size": 4,
+          "sha256": "24e0957c54742d34c7f3edb47ebe8f283cfcc29cf5586a2c75aca974d6d96b9d",
+          "uint32Value": "0x523b10"
+        },
+        {
+          "label": "unit-create-slot",
+          "kind": "data",
+          "start": "0x7f62a4",
+          "endExclusive": "0x7f62a8",
+          "offset": 4154020,
+          "size": 4,
+          "sha256": "6f5c6df332563e0cc8f206097f065de28a86fa6593cb8501e2b4525904752029",
+          "uint32Value": "0x747560"
+        }
+      ]
+    }
+  ]
+}

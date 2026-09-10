@@ -4,15 +4,15 @@ import { parseJson } from './canonical.ts';
 import type { CommandEnvelope } from '../../contracts/src/index.ts';
 import { WorldSimulation, type WorldTrace } from './world.ts';
 import { worldClone, worldHash, worldInteger, worldList, worldRecord, worldSourceHash } from './world-values.ts';
-import { teamProgramWorld, teamRuntimeFail as fail, teamRuntimeFreeze as freeze } from './team-runtime-program.ts';
-import { prepareTeamTick, restoreTeamCheckpoint, teamRosterProgram, type TeamCheckpoint, type TeamRoster, type TeamOrder, type TeamEvent } from './team-runtime.ts';
+import { teamRuntimeFail as fail, teamRuntimeFreeze as freeze } from './team-runtime-program.ts';
+import { prepareTeamTick, restoreTeamCheckpoint, teamRosterProgram, teamRosterModel, type TeamCheckpoint, type TeamRoster, type TeamOrder, type TeamEvent } from './team-runtime.ts';
 export interface TeamWorldResult { readonly checkpoint:TeamCheckpoint;readonly orders:readonly TeamOrder[];
   readonly events:readonly (TeamEvent & {tick:number})[];readonly worldEvents:readonly WorldTrace[];readonly work:number }
 
 /** Admit unrelated external orders between compound ticks; team-controlled actors cannot receive competing orders. */
 export function admitTeamWorldCommands(roster:TeamRoster,input:unknown,commands:readonly unknown[]):TeamCheckpoint{
   const checkpoint=restoreTeamCheckpoint(roster,input);if(checkpoint.pending)fail('pending-admission');
-  const p=teamRosterProgram(roster),simulation=WorldSimulation.restore(teamProgramWorld(p).model,checkpoint.world);
+  const p=teamRosterProgram(roster),simulation=WorldSimulation.restore(teamRosterModel(roster),checkpoint.world);
   const admitted=simulation.admitCommands(commands),actors=new Set(roster.bindings.flatMap(b=>[...b.actorIds]));
   for(const c of admitted)if(actors.has((c.payload as {entityId:number}).entityId))fail('competing-actor-command');
   return restoreTeamCheckpoint(roster,{...checkpoint,world:simulation.save()});
@@ -22,7 +22,7 @@ export function commitTeamTick(roster:TeamRoster,input:unknown,workLimit?:number
   const checkpoint=restoreTeamCheckpoint(roster,input),p=teamRosterProgram(roster),plan=checkpoint.pending;
   if(!plan)fail('missing-pending-plan');const budget=workLimit===undefined?p.limits.replayWork:worldInteger(workLimit,0,p.limits.replayWork);
   if(plan.work>budget)fail('step-work-limit');
-  const model=teamProgramWorld(p).model,simulation=WorldSimulation.restore(model,checkpoint.world),actors=new Set(roster.bindings.flatMap(b=>[...b.actorIds]));
+  const model=teamRosterModel(roster),simulation=WorldSimulation.restore(model,checkpoint.world),actors=new Set(roster.bindings.flatMap(b=>[...b.actorIds]));
   for(const c of checkpoint.world.queuedCommands)if(actors.has((c.payload as {entityId:number}).entityId))fail('competing-actor-command');
   const owners=new Map(model.entities.map(e=>[e.id,e.owner])),cursor=new Map(checkpoint.world.state.admissionCursors.map(c=>[c.playerId,c.sequence]));
   const commands:CommandEnvelope[]=[],expected=new Map<number,TeamOrder>();

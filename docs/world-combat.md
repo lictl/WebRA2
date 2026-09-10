@@ -6,7 +6,9 @@ This is a reviewed core and source-preparation checkpoint. Initial private sourc
 actor comparisons pass; executable native capability and browser attack integration
 remain under132,145,146 and147. The original core
 has an independent exact-head review at abcdfd0 in PR137.
-No original mission is playable.
+No original mission is playable. The optional [ordinary numerical mode](ordinary-combat.md)
+now composes the reviewed damage stages and saved native reload random stream;
+it remains separate from source actor/firing/death admission.
 
 ## Model and orders
 
