@@ -37,9 +37,27 @@ test('release preserves common ownership mutations and does not invent spawned r
   const f = missionTeamFixture(), initial = restoreMissionTeamContext(f.runtime, []), world = WorldSimulation.create(f.world.model).save();
   const spawn = planMissionTeamClaim(initial, world, f.receipt(1,0).instructionId, 100000).record!;
   if (spawn.kind !== 'spawned') throw new Error('spawn');
-  const c = restoreMissionTeamContext(f.runtime, [spawn, { kind:'released', ordinal:1, instanceId:spawn.instanceId, atTick:1, reason:'finished' }]);
+  const c = restoreMissionTeamContext(f.runtime, [spawn, { kind:'released', ordinal:1, instanceId:spawn.instanceId, atTick:2, reason:'finished' }]);
   const data = missionTeamContextData(c); assert.equal(data.instances.length, 0); assert.equal(data.historyBindings.length, 1);
   assert.equal(data.model.entities.length, 3); assert.equal(data.eligibility.at(-1)!.releasedMissionUnverified, true);
   assert.equal(data.eligibility.at(-1)!.group, null); assert.equal(data.eligibility.at(-1)!.recruitableB, null);
   assert.throws(() => restoreMissionTeamContext(f.runtime, [spawn, { kind:'released', ordinal:1, instanceId:spawn.instanceId, atTick:0, reason:'finished' }]));
+});
+
+import { compileTeamProgram } from '../../packages/sim/src/team-runtime-program.ts';
+import { compileTeamSpawnCatalog } from '../../packages/sim/src/team-spawn-context.ts';
+import { compileTeamRecruitmentCatalog } from '../../packages/sim/src/team-recruitment-catalog.ts';
+import { compileMissionTeamActionSource } from '../../packages/sim/src/mission-team-action-source.ts';
+test('complete overlapping family programs union without a manufactured subset or discarded template', () => {
+  const f = missionTeamFixture(), p2 = compileTeamProgram({teams:f.teams,world:f.world,mission:f.mission,teamIds:['team:squad']},{ticks:1}).program!;
+  const spawnCatalogs = f.spawnCatalogs.map(c => compileTeamSpawnCatalog({program:p2,activation:f.activation,definitions:f.definitions,traversal:f.traversal,actionIds:c.actions.map(a=>a.id)}));
+  const source = compileMissionTeamActionSource({bindings:f.bindings,activation:f.activation,programs:[f.program,p2],spawnCatalogs,recruitmentCatalogs:f.recruitmentCatalogs});
+  const runtime = compileMissionTeamRuntime(source), data=missionTeamRuntimeData(runtime); assert.equal(data.program.templates.length,1);
+  assert.equal(data.program.limits.ticks,1); assert.equal(data.program.sourceProgramSha256s!.length,2);
+  const c=restoreMissionTeamContext(runtime,[]), world=WorldSimulation.create(f.world.model).save();
+  assert.equal(planMissionTeamClaim(c,world,source.actions[0]!.instructionId,100000).status,'ready');
+  assert.equal(planMissionTeamClaim(c,world,source.actions[1]!.instructionId,100000).status,'ready');
+  const lowRecruit = compileTeamRecruitmentCatalog({program:f.program,activation:f.activation,rules:f.rules,mission:f.mission,actionIds:f.recruitmentCatalogs[0]!.actions.map(a=>a.id)},{retries:1,pending:2,history:4});
+  const lowered = compileMissionTeamRuntime(compileMissionTeamActionSource({bindings:f.bindings,activation:f.activation,programs:[f.program],spawnCatalogs:f.spawnCatalogs,recruitmentCatalogs:[lowRecruit]}));
+  assert.equal(lowered.limits.retries,1);assert.equal(lowered.limits.pending,2);assert.equal(lowered.limits.history,4);
 });

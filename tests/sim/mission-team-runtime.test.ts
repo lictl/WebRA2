@@ -79,3 +79,36 @@ test('a failure after world stepping rolls back claims, command cursors, Flash a
   assert.equal(JSON.stringify(at1), before); assert.equal(at1.team.world.state.entities.length, 2);
   assert.deepEqual(at1.team.world.state.admissionCursors, []); assert.equal(at1.history.length, 0);
 });
+
+test('released ownership accepts external Stop but cannot satisfy later recruitment from an invented mission', () => {
+  const f = missionTeamFixture(), initial = createMissionTeamCheckpoint(f.runtime);
+  const admitted = admitMissionTeamInput(f.runtime, initial, { requests:[f.receipt(0,0),f.receipt(0,1)], commands:[] });
+  const released = run(f, admitted, 3), command = {schemaVersion:1 as const,tick:3,playerId:0,sequence:0,kind:'stop' as const,payload:{entityId:1}};
+  const next = admitMissionTeamInput(f.runtime, released, {requests:[f.receipt(0,5,3)],commands:[command]});
+  const outcome = run(f, next, 2); assert.equal(outcome.requests.at(-1)!.status,'queued');
+  assert.equal(outcome.team.world.queuedCommands.length,0); assert.equal(outcome.team.team.instances.length,0);
+});
+
+test('saved finished releases cannot erase persistent Sleep, cycles or too-early finite programs', () => {
+  for (const profile of ['ra2','yr'] as const) for (const index of [0,1]) for (const script of ['0=11,0','0=6,1','0=50,8\n1=50,6']) {
+    const f = missionTeamFixture({profile,script}), initial = createMissionTeamCheckpoint(f.runtime);
+    const admitted = admitMissionTeamInput(f.runtime,initial,{requests:[f.receipt(index,0)],commands:[]});
+    const c = run(f,admitted,2), claim = c.history[0]!; if(claim.kind==='released') throw new Error('claim');
+    const forged={...c,history:[...c.history,{kind:'released',ordinal:1,instanceId:claim.instanceId,atTick:2,reason:'finished'}]};
+    assert.throws(()=>restoreMissionTeamCheckpoint(f.runtime,forged));
+    if(script==='0=50,8\n1=50,6') {
+      const actual=run(f,c,2); assert.equal(actual.history.at(-1)!.kind,'released');
+      assert.deepEqual(restoreMissionTeamCheckpoint(f.runtime,JSON.stringify(actual)),actual);
+    }
+  }
+});
+
+test('caller work budget constrains preparation and pending recomputation without changing sufficient-budget results',()=>{
+  const f=missionTeamFixture(),initial=createMissionTeamCheckpoint(f.runtime);
+  const admitted=admitMissionTeamInput(f.runtime,initial,{requests:[f.receipt(1,0)],commands:[]});
+  const at1=stepMissionTeamWorld(f.runtime,admitted).checkpoint, full=stepMissionTeamWorld(f.runtime,at1), before=worldHash(at1);
+  assert.deepEqual(stepMissionTeamWorld(f.runtime,at1,full.work),full);
+  assert.throws(()=>stepMissionTeamWorld(f.runtime,at1,full.work-1));assert.equal(worldHash(at1),before);
+  const pending=prepareMissionTeamTick(f.runtime,at1);assert.deepEqual(stepMissionTeamWorld(f.runtime,pending,full.work).checkpoint,full.checkpoint);
+  assert.throws(()=>stepMissionTeamWorld(f.runtime,JSON.stringify(pending),0),/work/);
+});

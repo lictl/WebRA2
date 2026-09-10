@@ -108,15 +108,15 @@ export function createMissionTeamCheckpoint(runtime: MissionTeamRuntime): Missio
   return baseCheckpoint(runtime, { schemaVersion: 1, policy: MISSION_TEAM_RUNTIME_POLICY, runtimeSha256: runtime.sha256,
     history: [], nextRequestId: 0, lastEffectOrder: -1, requests: [], team: createTeamCheckpoint(roster), pending: null }).checkpoint;
 }
-function computeTick(runtime: MissionTeamRuntime, base: MissionTeamCheckpoint): MissionTeamTick {
-  const cap = runtime.limits, checked = baseCheckpoint(runtime, base), tick = checked.checkpoint.team.world.nextTick;
+function computeTick(runtime: MissionTeamRuntime, base: MissionTeamCheckpoint, workLimit = runtime.limits.tickWork): MissionTeamTick {
+  const cap = runtime.limits, budget = worldInteger(workLimit, 0, cap.tickWork), checked = baseCheckpoint(runtime, base), tick = checked.checkpoint.team.world.nextTick;
   if (tick >= cap.tick) fail('tick-limit');
   let context = checked.context, team = checked.checkpoint.team, work = 0;
-  const charge = (n = 1) => { if (n > cap.tickWork - work) fail('tick-work'); work += n; };
+  const charge = (n = 1) => { if (n > budget - work) fail('tick-work'); work += n; };
   const requests: MissionTeamRequest[] = [], actionEvents: MissionTeamEvent[] = [];
   for (const request of base.requests) {
     charge(); if (request.status !== 'queued' || request.nextAttemptTick !== tick) { requests.push(request); continue; }
-    const plan = planMissionTeamClaim(context, team.world, request.instructionId, cap.tickWork - work); charge(plan.work);
+    const plan = planMissionTeamClaim(context, team.world, request.instructionId, budget - work); charge(plan.work);
     const attempts = request.attempts + 1;
     if (!plan.record) {
       const exhausted = attempts >= cap.retries, nextAttemptTick = exhausted ? null : tick + cap.retryTicks;
@@ -138,7 +138,7 @@ function computeTick(runtime: MissionTeamRuntime, base: MissionTeamCheckpoint): 
     actionEvents.push({ tick, requestId: request.id, instructionId: request.instructionId, kind: record.kind, recordOrdinal: record.ordinal });
   }
   const before = missionTeamContextData(context), roster = bindMissionTeamActors(context);
-  const step = commitTeamTick(roster, prepareTeamTick(roster, team), cap.tickWork - work); charge(step.work); team = step.checkpoint;
+  const step = commitTeamTick(roster, prepareTeamTick(roster, team), budget - work); charge(step.work); team = step.checkpoint;
   const actualStep = teamWorldStep(before.model, step);
   for (const instance of step.checkpoint.team.instances) {
     if (instance.phase !== 'finished' && instance.phase !== 'lost') continue;
@@ -158,12 +158,15 @@ function computeTick(runtime: MissionTeamRuntime, base: MissionTeamCheckpoint): 
   const plan = freeze({ ...value, sha256: worldHash(value) }); receipts.set(plan, freeze({ model: before.model, step: actualStep })); return plan;
 }
 /** Pending plans are recomputed from source and the committed base; saved candidate bytes never grant authority. */
-export function restoreMissionTeamCheckpoint(runtime: MissionTeamRuntime, input: unknown): MissionTeamCheckpoint {
+function restoreWithBudget(runtime: MissionTeamRuntime, input: unknown, budget: number): MissionTeamCheckpoint {
   const r = worldRecord(missionTeamSnapshot(input), ['schemaVersion', 'policy', 'runtimeSha256', 'history', 'nextRequestId', 'lastEffectOrder', 'requests', 'team', 'pending']);
   const base = baseCheckpoint(runtime, { ...r, pending: null }).checkpoint;
   if (r.pending === null) return base;
-  const expected = computeTick(runtime, base); if (worldHash(r.pending) !== worldHash(expected)) fail('pending-mismatch');
+  const expected = computeTick(runtime, base, budget); if (worldHash(r.pending) !== worldHash(expected)) fail('pending-mismatch');
   return freeze({ ...base, pending: expected });
+}
+export function restoreMissionTeamCheckpoint(runtime: MissionTeamRuntime, input: unknown): MissionTeamCheckpoint {
+  missionTeamRuntimeData(runtime); return restoreWithBudget(runtime, input, runtime.limits.tickWork);
 }
 export interface MissionTeamAdmission { readonly requests: readonly MissionTeamReceipt[]; readonly commands: readonly CommandEnvelope[] }
 /** Explicit receipt input is not trigger authority. Root may feed only its own genuine VM effects. */
@@ -196,9 +199,10 @@ export function commitMissionTeamTick(runtime: MissionTeamRuntime, input: unknow
   if (base.pending.work > Math.floor(runtime.limits.tickWork / 2)) fail('pending-work'); return result(base.pending, 2 * base.pending.work);
 }
 /** One call advances exactly one authoritative world tick. Batch/replay composition remains all-or-nothing. */
-export function stepMissionTeamWorld(runtime: MissionTeamRuntime, input: unknown): MissionTeamResult {
-  const base = restoreMissionTeamCheckpoint(runtime, input);
-  const plan = base.pending ?? computeTick(runtime, base); return result(plan, plan.work);
+export function stepMissionTeamWorld(runtime: MissionTeamRuntime, input: unknown, workLimit?: number): MissionTeamResult {
+  missionTeamRuntimeData(runtime); const budget = workLimit === undefined ? runtime.limits.tickWork : worldInteger(workLimit, 0, runtime.limits.tickWork);
+  const base = restoreWithBudget(runtime, input, budget);
+  const plan = base.pending ?? computeTick(runtime, base, budget); return result(plan, plan.work);
 }
 export interface MissionTeamReplay {
   readonly schemaVersion: 1; readonly runtimeSha256: string; readonly initialCheckpoint: MissionTeamCheckpoint;
