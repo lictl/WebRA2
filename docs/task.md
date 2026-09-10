@@ -1,5 +1,38 @@
 # Current task and refreshed-session handoff
 
+State: **WORKING — GPU renderer experiment #225, target at least 60 FPS.**
+The owner authorized this next slice on 2026-09-11. The primary checkout is clean
+main e15351c982c907bfa2670757bd2f7569082455b3. Root owns
+codex/225-gpu-renderer in local/worktrees/gpu-renderer-integration, with real
+Node24.20.0 npm ci. [Issue225](https://github.com/lictl/WebRA2/issues/225) records
+the scope, ownership and acceptance. No human input is currently needed.
+
+The 960×640 app viewport is the primary gate, with 1280×720 as a required renderer
+stress row. Measure GPU completion and sustained distinct-frame cadence against
+1000/60 ms, including a genuine 15 Hz worker simulation. CPU submission time alone
+does not establish 60 FPS. Keep viewport sampling, palette/remap, depth, ordering
+and picking equivalent to the CPU renderer. Source textures remain resident; only
+bounded draw/snapshot data changes each frame. Readbacks belong in separate
+correctness/picking checks. Production app integration remains gated by evidence.
+
+Root owns shared GPU contracts, genuine scene/atlas preparation, existing renderer
+adapters, configuration/docs/handoff and ordinary merge. bootstrap_review owns the
+new WebGL2 backend after contract freeze. mix_reader owns original correctness
+fixtures and independent source/semantic review. browser_feasibility remains sole
+CUA/Chrome owner and owns the isolated diagnostic, timing/lifecycle/replay evidence.
+Use exclusive worktrees/paths; pause heavy checks during timed browser windows.
+Preserve audio draft PRs221/223/226 and immutable servers through4200; use4201+
+for new diagnostics. No source game executable is executed and no assets uploaded.
+
+The previous gate merged in [PR224](https://github.com/lictl/WebRA2/pull/224) as
+e15351c982c907bfa2670757bd2f7569082455b3 after exact5b0c199
+[architecture review](https://github.com/lictl/WebRA2/pull/224#pullrequestreview-5169241571),
+[harness review](https://github.com/lictl/WebRA2/pull/224#pullrequestreview-5169250951)
+and hosted34497097078. [Its completion record](https://github.com/lictl/WebRA2/issues/222#issuecomment-5621423178)
+preserves final evidence; issue222 is closed. The wider game remains incomplete.
+
+## Historical performance gate handoff
+
 State: **WORKING — early performance and TS/WASM architecture gate.** The
 standing goal remains a fully playable browser UI and original RA2/YR campaigns,
 with autonomous progress until essential human input is needed. On 2026-09-11 the
