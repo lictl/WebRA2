@@ -45,6 +45,10 @@ scenario construction retains its static evidence in
 notices accompany the development bundle. The exact retained-source view uses
 the same GPL terms and includes [its provenance](../packages/content/INI_SOURCE_PROVENANCE.md)
 in the bundle.
+The original campaign launch planner and source reader are GPL-3.0-or-later.
+[Campaign launch provenance](../packages/content/CAMPAIGN_LAUNCH_PROVENANCE.md)
+records the inspected entry-selection and theater consumers; its notice accompanies
+the development bundle. Localized source strings remain on the selecting device.
 The staged typed entity-definition compiler and original fixtures also use GPL-3.0-or-later.
 [Entity-definition provenance](../packages/content/ENTITY_DEFINITIONS_PROVENANCE.md)
 records the pinned static field/load evidence and deliberate numeric/runtime boundaries;
@@ -288,3 +292,9 @@ accompanies the existing flat-traversal, source-combat and world notices, GPL te
 and corresponding source in code distributions. No native listing, retail graph
 or new dependency is included. The separable MIT navigation algorithm retains its
 own license; importing a different authenticated graph does not change that.
+
+The source infantry passage catalog, occupancy helper and world binding are original
+GPL-3.0-or-later code. [Infantry passage provenance](../packages/sim/INFANTRY_PASSAGE_PROVENANCE.md)
+records paired native scope and explicit WebRA2 reservation choices; the bundle
+ships that notice. Original world/save changes retain their existing MIT notices.
+No retail slot rows, geometry or saves accompany the distribution.

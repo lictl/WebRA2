@@ -29,8 +29,8 @@ function packed(raw: Uint8Array, lzo: boolean): string {
     const head = Buffer.alloc(4); head.writeUInt16LE(stream.length); head.writeUInt16LE(b.length, 2); blocks.push(head, Buffer.from(stream));
   } return Buffer.concat(blocks).toString('base64');
 }
-export function ordinaryFixture({ profile = 'ra2' as 'ra2' | 'yr', sourceFields = '', targetFields = '', targetPrimary = 'Complex', weaponFields = '', impactFields = '', artFields = '',
-  extraRules = '', rank = '0', targetRank = '0', overlay = false, elevation = false, sharedTarget = false, seed = 1234, difficulty = 1 as 0 | 1 | 2, fireUp = 2, rof = 4, ground = false, ramp = 0 } = {}) {
+export function ordinaryFixtureSource({ profile = 'ra2' as 'ra2' | 'yr', sourceFields = '', targetFields = '', targetPrimary = 'Complex', weaponFields = '', impactFields = '', artFields = '',
+  extraRules = '', rank = '0', targetRank = '0', overlay = false, elevation = false, sharedTarget = false, seed = 1234, difficulty = 1 as 0 | 1 | 2, fireUp = 2, rof = 4, ground = false, ramp = 0, subcells = false } = {}) {
   const cells: { x: number; y: number }[] = [];
   for (let row = 0; row < 12; row++) for (let column = row % 2; column <= 10; column += 2)
     cells.push({ x: (column + row + 2) / 2, y: (row - column + 12) / 2 });
@@ -38,7 +38,7 @@ export function ordinaryFixture({ profile = 'ra2' as 'ra2' | 'yr', sourceFields 
   cells.forEach((c, index) => { v.setUint16(index * 11, c.x, true); v.setUint16(index * 11 + 2, c.y, true); v.setUint16(index * 11 + 4, 1, true);
     if (elevation && c.x === 7 && c.y === 6) raw[index * 11 + 9] = 1; });
   const overlayBytes = new Uint8Array(262144).fill(255); if (overlay) overlayBytes[6 + 512 * 7] = 1;
-  const mapText = `[Basic]\nNewINIFormat=4\nPlayer=Commander\n[Map]\nSize=0,0,6,6\nLocalSize=0,0,6,6\nTheater=URBAN\n[Houses]\n0=Commander\n1=Rival\n[Commander]\nCountry=Blue\n[Rival]\nCountry=Blue\n[Infantry]\n0=Commander,Walker,256,6,6,0,Guard,0,None,${rank},-1,0,1,1\n1=Rival,Observer,256,7,6,0,Guard,0,None,${targetRank},-1,0,1,1\n${sharedTarget ? '2=Rival,Observer,256,7,6,0,Guard,0,None,0,-1,0,1,1\n' : ''}[IsoMapPack5]\n1=${packed(raw, true)}\n[OverlayPack]\n1=${packed(overlayBytes, false)}\n[OverlayDataPack]\n1=${packed(new Uint8Array(262144), false)}\n`;
+  const mapText = `[Basic]\nNewINIFormat=4\nPlayer=Commander\n[Map]\nSize=0,0,6,6\nLocalSize=0,0,6,6\nTheater=URBAN\n[Houses]\n0=Commander\n1=Rival\n[Commander]\nCountry=Blue\n[Rival]\nCountry=Blue\n[Infantry]\n0=Commander,Walker,256,6,6,${subcells ? 2 : 0},Guard,0,None,${rank},-1,0,1,1\n1=Rival,Observer,256,7,6,${subcells ? 4 : 0},Guard,0,None,${targetRank},-1,0,1,1\n${sharedTarget ? '2=Rival,Observer,256,7,6,0,Guard,0,None,0,-1,0,1,1\n' : ''}[IsoMapPack5]\n1=${packed(raw, true)}\n[OverlayPack]\n1=${packed(overlayBytes, false)}\n[OverlayDataPack]\n1=${packed(new Uint8Array(262144), false)}\n`;
   const rulesText = `[Countries]\n0=Blue\n[InfantryTypes]\n0=Walker\n1=Observer\n[Animations]\n0=Quiet\n[Easy]\nFirePower=1\n[Normal]\nFirePower=1\n[Difficult]\nFirePower=1\n[General]\nVeteranCombat=1.25\nVeteranArmor=1.5\nVeteranROF=.75\n${profile === 'yr' ? 'DeadBodies=Quiet\n' : ''}[AudioVisual]\n${profile === 'ra2' ? 'DeadBodies=Quiet\n' : ''}[Clear]\nFoot=1\n[Walker]\nStrength=100\nSpeed=50\nPrimary=Pulse\nLocomotor={4A582744-9839-11D1-B709-00A024DDAFD1}\n${sourceFields}\n[Observer]\nStrength=100\nSpeed=50\nPrimary=${targetPrimary}\nLocomotor={4A582744-9839-11D1-B709-00A024DDAFD1}\n${targetFields}\n[Pulse]\nDamage=10\nRange=5\nROF=${rof}\nProjectile=Ray\nWarhead=Hit\n${weaponFields}\n[Complex]\nDamage=10\nRange=5\nROF=4\nProjectile=Ray\nWarhead=Special\n[Ray]\nInviso=yes\n[Hit]\nInfDeath=1\nVerses=100%,100%,100%,100%,100%,100%,100%,100%,100%,100%,100%\n${impactFields}\n[Special]\nInfDeath=1\nRadiation=yes\n${extraRules}`;
   const f = initialFixture({ profile, rulesText, mapText, artText: `[Walker]\nFireUp=${fireUp}\n[Quiet]\nRate=500\n${artFields}` });
   const terrain = compileScenarioTerrain({ profile, ...f.mission });
@@ -56,8 +56,11 @@ export function ordinaryFixture({ profile = 'ra2' as 'ra2' | 'yr', sourceFields 
   const modifiers = compileCombatModifiers({ actors: f.actors, rules: f.rules, mission: f.mission, houseDifficultyIndices: f.actors.houses.map(h => ({ houseId: h.houseId, index: difficulty })) });
   const veterancy = compileCombatVeterancy({ actors: f.actors, rules: f.rules }), initial = compileCombatInitialRuntime(f), death = compileCombatDeath({ ...source, actors: f.actors, weapons, effects });
   const ordinaryDeath = compileOrdinaryDeath({ ...source, actors: f.actors, weapons, effects, death, veterancy });
-  return { world, definitions: f.definitions, actors: f.actors, weapons, instant, effects, modifiers, veterancy, initial, death, ordinaryDeath, traversal,
+  return { rules: f.rules, mission: f.mission, world, definitions: f.definitions, actors: f.actors, weapons, instant, effects, modifiers, veterancy, initial, death, ordinaryDeath, traversal,
     seed, sequence11Ticks: 3, sequence12Ticks: 4 };
+}
+export function ordinaryFixture(options: Parameters<typeof ordinaryFixtureSource>[0] = {}) {
+  const { rules, mission, ...fixture } = ordinaryFixtureSource(options); return fixture;
 }
 export function ordinaryWorld(f: ReturnType<typeof ordinaryFixture>, bridge: OrdinaryInfantryBridge) {
   const m = f.world.model;

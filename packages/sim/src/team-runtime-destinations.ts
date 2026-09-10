@@ -2,6 +2,7 @@
 // Original WebRA2 group-cell policy shared by explicit team scripts and player-order adapters.
 import { findNavigationPath, navigationCell, NAVIGATION_LIMITS } from './navigation.ts';
 import { combatDyingActorIds } from './combat.ts';
+import { createInfantryOccupancy, type InfantryOccupancy } from './infantry-passage-occupancy.ts';
 import { WorldSimulation, type WorldSave } from './world.ts';
 import { assertWorldModel, type WorldModel } from './world-model.ts';
 import { worldAddress, worldHash, worldInteger, worldList, worldPosition, worldRecord } from './world-values.ts';
@@ -46,6 +47,19 @@ export function planTeamDestinations(input: { readonly model: WorldModel; readon
   const charge=(n=1)=>{if(n>cap.work-work.visits)return false;work.visits+=n;return true;};
   const dying=combatDyingActorIds(checkpoint.state.combat);
   if(!charge(checkpoint.state.combat?.deaths?.length??0))return result('budget-exhausted','occupancy-work');
+  const slots = new Set(checkpoint.state.infantrySlots?.map(s => s.entityId) ?? []);
+  let passage: InfantryOccupancy | null = null, passageExhausted = false;
+  if (model.infantryPassage && selected.some(row => slots.has(row.e.id))) {
+    if (!charge(checkpoint.state.entities.length * 4 + checkpoint.state.entities.reduce((n, e) => n + e.route.length, 0) +
+      model.blocked.length + model.footprints.reduce((n, p) => n + p.cells.length, 0) + slots.size * 2)) return result('budget-exhausted', 'occupancy-work');
+    passage = createInfantryOccupancy(model.infantryPassage, { entities: checkpoint.state.entities, infantrySlots: checkpoint.state.infantrySlots!,
+      retiredEntityIds: checkpoint.state.entities.filter(e => e.health === 0 && !dying.has(e.id)).map(e => e.id) });
+  }
+  const passageBlocked = (id: number, at: number) => {
+    const choice = passage!.choose(id, at);
+    if (!charge(1 + choice.work)) { passageExhausted = true; return true; }
+    return choice.status === 'blocked';
+  };
   const counts = new Map<number,number>(), staticCells = new Set(model.blocked), add=(n:number)=>counts.set(n,(counts.get(n)??0)+1);
   for(const n of model.blocked){if(!charge())return result('budget-exhausted','occupancy-work');add(n);}
   for(const {e,d} of byId.values()){
@@ -67,15 +81,18 @@ export function planTeamDestinations(input: { readonly model: WorldModel; readon
     for(const c of candidates){
       if(!charge())return result('budget-exhausted','candidate-work');
       const ownCount=d.blocksCell && (c.at===current || (e.progress>0 && c.at===start))?1:0;
-      // Holding a stationary own cell is permitted only when no other actor/static footprint shares it.
-      if(corridors.has(c.at) || reserved.has(c.at) || (counts.get(c.at)??0)>ownCount || (c.at===current && e.progress>0) || !navigationCell(grid,{x:c.x,y:c.y}))continue;
+      const occupiedTarget = (counts.get(c.at)??0)>ownCount && (!passage || !slots.has(e.id) || passageBlocked(e.id, c.at));
+      if (passageExhausted) return result('budget-exhausted', 'occupancy-work');
+      // Destinations remain distinct within this group; eligible existing allies may share slots.
+      if(corridors.has(c.at) || reserved.has(c.at) || occupiedTarget || (c.at===current && e.progress>0) || !navigationCell(grid,{x:c.x,y:c.y}))continue;
       if(work.queries>=cap.queries || work.expanded>=cap.expanded)return result('budget-exhausted','reachability-limit');
       if(!charge(counts.size+reserved.size+1))return result('budget-exhausted','occupancy-work');
       // Other selected actors remain obstacles. Only this actor's occupied cells are removed;
       // a shared current start may be exited, as allowed by the world model.
       const occupied=new Set<number>(reserved);
       for(const [n,count] of counts){let own=0;if(d.blocksCell && (n===current || (e.progress>0&&n===start)))own=1;
-        if(count>own)occupied.add(n);}
+        if(count>own && (!passage || !slots.has(e.id) || passageBlocked(e.id, n)))occupied.add(n);
+        if (passageExhausted) return result('budget-exhausted', 'occupancy-work');}
       if(!staticCells.has(start))occupied.delete(start);
       const route=findNavigationPath(grid,{start:worldPosition(start),goal:{x:c.x,y:c.y},occupied:[...occupied].map(worldPosition)},
         {expanded:Math.min(NAVIGATION_LIMITS.expanded,cap.expanded-work.expanded),pathCells:NAVIGATION_LIMITS.pathCells});

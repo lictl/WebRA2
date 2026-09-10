@@ -3,24 +3,32 @@
 import { orderCommands, type CommandEnvelope, type SaveEnvelope } from '../../contracts/src/index.ts';
 import { canonicalText } from './canonical.ts';
 import { findNavigationPath } from './navigation.ts';
+import { createInfantryOccupancy, initialInfantrySlots, type InfantrySlotState, type InfantryOccupancy } from './infantry-passage-occupancy.ts';
 import { ORDINARY_DEATH_ENGINE_VERSION, ORDINARY_DEATH_POLICY } from './ordinary-death-rules.ts';
 import { SOURCE_INFANTRY_COMBAT_POLICY, SOURCE_INFANTRY_COMBAT_ENGINE_VERSION, INFANTRY_COMBAT_POLICY, INFANTRY_COMBAT_ENGINE_VERSION, COMBAT_ENGINE_VERSION } from './combat-model.ts';
 import { ORDINARY_COMBAT_ENGINE_VERSION, ORDINARY_COMBAT_POLICY } from './ordinary-combat-rules.ts';
 import { combatDyingActorIds, attackCombat, createCombatState, stepCombat, stopCombat, validateCombatState, validateSourceCombatState, type CombatState } from './combat.ts';
 import { assertWorldModel, worldAddress, worldClone, worldContent, worldEdgeCost, worldFail, worldInteger, worldList, worldPosition,
-  worldRecord, WORLD_ENGINE_VERSION, WORLD_LIMITS as C, WORLD_MOTION_POLICY, type WorldModel, type WorldEntityDefinition } from './world-model.ts';
+  worldRecord, WORLD_ENGINE_VERSION, WORLD_INFANTRY_ENGINE_VERSION, WORLD_LIMITS as C, WORLD_MOTION_POLICY, type WorldModel, type WorldEntityDefinition } from './world-model.ts';
 
 export type WorldEntity = { id: number; x: number; y: number; health: number | null;
   goal: number | null; route: number[]; progress: number; waitTicks: number };
 export type WorldState = { modelSha256: string; entities: WorldEntity[]; planningCursor: number;
-  admissionCursors: { playerId: number; sequence: number }[]; combat?: CombatState };
+  admissionCursors: { playerId: number; sequence: number }[]; combat?: CombatState;
+  infantrySlots?: { -readonly [K in keyof InfantrySlotState]: InfantrySlotState[K] }[] };
 export type WorldSave = SaveEnvelope<WorldState>;
 export type WorldTrace = { tick: number; phase: 'command' | 'navigation' | 'movement' | 'combat'; kind: string; entityId: number; cell: number | null; value: number | null };
 export type WorldStep = { nextTick: number; events: WorldTrace[]; work: { entityVisits: number; navigationExpansions: number; transitions: number } };
 type LiveSave = { -readonly [K in keyof WorldSave]: WorldSave[K] } & { queuedCommands: CommandEnvelope[]; scheduledWork: []; rngStates: Record<string, never> };
 
-const engineVersion = (model: WorldModel) => model.combat?.policy===SOURCE_INFANTRY_COMBAT_POLICY ? SOURCE_INFANTRY_COMBAT_ENGINE_VERSION : model.combat?.policy===INFANTRY_COMBAT_POLICY ? INFANTRY_COMBAT_ENGINE_VERSION : model.combat?.policy===ORDINARY_DEATH_POLICY ? ORDINARY_DEATH_ENGINE_VERSION : model.combat?.policy===ORDINARY_COMBAT_POLICY ? ORDINARY_COMBAT_ENGINE_VERSION : model.combat ? COMBAT_ENGINE_VERSION : WORLD_ENGINE_VERSION;
-const rulesVersion = (model: WorldModel) => model.combat ? model.combat.policy : WORLD_MOTION_POLICY;
+const engineVersion = (model: WorldModel) => model.infantryPassage ? WORLD_INFANTRY_ENGINE_VERSION : model.combat?.policy===SOURCE_INFANTRY_COMBAT_POLICY ? SOURCE_INFANTRY_COMBAT_ENGINE_VERSION : model.combat?.policy===INFANTRY_COMBAT_POLICY ? INFANTRY_COMBAT_ENGINE_VERSION : model.combat?.policy===ORDINARY_DEATH_POLICY ? ORDINARY_DEATH_ENGINE_VERSION : model.combat?.policy===ORDINARY_COMBAT_POLICY ? ORDINARY_COMBAT_ENGINE_VERSION : model.combat ? COMBAT_ENGINE_VERSION : WORLD_ENGINE_VERSION;
+const rulesVersion = (model: WorldModel) => model.infantryPassage ? `${model.combat?.policy ?? WORLD_MOTION_POLICY}+${model.infantryPassage.policy}` : model.combat ? model.combat.policy : WORLD_MOTION_POLICY;
+function infantryOccupancy(model: WorldModel, state: WorldState): InfantryOccupancy {
+  const dying = combatDyingActorIds(state.combat);
+  // Same authoritative release policy as whole-cell occupancy: pending deaths retain claims.
+  const retiredEntityIds = state.entities.filter(e => e.health === 0 && !dying.has(e.id)).map(e => e.id);
+  return createInfantryOccupancy(model.infantryPassage!, { entities: state.entities, infantrySlots: state.infantrySlots!, retiredEntityIds });
+}
 function command(value: unknown, combat: boolean): CommandEnvelope {
   const r = worldRecord(value, ['schemaVersion', 'tick', 'playerId', 'sequence', 'kind', 'payload']);
   if (r.schemaVersion !== 1 || (r.kind !== 'move' && r.kind !== 'stop' && !(combat && r.kind === 'attack'))) worldFail('world-command-kind');
@@ -52,7 +60,7 @@ function validateSave(model: WorldModel, input: unknown): LiveSave {
   if (r.schemaVersion !== 1 || r.engineVersion !== engineVersion(model) || r.simulationRulesVersion !== rulesVersion(model)) worldFail('world-save-version');
   const contentIdentity = worldContent(r.contentIdentity);
   if (canonicalText(contentIdentity) !== canonicalText(model.contentIdentity)) worldFail('world-save-content');
-  const nextTick = worldInteger(r.nextTick, 0, C.tick), s = worldRecord(r.state, ['modelSha256', 'entities', 'planningCursor', 'admissionCursors', ...(model.combat ? ['combat'] : [])]);
+  const nextTick = worldInteger(r.nextTick, 0, C.tick), s = worldRecord(r.state, ['modelSha256', 'entities', 'planningCursor', 'admissionCursors', ...(model.combat ? ['combat'] : []), ...(model.infantryPassage ? ['infantrySlots'] : [])]);
   if (s.modelSha256 !== model.sha256) worldFail('world-save-model');
   if (worldList(r.scheduledWork, 0).length || Reflect.ownKeys(worldRecord(r.rngStates, [])).length) worldFail('world-save-work');
   const inputs = worldList(s.entities, C.entities); if (inputs.length !== model.entities.length) worldFail('world-save-entities');
@@ -102,6 +110,14 @@ function validateSave(model: WorldModel, input: unknown): LiveSave {
   }
   const state: WorldState = { modelSha256: model.sha256, entities, planningCursor, admissionCursors,
     ...(model.combat ? { combat: validateCombatState(model, s.combat, entities, nextTick) } : {}) }, counts = occupancy(model, state);
+  if (model.infantryPassage) {
+    state.infantrySlots = worldList(s.infantrySlots, C.entities).map(value => {
+      const row = worldRecord(value, ['entityId', 'subcell', 'reservedSubcell']);
+      return { entityId: worldInteger(row.entityId, 1, 2147483647), subcell: worldInteger(row.subcell, 2, 4) as InfantrySlotState['subcell'],
+        reservedSubcell: row.reservedSubcell === null ? null : worldInteger(row.reservedSubcell, 2, 4) as InfantrySlotState['subcell'] };
+    });
+    infantryOccupancy(model, state);
+  }
   validateSourceCombatState(model,state);
   // Only original shared anchors may overlap. A legal edit cannot introduce a new
   // occupant at a blocked cell or move immutable static footprints away from their actor.
@@ -109,7 +125,7 @@ function validateSave(model: WorldModel, input: unknown): LiveSave {
   for (let i = 0; i < entities.length; i++) {
     const e = entities[i]!, d = model.entities[i]!, at = worldAddress(e.x, e.y);
     if (d.blocksCell && (e.health !== 0||dying.has(e.id)) && (counts.get(at) ?? 0) > 1 &&
-      (d.initialHealth === 0 || at !== worldAddress(d.x, d.y))) worldFail('world-save-anchor-overlap');
+      (d.initialHealth === 0 || !model.infantryPassage && at !== worldAddress(d.x, d.y))) worldFail('world-save-anchor-overlap');
   }
   // Extra cells are occupants too. Reviving an initially absent stationary
   // footprint cannot create sharing even when every other anchor is unchanged.
@@ -118,7 +134,7 @@ function validateSave(model: WorldModel, input: unknown): LiveSave {
   for (const p of model.footprints) if (definitionById.get(p.entityId)!.initialHealth === 0 &&
     stateById.get(p.entityId)!.health !== 0 && p.cells.some(at => (counts.get(at) ?? 0) > 1)) worldFail('world-save-footprint-overlap');
   // Shared initial anchor cells are allowed, but an active edge must own its destination reservation.
-  for (let i = 0; i < entities.length; i++) if (entities[i]!.progress && model.entities[i]!.blocksCell && counts.get(entities[i]!.route[1]!) !== 1) worldFail('world-save-reservation');
+  if (!model.infantryPassage) for (let i = 0; i < entities.length; i++) if (entities[i]!.progress && model.entities[i]!.blocksCell && counts.get(entities[i]!.route[1]!) !== 1) worldFail('world-save-reservation');
   const save: LiveSave = { schemaVersion: 1, engineVersion: engineVersion(model), simulationRulesVersion: rulesVersion(model),
     contentIdentity, nextTick, state, queuedCommands, scheduledWork: [], rngStates: {} };
   // Applies the existing canonical JSON byte/node guard to all combined state resources.
@@ -135,6 +151,7 @@ export class WorldSimulation {
     return WorldSimulation.restore(model, { schemaVersion: 1, engineVersion: engineVersion(model), simulationRulesVersion: rulesVersion(model),
       contentIdentity: model.contentIdentity, nextTick: 0, state: { modelSha256: model.sha256, planningCursor: 0, admissionCursors: [],
         ...(model.combat ? { combat: createCombatState(model) } : {}),
+        ...(model.infantryPassage ? { infantrySlots: initialInfantrySlots(model.infantryPassage) } : {}),
         entities: model.entities.map(e => ({ id: e.id, x: e.x, y: e.y, health: e.initialHealth, goal: null, route: [], progress: 0, waitTicks: 0 })) },
       queuedCommands: [], scheduledWork: [], rngStates: {} });
   }
@@ -163,11 +180,24 @@ export class WorldSimulation {
     const save = worldClone(this.#value), events: WorldTrace[] = [], definitions = new Map(this.#model.entities.map(e => [e.id, e]));
     const bindings = new Map(this.#model.navigation.map(b => [b.grid.movementClass, b]));
     const work = { entityVisits: 0, navigationExpansions: 0, transitions: 0 };
+    const footprintWork = this.#model.footprints.reduce((sum, p) => sum + p.cells.length, 0);
     const emit = (phase: WorldTrace['phase'], kind: string, entityId: number, cell: number | null = null, value: number | null = null) => {
       if (events.length >= C.trace) worldFail('world-trace-limit'); events.push({ tick: save.nextTick, phase, kind, entityId, cell, value });
     };
     for (let tick = 0; tick < ticks; tick++) {
       const state = save.state, byId = new Map(state.entities.map(e => [e.id, e]));
+      const slots = new Map(state.infantrySlots?.map(s => [s.entityId, s]) ?? []);
+      let passageWork = 0;
+      const chargePassage = (n: number) => {
+        passageWork += n; work.entityVisits += n;
+        if (passageWork > 262144 || work.entityVisits + work.navigationExpansions + work.transitions > workLimit) worldFail('world-infantry-work-limit');
+      };
+      const passageIndex = () => {
+        chargePassage(state.entities.length * 4 + state.entities.reduce((sum, e) => sum + e.route.length, 0) +
+          this.#model.blocked.length + footprintWork + slots.size * 2);
+        return infantryOccupancy(this.#model, state);
+      };
+      const clearReservation = (id: number) => { const s = slots.get(id); if (s) s.reservedSubcell = null; };
       const staticBlocked = staticOccupancy(this.#model, state);
       // Phase 1: all due orders use the shared command order. Mid-edge move replacement finishes that edge.
       for (const c of save.queuedCommands.filter(c => c.tick === save.nextTick)) {
@@ -179,17 +209,19 @@ export class WorldSimulation {
           if (attackCombat(this.#model, state.combat!, state.entities, e.id, p.targetId!,
             (kind, id, cell, value) => emit('command', kind, id, cell, value))) {
             e.goal = null; e.route = []; e.progress = 0; e.waitTicks = 0;
+            clearReservation(e.id);
           }
           continue;
         }
         if (c.kind === 'stop' && state.combat && e.health !== null && e.health > 0) {
           stopCombat(this.#model, state.combat, e.id); e.goal = null; e.route = []; e.progress = 0; e.waitTicks = 0;
+          clearReservation(e.id);
           emit('command', 'stopped', e.id, worldAddress(e.x, e.y)); continue;
         }
         if (e.health === 0 || e.health === null || !d.movementPerTick || d.navigationClass === null) { emit('command', 'immovable', e.id); continue; }
         if (state.combat) stopCombat(this.#model, state.combat, e.id);
         e.waitTicks = 0;
-        if (c.kind === 'stop') { e.goal = null; e.route = []; e.progress = 0; emit('command', 'stopped', e.id, worldAddress(e.x, e.y)); }
+        if (c.kind === 'stop') { e.goal = null; e.route = []; e.progress = 0; clearReservation(e.id); emit('command', 'stopped', e.id, worldAddress(e.x, e.y)); }
         else {
           e.goal = worldAddress(p.x, p.y); e.route = e.progress ? e.route.slice(0, 2) : [];
           emit('command', 'move-accepted', e.id, e.goal);
@@ -197,6 +229,10 @@ export class WorldSimulation {
       }
       save.queuedCommands = save.queuedCommands.filter(c => c.tick !== save.nextTick);
       const counts = occupancy(this.#model, state);
+      let planningPassage: InfantryOccupancy | null = null;
+      const passageBlocked = (index: InfantryOccupancy, id: number, address: number) => {
+        const result = index.choose(id, address); chargePassage(1 + result.work); return result.status === 'blocked';
+      };
       const add = (address: number) => counts.set(address, (counts.get(address) ?? 0) + 1);
       const remove = (address: number) => { const count = counts.get(address)!; if (count === 1) counts.delete(address); else counts.set(address, count - 1); };
       for (const e of state.entities) if (e.waitTicks) e.waitTicks--;
@@ -209,8 +245,10 @@ export class WorldSimulation {
         const at = worldAddress(e.x, e.y);
         if (at === e.goal) { e.goal = null; emit('navigation', 'arrived', e.id, at); continue; }
         const d = definitions.get(e.id)!, binding = bindings.get(d.navigationClass!)!;
+        if (slots.has(e.id)) planningPassage ??= passageIndex();
         // An initially shared cell can be exited. New destinations still require a free cell.
-        const occupied = [...counts.keys()].filter(n => n !== at).map(worldPosition);
+        const occupied = [...counts.keys()].filter(n => n !== at &&
+          (!planningPassage || !slots.has(e.id) || passageBlocked(planningPassage, e.id, n))).map(worldPosition);
         const route = findNavigationPath(binding.grid, { start: { x: e.x, y: e.y }, goal: worldPosition(e.goal), occupied },
           { expanded: C.routeExpansionsPerTick - expanded, pathCells: Math.max(0, C.paths - pathCells) });
         expanded += route.expanded; queries++; state.planningCursor = (index + 1) % state.entities.length;
@@ -231,10 +269,17 @@ export class WorldSimulation {
         let credit = d.movementPerTick * binding.costScale;
         while (credit && e.route.length) {
           const from = worldAddress(e.x, e.y), next = e.route[1]!;
-          const cost = worldEdgeCost(binding.grid, from, next, e.progress ? staticBlocked : unavailable);
+          const slot = slots.get(e.id), index = slot && !e.progress ? passageIndex() : null;
+          const blockers = index ? { has: (address: number) => passageBlocked(index, e.id, address) } : unavailable;
+          const cost = worldEdgeCost(binding.grid, from, next, e.progress ? staticBlocked : blockers);
           if (cost === null) {
             if (e.progress) worldFail('world-active-edge');
             e.route = []; e.waitTicks = C.retryTicks; emit('movement', 'blocked', e.id, next); break;
+          }
+          if (index && slot) {
+            const choice = index.choose(e.id, next); chargePassage(1 + choice.work);
+            if (choice.status !== 'available' || choice.subcell === null) worldFail('world-infantry-reservation');
+            slot.reservedSubcell = choice.subcell;
           }
           if (!e.progress && d.blocksCell) add(next);
           const used = Math.min(credit, cost - e.progress); e.progress += used; credit -= used;
@@ -243,6 +288,7 @@ export class WorldSimulation {
           work.transitions++;
           if (d.blocksCell) remove(from);
           Object.assign(e, worldPosition(next)); e.route = e.route.slice(1); e.progress = 0; emit('movement', 'moved', e.id, next);
+          if (slot) { if (slot.reservedSubcell === null) worldFail('world-infantry-reservation'); slot.subcell = slot.reservedSubcell; slot.reservedSubcell = null; }
           if (next === e.goal) { e.route = []; e.goal = null; emit('movement', 'arrived', e.id, next); }
           else if (e.route.length === 1) { e.route = []; break; }
         }
@@ -250,6 +296,20 @@ export class WorldSimulation {
       // Phase 4: due death completions, impacts, then stable-ID firing. Completed deaths release cells next tick.
       if (state.combat) work.transitions += stepCombat(this.#model, state, save.nextTick,
         (kind, id, cell, value) => emit('combat', kind, id, cell, value));
+      if (slots.size && state.combat) {
+        const dying = combatDyingActorIds(state.combat), blockedHeads = new Map<number, Set<number>>();
+        for (const id of dying) { const e = byId.get(id)!, at = worldAddress(e.x, e.y), owners = blockedHeads.get(at) ?? new Set<number>(); owners.add(id); blockedHeads.set(at, owners); }
+        for (const slot of slots.values()) {
+          const e = byId.get(slot.entityId)!;
+          if (e.progress && blockedHeads.get(e.route[1]!)?.size) {
+            // D03: a new pending death cancels an incoming edge at its retained anchor,
+            // like Stop, then retries the goal. It cannot acquire a dying occupied cell.
+            const destination = e.route[1]!; e.route = []; e.progress = 0; e.waitTicks = C.retryTicks;
+            slot.reservedSubcell = null; emit('movement', 'infantry-dying-blocked', e.id, destination);
+          }
+        }
+      }
+      for (const slot of slots.values()) if (byId.get(slot.entityId)!.progress === 0) slot.reservedSubcell = null;
       // Logical work accounting; not CPU timings or exhaustive validation/allocation operations.
       work.entityVisits += 3 * state.entities.length;
       if (work.entityVisits + work.navigationExpansions + work.transitions > workLimit) worldFail('world-work-limit');
