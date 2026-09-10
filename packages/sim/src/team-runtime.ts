@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Original pure team state and source/actor binding. The transaction bridge owns cloned-world execution.
+import { TEAM_SLEEP_POLICY, planTeamSleep, teamSleepFlow } from './team-sleep-policy.ts';
 import { canonicalText, parseJson } from './canonical.ts';
-import { WorldSimulation, type WorldSave } from './world.ts';
+import { WorldSimulation, type WorldSave, type WorldEntity } from './world.ts';
 import type { WorldModel } from './world-model.ts';
 import { teamSpawnContextData, type TeamSpawnContext } from './team-spawn-context.ts';
 import { worldAddress, worldClone, worldHash, worldInteger, worldList, worldRecord, worldSymbol } from './world-values.ts';
@@ -12,14 +13,14 @@ import { teamProgramWorld, teamRuntimeFail as fail, teamRuntimeFreeze as freeze,
 export interface TeamActorBinding { readonly id: string; readonly teamId: string; readonly actorIds: readonly number[]; readonly bornAtTick?: number }
 export interface TeamRoster { readonly policy: 'webra2-team-roster-1' | 'webra2-spawn-team-roster-1'; readonly contextSha256?: string; readonly programSha256: string; readonly worldModelSha256: string;
   readonly bindings: readonly TeamActorBinding[]; readonly sha256: string }
-export type TeamPhase = 'advance' | 'moving' | 'retry' | 'finished' | 'lost';
+export type TeamPhase = 'advance' | 'moving' | 'retry' | 'sleep' | 'finished' | 'lost';
 export interface TeamInstanceState {
   id: string; activeMembers: number[]; cursor: number; lastStep: number | null; phase: TeamPhase;
   assignments: TeamDestinationAssignment[]; issuedAt: number | null; retryAt: number | null;
 }
 export interface TeamState { nextTick: number; startedTick: number; nextOrderId: number; instances: TeamInstanceState[] }
 export interface TeamOrder { orderId: number; instanceId: string; entityId: number; kind: 'move' | 'stop'; x: number | null; y: number | null }
-export interface TeamEvent { instanceId: string; step: number | null; kind: 'move' | 'arrived' | 'jump' | 'blocked' | 'lost' | 'finished' }
+export interface TeamEvent { instanceId: string; step: number | null; kind: 'move' | 'arrived' | 'jump' | 'blocked' | 'sleep' | 'lost' | 'finished' }
 export interface TeamPendingTick {
   policy: 'webra2-team-transaction-1'; rosterSha256: string; baseWorldSha256: string; baseTeamSha256: string; tick: number;
   orders: TeamOrder[]; events: TeamEvent[]; nextTeam: TeamState; work: number; sha256: string;
@@ -125,6 +126,7 @@ export function createTeamCheckpoint(roster:TeamRoster,worldInput?:WorldSave):Te
   const model=teamRosterModel(roster),world=worldInput===undefined?WorldSimulation.create(model).save():WorldSimulation.restore(model,worldInput).save();
   return restoreTeamCheckpoint(roster,{schemaVersion:1,policy:'webra2-team-transaction-1',rosterSha256:roster.sha256,world,team:initial(roster,world.nextTick),pending:null});
 }
+const sleepMembers=(ids:readonly number[],actors:ReadonlyMap<number,WorldEntity>)=>ids.map(entityId=>{const e=actors.get(entityId)!;return{entityId,health:e.health,goal:e.goal,progress:e.progress,routeLength:e.route.length};});
 const nullable=(n:unknown,min:number,max:number)=>n===null?null:worldInteger(n,min,max);
 function teamState(roster:TeamRoster,input:unknown,world:WorldSave):TeamState{
   const p=teamRosterProgram(roster),r=worldRecord(input,['nextTick','startedTick','nextOrderId','instances']);
@@ -136,11 +138,13 @@ function teamState(roster:TeamRoster,input:unknown,world:WorldSave):TeamState{
   const instances:TeamInstanceState[]=rows.map((value,i)=>{
     const b=roster.bindings[i]!,t=templates.get(b.teamId)!,s=worldRecord(value,['id','activeMembers','cursor','lastStep','phase','assignments','issuedAt','retryAt']);
     const bornAtTick=b.bornAtTick===undefined?startedTick:worldInteger(b.bornAtTick,startedTick,nextTick);
-    if(s.id!==b.id||!['advance','moving','retry','finished','lost'].includes(s.phase as string))fail('checkpoint-instance');
+    if(s.id!==b.id||!['advance','moving','retry','sleep','finished','lost'].includes(s.phase as string))fail('checkpoint-instance');
     const activeMembers=worldList(s.activeMembers,b.actorIds.length).map(n=>worldInteger(n,1,2147483647));
     if(activeMembers.some((n,j)=>!b.actorIds.includes(n)||(j>0&&n<=activeMembers[j-1]!))||b.actorIds.some(n=>!activeMembers.includes(n)&&current.get(n)!.health!==0))fail('checkpoint-members');
+    const flow=teamSleepFlow(t.steps);
     const cursor=worldInteger(s.cursor,-1,t.steps.length),lastStep=nullable(s.lastStep,0,t.steps.length-1),phase=s.phase as TeamPhase;
     const issuedAt=nullable(s.issuedAt,bornAtTick,Math.max(bornAtTick,nextTick-1)),retryAt=nullable(s.retryAt,bornAtTick,p.limits.tick);
+    if(lastStep!==null&&!flow.reachableSteps.includes(lastStep))fail('checkpoint-unreachable-step');
     const assigned=worldList(s.assignments,Math.min(b.actorIds.length,p.limits.members-count));count+=assigned.length;
     const seen=new Set<number>(),cells=new Set<number>(),assignments=assigned.map(a=>{const row=worldRecord(a,['entityId','x','y']),entityId=worldInteger(row.entityId,1,2147483647),at=worldAddress(row.x,row.y);
       if(!activeMembers.includes(entityId)||seen.has(entityId)||cells.has(at))fail('checkpoint-assignment');seen.add(entityId);cells.add(at);return{entityId,x:at%512,y:Math.floor(at/512)};});
@@ -154,15 +158,19 @@ function teamState(roster:TeamRoster,input:unknown,world:WorldSave):TeamState{
         const e=current.get(a.entityId)!,at=worldAddress(a.x,a.y);
         if(e.health!==0&&e.goal!==at&&!(e.goal===null&&e.x===a.x&&e.y===a.y&&e.progress===0&&e.route.length===0))fail('checkpoint-world-goal');}
       if(nextOrderId<assignments.length)fail('checkpoint-order-counter');
+    }else if(phase==='sleep'){
+      if(lastStep!==cursor||t.steps[cursor]?.opcode!==11||issuedAt===null||retryAt!==null||assignments.length)fail('checkpoint-sleep');
+      planTeamSleep({tick:nextTick,enteredAt:issuedAt,members:sleepMembers(activeMembers,current)});
+      if(nextOrderId<activeMembers.length)fail('checkpoint-order-counter');
     }else if(assignments.length||issuedAt!==null)fail('checkpoint-idle-assignment');
     if(phase==='retry'){
       if(lastStep!==cursor||t.steps[cursor]?.opcode!==3||retryAt===null||retryAt<nextTick||retryAt>nextTick+15)fail('checkpoint-retry');
     }else if(retryAt!==null)fail('checkpoint-idle-timer');
     if(phase==='advance'){
       if(lastStep===null){if(cursor!==-1||nextTick!==bornAtTick)fail('checkpoint-initial-cursor');}
-      else{const step=t.steps[lastStep]!;if(step.opcode===3?cursor!==lastStep:cursor!==step.target-1)fail('checkpoint-completed-cursor');}
+      else{const step=t.steps[lastStep]!;if(step.opcode===11)fail('checkpoint-sleep-completion');if(step.opcode===3?cursor!==lastStep:cursor!==step.target-1)fail('checkpoint-completed-cursor');}
     }
-    if(phase==='finished'&&(cursor!==t.steps.length||lastStep!==t.steps.length-1))fail('checkpoint-finished');
+    if(phase==='finished'&&(!flow.canFinish||cursor!==t.steps.length||lastStep!==t.steps.length-1))fail('checkpoint-finished');
     if(phase==='lost'&&(activeMembers.length||b.actorIds.some(n=>current.get(n)!.health!==0)))fail('checkpoint-lost');
     if(phase!=='lost'&&!activeMembers.length)fail('checkpoint-empty');
     const result={id:b.id,activeMembers,cursor,lastStep,phase,assignments,issuedAt,retryAt};
@@ -196,6 +204,9 @@ function computePlan(roster:TeamRoster,checkpoint:TeamCheckpoint):TeamPendingTic
     charge(s.activeMembers.length);s.activeMembers=s.activeMembers.filter(id=>current.get(id)!.health!==0);
     s.assignments=s.assignments.filter(a=>s.activeMembers.includes(a.entityId));
     if(!s.activeMembers.length){s.phase='lost';s.assignments=[];s.issuedAt=null;s.retryAt=null;event(s,'lost');continue;}
+    if(s.phase==='sleep'){
+      charge(planTeamSleep({tick,enteredAt:s.issuedAt,members:sleepMembers(s.activeMembers,current)}).work);continue;
+    }
     if(s.phase==='moving'){
       charge(s.assignments.length);if(s.assignments.every(a=>{const e=current.get(a.entityId)!;return e.x===a.x&&e.y===a.y&&e.progress===0&&e.goal===null&&e.route.length===0;})){
         s.phase='advance';s.assignments=[];s.issuedAt=null;event(s,'arrived');
@@ -207,6 +218,14 @@ function computePlan(roster:TeamRoster,checkpoint:TeamCheckpoint):TeamPendingTic
       s.lastStep=s.cursor;
     }
     const instruction=t.steps[s.cursor]!;
+    if(instruction.opcode===11){
+      const sleep=planTeamSleep({tick,enteredAt:null,members:sleepMembers(s.activeMembers,current)},
+        {members:Math.min(64,cap.members),orders:Math.min(64,cap.orders-orders.length)});charge(sleep.work);
+      if(sleep.stopActorIds.length>Number.MAX_SAFE_INTEGER-nextTeam.nextOrderId)fail('step-order-limit');
+      s.phase='sleep';s.issuedAt=tick;s.retryAt=null;s.assignments=[];
+      for(const entityId of sleep.stopActorIds)orders.push({orderId:nextTeam.nextOrderId++,instanceId:s.id,entityId,kind:'stop',x:null,y:null});
+      event(s,'sleep');continue;
+    }
     if(instruction.opcode===6){s.cursor=instruction.target-1;s.phase='advance';s.retryAt=null;event(s,'jump');continue;}
     const plan=planTeamDestinations({model:teamRosterModel(roster),checkpoint:world,actorIds:s.activeMembers,target:{x:instruction.x,y:instruction.y}},
       {candidates:cap.candidateCells,work:Math.min(1_048_576,cap.work-work),expanded:Math.min(262144,cap.work-work)});
@@ -220,7 +239,7 @@ function computePlan(roster:TeamRoster,checkpoint:TeamCheckpoint):TeamPendingTic
   }
   nextTeam.nextTick++;const data={policy:'webra2-team-transaction-1' as const,rosterSha256:roster.sha256,baseWorldSha256:worldHash(world),
     baseTeamSha256:worldHash(checkpoint.team),tick,orders,events,nextTeam,work};
-  return freeze({...data,sha256:worldHash({...data,destinationPolicy:TEAM_DESTINATION_POLICY})});
+  return freeze({...data,sha256:worldHash({...data,destinationPolicy:TEAM_DESTINATION_POLICY,sleepPolicy:TEAM_SLEEP_POLICY})});
 }
 /** A prepared outbox changes neither current world nor committed team state. */
 export function prepareTeamTick(roster:TeamRoster,input:unknown):TeamCheckpoint{
