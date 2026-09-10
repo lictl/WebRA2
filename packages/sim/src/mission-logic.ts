@@ -6,6 +6,8 @@ import { isMissionCueCatalog, missionCueInstruction, missionCueSourceParameters,
 import { isMissionCellEntrySource, missionCellEntrySourceBindings, type MissionCellEntrySource } from './mission-cell-entry-source.ts';
 import { isMissionObjectEventSource, missionObjectEventSourceBindings, type MissionObjectEventSource, type MissionObjectEventOpcode } from './mission-object-event-source.ts';
 import { isMissionTeamActionSource, missionTeamActionSourceContext, type MissionTeamActionSource } from './mission-team-action-source.ts';
+import { missionTeamCellContextData } from './mission-team-cell-context.ts';
+import type { MissionTeamCellContext, MissionTeamCellActor } from './mission-team-cell-types.ts';
 import { canonicalHash, canonicalText, parseJson } from './canonical.ts';
 import { identity as contentIdentity } from './validation.ts';
 import type { Digest } from './types.ts';
@@ -477,11 +479,18 @@ export class MissionLogic {
   stepCellEntries(entries: readonly MissionCellEntryObservation[]): { nextTick: number; effects: MissionEffect[]; work: number } {
     if (!programCells.has(this.#program)) fail('mission-cell-source'); return this.#step(1, entries);
   }
+  /** Source-bound dynamic actors; observations remain explicit VM data, not movement proof. */
+  stepTeamCellEntries(entries: readonly MissionCellEntryObservation[], context: MissionTeamCellContext): { nextTick: number; effects: MissionEffect[]; work: number } {
+    const data = missionTeamCellContextData(context);
+    if (data.cells !== programCells.get(this.#program) || data.actions !== programTeams.get(this.#program) ||
+      !data.source.coverage.allRequiredConstructorsReady || !data.source.coverage.supportedWorldInvariantReady || programObjects.has(this.#program)) fail('mission-team-cell-source');
+    return this.#step(1, entries, undefined, data.actors);
+  }
   /** One VM tick: cell observations, object callbacks, then source scenario polling. */
   stepObjectEvents(events: readonly MissionObjectEventObservation[], cells: readonly MissionCellEntryObservation[] = []): { nextTick: number; effects: MissionEffect[]; work: number } {
     if (!programObjects.has(this.#program)) fail('mission-object-source'); return this.#step(1, cells, events);
   }
-  #step(ticks = 1, cellObservations?: readonly MissionCellEntryObservation[], objectObservations?: readonly MissionObjectEventObservation[]): { nextTick: number; effects: MissionEffect[]; work: number } {
+  #step(ticks = 1, cellObservations?: readonly MissionCellEntryObservation[], objectObservations?: readonly MissionObjectEventObservation[], cellActors?: readonly MissionTeamCellActor[]): { nextTick: number; effects: MissionEffect[]; work: number } {
     integer(ticks, 1, C.stepTicks); if (ticks > C.tick - this.#state.nextTick) fail('mission-tick-limit');
     const state = clone(this.#state), p = this.#program, effects: MissionEffect[] = [];
     const definitions = new Map(p.triggers.map(t => [t.id, t])), tags = new Map(p.tags.map(t => [t.id, t]));
@@ -490,7 +499,7 @@ export class MissionLogic {
     const objectSource = programObjects.get(p);
     const visit = () => { if (++work > C.work) fail('mission-work-limit'); };
     const cellRows = new Map(cellSource?.cells.map(c => { visit(); return [c.cellId, c] as const; }));
-    const actorRows = new Map(cellSource?.actors.map(a => { visit(); return [a.entityId, a] as const; }));
+    const actorRows = new Map((cellActors ?? cellSource?.actors)?.map(a => { visit(); return [a.entityId, a] as const; }));
     const cellEvents = new Map(cellSource?.events.map(e => { visit(); return [e.instructionId, e] as const; }));
     const objectRows = new Map(objectSource?.actors.map(a => { visit(); return [a.entityId, a] as const; }));
     const objectEvents = new Map(objectSource?.events.map(e => { visit(); return [e.instructionId, e] as const; }));
