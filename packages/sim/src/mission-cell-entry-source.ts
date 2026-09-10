@@ -17,6 +17,7 @@ export interface MissionCellEntryEvent {
 export interface MissionCellEntryCell { readonly cellId:string;readonly bindingId:string;readonly x:number;readonly y:number }
 export interface MissionCellEntryActor {
   readonly entityId:number;readonly rowId:string;readonly typeId:string;readonly ownerId:string|null;readonly playerId:number|null;
+  readonly sourceMission:string|null;readonly onBridge:boolean|null;readonly followerIndex:number|null;readonly origin:IniOrigin;
   readonly kind:string;readonly status:'supported'|'unsupported';readonly reasons:readonly string[];
 }
 export interface MissionCellEntrySource {
@@ -63,6 +64,7 @@ export function compileMissionCellEntrySource(input:Readonly<{bindings:MissionBi
   for(const row of logic.events)for(const instruction of row.instructions){charge();if(instruction.opcode===1&&++eventCount>cap.events)fail('event-limit');}
   const diagnostics:{code:string;subjectId:string}[]=[];
   const diagnostic=(code:string,subjectId:string)=>{if(diagnostics.length>=cap.diagnostics)fail('diagnostic-limit');diagnostics.push({code,subjectId});};
+  for(const layer of [...logic.ini.layers,...bindings.rules]){charge();if(layer.encoding!=='byte-preserving-ascii-compatible')diagnostic('native-byte-encoding',layer.id);}
   for(const d of bindings.diagnostics){charge();diagnostic('bindings:'+d.code,d.subjectId);}
   const triggers=new Set(bindings.triggers.map(t=>t.id)),tags=new Map(bindings.tags.map(t=>[t.tagId,t]));
   const firstHouses=new Map<number,typeof houses[number]>();
@@ -99,10 +101,27 @@ export function compileMissionCellEntrySource(input:Readonly<{bindings:MissionBi
   const actors:MissionCellEntryActor[]=[];
   for(const entity of world.model.entities){reference();const p=placements.get(entity.id),object=objects.get(entity.id),reasons:string[]=[];
     if(!p||!object||p.rowId!==entity.rowId||object.rowId!==entity.rowId||p.typeId!==object.typeId||(p.typeId??`unresolved-${entity.id}`)!==entity.typeId||p.ownerId!==object.ownerId||p.playerId!==entity.owner)fail('actor-join');
+    let sourceMission:string|null=null,onBridge:boolean|null=null,followerIndex:number|null=null;
     if(entity.kind!=='infantry'&&entity.kind!=='unit')reasons.push('unsupported-actor-family');
+    else {
+      const raw=object.origin.rawValue;charge(raw.length);
+      const text=raw.split(';',1)[0]!.trim();
+      // Paired native placement loaders use a 128-byte buffer and comma strtok, then integer bridge/follower fields.
+      if(text.length>127||/[^\x20-\x7e]/.test(text))reasons.push('unsupported-source-row-framing');
+      let count=1;for(const character of text)if(character===',')count++;reference(count);
+      const tokens=text.split(',');sourceMission=tokens[6]??null;
+      if(tokens.length!==14||tokens.some(t=>!t.length||t!==t.trim()))reasons.push('unsupported-source-row-framing');
+      const bridge=tokens[entity.kind==='infantry'?11:10],follower=tokens[11];
+      if(bridge===undefined||! /^[+-]?[0-9]+$/.test(bridge)||!Number.isSafeInteger(Number(bridge))||Number(bridge)<-0x80000000||Number(bridge)>0x7fffffff)reasons.push('unsupported-source-bridge');
+      else {onBridge=Number(bridge)!==0;if(onBridge)reasons.push('initial-bridge-layer');}
+      if(entity.kind==='unit'){
+        if(follower===undefined||! /^[+-]?[0-9]+$/.test(follower)||!Number.isSafeInteger(Number(follower))||Number(follower)<-0x80000000||Number(follower)>0x7fffffff)reasons.push('unsupported-source-follower');
+        else {followerIndex=Number(follower)||0;if(followerIndex!==-1)reasons.push('initial-follower-link');}
+      }
+    }
     if(p.status!=='mobile'||entity.movementPerTick===0)reasons.push('not-source-mobile');
     if(p.playerId===null||p.ownerId===null||players.get(p.ownerId)?.playerId!==p.playerId)reasons.push('missing-initial-house');
-    actors.push({entityId:entity.id,rowId:entity.rowId,typeId:entity.typeId,ownerId:p.ownerId,playerId:p.playerId,kind:entity.kind,status:reasons.length?'unsupported':'supported',reasons});
+    actors.push({entityId:entity.id,rowId:entity.rowId,typeId:entity.typeId,ownerId:p.ownerId,playerId:p.playerId,sourceMission,onBridge,followerIndex,origin:object.origin,kind:entity.kind,status:reasons.length?'unsupported':'supported',reasons});
   }
   const scenarioPollBindingIds:string[]=[];
   for(const tag of bindings.tags){charge();if(tag.allocated&&tag.memberships.scenario)scenarioPollBindingIds.push(tag.id);}
