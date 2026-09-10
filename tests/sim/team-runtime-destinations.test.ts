@@ -64,3 +64,16 @@ test('queued orders are preserved; reservation guarantee covers observed occupan
  assert.equal(result.status,'ready');assert.deepEqual(result.assignments,[{entityId:1,x:3,y:3}]);assert.deepEqual(checkpoint,simulation.save());
  assert.equal(checkpoint.queuedCommands.length,1);
 });
+
+test('aggregate budget covers visits, queries and path expansions without changing sufficient-budget results', () => {
+  for (const profile of ['ra2', 'yr'] as const) {
+    const { model, checkpoint } = fixture(profile), input = { model, checkpoint, actorIds: [1, 2], target: { x: 4, y: 3 } };
+    const baseline = planTeamDestinations(input), total = (r: typeof baseline) => r.work.visits + r.work.queries + r.work.expanded;
+    assert.equal(baseline.status, 'ready');
+    assert.deepEqual(planTeamDestinations(input, {}, total(baseline)), baseline);
+    for (const cap of [0, 1, 100, total(baseline) - 1]) {
+      const result = planTeamDestinations(input, {}, cap);
+      assert.equal(result.status, 'budget-exhausted'); assert.deepEqual(result.assignments, []); assert.ok(total(result) <= cap);
+    }
+  }
+});

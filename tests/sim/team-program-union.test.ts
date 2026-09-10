@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { teamSpawnFixture } from './team-spawn-fixture.ts';
 import { compileTeamProgram, unionTeamPrograms, teamProgramWorld, isTeamProgram } from '../../packages/sim/src/team-runtime-program.ts';
-import { bindTeamActors, createTeamCheckpoint, prepareTeamTick } from '../../packages/sim/src/team-runtime.ts';
+import { bindTeamActors, createTeamCheckpoint, prepareTeamTick, restoreTeamCheckpoint } from '../../packages/sim/src/team-runtime.ts';
 import { commitTeamTick, stepTeamWorld, teamWorldStep } from '../../packages/sim/src/team-runtime-world.ts';
 import { worldStepCombatObservations } from '../../packages/sim/src/world.ts';
 
@@ -65,5 +65,30 @@ test('one team commit retains its own immutable world transition; copies and bat
     assert.throws(() => teamWorldStep(fixture(profile).f.world.model, result), /world-step-brand/);
     assert.throws(() => commitTeamTick(roster, prepared, 0), /work-limit/);
     assert.deepEqual(createTeamCheckpoint(roster), initial);
+  }
+});
+
+test('bounded planning and exact prepared reuse preserve results and reject exhausted or altered plans', () => {
+  for (const profile of ['ra2', 'yr'] as const) {
+    const s = fixture(profile), roster = bindTeamActors(s.first, [{ id: 'first', teamId: 'team:squad', actorIds: [1] }]);
+    const initial = createTeamCheckpoint(roster), prepared = prepareTeamTick(roster, initial), work = prepared.pending!.work;
+    assert.ok(work > 0);
+    assert.deepEqual(prepareTeamTick(roster, initial, work), prepared);
+    assert.equal(prepareTeamTick(roster, prepared, work), prepared);
+    assert.equal(restoreTeamCheckpoint(roster, prepared, work), prepared);
+    const parsed = restoreTeamCheckpoint(roster, JSON.stringify(prepared), work);
+    assert.notEqual(parsed, prepared); assert.deepEqual(parsed, prepared);
+    assert.deepEqual(commitTeamTick(roster, parsed), commitTeamTick(roster, prepared));
+    for (const input of [initial, prepared, structuredClone(prepared)]) {
+      assert.throws(() => prepareTeamTick(roster, input, work - 1), /budget|work-limit/);
+      assert.throws(() => commitTeamTick(roster, input, 0));
+    }
+    const altered = structuredClone(prepared); altered.pending!.work--;
+    assert.throws(() => restoreTeamCheckpoint(roster, altered), /pending-plan-mismatch/);
+    assert.throws(() => prepareTeamTick(roster, initial, -1), /integer/);
+    const result = commitTeamTick(roster, prepared);
+    assert.deepEqual(stepTeamWorld(roster, initial, 1, result.work), result);
+    assert.throws(() => stepTeamWorld(roster, initial, 1, result.work - 1));
+    assert.deepEqual(initial, createTeamCheckpoint(roster));
   }
 });
