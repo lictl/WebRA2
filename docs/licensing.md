@@ -305,8 +305,20 @@ static initialization/lookup evidence, source identity boundaries and explicit V
 limits. Its notice accompanies the distribution. This component does not execute
 original missions, physical event callbacks or campaign continuation.
 
+Source-local flag initialization and the original compound mission/world transactions
+are GPL-3.0-or-later. The [mission/world notice](../packages/sim/MISSION_WORLD_PROVENANCE.md)
+records their native initialization evidence, new-campaign policy and runtime limits;
+it accompanies the bundle. These adapters do not establish complete mission execution
+or original campaign continuation.
+
 The bounded mission cue reference compiler, contracts and caller-driven cursor
 are original GPL-3.0-or-later modules. The [cue notice](../packages/content/MISSION_CUES_PROVENANCE.md)
 records paired source/native evidence, primary layout leads and unresolved playback
 boundaries. Distribution includes that notice and the existing INI/CSF/GPL notices;
 no retail media, localized source strings or native listings are embedded.
+
+The authenticated initial waypoint source helper and its team/reinforcement/
+recruitment gates are original GPL-3.0-or-later work. Distribution includes the
+[initial waypoint notice](../packages/content/INITIAL_WAYPOINTS_PROVENANCE.md) and
+existing content/simulation notices. Native range metadata is factual evidence;
+no retail rows, coordinates or native listings are included in the build.

@@ -3,6 +3,7 @@
 import type { CampaignSession, CampaignSessionFactory } from './campaign-session.ts';
 import type { TerrainViewport } from '../../../packages/render/src/terrain-scene.ts';
 import { shape, int, validAction, centered, type SceneSummary, type TerrainProgress, type TerrainReply, type TerrainProfile, type FrameSummary, type ViewportPick } from './terrain-protocol.ts';
+import { locateWorldActor } from './infantry-slot-projection.ts';
 import { projectControlPoints } from './world-selection.ts';
 import { WorldSession, type WorldPreparation } from './world-session.ts';
 import { validWorldAction, type WorldSnapshot } from './world-protocol.ts';
@@ -16,11 +17,11 @@ export function attachTerrainWorker(scope: TerrainScope, load: SceneLoader, camp
   let world:WorldSession|null=null,campaign:CampaignSession|null=null;
   const clearScene=()=>{scene=null;summary=null;frame=null;world=null;frameId=0;};
   const filesFor=(files:{file:File;relativePath:string}[])=>files.map(({file,relativePath})=>{Object.defineProperty(file,'webkitRelativePath',{value:relativePath,configurable:true});return file;});
-  const flush=()=>{ if(!busy || outstanding || !pending)return; const progress=pending;pending=null;outstanding=++sequence;scope.postMessage({version:6,id:currentId,type:'progress',sequence,progress}); };
+  const flush=()=>{ if(!busy || outstanding || !pending)return; const progress=pending;pending=null;outstanding=++sequence;scope.postMessage({version:7,id:currentId,type:'progress',sequence,progress}); };
   scope.onmessage=event=>{
     const v=event.data;
-    if(shape(v,['version','id','type','sequence']) && v.version===6 && v.type==='ack' && v.id===currentId && v.sequence===outstanding){outstanding=0;flush();return;}
-    if(!shape(v,['version','id','action']) || v.version!==6 || !int(v.id,1) || v.id<=lastId || busy)return;
+    if(shape(v,['version','id','type','sequence']) && v.version===7 && v.type==='ack' && v.id===currentId && v.sequence===outstanding){outstanding=0;flush();return;}
+    if(!shape(v,['version','id','action']) || v.version!==7 || !int(v.id,1) || v.id<=lastId || busy)return;
     lastId=v.id;currentId=v.id;const id=v.id;busy=true;pending=null;outstanding=0;
     void(async()=>{
       try{
@@ -29,11 +30,11 @@ export function attachTerrainWorker(scope: TerrainScope, load: SceneLoader, camp
         if(action.type==='campaign-scan'){
           clearScene();campaign?.dispose();campaign=null;if(!campaigns)throw new Error('campaign-unavailable');
           campaign=await campaigns(filesFor(action.files),action.profile,report);
-          scope.postMessage({version:6,id,type:'result',result:{type:'campaign-plan',plan:campaign.plan}});return;
+          scope.postMessage({version:7,id,type:'result',result:{type:'campaign-plan',plan:campaign.plan}});return;
         }
         if(action.type==='campaign-back'){
           if(!campaign||campaign.plan.fingerprint!==action.fingerprint)throw new Error('campaign-plan-identity');
-          clearScene();scope.postMessage({version:6,id,type:'result',result:{type:'campaign-plan',plan:campaign.plan}});return;
+          clearScene();scope.postMessage({version:7,id,type:'result',result:{type:'campaign-plan',plan:campaign.plan}});return;
         }
         if(action.type==='load'||action.type==='campaign-launch'){
           clearScene();
@@ -47,21 +48,21 @@ export function attachTerrainWorker(scope: TerrainScope, load: SceneLoader, camp
           if(!world || !frame)throw new Error('unavailable');
           try{
             const result=world.act(action);
-            if(result){scope.postMessage({version:6,id,type:'result',result});return;}
+            if(result){scope.postMessage({version:7,id,type:'result',result});return;}
           }catch(error){
             const raw=error && typeof error==='object' && 'code' in error?error.code:error instanceof Error?error.message:'';
             const code=typeof raw==='string' && /^[A-Za-z][A-Za-z0-9-]{0,95}$/.test(raw)?raw:'world-ui-invalid-document';
-            scope.postMessage({version:6,id,type:'result',result:{type:'world-rejection',modelHash:world.model.sha256,revision:world.revision,code}});return;
+            scope.postMessage({version:7,id,type:'result',result:{type:'world-rejection',modelHash:world.model.sha256,revision:world.revision,code}});return;
           }
         }
         if(action.type==='pick'){
           if(!frame || action.frameId!==frameId || action.x>=frame.viewport.width || action.y>=frame.viewport.height)throw new Error('stale-frame');
-          scope.postMessage({version:6,id,type:'result',result:{type:'pick',frameId,selection:frame.pick(action.x,action.y)}});
+          scope.postMessage({version:7,id,type:'result',result:{type:'pick',frameId,selection:frame.pick(action.x,action.y)}});
         }else{
           const snapshot=world?.snapshot()??null;
           let camera=(action.type==='load'||action.type==='campaign-launch')?centered(summary,action.width,action.height):action.type==='render'?action.camera:frame!.viewport;
           if(action.type==='focus'){
-            const actor=snapshot?.actors.find(a=>a.id===action.entityId),point=actor&&scene.locate?.(actor.x,actor.y);
+            const actor=snapshot?.actors.find(a=>a.id===action.entityId),point=actor&&summary.world&&scene.locate&&locateWorldActor(summary.world,actor,scene.locate.bind(scene));
             if(!point)throw new Error('world-ui-focus');
             camera={...camera,cameraX:point.x-camera.width/camera.zoom/2,cameraY:point.y-camera.height/camera.zoom/2};
           }
@@ -70,12 +71,12 @@ export function attachTerrainWorker(scope: TerrainScope, load: SceneLoader, camp
           const rgba=frame.rgba.buffer as ArrayBuffer;
           const {cameraX,cameraY,zoom,width,height}=camera;
           const controlPoints=projectControlPoints(summary.world,snapshot,camera,scene.locate?.bind(scene));
-          scope.postMessage({version:6,id,type:'result',result:{type:'frame',controlPoints,world:snapshot,frameId,camera:{cameraX,cameraY,zoom,width,height},summary,allocations:{...frame.allocations,voxel:frame.allocations.voxel??null},rgba}},[rgba]);
+          scope.postMessage({version:7,id,type:'result',result:{type:'frame',controlPoints,world:snapshot,frameId,camera:{cameraX,cameraY,zoom,width,height},summary,allocations:{...frame.allocations,voxel:frame.allocations.voxel??null},rgba}},[rgba]);
         }
       }catch(error){
         const raw=error && typeof error==='object' && 'code' in error?error.code:error instanceof Error?error.message:'unavailable';
         const code=typeof raw==='string' && /^[A-Za-z][A-Za-z0-9-]{0,95}$/.test(raw)?raw:'unavailable';
-        scope.postMessage({version:6,id,type:'error',code});
+        scope.postMessage({version:7,id,type:'error',code});
       }finally{busy=false;pending=null;outstanding=0;}
     })();
   };

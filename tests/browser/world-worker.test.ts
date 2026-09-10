@@ -23,7 +23,7 @@ class LocalWorker extends EventTarget {
 }
 const files = () => [new File(['original-fixture'], 'original.mix')];
 const load: TerrainAction = { type: 'load', files: files().map(file => ({ file, relativePath: '' })), profile: 'ra2', width: 120, height: 80 };
-test('v5 bridge and worker bind frame revisions, bounded commands, documents and recoverable rejection', async () => {
+test('v7 bridge and worker bind frame revisions, bounded commands, documents and recoverable rejection', async () => {
   const worker = new LocalWorker(), bridge = new TerrainBridge(worker), signal = new AbortController().signal;
   const first = await bridge.request(load, signal) as FrameResult; assert.equal(first.world!.revision, 0);
   const admitted = await bridge.request({ type: 'world-order', order: 'move', playerId: 0, entityId: 1, x: 6, y: 3 }, signal) as FrameResult;
@@ -80,4 +80,21 @@ test('world storage uses its own database, bounds text before opening and expose
   for (const key of ['worldPaused', 'worldSaved', 'worldLoaded', 'worldRejected', 'worldVerified', 'worldQuota', 'worldStorage', 'worldHidden', 'constructor', '__proto__']) for (const locale of ['en', 'zh-Hant'] as const) assert.equal(typeof worldText(locale, key), 'string');
   assert.match(worldText('zh-Hant', 'scope'), /有限的步兵戰鬥/);
   for(const code of ['stopped','move-accepted','arrived','path-found','blocked','progress','moved','unreachable','budget-exhausted','missing-goal','blocked-goal','constructor','__proto__'])assert.match(worldEventText('zh-Hant',code),/[\u3400-\u9fff]/);
+});
+
+test('cancelled replay validation terminates the worker, retains Files/local saves and ignores stale completion',async()=>{
+ class DelayedReplayWorker extends LocalWorker {
+  held:{version:number;id:number;action:{type:string}}|null=null;
+  override postMessage(value:unknown){const v=value as NonNullable<DelayedReplayWorker['held']>;if(v.action?.type==='world-replay-validate'){this.held=structuredClone(v);return;}super.postMessage(value);}
+ }
+ const saved=new Map<number,string>(),workers:DelayedReplayWorker[]=[];
+ const storage:WorldStorage={async read(slot){return saved.get(slot)??null;},async write(slot,text){saved.set(slot,text);},async remove(slot){saved.delete(slot);}};
+ const c=new TerrainController('en',()=>{const w=new DelayedReplayWorker();workers.push(w);return new TerrainBridge(w);},storage);c.resize(120,80);c.select(files());await c.load();await c.order(6,3);await c.step();await c.saveWorld();
+ const hash=c.state.frame!.world!.stateHash,checkpoint=saved.get(1);const pending=c.verifyWorld();
+ for(let i=0;i<10&&!workers[0]!.held;i++)await new Promise<void>(r=>setImmediate(r));
+ assert(workers[0]!.held);assert.equal(c.state.worldNotice,'worldVerifying');assert(c.state.busy);c.hidden();assert.equal(c.state.verifyingReplay,true);c.clearSelection();assert.equal(c.state.verifyingReplay,true);c.setRunning(false);assert.equal(c.state.verifyingReplay,true);
+ c.cancel();assert.equal(workers[0]!.terminated,1);assert.equal(c.state.phase,'cancelled');assert.equal(c.state.verifyingReplay,false);assert.equal(c.state.files,1);assert.equal(saved.get(1),checkpoint);await pending;
+ await c.load();await c.loadWorld();assert.equal(c.state.frame!.world!.stateHash,hash);
+ workers[0]!.dispatchEvent(new MessageEvent('message',{data:{version:7,id:workers[0]!.held!.id,type:'result',result:{type:'world-document',kind:'validated',modelHash:c.state.frame!.world!.modelHash,revision:0,stateHash:'f'.repeat(64),text:null}}}));
+ await Promise.resolve();assert.equal(c.state.frame!.world!.stateHash,hash);assert.equal(c.state.worldNotice,'worldLoaded');assert.equal(c.state.replayHash,null);c.dispose();
 });
