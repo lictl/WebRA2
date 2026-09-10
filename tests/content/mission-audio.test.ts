@@ -88,3 +88,9 @@ test('native CRC name collisions fail closed even for distinct case-sensitive so
  const g=audioFixture(),s=g.source('sound.ini',`[SoundList]\n0=Alert\n[Alert]\nSounds=click\n${a}=a\n${b}=b`);
  assert.equal(compileMissionAudioPlan({...g.input,sources:g.input.sources.map(v=>v.path==='sound.ini'?s:v)}).bindings[0]!.status,'unsupported');
 });
+test('reentrant preparation reserves before callbacks and releases after callback failures',async()=>{
+ const f=audioFixture(),p=compileMissionAudioPlan(f.input),roots=planRoots(p,f.roots);let reentrant:Promise<unknown>|undefined;
+ await prepareMissionAudioSamples(p,roots,{onProgress(){reentrant??=assert.rejects(prepareMissionAudioSamples(p,roots),/preparation-busy/);}});await reentrant;
+ await assert.rejects(prepareMissionAudioSamples(p,roots,{onProgress(){throw Error('original callback failure');}}),/original callback failure/);
+ assert.ok(isMissionAudioCatalog(await prepareMissionAudioSamples(p,roots)));
+});

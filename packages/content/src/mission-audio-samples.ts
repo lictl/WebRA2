@@ -7,6 +7,7 @@ import { MISSION_AUDIO_POLICY, audioFail, type MissionAudioCatalog, type Mission
 import { audioDurable, audioFingerprint, audioFreeze, audioHash, audioList, audioRecord } from './mission-audio-utils.ts';
 
 const catalogs=new WeakMap<MissionAudioCatalog,ReadonlyMap<string,Uint8Array>>();
+const activePlans=new WeakSet<MissionAudioPlan>();
 export function isMissionAudioCatalog(value:unknown):value is MissionAudioCatalog {return !!value&&typeof value==='object'&&catalogs.has(value as MissionAudioCatalog);}
 export function copyMissionAudioSample(catalog:MissionAudioCatalog,id:string):Uint8Array {
   const samples=catalogs.get(catalog);if(!samples)audioFail('catalog-brand');const bytes=samples.get(id);if(!bytes)audioFail('sample-id');return bytes.slice();
@@ -35,7 +36,7 @@ function waveFormat(bytes:Uint8Array):MissionAudioPreparedSample['format'] {
 }
 
 /** Verifies selected roots and sample ranges on device. Does not decode, play, dispatch, or hash complete BAG members. */
-export async function prepareMissionAudioSamples(plan:MissionAudioPlan, roots:readonly BrowserSelectedRoot[], options:MissionAudioPrepareOptions={}):Promise<MissionAudioCatalog> {
+async function prepareOwned(plan:MissionAudioPlan, roots:readonly BrowserSelectedRoot[], options:MissionAudioPrepareOptions):Promise<MissionAudioCatalog> {
   if(!isMissionAudioPlan(plan))audioFail('plan-brand');
   const caps=missionAudioPlanLimits(plan),selected=audioList(roots,128).map(raw=>{
     const r=audioRecord(raw,['sourceId','blob']);if(typeof r.sourceId!=='string')audioFail('source-id');
@@ -86,4 +87,9 @@ export async function prepareMissionAudioSamples(plan:MissionAudioPlan, roots:re
     samples,bindings:plan.bindings.map(b=>({...b,status:b.status==='planned-reference'?'verified-reference' as const:'unsupported' as const})),
     rootIdentitiesVerified:true as const,wholeBagMembersHashed:false as const,nativeExecutionVerified:false as const,playbackReady:false as const,canStartCampaign:false as const};
   const catalog=audioFreeze({...data,sha256:audioFingerprint(audioDurable(data),caps.serializedBytes)});catalogs.set(catalog,bytesById);return catalog;
+}
+/** One in-flight preparation per genuine plan, reserved before callbacks or input reflection. */
+export async function prepareMissionAudioSamples(plan:MissionAudioPlan,roots:readonly BrowserSelectedRoot[],options:MissionAudioPrepareOptions={}):Promise<MissionAudioCatalog> {
+  if(!isMissionAudioPlan(plan))audioFail('plan-brand');if(activePlans.has(plan))audioFail('preparation-busy');activePlans.add(plan);
+  try{return await prepareOwned(plan,roots,options);}finally{activePlans.delete(plan);}
 }

@@ -80,7 +80,9 @@ Defaults permit512 total candidates,16MiB aggregate source bytes,4MiB per source
 ranges are bounded. Limits can only be reduced. Preparation allows128 selected
 roots,4,096 range attempts,1MiB chunks and an explicit8GiB total verification/read
 budget. Native Blob snapshots and the existing verifier own cancellation and read
-slots; no timer, wall clock or RNG controls reference selection.
+slots; one preparation per genuine plan is reserved before callbacks or input
+reflection. Callback failures release that reservation. No timer, wall clock or RNG
+controls reference selection.
 
 `wholeBagMembersHashed` remains false. The complete containing root is hashed and
 each used sample range has a hash; a full BAG member is neither allocated nor
