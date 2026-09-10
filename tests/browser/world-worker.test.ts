@@ -23,7 +23,7 @@ class LocalWorker extends EventTarget {
 }
 const files = () => [new File(['original-fixture'], 'original.mix')];
 const load: TerrainAction = { type: 'load', files: files().map(file => ({ file, relativePath: '' })), profile: 'ra2', width: 120, height: 80 };
-test('v4 bridge and worker bind frame revisions, bounded commands, documents and recoverable rejection', async () => {
+test('v5 bridge and worker bind frame revisions, bounded commands, documents and recoverable rejection', async () => {
   const worker = new LocalWorker(), bridge = new TerrainBridge(worker), signal = new AbortController().signal;
   const first = await bridge.request(load, signal) as FrameResult; assert.equal(first.world!.revision, 0);
   const admitted = await bridge.request({ type: 'world-order', order: 'move', playerId: 0, entityId: 1, x: 6, y: 3 }, signal) as FrameResult;
@@ -35,6 +35,17 @@ test('v4 bridge and worker bind frame revisions, bounded commands, documents and
   worker.transform = reply => reply.type === 'result' && reply.result.type === 'frame' ? { ...reply, result: { ...reply.result, world: { ...reply.result.world!, revision: 1 } } } : reply;
   await assert.rejects(bridge.request({ type: 'world-step', ticks: 1 }, signal), /invalid/); assert.equal(worker.terminated, 1);
 });
+test('v5 rejects forged frame control points and returns a recoverable stale group revision',async()=>{
+  for(const mutate of [(f:FrameResult)=>{f.controlPoints.push({...f.controlPoints[0]!});},(f:FrameResult)=>{f.controlPoints[0]!.entityId=99;},(f:FrameResult)=>{f.world!.actors[0]!.health=0;}]){
+    const worker=new LocalWorker(),bridge=new TerrainBridge(worker);worker.transform=r=>{if(r.type==='result'&&r.result.type==='frame')mutate(r.result);return r;};
+    await assert.rejects(bridge.request(load,new AbortController().signal),/invalid/);assert.equal(worker.terminated,1);
+  }
+  const worker=new LocalWorker(),bridge=new TerrainBridge(worker),signal=new AbortController().signal;
+  const first=await bridge.request(load,signal) as FrameResult;
+  const rejection=await bridge.request({type:'world-orders',order:'stop',entityIds:[1],playerId:0,expectedRevision:1},signal);
+  assert.equal(rejection.type,'world-rejection');assert.equal(worker.terminated,0);
+  const frame=await bridge.request({type:'render',camera:first.camera},signal) as FrameResult;assert.equal(frame.world!.stateHash,first.world!.stateHash);assert.equal(frame.world!.revision,0);bridge.dispose();
+});
 test('controller preserves moving state through local save, invalid import, restore and replay validation', async () => {
   const saved = new Map<number, string>(); const storage: WorldStorage = { async read(slot) { return saved.get(slot) ?? null; }, async write(slot, text) { saved.set(slot, text); }, async remove(slot) { saved.delete(slot); } };
   const controller = new TerrainController('en', () => new TerrainBridge(new LocalWorker()), storage); controller.resize(120, 80); controller.select(files()); await controller.load();
@@ -42,7 +53,7 @@ test('controller preserves moving state through local save, invalid import, rest
   controller.setRunning(true); await controller.saveWorld(); assert.equal(controller.state.running, false); assert.equal(controller.state.worldNotice, 'worldSaved');
   await controller.step(4); assert.notEqual(controller.state.frame!.world!.stateHash, moving); await controller.loadWorld(); assert.equal(controller.state.frame!.world!.stateHash, moving);
   await controller.importWorld(new File(['{}'], 'invalid.json'), 'save'); assert.equal(controller.state.worldNotice, 'worldRejected'); assert.equal(controller.state.frame!.world!.stateHash, moving);
-  await controller.order(); await controller.step(); assert.equal(controller.state.frame!.world!.actors[0]!.goalX, null);
+  assert.deepEqual(controller.state.selectedEntities, []); controller.selectEntity(1); await controller.order(); await controller.step(); assert.equal(controller.state.frame!.world!.actors[0]!.goalX, null);
   await controller.verifyWorld(); assert.equal(controller.state.worldNotice, 'worldVerified'); assert.equal(controller.state.replayHash, controller.state.frame!.world!.stateHash);
   controller.setRunning(true); controller.hidden(); assert.equal(controller.state.running, false); controller.leave(); assert.equal(controller.state.frame, null); assert.equal(controller.state.files, 1); controller.dispose();
 });
