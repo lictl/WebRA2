@@ -112,3 +112,28 @@ test('caller work budget constrains preparation and pending recomputation withou
   const pending=prepareMissionTeamTick(f.runtime,at1);assert.deepEqual(stepMissionTeamWorld(f.runtime,pending,full.work).checkpoint,full.checkpoint);
   assert.throws(()=>stepMissionTeamWorld(f.runtime,JSON.stringify(pending),0),/work/);
 });
+
+test('replay aggregate budget is passed before each world tick and includes pending validation work',()=>{
+  const f=missionTeamFixture({}, {replayWork:5}),initial=createMissionTeamCheckpoint(f.runtime),final=run(f,initial,2);
+  const replay={schemaVersion:1 as const,runtimeSha256:f.runtime.sha256,initialCheckpoint:initial,admissions:[],finalNextTick:2,finalStateSha256:worldHash(final)};
+  assert.throws(()=>replayMissionTeamWorld(f.runtime,replay),/work/);
+  const pending=prepareMissionTeamTick(f.runtime,initial);
+  assert.throws(()=>replayMissionTeamWorld(f.runtime,{...replay,initialCheckpoint:pending}),/work/);
+  assert.equal(initial.team.world.nextTick,0);
+});
+
+test('sequential constructor birth-cell reuse is legal but never grants overlapping live anchors',()=>{
+  for(const profile of ['ra2','yr'] as const){
+    const f=missionTeamFixture({profile});let c=admitMissionTeamInput(f.runtime,createMissionTeamCheckpoint(f.runtime),{requests:[f.receipt(1,0)],commands:[]});
+    c=run(f,c,3);const born=c.team.world.state.entities.find(e=>e.id===3)!;const original={x:born.x,y:born.y};
+    c=admitMissionTeamInput(f.runtime,c,{requests:[],commands:[{schemaVersion:1,tick:c.team.world.nextTick,playerId:0,sequence:0,kind:'move',payload:{entityId:3,x:4,y:3}}]});
+    c=run(f,c,8);assert.deepEqual([c.team.world.state.entities[2]!.x,c.team.world.state.entities[2]!.y],[4,3]);
+    c=admitMissionTeamInput(f.runtime,c,{requests:[f.receipt(1,1,c.team.world.nextTick)],commands:[]});c=run(f,c,3);
+    assert.deepEqual({x:c.team.world.state.entities[3]!.x,y:c.team.world.state.entities[3]!.y},original);
+    assert.deepEqual(restoreMissionTeamCheckpoint(f.runtime,JSON.stringify(c)),c);
+    const forged=copy(c);Object.assign(forged.team.world.state.entities[2]!,original);
+    assert.throws(()=>restoreMissionTeamCheckpoint(f.runtime,forged),/constructed-anchor-overlap/);
+    const shared=missionTeamFixture({profile,infantryRows:'0=Commander,Walker,256,2,2,0,Guard,0,None,0,-1,0,1,1\n1=Commander,Walker,256,2,2,0,Guard,0,None,0,-1,0,1,1'});
+    assert.doesNotThrow(()=>createMissionTeamCheckpoint(shared.runtime));
+  }
+});
