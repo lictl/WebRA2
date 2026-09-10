@@ -1,0 +1,490 @@
+{
+  "schemaVersion": 1,
+  "scope": "Paired static ordinary infantry alliance/subposition and Walk head-marking evidence; no native program execution.",
+  "images": [
+    {
+      "profile": "ra2",
+      "file": "game.exe",
+      "bytes": 5077312,
+      "sha256": "73288c03b58d370be268ca6d156b4e33bfdb2066dc980359467d8852ff3b00df"
+    },
+    {
+      "profile": "yr",
+      "file": "gamemd.exe",
+      "bytes": 5286208,
+      "sha256": "3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600"
+    }
+  ],
+  "ranges": [
+    {
+      "profile": "ra2",
+      "role": "infantry-vtable-assignment",
+      "kind": "code",
+      "start": "0x4ff6bc",
+      "endExclusive": "0x4ff6c2",
+      "offset": 1046204,
+      "size": 6,
+      "sha256": "e94a21f0da7a0e257475bcf2c5139f7a4072dc09d3ce825e69d913d43be5be7d",
+      "completeInstructions": true
+    },
+    {
+      "profile": "ra2",
+      "role": "occupied-cell-dispatch",
+      "kind": "code",
+      "start": "0x503190",
+      "endExclusive": "0x503a3d",
+      "offset": 1061264,
+      "size": 2221,
+      "sha256": "28fb452d22b3f5238f05154429cb9aeea976f5dc43a2883da0e7959ec4e61b42",
+      "completeInstructions": true
+    },
+    {
+      "profile": "ra2",
+      "role": "directed-house-alliance-helpers",
+      "kind": "code",
+      "start": "0x4e5500",
+      "endExclusive": "0x4e55d1",
+      "offset": 939264,
+      "size": 209,
+      "sha256": "ac0f8566e90619e76836bd106bd63420ea50a03886bd0eb37a1da654e7d6499f",
+      "completeInstructions": true
+    },
+    {
+      "profile": "ra2",
+      "role": "coordinate-to-subposition",
+      "kind": "code",
+      "start": "0x4763d0",
+      "endExclusive": "0x476454",
+      "offset": 484304,
+      "size": 132,
+      "sha256": "daf24e4ab9e77324ac8f3319e4493c6039a5e8101319bf2bf6e5023c81c66f93",
+      "completeInstructions": true
+    },
+    {
+      "profile": "ra2",
+      "role": "individual-slot-free-check",
+      "kind": "code",
+      "start": "0x476460",
+      "endExclusive": "0x4764b0",
+      "offset": 484448,
+      "size": 80,
+      "sha256": "40cad694b9f418a9701a36837403c49adcd1d12f6b0abbb10688b98b42e1d6f1",
+      "completeInstructions": true
+    },
+    {
+      "profile": "ra2",
+      "role": "ordinary-slot-selection",
+      "kind": "code",
+      "start": "0x4764b0",
+      "endExclusive": "0x476746",
+      "offset": 484528,
+      "size": 662,
+      "sha256": "5745392c0060b84f0fb299a3080b9f034a99464183f71ca3db962d50ca683878",
+      "completeInstructions": true
+    },
+    {
+      "profile": "ra2",
+      "role": "slot-coordinate-initializer",
+      "kind": "code",
+      "start": "0x483390",
+      "endExclusive": "0x483404",
+      "offset": 537488,
+      "size": 116,
+      "sha256": "3d06d63094892b5ff5cd636a379e3339aef0d6bab562c74e446f341d5ecc5c32",
+      "completeInstructions": true
+    },
+    {
+      "profile": "ra2",
+      "role": "mark-occupation",
+      "kind": "code",
+      "start": "0x508410",
+      "endExclusive": "0x50849f",
+      "offset": 1082384,
+      "size": 143,
+      "sha256": "f3023820b0bfbcd4bf4cb1009b93d5d6702fa276fc34d4bca016732eb5d32b30",
+      "completeInstructions": true
+    },
+    {
+      "profile": "ra2",
+      "role": "unmark-occupation",
+      "kind": "code",
+      "start": "0x5084a0",
+      "endExclusive": "0x508529",
+      "offset": 1082528,
+      "size": 137,
+      "sha256": "4e1bfaeb312ee85bb77a012b5a9d735af83a95919e09eb07e266fb9189ad878e",
+      "completeInstructions": true
+    },
+    {
+      "profile": "ra2",
+      "role": "walk-constructor",
+      "kind": "code",
+      "start": "0x71de00",
+      "endExclusive": "0x71de67",
+      "offset": 3268096,
+      "size": 103,
+      "sha256": "ceee534d2163482ca1a66b80f2a8f67ce673c63619ca9cb9ad952ceeb0a46496",
+      "completeInstructions": true
+    },
+    {
+      "profile": "ra2",
+      "role": "walk-class-guid",
+      "kind": "code",
+      "start": "0x71f900",
+      "endExclusive": "0x71f938",
+      "offset": 3275008,
+      "size": 56,
+      "sha256": "5f9304e064c9eb24fdf2b4260236fe41966f0c454b5878c4b15ddd94a3450a11",
+      "completeInstructions": true
+    },
+    {
+      "profile": "ra2",
+      "role": "walk-move-to",
+      "kind": "code",
+      "start": "0x71e020",
+      "endExclusive": "0x71e101",
+      "offset": 3268640,
+      "size": 225,
+      "sha256": "78285800a9207bf96944a57eead97d073fe97c98995e18e4556c35f04bb0cb24",
+      "completeInstructions": true
+    },
+    {
+      "profile": "ra2",
+      "role": "walk-stop",
+      "kind": "code",
+      "start": "0x71e110",
+      "endExclusive": "0x71e16f",
+      "offset": 3268880,
+      "size": 95,
+      "sha256": "82650aec9de6c75581e86dbdb1ee04b89206980c99cede7f10cad724320270fe",
+      "completeInstructions": true
+    },
+    {
+      "profile": "ra2",
+      "role": "walk-head-subposition-change",
+      "kind": "code",
+      "start": "0x71f590",
+      "endExclusive": "0x71f8fc",
+      "offset": 3274128,
+      "size": 876,
+      "sha256": "852e92f70947175f50d9d317d8a587c0a1932b0e5b8ad27afe35f87ca73055fb",
+      "completeInstructions": true
+    },
+    {
+      "profile": "ra2",
+      "role": "walk-unmark-head",
+      "kind": "code",
+      "start": "0x71fce0",
+      "endExclusive": "0x71fd26",
+      "offset": 3276000,
+      "size": 70,
+      "sha256": "23cb4cf81db35714cc58f24739ae49d6ae449f1cbf436f57f8905994ec80d537",
+      "completeInstructions": true
+    },
+    {
+      "profile": "ra2",
+      "role": "infantry-mark-unmark-vtable",
+      "kind": "data",
+      "start": "0x7a3628",
+      "endExclusive": "0x7a3630",
+      "offset": 3814952,
+      "size": 8,
+      "sha256": "72a303bfe71adf2a1388b4c460f39c0f108212e25434d80252ebdce0c9cefcc0"
+    },
+    {
+      "profile": "ra2",
+      "role": "infantry-occupancy-height-vtable",
+      "kind": "data",
+      "start": "0x7a36d4",
+      "endExclusive": "0x7a36dc",
+      "offset": 3815124,
+      "size": 8,
+      "sha256": "43674b6a813ae2406b219cd22c4d15cf655c9a0344014a46caa76eb89d1bd4b4"
+    },
+    {
+      "profile": "ra2",
+      "role": "allied-RTTI-dispatch",
+      "kind": "data",
+      "start": "0x503a40",
+      "endExclusive": "0x503a5f",
+      "offset": 1063488,
+      "size": 31,
+      "sha256": "1ad6a69b62fab8073012600feea02174711c5c208cdfb6ced006746b4a49b9f5"
+    },
+    {
+      "profile": "ra2",
+      "role": "slot-fallback-priority",
+      "kind": "data",
+      "start": "0x7d2b6c",
+      "endExclusive": "0x7d2b90",
+      "offset": 4008812,
+      "size": 36,
+      "sha256": "88837d9f28eeacac58218f78a6e73c4c92a1a300b9e2730d4a50fe22a658e9f1"
+    },
+    {
+      "profile": "ra2",
+      "role": "walk-guid",
+      "kind": "data",
+      "start": "0x7a1fa0",
+      "endExclusive": "0x7a1fb0",
+      "offset": 3809184,
+      "size": 16,
+      "sha256": "bd73ec36e7c4d56aef98b4a10216e8363b831d9f80a30ab819b7852b71e347fe"
+    },
+    {
+      "profile": "ra2",
+      "role": "walk-interface-vtable",
+      "kind": "data",
+      "start": "0x7aead8",
+      "endExclusive": "0x7aeba0",
+      "offset": 3861208,
+      "size": 200,
+      "sha256": "cb6c6840640585233de45cf3c59362c1c99d776668faecccec497a78f143249a"
+    },
+    {
+      "profile": "ra2",
+      "role": "walk-persist-vtable",
+      "kind": "data",
+      "start": "0x7aeba0",
+      "endExclusive": "0x7aebb0",
+      "offset": 3861408,
+      "size": 16,
+      "sha256": "bdffb569b123cd92dc7a395f7ac6bb6a5e68a52691fceb7068c030d33665a9c5"
+    },
+    {
+      "profile": "yr",
+      "role": "infantry-vtable-assignment",
+      "kind": "code",
+      "start": "0x517acc",
+      "endExclusive": "0x517ad2",
+      "offset": 1145548,
+      "size": 6,
+      "sha256": "e0c6930016c67f30e27912c342e4af938bd21b32ea093e9081ee2eb74a1952e1",
+      "completeInstructions": true
+    },
+    {
+      "profile": "yr",
+      "role": "occupied-cell-dispatch",
+      "kind": "code",
+      "start": "0x51bf90",
+      "endExclusive": "0x51c883",
+      "offset": 1163152,
+      "size": 2291,
+      "sha256": "82ac4a861acf57640c67a8fece7abef7c238dcf7d1ac731da5b6176ec9a6dfaf",
+      "completeInstructions": true
+    },
+    {
+      "profile": "yr",
+      "role": "directed-house-alliance-helpers",
+      "kind": "code",
+      "start": "0x4f9a10",
+      "endExclusive": "0x4f9ae2",
+      "offset": 1022480,
+      "size": 210,
+      "sha256": "8c249b34311f4fcd5ff740632c97dc1820af57da2cd4ba0bf6344767c119480c",
+      "completeInstructions": true
+    },
+    {
+      "profile": "yr",
+      "role": "coordinate-to-subposition",
+      "kind": "code",
+      "start": "0x4810a0",
+      "endExclusive": "0x481124",
+      "offset": 528544,
+      "size": 132,
+      "sha256": "57ddc90f33b4629adcebee20afcab0d53042c7912b74b008fb2bee65603ae5ae",
+      "completeInstructions": true
+    },
+    {
+      "profile": "yr",
+      "role": "individual-slot-free-check",
+      "kind": "code",
+      "start": "0x481130",
+      "endExclusive": "0x481180",
+      "offset": 528688,
+      "size": 80,
+      "sha256": "40cad694b9f418a9701a36837403c49adcd1d12f6b0abbb10688b98b42e1d6f1",
+      "completeInstructions": true
+    },
+    {
+      "profile": "yr",
+      "role": "ordinary-slot-selection",
+      "kind": "code",
+      "start": "0x481180",
+      "endExclusive": "0x48149b",
+      "offset": 528768,
+      "size": 795,
+      "sha256": "07ab83e24c916e78d0cdab937eff96c90feef868f93e20fe22da814433951431",
+      "completeInstructions": true
+    },
+    {
+      "profile": "yr",
+      "role": "slot-coordinate-initializer",
+      "kind": "code",
+      "start": "0x48e480",
+      "endExclusive": "0x48e4f4",
+      "offset": 582784,
+      "size": 116,
+      "sha256": "84ce5c4df4abf5a43f37a934e775d8c8ebb2f5244efc19432ee8e40bce5ba241",
+      "completeInstructions": true
+    },
+    {
+      "profile": "yr",
+      "role": "mark-occupation",
+      "kind": "code",
+      "start": "0x5217c0",
+      "endExclusive": "0x52184f",
+      "offset": 1185728,
+      "size": 143,
+      "sha256": "6df91b977e8b2d41b5d7cea6eca13828bd2699d8634a515ed97d42ce35bb5a0e",
+      "completeInstructions": true
+    },
+    {
+      "profile": "yr",
+      "role": "unmark-occupation",
+      "kind": "code",
+      "start": "0x521850",
+      "endExclusive": "0x5218d9",
+      "offset": 1185872,
+      "size": 137,
+      "sha256": "0e830e45b6a399291f5c546129455068fbc290ae634120d96f19bb5e116ccbe9",
+      "completeInstructions": true
+    },
+    {
+      "profile": "yr",
+      "role": "walk-constructor",
+      "kind": "code",
+      "start": "0x75aa90",
+      "endExclusive": "0x75aaf7",
+      "offset": 3517072,
+      "size": 103,
+      "sha256": "bb67deaec74acc492de693641136e95fe22689a282fc0f2a5bd98b6bb96b80e9",
+      "completeInstructions": true
+    },
+    {
+      "profile": "yr",
+      "role": "walk-class-guid",
+      "kind": "code",
+      "start": "0x75c640",
+      "endExclusive": "0x75c678",
+      "offset": 3524160,
+      "size": 56,
+      "sha256": "fa4f5b5f7728132636194858c8b12d89c6dfe7d228646b8d6fa29b51c51a3159",
+      "completeInstructions": true
+    },
+    {
+      "profile": "yr",
+      "role": "walk-move-to",
+      "kind": "code",
+      "start": "0x75acb0",
+      "endExclusive": "0x75ad91",
+      "offset": 3517616,
+      "size": 225,
+      "sha256": "aaf5ce77c7e94633a8cc72602654faf9d14a59203406efdcaa5439b9b9faca65",
+      "completeInstructions": true
+    },
+    {
+      "profile": "yr",
+      "role": "walk-stop",
+      "kind": "code",
+      "start": "0x75ada0",
+      "endExclusive": "0x75adff",
+      "offset": 3517856,
+      "size": 95,
+      "sha256": "0c8ed3c9e362dc62e6345c8c35c5f50230e6a769cf80cb7ec12699911c6fac59",
+      "completeInstructions": true
+    },
+    {
+      "profile": "yr",
+      "role": "walk-head-subposition-change",
+      "kind": "code",
+      "start": "0x75c240",
+      "endExclusive": "0x75c63b",
+      "offset": 3523136,
+      "size": 1019,
+      "sha256": "f99fa7fbec6b01401824812f1cb9c0385dd4fc033f97c03f903ebdd1ccd5b944",
+      "completeInstructions": true
+    },
+    {
+      "profile": "yr",
+      "role": "walk-unmark-head",
+      "kind": "code",
+      "start": "0x75ca30",
+      "endExclusive": "0x75ca76",
+      "offset": 3525168,
+      "size": 70,
+      "sha256": "7f34d508de287b90ae3396867f80ade4319249ee94537b9612060b5fe40e0d55",
+      "completeInstructions": true
+    },
+    {
+      "profile": "yr",
+      "role": "infantry-mark-unmark-vtable",
+      "kind": "data",
+      "start": "0x7eb148",
+      "endExclusive": "0x7eb150",
+      "offset": 4108616,
+      "size": 8,
+      "sha256": "219f36d4add2bfb555a375637bc13d7864857ecbacf3476263d6afe489c6fb47"
+    },
+    {
+      "profile": "yr",
+      "role": "infantry-occupancy-height-vtable",
+      "kind": "data",
+      "start": "0x7eb204",
+      "endExclusive": "0x7eb20c",
+      "offset": 4108804,
+      "size": 8,
+      "sha256": "88443aeedd0cba301bda31fa9311d3570d1571991ae9fe954adec2d84ba9c614"
+    },
+    {
+      "profile": "yr",
+      "role": "allied-RTTI-dispatch",
+      "kind": "data",
+      "start": "0x51c884",
+      "endExclusive": "0x51c8a3",
+      "offset": 1165444,
+      "size": 31,
+      "sha256": "9df863087a144c123bdd20cc2b3bac8ba5bec8538cab9de53de2b2cbe1e3be44"
+    },
+    {
+      "profile": "yr",
+      "role": "slot-fallback-priority",
+      "kind": "data",
+      "start": "0x81cc84",
+      "endExclusive": "0x81cca8",
+      "offset": 4312196,
+      "size": 36,
+      "sha256": "88837d9f28eeacac58218f78a6e73c4c92a1a300b9e2730d4a50fe22a658e9f1"
+    },
+    {
+      "profile": "yr",
+      "role": "walk-guid",
+      "kind": "data",
+      "start": "0x7e9a60",
+      "endExclusive": "0x7e9a70",
+      "offset": 4102752,
+      "size": 16,
+      "sha256": "bd73ec36e7c4d56aef98b4a10216e8363b831d9f80a30ab819b7852b71e347fe"
+    },
+    {
+      "profile": "yr",
+      "role": "walk-interface-vtable",
+      "kind": "data",
+      "start": "0x7f69f8",
+      "endExclusive": "0x7f6ac0",
+      "offset": 4155896,
+      "size": 200,
+      "sha256": "96fe0f8e6d2a8fe9e477e4dcb4a084123316a596f10c71eabef0fd03b1cae66e"
+    },
+    {
+      "profile": "yr",
+      "role": "walk-persist-vtable",
+      "kind": "data",
+      "start": "0x7f6ac4",
+      "endExclusive": "0x7f6ad4",
+      "offset": 4156100,
+      "size": 16,
+      "sha256": "092625bf11153a76ac13c6198aa8675198efe861ea4e6f21783bcb7844808d40"
+    }
+  ]
+}
