@@ -205,6 +205,18 @@ export function compileAnimationEffects(input: { readonly weapons: WeaponDefinit
     for (const pair of recordRoots) { charge(pair.record.loadStages.length + 1); if (pair.record.loadStages.includes(id)) list(pair.root, entry(section(rv, id, pair.record.name), pair.root.key), pair.record.kind === 'weapon' ? 'weapon-load' : 'warhead-load'); }
     if (rv.profile === 'ra2') readGlobals(section(rv, id, 'AudioVisual'), 'audio-visual', animationGlobals);
   }
+  // This newly observed General allocation is outside the upstream weapon graph's
+  // first-weapon prefix. Do not trust a later differently spelled warhead section
+  // when its earlier LightningWarhead allocation is visible in these same sources.
+  const stageOrder = new Map(rv.stages.map((s, i) => [s.layer.id, i]));
+  for (const pair of recordRoots) if (pair.record.kind === 'warhead') {
+    const allocatedAt = stageOrder.get(pair.record.allocation.stage)!;
+    for (const origin of globals.lightningWarhead.history) {
+      charge(); const text = origin.rawValue.split(';', 1)[0]!.trim(), at = stageOrder.get(origin.layerId)!;
+      if (`warhead:${fold(text)}` === pair.record.id && text !== pair.record.name &&
+        (at < allocatedAt || (at === allocatedAt && pair.record.allocation.phase !== 'warhead-registry'))) pair.root.reasons.add('earlier-lightning-warhead-spelling');
+    }
+  }
   weatherRoot.animations = { ...globals.weatherConBoltExplosion, value: globals.weatherConBoltExplosion.value ? [globals.weatherConBoltExplosion.value] : globals.weatherConBoltExplosion.value === null && globals.weatherConBoltExplosion.status !== 'unsupported' ? [] : null };
   const records: AnimationEffectRecord[] = allocated.map(r => {
     charge(); const reasons = new Set([...policyReasons, ...r.reasons]); let active = false;

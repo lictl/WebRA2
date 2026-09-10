@@ -149,3 +149,16 @@ test('RA2 AudioVisual globals follow properties while YR General globals precede
     assert.equal(wrong.globals.dropZoneAnim.value, null); assert.equal(firing(wrong).status, 'presentation-only');
   }
 });
+
+
+test('earlier General warhead spelling cannot certify a later differently cased AnimList', () => {
+  for (const profile of ['ra2', 'yr'] as const) {
+    const rules = base + '[General]\nLightningWarhead=HIT\n[HIT]\nAnimList=Flash\n';
+    const r = compileAnimationEffects(fixture({ profile, rules }));
+    assert.equal(impact(r).status, 'unknown'); assert.ok(impact(r).reasons.includes('earlier-lightning-warhead-spelling'));
+    const cleared = compileAnimationEffects(fixture({ profile, rules, middle: ['[General]\nLightningWarhead=none\n'] }));
+    assert.equal(cleared.globals.lightningWarhead.value, null); assert.equal(impact(cleared).status, 'unknown');
+    const registered = compileAnimationEffects(fixture({ profile, rules: '[Warheads]\n0=Hit\n' + rules }));
+    assert.equal(impact(registered).status, 'presentation-only');
+  }
+});

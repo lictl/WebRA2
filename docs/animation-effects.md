@@ -29,6 +29,8 @@ without case and retains the first stored spelling; definition-section lookup is
 exact. The initial registry supplies a bounded first-spelling proof. Conflicting
 spellings and later or unregistered roots remain unknown: other global/entity
 allocation paths and complete native indices are deliberately not reconstructed.
+An earlier differently spelled General.LightningWarhead allocation also blocks
+trust in the upstream graph's later warhead section, even if subsequently cleared.
 
 Each rules pass loads already allocated animation types from the **global art INI**
 before the weapon/warhead properties. The native count is reread, so a child
