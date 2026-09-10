@@ -1,0 +1,692 @@
+{
+  "schemaVersion": 1,
+  "method": "Pinned retail PE bytes, static disassembly only. Code entries are selected complete-instruction spans, not complete runtime behavior or formal function extents. Data spans are inspected references, not a redistributable native table.",
+  "tool": {
+    "name": "Capstone",
+    "version": "5.0.6"
+  },
+  "profiles": [
+    {
+      "profile": "ra2",
+      "image": "game.exe",
+      "imageSha256": "73288c03b58d370be268ca6d156b4e33bfdb2066dc980359467d8852ff3b00df",
+      "imageBytes": 5077312,
+      "ranges": [
+        {
+          "label": "action-loader",
+          "kind": "selected-code",
+          "start": "0x6ad860",
+          "endExclusive": "0x6adaad",
+          "fileOffset": 2807904,
+          "bytes": 589,
+          "sha256": "b53ee2766373b290952c8114f5f9f3471b4edf3898239d47157e239403d6cb66",
+          "instructions": 209
+        },
+        {
+          "label": "dispatch-entry",
+          "kind": "selected-code",
+          "start": "0x6adae0",
+          "endExclusive": "0x6adb18",
+          "fileOffset": 2808544,
+          "bytes": 56,
+          "sha256": "5fc5216e2013d7d51bbca53a0dbfef9ac834d1183b06de8e5d88c929f7814fac",
+          "instructions": 20
+        },
+        {
+          "label": "movie-action",
+          "kind": "selected-code",
+          "start": "0x6ae941",
+          "endExclusive": "0x6ae961",
+          "fileOffset": 2812225,
+          "bytes": 32,
+          "sha256": "a1c683e8e66e1b4236575c596be97bcd3708b253771d6b118bee3385554fc46d",
+          "instructions": 13
+        },
+        {
+          "label": "text-action",
+          "kind": "selected-code",
+          "start": "0x6ae2ff",
+          "endExclusive": "0x6ae382",
+          "fileOffset": 2810623,
+          "bytes": 131,
+          "sha256": "f8bf96d81c4f43202a3c42b5c22460c555d4d53a1de162cff40dfd9f1e6ecdbf",
+          "instructions": 42
+        },
+        {
+          "label": "sound-action",
+          "kind": "selected-code",
+          "start": "0x6ae961",
+          "endExclusive": "0x6ae983",
+          "fileOffset": 2812257,
+          "bytes": 34,
+          "sha256": "0cfa92b71c51be79d7e335529ced555a9a3a0ef81f50c89356c88670a0daf645",
+          "instructions": 12
+        },
+        {
+          "label": "music-action",
+          "kind": "selected-code",
+          "start": "0x6aeab6",
+          "endExclusive": "0x6aead3",
+          "fileOffset": 2812598,
+          "bytes": 29,
+          "sha256": "d597968ebf2021a26eb87683cf95e4f48421603c9627f4d5a56ea44890106f81",
+          "instructions": 11
+        },
+        {
+          "label": "speech-action",
+          "kind": "selected-code",
+          "start": "0x6aead3",
+          "endExclusive": "0x6aeaf1",
+          "fileOffset": 2812627,
+          "bytes": 30,
+          "sha256": "10178a8b926b44e87bef09ae6578b7eb76a302ca602088bdfc59332965cbde85",
+          "instructions": 11
+        },
+        {
+          "label": "camera-action",
+          "kind": "selected-code",
+          "start": "0x6aeeb7",
+          "endExclusive": "0x6aef6d",
+          "fileOffset": 2813623,
+          "bytes": 182,
+          "sha256": "709b6e69ed5d4985ad10dcd797fa51516f710e6f3aa3f618c61b9274e93a9178",
+          "instructions": 55
+        },
+        {
+          "label": "radar-action",
+          "kind": "selected-code",
+          "start": "0x6af260",
+          "endExclusive": "0x6af28e",
+          "fileOffset": 2814560,
+          "bytes": 46,
+          "sha256": "eb5babeef04667b70d7b970d19c050e94f0d7f7e4fc5fdab6e2a268ee443eb4c",
+          "instructions": 17
+        },
+        {
+          "label": "sound-name-lookup",
+          "kind": "selected-code",
+          "start": "0x714940",
+          "endExclusive": "0x714990",
+          "fileOffset": 3230016,
+          "bytes": 80,
+          "sha256": "e2522bface80976693c4bdd3b06952e1e31dbd5b22f661fcc4ee00f1322ebba7",
+          "instructions": 35
+        },
+        {
+          "label": "speech-name-lookup",
+          "kind": "selected-code",
+          "start": "0x716640",
+          "endExclusive": "0x716683",
+          "fileOffset": 3237440,
+          "bytes": 67,
+          "sha256": "55c7c5cdb2a097dc5f1c66cc80121090b6525e95c00223ba2aa4d523ec7c5180",
+          "instructions": 32
+        },
+        {
+          "label": "theme-name-lookup",
+          "kind": "selected-code",
+          "start": "0x6e8510",
+          "endExclusive": "0x6e8563",
+          "fileOffset": 3048720,
+          "bytes": 83,
+          "sha256": "2ef3af8843b725d151af297b8c18a32e9269008edc9efbd6803eedcf6b00c645",
+          "instructions": 42
+        },
+        {
+          "label": "movie-index-lookup",
+          "kind": "selected-code",
+          "start": "0x5a07f0",
+          "endExclusive": "0x5a0835",
+          "fileOffset": 1705968,
+          "bytes": 69,
+          "sha256": "482c0ee7984ac7814d7af0d8da6190050ef8e1677cf8a833b4c871fe3b894932",
+          "instructions": 21
+        },
+        {
+          "label": "waypoint-alpha",
+          "kind": "selected-code",
+          "start": "0x724a70",
+          "endExclusive": "0x724ac5",
+          "fileOffset": 3295856,
+          "bytes": 85,
+          "sha256": "bb7619e6807063deb536b2364aa0c0af4b75cf5b1085e9eca2665b0bcc526637",
+          "instructions": 35
+        },
+        {
+          "label": "waypoint-reader",
+          "kind": "selected-code",
+          "start": "0x663280",
+          "endExclusive": "0x663349",
+          "fileOffset": 2503296,
+          "bytes": 201,
+          "sha256": "49d45f8618415e2b79e0d1050d635bc0c6181f801c9fbe68f6bcda96f5199c6c",
+          "instructions": 67
+        },
+        {
+          "label": "waypoint-accessor",
+          "kind": "selected-code",
+          "start": "0x663180",
+          "endExclusive": "0x663194",
+          "fileOffset": 2503040,
+          "bytes": 20,
+          "sha256": "0cd956f4deab1db719470213f5851ec65b780ba5331ba00f3e9cba0683886fda",
+          "instructions": 5
+        },
+        {
+          "label": "waypoint-map-caller",
+          "kind": "selected-code",
+          "start": "0x49d1eb",
+          "endExclusive": "0x49d1f7",
+          "fileOffset": 643563,
+          "bytes": 12,
+          "sha256": "26b2e68aeea1ad603c805d13fa2661519791437f4f2cca808ca7fae0f44ace22",
+          "instructions": 3
+        },
+        {
+          "label": "radar-add-consumer",
+          "kind": "selected-code",
+          "start": "0x63b5b0",
+          "endExclusive": "0x63b695",
+          "fileOffset": 2340272,
+          "bytes": 229,
+          "sha256": "8a46a7df8a5207de78544bbdaa14449479aafe7fe8a1ed4fc4edfe9b9735f9d7",
+          "instructions": 82
+        },
+        {
+          "label": "radar-type-sixteen-caller",
+          "kind": "selected-code",
+          "start": "0x4e508d",
+          "endExclusive": "0x4e509c",
+          "fileOffset": 938125,
+          "bytes": 15,
+          "sha256": "1ccf162df6f5d545a824fa4632673e1c5671fd010950331f3279abdcf0fca34d",
+          "instructions": 4
+        },
+        {
+          "label": "action-10-dispatch-slot",
+          "kind": "pointer",
+          "start": "0x6af778",
+          "endExclusive": "0x6af77c",
+          "fileOffset": 2815864,
+          "bytes": 4,
+          "sha256": "403c199428f4b16c0a78b559b7f3383072824fa1ce4f08296b3c3cdca5b6530b",
+          "uint32Value": "0x6ae941"
+        },
+        {
+          "label": "action-11-dispatch-slot",
+          "kind": "pointer",
+          "start": "0x6af77c",
+          "endExclusive": "0x6af780",
+          "fileOffset": 2815868,
+          "bytes": 4,
+          "sha256": "0858448932d5ead1460e3ed38f41cb7889bf8b92bcad4dd8e5dd37f50959c075",
+          "uint32Value": "0x6ae2ff"
+        },
+        {
+          "label": "action-19-dispatch-slot",
+          "kind": "pointer",
+          "start": "0x6af79c",
+          "endExclusive": "0x6af7a0",
+          "fileOffset": 2815900,
+          "bytes": 4,
+          "sha256": "1bc0135a7efa80b20f4a561f38f73f6e70fd1ddbaf77fd7616a236ad2fa11c5f",
+          "uint32Value": "0x6ae961"
+        },
+        {
+          "label": "action-20-dispatch-slot",
+          "kind": "pointer",
+          "start": "0x6af7a0",
+          "endExclusive": "0x6af7a4",
+          "fileOffset": 2815904,
+          "bytes": 4,
+          "sha256": "c26e9c9b602eb2e8d457761707d63c0021f14d3a19076264b3a42be4a848abbd",
+          "uint32Value": "0x6aeab6"
+        },
+        {
+          "label": "action-21-dispatch-slot",
+          "kind": "pointer",
+          "start": "0x6af7a4",
+          "endExclusive": "0x6af7a8",
+          "fileOffset": 2815908,
+          "bytes": 4,
+          "sha256": "8e0011360101532fc7047404d18c37c3c0b554a01e291b3e239d409a67c345d0",
+          "uint32Value": "0x6aead3"
+        },
+        {
+          "label": "action-48-dispatch-slot",
+          "kind": "pointer",
+          "start": "0x6af810",
+          "endExclusive": "0x6af814",
+          "fileOffset": 2816016,
+          "bytes": 4,
+          "sha256": "3570225066899bab23c45cf3b9cd3d12d4d44aed0a91dc743f38878c3e805914",
+          "uint32Value": "0x6aeeb7"
+        },
+        {
+          "label": "action-55-dispatch-slot",
+          "kind": "pointer",
+          "start": "0x6af82c",
+          "endExclusive": "0x6af830",
+          "fileOffset": 2816044,
+          "bytes": 4,
+          "sha256": "b97e364d6fadb1178aab190a4c960c8c68a681e3b8d81c8d6190c8637045cc76",
+          "uint32Value": "0x6af260"
+        },
+        {
+          "label": "operand-mode-0-slot",
+          "kind": "pointer",
+          "start": "0x6adab0",
+          "endExclusive": "0x6adab4",
+          "fileOffset": 2808496,
+          "bytes": 4,
+          "sha256": "39a8fad06aa132a1915e1d13e2daa798f272093099e960df410b9095a0564801",
+          "uint32Value": "0x6ad8bf"
+        },
+        {
+          "label": "operand-mode-4-slot",
+          "kind": "pointer",
+          "start": "0x6adac0",
+          "endExclusive": "0x6adac4",
+          "fileOffset": 2808512,
+          "bytes": 4,
+          "sha256": "88e9de69e517bbc7abddde9d2712f3ef4905f925591032280244ab7d21059de9",
+          "uint32Value": "0x6ad978"
+        },
+        {
+          "label": "operand-mode-6-slot",
+          "kind": "pointer",
+          "start": "0x6adac8",
+          "endExclusive": "0x6adacc",
+          "fileOffset": 2808520,
+          "bytes": 4,
+          "sha256": "23d88bd56324fdc7b72110352dc69da6b406bdcd04179d577487e42080434540",
+          "uint32Value": "0x6ada55"
+        },
+        {
+          "label": "operand-mode-7-slot",
+          "kind": "pointer",
+          "start": "0x6adacc",
+          "endExclusive": "0x6adad0",
+          "fileOffset": 2808524,
+          "bytes": 4,
+          "sha256": "267ddea1d83d815130e6978a09549cb53881f62b62e144f4ef0bdc9e8af10605",
+          "uint32Value": "0x6ada64"
+        },
+        {
+          "label": "operand-mode-8-slot",
+          "kind": "pointer",
+          "start": "0x6adad0",
+          "endExclusive": "0x6adad4",
+          "fileOffset": 2808528,
+          "bytes": 4,
+          "sha256": "f57fd370ab33505b01ac879cf52c0cebb4b5fa238d6295c107da37f7ef81df82",
+          "uint32Value": "0x6ada73"
+        },
+        {
+          "label": "waypoint-section-key",
+          "kind": "selected-data",
+          "start": "0x7e33dc",
+          "endExclusive": "0x7e33e6",
+          "fileOffset": 4076508,
+          "bytes": 10,
+          "sha256": "68d85b32641c0a5747a092e959466f14b8c1e71610a0d4da5731ccbfaaaa6e4d"
+        },
+        {
+          "label": "decimal-key-format",
+          "kind": "selected-data",
+          "start": "0x7ce9bc",
+          "endExclusive": "0x7ce9bf",
+          "fileOffset": 3991996,
+          "bytes": 3,
+          "sha256": "0b782fc3030dbdf3756f17e7adf2ce5808dfc513ca7589adeb679c7d25eaef6f"
+        },
+        {
+          "label": "radar-style-inspected-region",
+          "kind": "selected-data",
+          "start": "0x7a8d54",
+          "endExclusive": "0x7a8e64",
+          "fileOffset": 3837268,
+          "bytes": 272,
+          "sha256": "20624a4ecb443d2a42bc8a22712de2e8fb91b6c8689dbff97dfa167d0b2ad7fe"
+        }
+      ]
+    },
+    {
+      "profile": "yr",
+      "image": "gamemd.exe",
+      "imageSha256": "3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600",
+      "imageBytes": 5286208,
+      "ranges": [
+        {
+          "label": "action-loader",
+          "kind": "selected-code",
+          "start": "0x6dd5b0",
+          "endExclusive": "0x6dd87d",
+          "fileOffset": 3003824,
+          "bytes": 717,
+          "sha256": "4c10f8e7bb69e52af2e0405b71fe405d3b46d9f09ecd5497bf567386b0a03806",
+          "instructions": 241
+        },
+        {
+          "label": "dispatch-entry",
+          "kind": "selected-code",
+          "start": "0x6dd8b0",
+          "endExclusive": "0x6dd8ee",
+          "fileOffset": 3004592,
+          "bytes": 62,
+          "sha256": "1ca5f0ea2f71687b8c44779f82f912bde7a722986102d9ae905b6c678d61714d",
+          "instructions": 20
+        },
+        {
+          "label": "movie-action",
+          "kind": "selected-code",
+          "start": "0x6de72f",
+          "endExclusive": "0x6de780",
+          "fileOffset": 3008303,
+          "bytes": 81,
+          "sha256": "d79aa9485099454e60d493ed19e4bcd77c2a21516b8637d91e3af316ba489008",
+          "instructions": 25
+        },
+        {
+          "label": "text-action",
+          "kind": "selected-code",
+          "start": "0x6de0a8",
+          "endExclusive": "0x6de136",
+          "fileOffset": 3006632,
+          "bytes": 142,
+          "sha256": "8f56a069055428490e585ff0f1970feb893cbca97556007b510548eb3aea0cc6",
+          "instructions": 47
+        },
+        {
+          "label": "sound-action",
+          "kind": "selected-code",
+          "start": "0x6de780",
+          "endExclusive": "0x6de7a5",
+          "fileOffset": 3008384,
+          "bytes": 37,
+          "sha256": "931e5156cc08291fa703aab2cc25c0135375d8d1a53504f822d75183ec4ecbed",
+          "instructions": 12
+        },
+        {
+          "label": "music-action",
+          "kind": "selected-code",
+          "start": "0x6de8e4",
+          "endExclusive": "0x6de904",
+          "fileOffset": 3008740,
+          "bytes": 32,
+          "sha256": "3d25b3e608859ecb44947085cf9c927de5c343e7b35db8241cb8c0cd170ae2b1",
+          "instructions": 11
+        },
+        {
+          "label": "speech-action",
+          "kind": "selected-code",
+          "start": "0x6de904",
+          "endExclusive": "0x6de925",
+          "fileOffset": 3008772,
+          "bytes": 33,
+          "sha256": "d435e801c46360736d04a16d1a274ea957fe640e389f315562cf55c609a5b387",
+          "instructions": 11
+        },
+        {
+          "label": "camera-action",
+          "kind": "selected-code",
+          "start": "0x6dedff",
+          "endExclusive": "0x6deeb8",
+          "fileOffset": 3010047,
+          "bytes": 185,
+          "sha256": "a50a358a54a8d5e1351134d4fda6ee596dfdd992c4c2d0887b44ed9d7fab6e4d",
+          "instructions": 55
+        },
+        {
+          "label": "radar-action",
+          "kind": "selected-code",
+          "start": "0x6df1ad",
+          "endExclusive": "0x6df1de",
+          "fileOffset": 3010989,
+          "bytes": 49,
+          "sha256": "4c25cce402183d76c184340539ea48b7c696bf9a576fe3ad9128fe304f67a5b4",
+          "instructions": 17
+        },
+        {
+          "label": "sound-name-lookup",
+          "kind": "selected-code",
+          "start": "0x7514d0",
+          "endExclusive": "0x751520",
+          "fileOffset": 3478736,
+          "bytes": 80,
+          "sha256": "3bd4bbbc9320ad5e4d78a05b30a464a22af3eab715b49cc5af5eee3b488c7b74",
+          "instructions": 35
+        },
+        {
+          "label": "speech-name-lookup",
+          "kind": "selected-code",
+          "start": "0x753250",
+          "endExclusive": "0x753293",
+          "fileOffset": 3486288,
+          "bytes": 67,
+          "sha256": "9a785b8a3856bbc7487faf9f04b877d5d56b0f448af70806d81ba94eabb2effa",
+          "instructions": 32
+        },
+        {
+          "label": "theme-name-lookup",
+          "kind": "selected-code",
+          "start": "0x721210",
+          "endExclusive": "0x721263",
+          "fileOffset": 3281424,
+          "bytes": 83,
+          "sha256": "59d555378c9a101fc02c730f556f9887a67b4750bac3b917df78f4bd67d41658",
+          "instructions": 42
+        },
+        {
+          "label": "movie-index-lookup",
+          "kind": "selected-code",
+          "start": "0x5bf260",
+          "endExclusive": "0x5bf2a5",
+          "fileOffset": 1831520,
+          "bytes": 69,
+          "sha256": "5c6d73dd5ef7f057576bd383c7a49d8bbb227d28f5a2f7553d42117a88bae336",
+          "instructions": 21
+        },
+        {
+          "label": "waypoint-alpha",
+          "kind": "selected-code",
+          "start": "0x763690",
+          "endExclusive": "0x7636e5",
+          "fileOffset": 3552912,
+          "bytes": 85,
+          "sha256": "fbcd89973711f2b468d63dfa85cc24bc37bf69f32c11795a56075a7ba66274a9",
+          "instructions": 35
+        },
+        {
+          "label": "waypoint-reader",
+          "kind": "selected-code",
+          "start": "0x68bdc0",
+          "endExclusive": "0x68be8f",
+          "fileOffset": 2670016,
+          "bytes": 207,
+          "sha256": "c6ff27427b052e3c4f2d55c573497028aa3d7d87a7f38e82ecf883481bfe973f",
+          "instructions": 67
+        },
+        {
+          "label": "waypoint-accessor",
+          "kind": "selected-code",
+          "start": "0x68bcc0",
+          "endExclusive": "0x68bcd4",
+          "fileOffset": 2669760,
+          "bytes": 20,
+          "sha256": "0cd956f4deab1db719470213f5851ec65b780ba5331ba00f3e9cba0683886fda",
+          "instructions": 5
+        },
+        {
+          "label": "radar-add-consumer",
+          "kind": "selected-code",
+          "start": "0x65fa70",
+          "endExclusive": "0x65fb55",
+          "fileOffset": 2488944,
+          "bytes": 229,
+          "sha256": "d001f5228463cdf29bbeb46b0b5f9a27f3ed4e9bdf783f9307a36bb7647e4ac7",
+          "instructions": 82
+        },
+        {
+          "label": "radar-type-sixteen-caller",
+          "kind": "selected-code",
+          "start": "0x4f9596",
+          "endExclusive": "0x4f95a5",
+          "fileOffset": 1021334,
+          "bytes": 15,
+          "sha256": "b241a38fd9008c76283b5f00a6e3291073e5bce6332a848e4781c9d3751022be",
+          "instructions": 4
+        },
+        {
+          "label": "action-10-dispatch-slot",
+          "kind": "pointer",
+          "start": "0x6dfe10",
+          "endExclusive": "0x6dfe14",
+          "fileOffset": 3014160,
+          "bytes": 4,
+          "sha256": "f53a3efdcdf160c5a223aea5ecb5a3f2c1edee856c16573df3c79738a503ffbd",
+          "uint32Value": "0x6de72f"
+        },
+        {
+          "label": "action-11-dispatch-slot",
+          "kind": "pointer",
+          "start": "0x6dfe14",
+          "endExclusive": "0x6dfe18",
+          "fileOffset": 3014164,
+          "bytes": 4,
+          "sha256": "5b5ee28512cf692dbb3a041acfd69c61bf645064b333f5f003acf35b2c0ef319",
+          "uint32Value": "0x6de0a8"
+        },
+        {
+          "label": "action-19-dispatch-slot",
+          "kind": "pointer",
+          "start": "0x6dfe34",
+          "endExclusive": "0x6dfe38",
+          "fileOffset": 3014196,
+          "bytes": 4,
+          "sha256": "cb2b431e8f525af8f6ce038be15d2dc0543e31374f1c18566e5ba48d10d9c723",
+          "uint32Value": "0x6de780"
+        },
+        {
+          "label": "action-20-dispatch-slot",
+          "kind": "pointer",
+          "start": "0x6dfe38",
+          "endExclusive": "0x6dfe3c",
+          "fileOffset": 3014200,
+          "bytes": 4,
+          "sha256": "b9f2f1ec142c3ae9668b4b3d39432ac61d6630e0bd3797442e376704198af025",
+          "uint32Value": "0x6de8e4"
+        },
+        {
+          "label": "action-21-dispatch-slot",
+          "kind": "pointer",
+          "start": "0x6dfe3c",
+          "endExclusive": "0x6dfe40",
+          "fileOffset": 3014204,
+          "bytes": 4,
+          "sha256": "fa5cd1e13c46296570c24ffc2faaed6088a73133a21b899811a9dd0cfa51c4d3",
+          "uint32Value": "0x6de904"
+        },
+        {
+          "label": "action-48-dispatch-slot",
+          "kind": "pointer",
+          "start": "0x6dfea8",
+          "endExclusive": "0x6dfeac",
+          "fileOffset": 3014312,
+          "bytes": 4,
+          "sha256": "9a213805f87f119f4a5e9c360e35897d62dc728e0ae69793a6a885231f114588",
+          "uint32Value": "0x6dedff"
+        },
+        {
+          "label": "action-55-dispatch-slot",
+          "kind": "pointer",
+          "start": "0x6dfec4",
+          "endExclusive": "0x6dfec8",
+          "fileOffset": 3014340,
+          "bytes": 4,
+          "sha256": "4bf8f23e8ddb967f0ffa85952c815cbd21b5cc05fa336d35f18a8be089f4d7ba",
+          "uint32Value": "0x6df1ad"
+        },
+        {
+          "label": "operand-mode-0-slot",
+          "kind": "pointer",
+          "start": "0x6dd880",
+          "endExclusive": "0x6dd884",
+          "fileOffset": 3004544,
+          "bytes": 4,
+          "sha256": "71ee0844dc092cb2dc7120ca13320c7ec28fa0d4b16362982b6590b1da4ca8bc",
+          "uint32Value": "0x6dd614"
+        },
+        {
+          "label": "operand-mode-4-slot",
+          "kind": "pointer",
+          "start": "0x6dd890",
+          "endExclusive": "0x6dd894",
+          "fileOffset": 3004560,
+          "bytes": 4,
+          "sha256": "00afed898ada814e310a39f6621870e443c2a3fa074c23c9d469cc7758a9c3c3",
+          "uint32Value": "0x6dd6d0"
+        },
+        {
+          "label": "operand-mode-6-slot",
+          "kind": "pointer",
+          "start": "0x6dd898",
+          "endExclusive": "0x6dd89c",
+          "fileOffset": 3004568,
+          "bytes": 4,
+          "sha256": "982e858bd40bb0f193f08bdab8aeefcc0a83f0cfc5c2faacf726d8316b4f19d3",
+          "uint32Value": "0x6dd7bc"
+        },
+        {
+          "label": "operand-mode-7-slot",
+          "kind": "pointer",
+          "start": "0x6dd89c",
+          "endExclusive": "0x6dd8a0",
+          "fileOffset": 3004572,
+          "bytes": 4,
+          "sha256": "54444c2eaf6f96616b17684b58e12b77996351a2c1bee443300610e0670db03a",
+          "uint32Value": "0x6dd7ce"
+        },
+        {
+          "label": "operand-mode-8-slot",
+          "kind": "pointer",
+          "start": "0x6dd8a0",
+          "endExclusive": "0x6dd8a4",
+          "fileOffset": 3004576,
+          "bytes": 4,
+          "sha256": "7f89941bc7a1103177fe726891d10d353f19bbdf25fd03e5b9a11def46278d38",
+          "uint32Value": "0x6dd7e0"
+        },
+        {
+          "label": "waypoint-section-key",
+          "kind": "selected-data",
+          "start": "0x82db0c",
+          "endExclusive": "0x82db16",
+          "fileOffset": 4381452,
+          "bytes": 10,
+          "sha256": "68d85b32641c0a5747a092e959466f14b8c1e71610a0d4da5731ccbfaaaa6e4d"
+        },
+        {
+          "label": "decimal-key-format",
+          "kind": "selected-data",
+          "start": "0x817f6c",
+          "endExclusive": "0x817f6f",
+          "fileOffset": 4292460,
+          "bytes": 3,
+          "sha256": "0b782fc3030dbdf3756f17e7adf2ce5808dfc513ca7589adeb679c7d25eaef6f"
+        },
+        {
+          "label": "radar-style-inspected-region",
+          "kind": "selected-data",
+          "start": "0x7f0994",
+          "endExclusive": "0x7f0aa4",
+          "fileOffset": 4131220,
+          "bytes": 272,
+          "sha256": "20624a4ecb443d2a42bc8a22712de2e8fb91b6c8689dbff97dfa167d0b2ad7fe"
+        }
+      ]
+    }
+  ],
+  "totalRanges": 67,
+  "totalBytes": 4849
+}
