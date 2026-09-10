@@ -20,7 +20,7 @@ export type FrameResult = { type: 'frame'; controlPoints: WorldControlPoint[]; w
 export type ViewportPick = { kind: 'terrain'; cell: CellPick } | ObjectPick | null;
 export type PickResult = { type: 'pick'; frameId: number; selection: ViewportPick };
 export type TerrainResult = FrameResult | PickResult | WorldDocument | WorldRejection | CampaignResult;
-export type TerrainReply = { version: 6; id: number; type: 'progress'; sequence: number; progress: TerrainProgress } | { version: 6; id: number; type: 'result'; result: TerrainResult } | { version: 6; id: number; type: 'error'; code: string };
+export type TerrainReply = { version: 7; id: number; type: 'progress'; sequence: number; progress: TerrainProgress } | { version: 7; id: number; type: 'result'; result: TerrainResult } | { version: 7; id: number; type: 'error'; code: string };
 export function shape(value: unknown, names: readonly string[]): value is Record<string, unknown> {
   if (!value || typeof value !== 'object' || Object.getPrototypeOf(value) !== Object.prototype || Reflect.ownKeys(value).length !== names.length) return false;
   return names.every(n => { const d = Object.getOwnPropertyDescriptor(value, n); return d && 'value' in d; });
