@@ -22,8 +22,7 @@ function packed(raw: Uint8Array, literal: boolean): string {
   }
   return Buffer.concat(blocks).toString('base64');
 }
-export function missionBindingsFixture({profile='ra2' as 'ra2'|'yr', script='0=3,0\n1=6,1', count=1,
-  extraTeam='Waypoint=A', extraRules='', extraInfantryTypes='', forceType='Walker', extraArt='', waypoint='0=3003', extraAI='', extraMap='[Actions]\nSpawn=1,80,1,Squad,0,0,0,0,A', speed=128, infantryRows='0=Commander,Walker,256,2,2,0,Guard,0,None\n1=Commander,Walker,256,2,3,0,Guard,0,None\n2=Rival,Walker,256,4,2,0,Guard,0,None'}={}) {
+export function missionBindingsFixture({profile='ra2' as 'ra2'|'yr', extraRules='', extraInfantryTypes='', extraArt='', waypoint='0=3003', extraMap='[Actions]\nSpawn=1,80,1,Squad,0,0,0,0,A', speed=128, infantryRows='0=Commander,Walker,256,2,2,0,Guard,0,None\n1=Commander,Walker,256,2,3,0,Guard,0,None\n2=Rival,Walker,256,4,2,0,Guard,0,None'}={}) {
   const xy = [[1,3],[2,2],[3,1],[2,3],[3,2],[2,4],[3,3],[4,2],[3,4],[4,3]];
   const raw = new Uint8Array(114), view = new DataView(raw.buffer);
   xy.forEach(([x,y], i) => { view.setUint16(i*11,x!,true);view.setUint16(i*11+2,y!,true);view.setUint16(i*11+4,1,true); });
