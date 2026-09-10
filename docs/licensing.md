@@ -241,6 +241,14 @@ build. The compound runtime composes the existing team and world modules without
 a new external dependency; native formation and full constructor behavior remain
 outside this bounded component.
 
+Fresh placed actor state and standing infantry firing preparation are original
+GPL-3.0-or-later WebRA2 code. Distributions include the
+[initial-state notice](../packages/content/COMBAT_INITIAL_RUNTIME_PROVENANCE.md),
+[firing scheduler notice](../packages/sim/INFANTRY_FIRING_PROVENANCE.md), GPL text
+and applicable corresponding source. The web build includes both notices. The
+source compiler and pure scheduler adopt no new external dependency; live
+attack admission and world resolution are separate integration work.
+
 The optional ordinary world death policy is original GPL-3.0-or-later WebRA2 code.
 Its [notice](../packages/sim/ORDINARY_DEATH_PROVENANCE.md), GPL text and applicable
 corresponding source accompany distributions. The browser build includes the notice
