@@ -3,7 +3,8 @@
 [Issue #132](https://github.com/lictl/WebRA2/issues/132) extends the original
 [world runtime](world-movement.md) with an optional privately branded combat model.
 This is a working component checkpoint. Native capability admission, private
-opening comparisons, independent review and browser attack integration remain.
+opening actor comparisons and browser attack integration remain. The original core
+has an independent exact-head review at abcdfd0 in PR137.
 No original mission is playable.
 
 ## Model and orders
@@ -83,3 +84,45 @@ These fixtures are original synthetic scenarios. Typed native weapon fields alon
 do not establish executable capability. The next adapter must retain unsupported
 special effects and source evidence explicitly, and compare both opening profiles
 privately before this issue can close. No retail payload is included.
+
+
+## Source-bound direct weapon projection
+
+The GPL composition factory `compileCombatWeapons({weapons})` requires a genuine
+typed weapon graph and returns an immutable, privately branded result under
+`webra2-standing-direct-weapons-1`. It binds the exact weapon/entity fingerprints
+and ordered rule source identities. Each weapon remains explicitly ready for this
+named subset or unsupported with ordered reasons; unresolved references never
+become executable. A separate actor/world adapter must establish the required
+initial slots, ammo, immunity, directed alliances and unmodified standing actors.
+
+This first projection accepts positive damage, bounded positive reload, inclusive
+integer ranges, nonnegative finite armor factors, an invisible instant projectile,
+one shot, no splash and ordinary death modes. It rejects bursts, physical
+trajectories, healing, special-effect flags, unknown gameplay fields, pending
+allocation closure and unsupported numeric states. The broader pure core's
+tracked/fixed-cell and burst policies are not thereby mapped to native content.
+
+Audio/image/selected animation and lighting directives retain exact source origins
+as deferred presentation. They are not executed by this policy; in particular,
+the projection does not certify absence of animation-side gameplay effects.
+Prone damage and distance falloff do not apply within its standing, zero-spread
+contract. Native rounding, projectile obstruction, firing animation delays,
+veterancy, transport/garrison, deployment, cloak, rearm, target pursuit and special
+death behavior remain outside this first runtime contract.
+
+Six original source-graph tests cover both profiles, exact numeric projection,
+unsupported effects/unknown fields, source-preserving overrides, deferred origins,
+genuine factory identity and lower bounds. The factory caps 1,024 weapons and
+32,768 logical weapon/field/origin visits; existing canonical byte/node bounds also
+apply before publication. Lower limits are accepted and no partial result is
+published on failure.
+
+A separately labeled private probe freshly hashes and reads the selected rules,
+art and opening maps, compiles the entity and weapon graph, then applies this
+policy. Both profiles currently yield one admitted direct weapon (of 85/117).
+The remaining records carry explicit capability reasons; this count is neither
+a playable-combat claim nor evidence of complete native weapon compatibility.
+The source data and full projections remain ignored in
+`local/combat-capabilities/`. Actor admission and a full source/world comparison
+are the next dependency before browser attack controls.

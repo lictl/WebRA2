@@ -14,53 +14,65 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
-Current wave: coordinator [authoritative combat #132](https://github.com/lictl/WebRA2/issues/132);
-browser agent [world orders/save UI #127 / PR #128](https://github.com/lictl/WebRA2/pull/128);
-format agent [voxel resource preparation #133](https://github.com/lictl/WebRA2/issues/133);
-simulation agent [typed teams/task forces/scripts #131](https://github.com/lictl/WebRA2/issues/131).
-All three workers resumed after the weekly-limit interruption. No essential human
-input is needed. Team definitions have a coherent tested checkpoint; voxel resource
-preparation is implementing the source/attachment policy after static evidence.
+Current wave: coordinator [authoritative combat #132 / PR137](https://github.com/lictl/WebRA2/pull/137);
+browser agent [voxel world presentation #141](https://github.com/lictl/WebRA2/issues/141);
+format agent [weapon allocation spelling #140](https://github.com/lictl/WebRA2/issues/140);
+simulation agent [combat actor initialization #139](https://github.com/lictl/WebRA2/issues/139).
+No essential human input is needed. Finish reviewed slices and continue through
+the accepted milestones; do not stop merely because a worker wave merges.
 
-World movement [PR #123](https://github.com/lictl/WebRA2/pull/123) merged as
-`7bc2167d88a2ad6ef74ea4a41f53f3dd8b460050`, reviewed at
-`c3f75059d2f3b058d847b8e949e05bf3527d0653` with 623 passing tests
-([final review](https://github.com/lictl/WebRA2/pull/123#pullrequestreview-5160666607)).
-Foundation [PR #129](https://github.com/lictl/WebRA2/pull/129) merged as
-`a97f7b08f05afa943c1bb043713466b1e9a9cb32`, reviewed at
-`9cd77e21e5781f8dce3d8f8322e4cb0f76287276` with 585 tests
-([integration review](https://github.com/lictl/WebRA2/pull/129#pullrequestreview-5160598887)).
-Weapon definitions [PR #130](https://github.com/lictl/WebRA2/pull/130) merged as
-`55c20f89ac2c36521bfdcd3bead4d708f5f4d4b3`, reviewed at
-`9f240baeeb0d34a5da487b51e23f8240ed406e10` with 597 tests
-([integration review](https://github.com/lictl/WebRA2/pull/130#pullrequestreview-5160648304)).
-Full implementation/private reviews are recorded on each PR; these integration
-reviews separately cover coordinator notice/merge changes. #120 remains open for
-browser integration. All 811/570 opening placements and 1,108/1,478 stationary
-footprint cells are represented; moving checkpoints and replay agree at tick 122.
+Recent reviewed merges:
 
-World UI head `7ed6c52f2ab36f5cb7c69b9c4fda455dea3e42c5` passed 638 tests and
-[independent review](https://github.com/lictl/WebRA2/pull/128#pullrequestreview-5161607942).
-Actual Chrome then exposed #134: traversal hashing included a catalog session handle,
-so equivalent file selections produced different model/save identities. The narrow
-policy-2 correction passes 625 tests and full private normal/reversed-selection
-world, checkpoint and replay equality for both openings; see
-[the correction report](selection-identity.md). The fix merged in [PR #135](https://github.com/lictl/WebRA2/pull/135) as
-`e3eb619ad97a9edff2b1469dd0e17e7e6cd50d51` after
-[independent exact-head review](https://github.com/lictl/WebRA2/pull/135#pullrequestreview-5161693533)
-of `0ccd7d6d736e9a9dd77d44f9f55f54294f928dab` and CI run34425063937. #134 is closed.
-Preserve immutable pre-fix server4175 and its Chrome evidence. The browser agent froze corrected server4176 at UI head `fed54cd`, with
-640 passing tests and matching private application-loader identities; actual
-Chrome/Edge/Firefox/Safari world acceptance is in progress. The original [combat core](world-combat.md) now has 14 passing focused tests
-(639 integrated) for attacks, cooldowns/bursts, exact factors, impacts/death and
-moving/firing checkpoints/replay. Native capability admission and private comparisons
-remain before combat review/merge. No original mission is playable.
+| Component | PR / merge SHA | Exact-head evidence |
+| --- | --- | --- |
+| Authoritative movement | [123](https://github.com/lictl/WebRA2/pull/123), `7bc2167d88a2ad6ef74ea4a41f53f3dd8b460050` | 623 tests; [review](https://github.com/lictl/WebRA2/pull/123#pullrequestreview-5160666607) |
+| Native foundation masks | [129](https://github.com/lictl/WebRA2/pull/129), `a97f7b08f05afa943c1bb043713466b1e9a9cb32` | 585 tests; [review](https://github.com/lictl/WebRA2/pull/129#pullrequestreview-5160598887) |
+| Typed weapon graph | [130](https://github.com/lictl/WebRA2/pull/130), `55c20f89ac2c36521bfdcd3bead4d708f5f4d4b3` | 597 tests; [review](https://github.com/lictl/WebRA2/pull/130#pullrequestreview-5160648304) |
+| Selection-stable identity | [135](https://github.com/lictl/WebRA2/pull/135), `e3eb619ad97a9edff2b1469dd0e17e7e6cd50d51` | 625 tests; [review](https://github.com/lictl/WebRA2/pull/135#pullrequestreview-5161693533) |
+| Voxel resource preparation | [136](https://github.com/lictl/WebRA2/pull/136), `c2e135851b4d9d08c2baaa31cdeef2420beb5c12` | 637 tests; source/private review on PR, [notice review](https://github.com/lictl/WebRA2/pull/136#pullrequestreview-5161845408) |
+| Typed teams/task forces/scripts | [138](https://github.com/lictl/WebRA2/pull/138), `3bbb1821b21e0995d3be37cabc02c4c57ced583d` | 650 tests; [source review](https://github.com/lictl/WebRA2/pull/138#pullrequestreview-5161835060), [integration review](https://github.com/lictl/WebRA2/pull/138#pullrequestreview-5161911619) |
+| Browser movement/checkpoints | [128](https://github.com/lictl/WebRA2/pull/128), `4ae578ec540b0c54c821e1068d83611d80684349` | 640 tests; source and final browser-evidence COMMENT reviews on PR |
+
+Issues131,133,134 are closed. #127 and parent120 remain open for the Safari
+automatic-running acceptance row shared with115; GitHub unexpectedly closed127
+during squash, so the coordinator reopened it with the exact remaining criterion.
+Both opening worlds have matching model/moving-save/replay identities in actual
+Chrome, Edge, Firefox and Safari. Chrome/Edge/Firefox automatic running works;
+Safari reports hidden and stays paused, while explicit steps reach the same
+terminal states. Chrome full reload/reselection/restore and continuation match the
+private oracle. Exports/reload were not repeated in the other families; their
+local restores and cross-browser imports were checked. See the precise
+[browser acceptance report](analysis/world-browser-acceptance.md).
+Preserve immutable corrected server4176 and historical pre-fix4175. Policy2
+traversal excludes only the session source handle from durable hashing; full
+source audit metadata and integrity guards remain intact.
+
+Voxel private review reproduced all78 frames (3,833,856 exact color/owner pixels),
+full source/mount histories and33 native ranges. Preview fingerprints are
+session/audit identities and must never enter world/save hashes.
+Typed team review reproduced368,268 raw-source scalar leaves and55 complete
+native instruction ranges/12,950 bytes. Both compilers remain data/presentation
+components: no team spawning or script execution is implied.
+
+The original [combat core](world-combat.md) is independently reviewed at
+`abcdfd0008ac2ea4320080d7fa55362cd7fd41ba`:
+[review](https://github.com/lictl/WebRA2/pull/137#pullrequestreview-5161789173).
+Its14 original tests cover targeting, firing, exact factors, impacts/death,
+atomic bounds and save/replay, plus independent generated checks. The current
+root integration also adds6 source-bound direct-weapon tests and passes685
+public tests,109docs/567links and43outputs/95inputs. The weapon admission policy
+currently admits one direct weapon per opening and retains all other unsupported
+reasons; it does not make original combat playable. Next join the reviewed139
+actor state and140 corrected weapon graph with genuine WorldContent, then
+privately verify source identity/admission/combat checkpoints before attack UI.
+The browser agent independently integrates complete ready voxel still parts.
+Team/script runtime and mission/world trigger integration follow these foundations.
+
 The media component has complete long-clip playback in Chrome, Edge and Firefox;
 Safari's hidden-page scheduling gap remains [#115](https://github.com/lictl/WebRA2/issues/115),
-and campaign cinematic acceptance remains #12. #103 retains exact-source consumer migrations.
-Build/import decisions are recorded in [ADR 0003](adr/0003-browser-build-and-import-boundary.md).
-No essential human input is currently needed. Finish each reviewed slice and continue
-through the accepted milestones; do not stop simply because this first wave merges.
+and campaign cinematic acceptance remains #12. #103 retains exact-source consumer
+migrations. No original mission is playable. Build/import decisions are recorded
+in [ADR 0003](adr/0003-browser-build-and-import-boundary.md).
 
 Read [M0 exit evidence](analysis/m0-exit.md), [decisions](decisions.md),
 [reference profiles/budgets](adr/0002-reference-profiles-and-initial-budgets.md), then
@@ -89,12 +101,13 @@ the coordinator after independent exact-head COMMENT review and successful check
 | Role | Current work and exclusive paths | Branch / private worktree |
 | --- | --- | --- |
 | Coordinator | #132 combat/model/save/replay and native capability adapter; shared configuration/handoff and reviews | `codex/132-world-combat` at root |
-| browser_feasibility | #127 world orders/save UI; apps/web/**, tests/browser/**, tests/web-ui/terrain.test.ts and focused docs; sole native UI owner | `codex/127-world-ui`, `local/worktrees/world-ui` |
-| mix_reader | #133 voxel resource plan/preparation; new content files/tests/provenance | `codex/133-voxel-resources`, `local/worktrees/voxel-resources` |
-| bootstrap_review | #131 typed teams/task forces/scripts; new content files/tests/provenance | `codex/131-team-definitions`, `local/worktrees/team-definitions` |
+| browser_feasibility | #141 voxel world presentation; apps/web/**, tests/browser/**, tests/web-ui/** and focused docs; sole native UI owner | `codex/141-voxel-world-ui`, `local/worktrees/voxel-world-ui` |
+| mix_reader | #140 weapon spelling/prefix proof; weapon-definition source/tests/provenance | `codex/140-weapon-alias`, `local/worktrees/weapon-alias` |
+| bootstrap_review | #139 combat actor initialization/alliance compiler; new content source/tests/provenance | `codex/139-combat-actors`, `local/worktrees/combat-actors` |
 
 The shared wire contracts stay unchanged. The browser worker owns the approved
-private terrain protocol v3 for the world UI and named placed-still preview policy.
+private terrain protocol v4 proposal for voxel/SHP world presentation; gameplay
+model/save identity must remain independent of that presentation.
 The accepted preview server4174 remains immutable, alongside prior4173/media8767. The coordinator
 owns navigation/world motion; the simulation worker owns typed-definition policy. New world
 integration must join those policies deliberately before exposing native orders.
