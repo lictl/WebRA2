@@ -246,6 +246,9 @@ test('fixture corpus has deterministic source and complete output fingerprints',
       c.viewports.map(v => { const f = c.batch ? cpu.renderSprites(v, c.batch) : cpu.render(v); return [originalHash(f.rgba),
         originalHash(new TextEncoder().encode(JSON.stringify(Array.from({ length: v.width * v.height }, (_, i) => cpuPick(f, i % v.width, Math.floor(i / v.width))))))]; })];
   }))));
-  assert.equal(projection(cases), projection(gpuOracleCases()));
+  const digest = projection(cases);
+  assert.equal(digest, projection(gpuOracleCases()));
+  // Pinned only for these original source bytes and the complete reviewed CPU pixel/pick projection.
+  assert.equal(digest, 'e886eeb73a0882295376404a2ce65f04734bae96fe9c1a388d9753e93370b661');
   assert.equal(cases.length, 17); assert.equal(cases.reduce((n, c) => n + c.probes.length, 0), 39);
 });
