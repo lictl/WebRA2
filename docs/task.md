@@ -18,8 +18,14 @@ Current root [team transaction210](https://github.com/lictl/WebRA2/issues/210) /
 [PR211](https://github.com/lictl/WebRA2/pull/211) is in
 local/worktrees/mission-team-actions, branch codex/210-mission-team-actions.
 Source catalog, common runtime and root VM/world transaction are implemented and
-committed; merged main209 is included. Full composition verification/review is
-underway. No human input is needed. See the [dispatch report](mission-team-dispatch.md).
+committed; merged main209 is included. Full1,197 tests,185 documents,657 publication
+paths, M0 and75 outputs/145 inputs pass. Both independent component/composition
+reviews are clear at fdba15a; final docs-only exact-head COMMENT reviews and hosted
+checks precede ordinary merge. Actual Chrome4195 ran both16-file openings through
+group movement/Stop and queued/moving restore/replay; all75 served hashes match.
+Four unassigned console messages and two unadmitted locator clicks remain recorded,
+with the running keyboard move successful. No human input is needed. See the
+[dispatch report](mission-team-dispatch.md) for the bounded evidence and limits.
 
 Source preparation retains every4/7/80 action and complete declarations. The VM
 creates ordered receipts from private effects, due at the next common world tick.
@@ -41,8 +47,15 @@ native and200/128-tick runtime evidence remain in ignored local/ trees.
 The combined source test exposed a YR declaration array exceeding the smaller
 save serializer budget. d0b846c compares against the genuine catalog's bounded
 source shape with an original large-script regression; save limits stay unchanged.
-Next: finish exact composition reviews and checks, merge211, then continue dynamic
-mission context and remaining campaign actions. Do not stop for routine approval.
+Next: finish exact composition reviews/checks and merge211, then branch from its
+merged main for [dynamic team cell context212](https://github.com/lictl/WebRA2/issues/212).
+mix_reader is investigating constructor/placement evidence and proposes a two-stage
+source eligibility + genuine context API. Root owns existing VM/world contracts.
+bootstrap_review independently investigates [native allocation closure213](https://github.com/lictl/WebRA2/issues/213):
+Name is a lookup alias and missing default houses do not prove inactive AI roots.
+Its private assessment is local/reviews/mission-team-compound-211/local/native213.
+Worker source modules follow agreed APIs; no211 implementation changes remain.
+Do not stop for routine approval.
 
 [Object combat PR207](https://github.com/lictl/WebRA2/pull/207) merged as
 3543b567d6c652ea0648a3f5832fbcee18156ddc, reviewed at

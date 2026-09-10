@@ -89,6 +89,36 @@ Reproduction: use the pinned Node runtime and `npm run check`; focused tests are
 preparation is in ignored local/worktrees/mission-team-actions/local/probe210.mjs
 and its local/team210 outputs, with verified on-device archive/source reads.
 
+## Actual Chrome regression
+
+Chrome152.0.7977.83 (installed bundle version) exercised the immutable fdba15a
+build on localhost4195. Its75-file manifest hash is
+1fa7a66227dfb309cd1fabcb5c8e531ddc9e4eefe86e3c0bef10628af7188330.
+Only the terrain worker differs among12 JavaScript/CSS/HTML outputs against209;
+the other11 and all145 input paths match. All75 disk and served hashes and the
+connect-none CSP were verified separately from the26 pre-audit requests.
+
+Both openings were loaded through the native16-file asset-only chooser, with the
+same Files retained across profiles. Two-member paused/running group movement and
+Stop, queued/moving checkpoint restoration and continuation replay were exercised.
+RA2 used an explicit development house, with queued279/moving284 boundaries and a
+later replay to582; YR used the source-default house, with queued104 and moving285
+boundaries. English controls and final Traditional Chinese layout were inspected.
+This covers the existing browser world UI, not the new mission/team compound.
+
+Four early console message-channel errors had no application stack and remain
+unattributed. Two RA2 locator Move clicks while Run continued produced no visible
+order or rejection; later native keyboard form submission moved the same group
+successfully. A busy-admission race is a hypothesis, not an established planner
+regression. These observations are retained; this is not a clean-console claim.
+
+The private local/team-browser/fdba15a evidence includes34 DOM facts, the final
+screenshot, exact replay/checkpoint hashes, console messages and request metadata.
+The summary hash is
+4bdf274ade2cdd67dd0568a3a3e953e3896a7776070a92729a386e16e227bd0c.
+No image, retail save or asset is included in the public distribution. Other-browser
+end-to-end acceptance remains deferred under the owner's D17 decision.
+
 ## Remaining work
 
 Dynamic combat/cell/object context, further script/action families, automatic team
