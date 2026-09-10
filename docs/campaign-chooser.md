@@ -157,3 +157,24 @@ Console capture includes extension warnings and three asynchronous-listener erro
 these did not produce a rejected campaign load and are not claimed as a clean
 browser console. No retail text, screenshots, actor IDs or scene coordinates are
 published with this report.
+
+
+After the full Chrome run, reviewed main059d57f was merged at
+`d8e8e8c3bf819b92d6ee5c57f06a203fbfdf88ec`. The integrated check passes1,007 tests,
+155 documents/783 links and542 tracked publication paths. The final bundle has64
+outputs from138 inputs; its manifest is
+`e685dde6d5743fc93a9df736766c6de90ab31ae6764b2af182d42cb897200ed0`.
+App, CSS, shared chunks, import worker and simulation worker are byte-identical to
+the full-test bundle. Terrain-worker differences are the independently reviewed
+ground-factory acceptance branches and generated symbol renaming. The chooser
+still passes the existing flat traversal; no ground-navigation behavior is enabled
+by this merge. Notice and licensing files account for the other output changes.
+Fresh private preparation reproduces all four complete scene/world projections,
+excluding elapsed time.
+
+A separate actual Chrome smoke run on immutable4184 selects the16-archive folder,
+loads YR Allied, verifies a single controls panel, steps, saves, advances, restores,
+and verifies replay. Its world hash matches the table; tick1 restores state
+`8b49fd0e51e19cc477f899c05c3bca25018a511b21faca7479df8c08cf5cf490`.
+All64 final output files also match their actual HTTP bytes. The earlier full
+interaction matrix remains specifically attributed to b72388f.
