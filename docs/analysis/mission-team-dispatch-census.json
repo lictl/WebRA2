@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "policy": "webra2-mission-team-dispatch-census-1",
+  "sourcePolicy": "webra2-mission-team-action-source-1",
+  "phasePolicy": "webra2-world-team-actions-next-tick-1",
+  "evidence": "Fresh on-device source preparation and complete VM preflight; no original mission execution.",
+  "profiles": [
+    {
+      "files": 438,
+      "authority": false,
+      "vmTeamCoverage": [
+        {
+          "namespace": "action",
+          "opcode": 4,
+          "occurrences": 29,
+          "supported": 11,
+          "effectOnly": true
+        },
+        {
+          "namespace": "action",
+          "opcode": 7,
+          "occurrences": 25,
+          "supported": 1,
+          "effectOnly": true
+        },
+        {
+          "namespace": "action",
+          "opcode": 80,
+          "occurrences": 21,
+          "supported": 0,
+          "effectOnly": true
+        }
+      ],
+      "profile": "ra2",
+      "missionSha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+      "bindingsSha256": "5e602be74dbff27ae16a2bbb618df3244e2bc80a10cfe658039168016c2f6a60",
+      "sourceSha256": "0435c10a981b90bab1567aa3ef131f61febd80f6af910005461495b30c73beaa",
+      "actions": 75,
+      "supportedActions": 12,
+      "programs": 6,
+      "spawnCatalogs": 1,
+      "recruitmentCatalogs": 13,
+      "declarations": {
+        "teams": {
+          "total": 152,
+          "supported": 0
+        },
+        "scripts": {
+          "total": 90,
+          "supported": 0
+        },
+        "taskForces": {
+          "total": 110,
+          "supported": 0
+        }
+      },
+      "requiredDiagnostics": 1575,
+      "wholeSourceReady": false,
+      "cellOnlyRequiredDiagnostics": 274,
+      "completeRequiredDiagnostics": 254
+    },
+    {
+      "files": 438,
+      "authority": false,
+      "vmTeamCoverage": [
+        {
+          "namespace": "action",
+          "opcode": 4,
+          "occurrences": 21,
+          "supported": 1,
+          "effectOnly": true
+        },
+        {
+          "namespace": "action",
+          "opcode": 7,
+          "occurrences": 47,
+          "supported": 3,
+          "effectOnly": true
+        },
+        {
+          "namespace": "action",
+          "opcode": 80,
+          "occurrences": 36,
+          "supported": 5,
+          "effectOnly": true
+        }
+      ],
+      "profile": "yr",
+      "missionSha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+      "bindingsSha256": "e839e63e8b14b22e051188127bc4514ef421537804878797f321b576bd5111af",
+      "sourceSha256": "046835223dd53145501f3a91850c2d3fddecdda1ef208c27e78c08273ad9bd62",
+      "actions": 104,
+      "supportedActions": 9,
+      "programs": 8,
+      "spawnCatalogs": 8,
+      "recruitmentCatalogs": 1,
+      "declarations": {
+        "teams": {
+          "total": 265,
+          "supported": 0
+        },
+        "scripts": {
+          "total": 182,
+          "supported": 0
+        },
+        "taskForces": {
+          "total": 223,
+          "supported": 0
+        }
+      },
+      "requiredDiagnostics": 3096,
+      "wholeSourceReady": false,
+      "cellOnlyRequiredDiagnostics": 491,
+      "completeRequiredDiagnostics": 461
+    }
+  ],
+  "nativeExecutionVerified": false,
+  "canStartCampaign": false
+}

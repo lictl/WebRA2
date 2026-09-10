@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "scope": "Source-only mission actions4/7/80; no execution or whole-mission authority",
+  "profiles": [
+    {
+      "profile": "ra2",
+      "missionSha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+      "bindingsSha256": "5e602be74dbff27ae16a2bbb618df3244e2bc80a10cfe658039168016c2f6a60",
+      "sourceSha256": "0435c10a981b90bab1567aa3ef131f61febd80f6af910005461495b30c73beaa",
+      "actions": 75,
+      "supportedActions": 12,
+      "programs": 6,
+      "spawnCatalogs": 1,
+      "recruitmentCatalogs": 13,
+      "declarations": {
+        "teams": {
+          "total": 152,
+          "supported": 0
+        },
+        "scripts": {
+          "total": 90,
+          "supported": 0
+        },
+        "taskForces": {
+          "total": 110,
+          "supported": 0
+        }
+      },
+      "requiredDiagnostics": 1575,
+      "wholeSourceReady": false
+    },
+    {
+      "profile": "yr",
+      "missionSha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+      "bindingsSha256": "e839e63e8b14b22e051188127bc4514ef421537804878797f321b576bd5111af",
+      "sourceSha256": "046835223dd53145501f3a91850c2d3fddecdda1ef208c27e78c08273ad9bd62",
+      "actions": 104,
+      "supportedActions": 9,
+      "programs": 8,
+      "spawnCatalogs": 8,
+      "recruitmentCatalogs": 1,
+      "declarations": {
+        "teams": {
+          "total": 265,
+          "supported": 0
+        },
+        "scripts": {
+          "total": 182,
+          "supported": 0
+        },
+        "taskForces": {
+          "total": 223,
+          "supported": 0
+        }
+      },
+      "requiredDiagnostics": 3096,
+      "wholeSourceReady": false
+    }
+  ],
+  "privateRawOracle": {
+    "assertions": 22436,
+    "verifiedRoots": 5,
+    "profiles": [
+      {
+        "profile": "ra2",
+        "assertions": 7350,
+        "sourceSha256": "0435c10a981b90bab1567aa3ef131f61febd80f6af910005461495b30c73beaa",
+        "actions": 75,
+        "resolvedDiagnostics": 5,
+        "requiredDiagnostics": 1575
+      },
+      {
+        "profile": "yr",
+        "assertions": 15086,
+        "sourceSha256": "046835223dd53145501f3a91850c2d3fddecdda1ef208c27e78c08273ad9bd62",
+        "actions": 104,
+        "resolvedDiagnostics": 1,
+        "requiredDiagnostics": 3096
+      }
+    ],
+    "limitations": "Raw registries/actions/source fields independently parsed; existing typed-definition and world factories reused, not independently rederived here."
+  },
+  "reusedNativeEvidence": {
+    "method": "Existing reviewed ranges rehashed and PE-mapped; complete code endpoints rechecked with Capstone5.0.6. No new native claims or game execution.",
+    "ranges": 213,
+    "bytes": 32064,
+    "ledgers": [
+      {
+        "path": "docs/analysis/team-definitions-native.json",
+        "sha256": "cb38bc45cce31405dbf074caeedc14b001c562307df111f2d1cf61cf6315d519",
+        "ranges": 55,
+        "bytes": 12950
+      },
+      {
+        "path": "docs/analysis/team-spawning-native.json",
+        "sha256": "17661c06c01ecc2306393d4fcb1bb747dd7f2686f76537c418b41e87e1757de4",
+        "ranges": 45,
+        "bytes": 5150
+      },
+      {
+        "path": "docs/analysis/team-recruitment-native.json",
+        "sha256": "b125a64a8c4d50b67e0c8e1a441940a262de20e84a7e409d5224d61c21305d81",
+        "ranges": 56,
+        "bytes": 10148
+      },
+      {
+        "path": "docs/analysis/team-sleep-native.json",
+        "sha256": "e6f49295f0e06ebec354d712cc726d46d2b254a069e43c08705a5bc521d7ef4c",
+        "ranges": 30,
+        "bytes": 2074
+      },
+      {
+        "path": "docs/analysis/initial-waypoints-native.json",
+        "sha256": "39ccd2e1cfff4eafa9ee20973bb619362c871983ebb84b51a0c28b0d618bf719",
+        "ranges": 27,
+        "bytes": 1742
+      }
+    ]
+  },
+  "retailPayloadPublished": false,
+  "nativeExecutionVerified": false,
+  "canStartCampaign": false
+}

@@ -8,8 +8,10 @@ import { isTeamDefinitions, type TeamDefinitions } from '../../content/src/team-
 import { type ScenarioObjects } from '../../content/src/scenario-objects.ts';
 import { isWorldContent, type WorldContent } from './world-content.ts';
 import { worldHash, worldInteger, worldList, worldRecord, worldSymbol, worldSourceHash } from './world-values.ts';
+import { canonicalText } from './canonical.ts';
 
 export const TEAM_RUNTIME_POLICY = 'webra2-existing-team-cells-3' as const;
+export const TEAM_PROGRAM_UNION_POLICY = 'webra2-complete-team-program-union-1' as const;
 export const TEAM_RUNTIME_LIMITS = Object.freeze({ missionBytes: 16 * 1024 ** 2, teams: 64, members: 256,
   steps: 3200, orders: 256, candidateCells: 1089, work: 262144, ticks: 128, replayTicks: 10000,
   replayAdmissions: 1024, replayWork: 16_777_216, trace: 32768, tick: 1_000_000_000 });
@@ -27,6 +29,7 @@ export interface TeamProgram {
   readonly profile: 'ra2' | 'yr'; readonly teamsSha256: string; readonly worldSha256: string;
   readonly initialWaypointsSha256: string; readonly modelSha256: string; readonly missionSha256: string; readonly entitiesSha256: string;
   readonly templates: readonly TeamTemplate[]; readonly limits: Readonly<TeamRuntimeLimits>;
+  readonly unionPolicy?: typeof TEAM_PROGRAM_UNION_POLICY; readonly sourceProgramSha256s?: readonly string[];
   readonly sha256: string; readonly nativeExecutionVerified: false; readonly canStartCampaign: false;
 }
 export interface TeamRuntimeDiagnostic { readonly subjectId: string; readonly code: string }
@@ -61,6 +64,41 @@ function ownedBytes(value: Uint8Array, cap: number): Uint8Array {
   if (!(value.buffer instanceof ArrayBuffer) || Object.getOwnPropertyDescriptor(ArrayBuffer.prototype, 'resizable')?.get?.call(value.buffer) ||
     value.byteLength < 1 || value.byteLength > cap) teamRuntimeFail('mission-bytes');
   const bytes = new Uint8Array(value.byteLength); Uint8Array.prototype.set.call(bytes, value); return bytes;
+}
+
+/** Join complete genuine programs without granting activation or dynamic actor authority.
+ * Shared templates must agree exactly; every limit remains bounded by every input. */
+export function unionTeamPrograms(input: readonly TeamProgram[], lowerLimits: Partial<TeamRuntimeLimits> = {}): TeamProgram {
+  const rows = worldList(input, 256);
+  if (!rows.length) teamRuntimeFail('union-empty');
+  const cap = settings(lowerLimits), selected: TeamProgram[] = [], hashes = new Set<string>();
+  for (const value of rows) {
+    if (!isTeamProgram(value) || hashes.has(value.sha256)) teamRuntimeFail('union-program');
+    hashes.add(value.sha256); selected.push(value);
+    for (const key of Object.keys(cap) as (keyof TeamRuntimeLimits)[]) cap[key] = Math.min(cap[key], value.limits[key]);
+  }
+  selected.sort((a, b) => a.sha256 < b.sha256 ? -1 : a.sha256 > b.sha256 ? 1 : 0);
+  const first = selected[0]!, world = teamProgramWorld(first), templates = new Map<string, TeamTemplate>();
+  const identity = (p: TeamProgram) => [p.schemaVersion, p.policy, p.sleepPolicy, p.flashPolicy, p.profile,
+    p.teamsSha256, p.worldSha256, p.initialWaypointsSha256, p.modelSha256, p.missionSha256, p.entitiesSha256];
+  const source = canonicalText(identity(first)); let work = 0, members = 0, steps = 0;
+  const charge = (n = 1) => { if (n > cap.work - work) teamRuntimeFail('union-work'); work += n; };
+  for (const p of selected) {
+    charge(); const w = teamProgramWorld(p);
+    if (canonicalText(identity(p)) !== source || w.sha256 !== world.sha256 || w.model.sha256 !== world.model.sha256) teamRuntimeFail('union-source');
+    for (const t of p.templates) {
+      charge(1 + t.members.length + t.steps.length);
+      const previous = templates.get(t.id);
+      if (previous) { if (canonicalText(previous) !== canonicalText(t)) teamRuntimeFail('union-template'); continue; }
+      const count = t.members.reduce((n, m) => n + m.quantity, 0);
+      if (templates.size >= cap.teams || count > cap.members - members || t.steps.length > cap.steps - steps) teamRuntimeFail('union-limit');
+      members += count; steps += t.steps.length; templates.set(t.id, t);
+    }
+  }
+  const { sha256: _hash, templates: _templates, limits: _limits, unionPolicy: _union, sourceProgramSha256s: _sources, ...base } = first;
+  const data = { ...base, templates: [...templates.values()].sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0), limits: cap,
+    unionPolicy: TEAM_PROGRAM_UNION_POLICY, sourceProgramSha256s: selected.map(p => p.sha256) };
+  const result: TeamProgram = teamRuntimeFreeze({ ...data, sha256: worldHash(data) }); worlds.set(result, world); return result;
 }
 
 /** Select complete scripts only. Existing-actor activation is explicit and does not implement native team creation. */

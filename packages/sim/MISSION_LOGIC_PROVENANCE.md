@@ -155,3 +155,17 @@ The [object event report](../../docs/mission-object-events.md) and
 boundary and repeating death latch policy. Private health applications drive the
 compound callback subsequence; public traces do not confer that authority.
 The D03 world/cell/object/poll phase and logical tag lifetime remain explicit.
+
+Mission team dispatch accepts source actions4/7/80 only through the genuine
+complete mission team action catalog, exact instruction operands and declaration
+identity. Automatic or uncovered behavior keeps preparation blocked. Each request
+uses the existing saved global effect order, including forced/repeated actions;
+the flag-only replay entry point rejects team programs. This extends original
+WebRA2 composition, not native TeamClass phase equivalence. See
+[team source provenance](MISSION_TEAM_ACTION_PROVENANCE.md).
+
+Complete team declaration identity is compared through property descriptors against
+the genuine source catalog's bounded retained shape. Large YR declaration sets do
+not pass through the smaller simulation-save JSON budget. Copies must still match
+every field, row and order; getters confer no authority and are not invoked. Save
+serialization limits and legacy program hashes are unchanged.

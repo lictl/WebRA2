@@ -33,3 +33,7 @@ by coordinator research for issue189 and independently rehashed and inspected he
 The compiler uses it only to reject RA2 upper-slot source grants; it does not adopt
 initial variable values. The shared build/license map remains coordinator-owned
 and must include this exact notice before browser distribution.
+
+Optional team action preparation requires the exact genuine source binding catalog
+and passes its complete declaration/action authority into the VM. A copied catalog
+or a different genuine object with matching metadata cannot substitute this source.

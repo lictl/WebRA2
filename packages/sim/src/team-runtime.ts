@@ -7,13 +7,14 @@ import { WorldSimulation, type WorldSave, type WorldEntity } from './world.ts';
 import type { WorldModel } from './world-model.ts';
 import { teamSpawnContextData, type TeamSpawnContext } from './team-spawn-context.ts';
 import { teamRecruitmentContextData, type TeamRecruitmentContext } from './team-recruitment-context.ts';
+import { missionTeamContextData, type MissionTeamContext } from './mission-team-context.ts';
 import { worldAddress, worldClone, worldHash, worldInteger, worldList, worldRecord, worldSymbol } from './world-values.ts';
 import { navigationCell } from './navigation.ts';
 import { planTeamDestinations, TEAM_DESTINATION_LIMITS, TEAM_DESTINATION_POLICY, type TeamDestinationAssignment } from './team-runtime-destinations.ts';
 import { teamProgramWorld, teamRuntimeFail as fail, teamRuntimeFreeze as freeze, type TeamProgram, type TeamTemplate } from './team-runtime-program.ts';
 
 export interface TeamActorBinding { readonly id: string; readonly teamId: string; readonly actorIds: readonly number[]; readonly bornAtTick?: number }
-export interface TeamRoster { readonly policy: 'webra2-team-roster-1' | 'webra2-spawn-team-roster-1' | 'webra2-recruited-team-roster-1'; readonly contextSha256?: string; readonly programSha256: string; readonly worldModelSha256: string;
+export interface TeamRoster { readonly policy: 'webra2-team-roster-1' | 'webra2-spawn-team-roster-1' | 'webra2-recruited-team-roster-1' | 'webra2-mission-team-roster-1'; readonly contextSha256?: string; readonly programSha256: string; readonly worldModelSha256: string;
   readonly bindings: readonly TeamActorBinding[]; readonly sha256: string }
 export type TeamPhase = 'advance' | 'moving' | 'retry' | 'sleep' | 'finished' | 'lost';
 export interface TeamInstanceState {
@@ -34,13 +35,83 @@ export interface TeamCheckpoint {
 const rosters = new WeakMap<object, TeamProgram>();
 const spawnContexts = new WeakMap<object, TeamSpawnContext>();
 const recruitmentContexts = new WeakMap<object, TeamRecruitmentContext>();
+const missionContexts = new WeakMap<object, MissionTeamContext>();
 export const isTeamRoster = (v: unknown): v is TeamRoster => !!v && typeof v === 'object' && rosters.has(v);
 export function teamRosterProgram(roster: TeamRoster): TeamProgram { const p=rosters.get(roster);if(!p)fail('roster-brand');return p; }
 
 /** Dynamic models come only from genuine source-bound spawn contexts. */
 export function teamRosterModel(roster: TeamRoster): WorldModel {
   const program=teamRosterProgram(roster),context=spawnContexts.get(roster);
+  const mission=missionContexts.get(roster);if(mission)return missionTeamContextData(mission).model;
   return context ? teamSpawnContextData(context).model : teamProgramWorld(program).model;
+}
+/** Only a genuine common context grants combined placed/constructed membership. */
+export function bindMissionTeamActors(context: MissionTeamContext): TeamRoster {
+  const data=missionTeamContextData(context),program=data.program,cap=program.limits;
+  const templates=new Map(program.templates.map(t=>[t.id,t])),actors=new Map(data.actors.map(a=>[a.entityId,a]));
+  const definitions=new Map(data.model.entities.map(e=>[e.id,e])),seen=new Set<number>();
+  const bindings:TeamActorBinding[]=worldList(data.instances,cap.teams).map(value=>{
+    const b=value as typeof data.instances[number],t=templates.get(b.teamId),quantities=new Map<string,number>();
+    if(!t||!b.actorIds.length||b.actorIds.length>64||b.actorIds.length>cap.members-seen.size)fail('mission-binding-team');
+    for(const id of b.actorIds){const a=actors.get(id),d=definitions.get(id);
+      if(!a||!d||seen.has(id)||a.rowId!==d.rowId||a.typeId!==d.typeId||a.houseId!==t.houseId||a.playerId!==t.playerId||
+        d.owner!==t.playerId||a.bornAtTick!==b.bornAtTick||!['infantry','unit'].includes(d.kind))fail('mission-binding-actor');
+      seen.add(id);quantities.set(d.typeId,(quantities.get(d.typeId)??0)+1);
+    }
+    if(quantities.size!==t.members.length||t.members.some(m=>quantities.get(m.typeId)!==m.quantity))fail('mission-binding-taskforce');
+    return{id:b.id,teamId:b.teamId,actorIds:[...b.actorIds].sort((a,b)=>a-b),bornAtTick:b.bornAtTick};
+  }).sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
+  if(seen.size!==actors.size||new Set(bindings.map(b=>b.id)).size!==bindings.length)fail('mission-binding-coverage');
+  const value={policy:'webra2-mission-team-roster-1' as const,contextSha256:context.sha256,programSha256:program.sha256,
+    worldModelSha256:data.model.sha256,bindings};
+  const roster:TeamRoster=freeze({...value,sha256:worldHash(value)});rosters.set(roster,program);missionContexts.set(roster,context);return roster;
+}
+/** Append exactly one live claim/release while conserving the world and surviving controllers. */
+export function migrateMissionTeamCheckpoint(previousContext:MissionTeamContext,input:unknown,nextContext:MissionTeamContext,nextWorldInput:unknown):TeamCheckpoint {
+  const before=missionTeamContextData(previousContext),after=missionTeamContextData(nextContext);
+  const same=(a:unknown,b:unknown)=>canonicalText(a)===canonicalText(b);
+  if(before.runtime!==after.runtime||before.program!==after.program||after.records.length!==before.records.length+1||
+    !same(before.records,after.records.slice(0,before.records.length)))fail('mission-migration-prefix');
+  const prior=restoreTeamCheckpoint(bindMissionTeamActors(previousContext),input);if(prior.pending)fail('mission-migration-pending');
+  const event=after.records.at(-1)!,tick=prior.world.nextTick,world=WorldSimulation.restore(after.model,nextWorldInput).save();
+  const old=new Map(prior.team.instances.map(s=>[s.id,s])),current=new Map(prior.world.state.entities.map(e=>[e.id,e]));
+  if(event.kind==='spawned'){
+    if(event.bornAtTick!==tick||!same(before.model.entities,after.model.entities.slice(0,before.model.entities.length))||
+      after.model.entities.length!==before.model.entities.length+event.actors.length)fail('mission-migration-constructors');
+    const {entities:_be,sha256:_bs,initialSharedCells:_bi,...beforeModel}=before.model;
+    const {entities:_ae,sha256:_as,initialSharedCells:_ai,...afterModel}=after.model;
+    if(!same(beforeModel,afterModel))fail('mission-migration-model');
+    const expected={...prior.world,state:{...prior.world.state,modelSha256:after.model.sha256,
+      entities:[...prior.world.state.entities,...event.actors.map(a=>({id:a.entityId,x:a.x,y:a.y,health:a.initialHealth,
+        goal:null,route:[],progress:0,waitTicks:0}))]}};
+    if(!same(world,expected))fail('mission-migration-world');
+    const newIds=new Set(event.actors.map(a=>a.entityId));
+    for(const command of world.queuedCommands)if(newIds.has((command.payload as {entityId:number}).entityId))fail('mission-migration-queued-actor');
+    const occupied=new Set(before.model.blocked),live=new Map<number,boolean>();
+    for(let i=0;i<prior.world.state.entities.length;i++){
+      const e=prior.world.state.entities[i]!,d=before.model.entities[i]!;live.set(e.id,e.health!==0);
+      if(e.health!==0&&d.blocksCell){occupied.add(worldAddress(e.x,e.y));if(e.progress>0)occupied.add(e.route[1]!);}
+    }
+    for(const footprint of before.model.footprints)if(live.get(footprint.entityId))for(const cell of footprint.cells)occupied.add(cell);
+    for(const actor of event.actors){const at=worldAddress(actor.x,actor.y);if(occupied.has(at))fail('mission-migration-occupied');occupied.add(at);}
+  }else{
+    if(after.model.sha256!==before.model.sha256||!same(world,prior.world))fail('mission-migration-world');
+    if(event.kind==='recruited'){
+      if(event.bornAtTick!==tick)fail('mission-migration-birth');
+      const queued=new Set(prior.world.queuedCommands.map(c=>(c.payload as {entityId:number}).entityId));
+      for(const id of event.actorIds){const e=current.get(id);
+        if(!e||e.health===null||e.health===0||e.goal!==null||e.progress||e.route.length||queued.has(id))fail('mission-migration-busy');}
+    }else{
+      const terminal=old.get(event.instanceId);
+      if(event.atTick!==tick||!terminal||terminal.phase!==event.reason||!['finished','lost'].includes(terminal.phase))fail('mission-migration-release');
+      if(event.reason==='finished'&&terminal.activeMembers.some(id=>{const e=current.get(id)!;return e.health!==0&&(e.goal!==null||e.progress!==0||e.route.length!==0);}))fail('mission-migration-release-moving');
+      old.delete(event.instanceId);
+    }
+  }
+  const roster=bindMissionTeamActors(nextContext),fresh=new Map(initial(roster,tick).instances.map(s=>[s.id,s]));
+  const instances=roster.bindings.map(b=>old.get(b.id)??fresh.get(b.id)!);
+  if(old.size!==before.instances.length-(event.kind==='released'?1:0)||[...old.keys()].some(id=>!instances.some(s=>s.id===id)))fail('mission-migration-state');
+  return restoreTeamCheckpoint(roster,{...prior,rosterSha256:roster.sha256,world,team:{...prior.team,instances}});
 }
 /** Only the genuine source catalog can provide empty, partial-template or recruited actor bindings. */
 export function bindRecruitedTeamActors(context: TeamRecruitmentContext): TeamRoster {
@@ -226,8 +297,8 @@ function teamState(roster:TeamRoster,input:unknown,world:WorldSave):TeamState{
   });
   const durations=new Map<string,number>(),maxFlash=new Map<number,number>();
   for(const t of p.templates){let duration=-1;for(const s of t.steps)if(s.opcode===50)duration=Math.max(duration,s.duration);durations.set(t.id,duration);}
-  const recruitment=recruitmentContexts.get(roster),flashBindings=recruitment?
-    teamRecruitmentContextData(recruitment).records.filter(r=>r.kind==='recruited'):roster.bindings;
+  const recruitment=recruitmentContexts.get(roster),mission=missionContexts.get(roster),flashBindings=mission?
+    missionTeamContextData(mission).historyBindings:recruitment?teamRecruitmentContextData(recruitment).records.filter(r=>r.kind==='recruited'):roster.bindings;
   for(const binding of flashBindings){const duration=durations.get(binding.teamId)!;
     if(duration>=0)for(const id of binding.actorIds)maxFlash.set(id,Math.max(duration,maxFlash.get(id)??-1));}
   const flashes=snapshotTeamFlashes(r.flashes).map(f=>{const maximum=maxFlash.get(f.entityId);
@@ -238,20 +309,34 @@ function teamState(roster:TeamRoster,input:unknown,world:WorldSave):TeamState{
   return result;
 }
 /** Full structural restore, not an authentication scheme or proof of every historical world transition. */
-export function restoreTeamCheckpoint(roster:TeamRoster,input:unknown):TeamCheckpoint{
-  const p=teamRosterProgram(roster),value=typeof input==='string'||input instanceof Uint8Array?parseJson(input):worldClone(input);
+const checkedCheckpoints = new WeakMap<object, TeamRoster>();
+function checked(roster:TeamRoster,checkpoint:TeamCheckpoint):TeamCheckpoint{
+  const result=freeze(checkpoint);checkedCheckpoints.set(result,roster);return result;
+}
+function planningBudget(roster:TeamRoster,workLimit?:number):number{
+  const cap=teamRosterProgram(roster).limits;
+  return Math.min(cap.work,workLimit===undefined?cap.work:worldInteger(workLimit,0,cap.replayWork));
+}
+export function restoreTeamCheckpoint(roster:TeamRoster,input:unknown,workLimit?:number):TeamCheckpoint{
+  const budget=planningBudget(roster,workLimit);
+  // Only this exact deeply frozen value and roster may reuse a verified plan.
+  // Copied, parsed and cross-roster checkpoints always take the full source check.
+  if(input&&typeof input==='object'&&checkedCheckpoints.get(input)===roster){
+    const checkpoint=input as TeamCheckpoint;if(checkpoint.pending&&checkpoint.pending.work>budget)fail('step-work-limit');return checkpoint;
+  }
+  const value=typeof input==='string'||input instanceof Uint8Array?parseJson(input):worldClone(input);
   const r=worldRecord(value,['schemaVersion','policy','rosterSha256','world','team','pending']);
   if(r.schemaVersion!==1||r.policy!=='webra2-team-transaction-1'||r.rosterSha256!==roster.sha256)fail('checkpoint-identity');
   const world=WorldSimulation.restore(teamRosterModel(roster),r.world).save(),team=teamState(roster,r.team,world);
   const checkpoint:TeamCheckpoint={schemaVersion:1,policy:'webra2-team-transaction-1',rosterSha256:roster.sha256,world,team,pending:null};
-  if(r.pending!==null){const expected=computePlan(roster,checkpoint);if(canonicalText(r.pending)!==canonicalText(expected))fail('pending-plan-mismatch');checkpoint.pending=expected;}
-  return freeze(checkpoint);
+  if(r.pending!==null){const expected=computePlan(roster,checkpoint,budget);if(canonicalText(r.pending)!==canonicalText(expected))fail('pending-plan-mismatch');checkpoint.pending=expected;}
+  return checked(roster,checkpoint);
 }
-function computePlan(roster:TeamRoster,checkpoint:TeamCheckpoint):TeamPendingTick{
+function computePlan(roster:TeamRoster,checkpoint:TeamCheckpoint,budget:number):TeamPendingTick{
   const p=teamRosterProgram(roster),cap=p.limits,tick=checkpoint.team.nextTick;if(tick>=cap.tick)fail('tick-limit');
   const nextTeam=worldClone(checkpoint.team),world=checkpoint.world,current=new Map(world.state.entities.map(e=>[e.id,e]));
   const templates=new Map(p.templates.map(t=>[t.id,t])),orders:TeamOrder[]=[],events:TeamEvent[]=[];let work=0;
-  const charge=(n=1)=>{if(n>cap.work-work)fail('step-work-limit');work+=n;};
+  const charge=(n=1)=>{if(n>budget-work)fail('step-work-limit');work+=n;};
   charge(nextTeam.flashes.length);nextTeam.flashes=advanceTeamFlashes(nextTeam.flashes).map(f=>({...f}));
   const event=(s:TeamInstanceState,kind:TeamEvent['kind'])=>{if(events.length>=cap.trace)fail('step-trace-limit');events.push({instanceId:s.id,step:s.lastStep,kind});};
   for(let i=0;i<nextTeam.instances.length;i++){
@@ -288,7 +373,7 @@ function computePlan(roster:TeamRoster,checkpoint:TeamCheckpoint):TeamPendingTic
     }
     if(instruction.opcode===6){s.cursor=instruction.target-1;s.phase='advance';s.retryAt=null;event(s,'jump');continue;}
     const plan=planTeamDestinations({model:teamRosterModel(roster),checkpoint:world,actorIds:s.activeMembers,target:{x:instruction.x,y:instruction.y}},
-      {candidates:cap.candidateCells,work:Math.min(1_048_576,cap.work-work),expanded:Math.min(262144,cap.work-work)});
+      {candidates:cap.candidateCells,work:Math.min(1_048_576,budget-work),expanded:Math.min(262144,budget-work)},budget-work);
     charge(plan.work.visits+plan.work.expanded+plan.work.queries);
     if(plan.status==='budget-exhausted')fail('destination-budget');
     if(plan.status==='blocked'){s.phase='retry';s.retryAt=Math.min(cap.tick,tick+15);event(s,'blocked');continue;}
@@ -302,7 +387,7 @@ function computePlan(roster:TeamRoster,checkpoint:TeamCheckpoint):TeamPendingTic
   return freeze({...data,sha256:worldHash({...data,destinationPolicy:TEAM_DESTINATION_POLICY,sleepPolicy:TEAM_SLEEP_POLICY})});
 }
 /** A prepared outbox changes neither current world nor committed team state. */
-export function prepareTeamTick(roster:TeamRoster,input:unknown):TeamCheckpoint{
-  const checkpoint=restoreTeamCheckpoint(roster,input);if(checkpoint.pending)return checkpoint;
-  return freeze({...checkpoint,pending:computePlan(roster,checkpoint)});
+export function prepareTeamTick(roster:TeamRoster,input:unknown,workLimit?:number):TeamCheckpoint{
+  const budget=planningBudget(roster,workLimit),checkpoint=restoreTeamCheckpoint(roster,input,budget);if(checkpoint.pending)return checkpoint;
+  return checked(roster,{...checkpoint,pending:computePlan(roster,checkpoint,budget)});
 }

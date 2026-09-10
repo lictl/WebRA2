@@ -86,3 +86,30 @@ and [TActionClass entry points](https://github.com/Phobos-developers/YRpp/blob/6
 locate CreateTeam, SpawnTeam and SpawnTeamAtWP. Their native semantics have not
 been admitted by this component. No new dependency or copied implementation is
 introduced by these header references.
+
+The optional complete-program union and private single-commit world receipt are
+original WebRA2 integration mechanisms under the same license. The union requires
+genuine programs with identical source/world/waypoint identities, exact overlapping
+templates and aggregate limits no greater than any input. Its separate policy and
+source program hashes do not alter existing compilation identities. The world
+receipt retains only the exact committed step/model pair without extending public
+save/result shapes. Neither mechanism establishes native team activation timing
+or dynamic actor authority; those remain part of
+[mission/team integration210](https://github.com/lictl/WebRA2/issues/210).
+
+The common mission-team roster and one-record migration are original extensions
+of the reviewed spawn/recruitment transaction checks. A genuine shared context
+supplies exact source actors and complete task forces. Migration conserves prior
+world/controller state, proves current constructor occupancy or recruitment
+availability, and requires terminal state before release. Historical claim
+bindings retain the source permission for surviving Flash state. These are
+structural/current-transition checks, not cryptographic proof of past gameplay.
+
+
+The mission transaction integration also bounds planning by the caller's remaining
+work before navigation. The optional destination aggregate cap covers visits,
+queries and expansions together. Exact deeply frozen prepared checkpoints retain
+private roster identity so prepare/commit does not run the same navigation plan
+twice; copied or serialized pending plans are recomputed and compared. Sufficient
+budgets preserve previous orders, plan hashes and numerical work. This is an
+original resource-accounting mechanism, not a native scheduling claim.

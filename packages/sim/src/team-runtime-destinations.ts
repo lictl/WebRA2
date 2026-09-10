@@ -31,9 +31,11 @@ function limits(input: Partial<Limits>): Limits {
 }
 /** Greedy stable assignment, not a formation optimizer or a native movement/arrival claim. */
 export function planTeamDestinations(input: { readonly model: WorldModel; readonly checkpoint: WorldSave;
-  readonly actorIds: readonly number[]; readonly target: Readonly<{ x: number; y: number }> }, lowerLimits: Partial<Limits> = {}): TeamDestinationPlan {
+  readonly actorIds: readonly number[]; readonly target: Readonly<{ x: number; y: number }> }, lowerLimits: Partial<Limits> = {}, aggregateWorkLimit?: number): TeamDestinationPlan {
   const r = worldRecord(input, ['model', 'checkpoint', 'actorIds', 'target']), cap = limits(lowerLimits), model = r.model as WorldModel;
   assertWorldModel(model);
+  const aggregate = aggregateWorkLimit === undefined ? Number.MAX_SAFE_INTEGER : worldInteger(aggregateWorkLimit, 0, Number.MAX_SAFE_INTEGER);
+  const remaining = () => aggregate - work.visits - work.queries - work.expanded;
   const ids = worldList(r.actorIds, cap.actors).map(id => worldInteger(id, 1, 2147483647)).sort((a,b)=>a-b);
   if (!ids.length || new Set(ids).size !== ids.length) fail('actor-ids');
   const target = worldRecord(r.target, ['x', 'y']), at = worldAddress(target.x, target.y), center = worldPosition(at);
@@ -44,7 +46,7 @@ export function planTeamDestinations(input: { readonly model: WorldModel; readon
   const work = {visits:0,queries:0,expanded:0}, result = (status:TeamDestinationPlan['status'],reason:string|null,assignments:TeamDestinationAssignment[]=[]):TeamDestinationPlan=>Object.freeze({
     policy:TEAM_DESTINATION_POLICY,modelSha256:model.sha256,checkpointSha256:worldHash(checkpoint),status,reason,
     assignments:Object.freeze(assignments.map(a=>Object.freeze(a))),work:Object.freeze({...work})});
-  const charge=(n=1)=>{if(n>cap.work-work.visits)return false;work.visits+=n;return true;};
+  const charge=(n=1)=>{if(n>cap.work-work.visits||n>remaining())return false;work.visits+=n;return true;};
   const dying=combatDyingActorIds(checkpoint.state.combat);
   if(!charge(checkpoint.state.combat?.deaths?.length??0))return result('budget-exhausted','occupancy-work');
   const slots = new Set(checkpoint.state.infantrySlots?.map(s => s.entityId) ?? []);
@@ -94,8 +96,9 @@ export function planTeamDestinations(input: { readonly model: WorldModel; readon
         if(count>own && (!passage || !slots.has(e.id) || passageBlocked(e.id, n)))occupied.add(n);
         if (passageExhausted) return result('budget-exhausted', 'occupancy-work');}
       if(!staticCells.has(start))occupied.delete(start);
+      if(remaining()<1)return result('budget-exhausted','reachability-limit');
       const route=findNavigationPath(grid,{start:worldPosition(start),goal:{x:c.x,y:c.y},occupied:[...occupied].map(worldPosition)},
-        {expanded:Math.min(NAVIGATION_LIMITS.expanded,cap.expanded-work.expanded),pathCells:NAVIGATION_LIMITS.pathCells});
+        {expanded:Math.min(NAVIGATION_LIMITS.expanded,cap.expanded-work.expanded,remaining()-1),pathCells:NAVIGATION_LIMITS.pathCells});
       work.queries++;work.expanded+=route.expanded;
       if(route.status==='budget-exhausted'||route.status==='path-limit')return result('budget-exhausted','reachability-limit');
       if(route.status!=='found')continue;
