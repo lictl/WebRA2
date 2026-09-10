@@ -1,5 +1,25 @@
 # Current task and refreshed-session handoff
 
+## Paused audio checkpoint — performance priority
+
+On 2026-09-11 the owner raised the TypeScript/WebAssembly performance boundary.
+[Issue222](https://github.com/lictl/WebRA2/issues/222) now precedes further feature
+expansion. This branch preserves incomplete [audio220](https://github.com/lictl/WebRA2/issues/220),
+including provisional219 through6e1e730 (cherry-picked as4e793a8) and new changes to
+mission-bindings.ts, mission-logic.ts and mission-world.ts. The changes introduce
+source-policy-bound19/21 request batches and saved cursors, with consumer playback
+state outside simulation. They are a work checkpoint, not ready for merge.
+
+Type checking and36 existing focused tests pass: mission-logic, mission-cue-dispatch,
+mission-world and mission-team-cell-world. These tests do not validate the new audio
+request path. Required next work after222: final219 native/raw review and composition,
+original audio dispatch fixtures, numeric/resource/rollback tests, no-audio hash
+comparison, every-boundary save/replay checks, full checks and independent review.
+No browser playback or playable campaign claim follows from this checkpoint.
+Preserve the earlier branches and private evidence; no human input is needed.
+
+## Prior implementation handoff
+
 State: **WORKING — M2 presentation and M3 gameplay foundations.** The owner
 now authorizes continuing toward a fully playable UI and original RA2/YR campaigns
 until essential human input is needed. This supersedes the previous M0 stopping
