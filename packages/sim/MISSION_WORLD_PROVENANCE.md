@@ -35,3 +35,10 @@ evidence without asserting native screen timing or playback. The implementation
 and original tests remain GPL-3.0-or-later; see the
 [dispatch report](../../docs/mission-cue-dispatch.md) and existing
 [cue notice](../../packages/content/MISSION_CUES_PROVENANCE.md).
+
+The optional original source cell-entry adapter is documented in the
+[cell dispatch report](../../docs/mission-cell-events.md). Its paired runtime
+[range ledger](../../docs/analysis/mission-cell-dispatch-native.json) pins transient
+event1 registration and tag invocation behavior. World-before-cell-before-poll
+ordering is an explicit WebRA2 policy, with no native pointer mutation or generic
+movement callback claim. Existing programs without the adapter retain their identities.

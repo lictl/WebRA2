@@ -141,3 +141,10 @@ references joined to exact instruction operands. Ordered presentation requests
 retain the existing VM lifecycle policy; native presentation remains pending.
 See [source cue dispatch](../../docs/mission-cue-dispatch.md) and the
 [cue source notice](../content/MISSION_CUES_PROVENANCE.md).
+
+The optional original source cell-entry adapter is documented in the
+[cell dispatch report](../../docs/mission-cell-events.md). Its paired runtime
+[range ledger](../../docs/analysis/mission-cell-dispatch-native.json) pins transient
+event1 registration and tag invocation behavior. World-before-cell-before-poll
+ordering is an explicit WebRA2 policy, with no native pointer mutation or generic
+movement callback claim. Existing programs without the adapter retain their identities.
