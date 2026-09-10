@@ -285,3 +285,10 @@ records the static native evidence, source references and explicit WebRA2 policy
 choices. Distributions retain that notice, the GPL text and corresponding source
 alongside the existing team and world notices. No retail payload or native listing
 is distributed. Separate MIT kernel code remains identified by its own headers.
+
+The ordinary ground traversal extension and source/world adapters are original
+GPL-3.0-or-later code. Its [notice](../packages/content/TERRAIN_TRAVERSAL_GROUND_PROVENANCE.md)
+accompanies the existing flat-traversal, source-combat and world notices, GPL text
+and corresponding source in code distributions. No native listing, retail graph
+or new dependency is included. The separable MIT navigation algorithm retains its
+own license; importing a different authenticated graph does not change that.

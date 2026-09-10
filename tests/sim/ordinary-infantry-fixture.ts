@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { initialFixture } from '../content/combat-initial-fixture.ts';
 import { compileScenarioTerrain } from '../../packages/content/src/scenario-terrain.ts';
 import { compileTerrainTraversal } from '../../packages/content/src/terrain-traversal.ts';
+import { compileTerrainTraversalGround } from '../../packages/content/src/terrain-traversal-ground.ts';
 import { createIniSourceView } from '../../packages/content/src/ini-source-view.ts';
 import { compileFoundationOccupancy } from '../../packages/content/src/foundation-occupancy.ts';
 import { compileWeaponDefinitions } from '../../packages/content/src/weapon-definitions.ts';
@@ -29,7 +30,7 @@ function packed(raw: Uint8Array, lzo: boolean): string {
   } return Buffer.concat(blocks).toString('base64');
 }
 export function ordinaryFixture({ profile = 'ra2' as 'ra2' | 'yr', sourceFields = '', targetFields = '', targetPrimary = 'Complex', weaponFields = '', impactFields = '', artFields = '',
-  extraRules = '', rank = '0', targetRank = '0', overlay = false, elevation = false, sharedTarget = false, seed = 1234, difficulty = 1 as 0 | 1 | 2, fireUp = 2, rof = 4 } = {}) {
+  extraRules = '', rank = '0', targetRank = '0', overlay = false, elevation = false, sharedTarget = false, seed = 1234, difficulty = 1 as 0 | 1 | 2, fireUp = 2, rof = 4, ground = false, ramp = 0 } = {}) {
   const cells: { x: number; y: number }[] = [];
   for (let row = 0; row < 12; row++) for (let column = row % 2; column <= 10; column += 2)
     cells.push({ x: (column + row + 2) / 2, y: (row - column + 12) / 2 });
@@ -43,10 +44,12 @@ export function ordinaryFixture({ profile = 'ra2' as 'ra2' | 'yr', sourceFields 
   const terrain = compileScenarioTerrain({ profile, ...f.mission });
   const tile = new Uint8Array(1872), tv = new DataView(tile.buffer);
   for (const [at, n] of [[0, 1], [4, 1], [8, 60], [12, 30], [16, 20], [32, 952], [56, 2]]) tv.setUint32(at!, n!, true);
+  tile[62] = ramp;
   const hash = sha(tile), contentIdentity = { profile, manifestSha256: 'a'.repeat(64), rulesSha256: 'b'.repeat(64), orderedModHashes: [] };
-  const traversal = compileTerrainTraversal({ contentIdentity, terrain, mapBytes: f.mission.bytes, rules: createIniSourceView(f.rules),
+  const flatTraversal = compileTerrainTraversal({ contentIdentity, terrain, mapBytes: f.mission.bytes, rules: createIniSourceView(f.rules),
     assets: [{ id: 'original', path: 'original.urb', sha256: hash, bytes: tile, source: { root: { sourceId: 'root', size: tile.length, sha256: hash }, absoluteOffset: 0, size: tile.length, sha256: hash } }],
     choices: terrain.cells.map(c => ({ sourceRecord: c.sourceRecord, assetId: 'original', subtile: 0 })), movementClasses: [{ id: 'foot', speedType: 0 }] });
+  const traversal = ground ? compileTerrainTraversalGround({ base: flatTraversal }) : flatTraversal;
   const world = compileWorldContent({ mapBytes: f.mission.bytes, rules: f.rules, definitions: f.definitions, traversal, footprints: compileFoundationOccupancy({ definitions: f.definitions }) });
   const source = { definitions: f.definitions, rules: f.rules, art: f.art };
   const weapons = compileWeaponDefinitions({ definitions: f.definitions, rules: f.rules }), instant = compileInstantWeaponContexts({ weapons, rules: f.rules }), effects = compileAnimationEffects({ ...source, weapons });
