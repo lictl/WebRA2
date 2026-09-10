@@ -80,6 +80,15 @@ test('unproven elite slot selection cannot grant normal-primary attacks or victi
   }
 });
 
+test('unknown current primary does not become an empty weapon when authenticating a target death path', () => {
+  for (const profile of ['ra2', 'yr'] as const) {
+    const invalid = ordinaryFixture({ profile, targetPrimary: 'Invalid weapon' }), b = compileOrdinaryInfantryBridge(invalid);
+    assert.equal(b.actors[1]!.role, 'movement-only'); assert(b.actors[1]!.targetReasons.includes('current-weapon-source'));
+    const cleared = ordinaryFixture({ profile, targetPrimary: 'none' }), c = compileOrdinaryInfantryBridge(cleared);
+    assert.equal(c.actors[1]!.role, 'target-only'); assert.equal(c.actors[1]!.currentWeaponId, null);
+  }
+});
+
 test('zero native ROF stays zero and source-valid windups beyond the world cap stay target-only', () => {
   const f = ordinaryFixture({ rof: 0, fireUp: 0 }), b = compileOrdinaryInfantryBridge(f), m = ordinaryWorld(f, b), s = WorldSimulation.create(m);
   assert.equal(b.combat!.weapons[0]!.reloadTicks, 0);
