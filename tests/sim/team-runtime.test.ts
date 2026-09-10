@@ -85,9 +85,9 @@ test('another actor can delay an issued arrival indefinitely; moving the blocker
 });
 test('strict destination/counter/timer and replay wire checks reject malformed retained state before execution',()=>{
  const f=fixture(),first=stepTeamWorld(f.roster,f.checkpoint).checkpoint;
- const bad=structuredClone(first);bad.team.instances[0]!.assignments[0]!.x=511;
+ const bad=structuredClone(first);bad.team.instances[0]!.assignments[0]={entityId:1,x:511,y:3};
  assert.throws(()=>restoreTeamCheckpoint(f.roster,bad),/checkpoint-destination/);
- bad.team.instances[0]!.assignments[0]!.x=0;assert.throws(()=>restoreTeamCheckpoint(f.roster,bad),/checkpoint-destination/);
+ bad.team.instances[0]!.assignments[0]={entityId:1,x:0,y:3};assert.throws(()=>restoreTeamCheckpoint(f.roster,bad),/checkpoint-destination/);
  const counter=structuredClone(first);counter.team.nextOrderId=0;assert.throws(()=>restoreTeamCheckpoint(f.roster,counter),/checkpoint-order-counter/);
  const timer=structuredClone(first);timer.team.instances[0]!.retryAt=30;assert.throws(()=>restoreTeamCheckpoint(f.roster,timer),/checkpoint-moving/);
  assert.throws(()=>restoreTeamCheckpoint(f.roster,'{"schemaVersion":1,"schemaVersion":1}'),/duplicate-json-key/);
