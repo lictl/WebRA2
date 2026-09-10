@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
-import { combatInfantryPrograms, combatDeathBinding, combatOrdinaryBinding, combatDamage, COMBAT_LIMITS as C, type CombatActor, type CombatWeapon } from './combat-model.ts';
+import { combatSourceBridge, combatInfantryPrograms, combatDeathBinding, combatOrdinaryBinding, combatDamage, COMBAT_LIMITS as C, type CombatActor, type CombatWeapon } from './combat-model.ts';
+import { evaluateOrdinaryInfantryState } from './ordinary-infantry-bridge.ts';
 import { worldAddress, worldFail, worldInteger, worldList, worldPosition, worldRecord, WORLD_LIMITS as W } from './world-values.ts';
 import { canonicalText } from './canonical.ts';
 import { createNativeRandom, restoreNativeRandom, nextNativeReloadJitter, nextNativeRandomWord, NATIVE_RELOAD_MAX_DRAWS, type NativeRandomState } from './native-random.ts';
@@ -7,7 +8,7 @@ import { ordinaryCombatDamage, ordinaryCombatReload, ordinaryCombatMaximumReload
 import { createInfantryFiringState, restoreInfantryFiring, saveInfantryFiring, transitionInfantryFiring, inspectDueInfantryShot, type InfantryFiringSave, type InfantryFiringState } from './infantry-firing.ts';
 import { ordinaryDeathActor, ordinaryDeathWeapon, ordinaryDeathDuration } from './ordinary-death-rules.ts';
 import type { WorldModel } from './world-model.ts';
-import type { WorldEntity } from './world.ts';
+import type { WorldEntity, WorldState } from './world.ts';
 
 export type CombatOrderState = { entityId: number; targetId: number | null; weaponId: string | null;
   readyTick: number; burstRemaining: number; burstTick: number; ammo: number };
@@ -158,7 +159,8 @@ export function attackCombat(model: WorldModel, state: CombatState, entities: Wo
 }
 
 /** After movement: scheduled impacts by due tick/ID, then firing by entity ID. Work is charged before each operation. */
-export function stepCombat(model: WorldModel, state: CombatState, entities: WorldEntity[], tick: number, emit: Emit): number {
+export function stepCombat(model: WorldModel, world: WorldState, tick: number, emit: Emit): number {
+  const state=world.combat!,entities=world.entities,sourceBridge=combatSourceBridge(model.combat!);let contextWork=0;
   const config = model.combat!,ordinary=combatOrdinaryBinding(config),death=combatDeathBinding(config),firing=combatInfantryPrograms(config), byId = new Map(entities.map(e => [e.id, e]));
   const actors = new Map(config.actors.map(a => [a.entityId, a])), orders = new Map(state.actors.map(a => [a.entityId, a]));
   const weapons = new Map(config.weapons.map(w => [w.id, w])); let work = 0, shots = 0;
@@ -211,6 +213,14 @@ export function stepCombat(model: WorldModel, state: CombatState, entities: Worl
       let schedule=schedules.get(a.entityId)!;
       weapon=weapons.get(d.weapons[0]!)!;
       if(!weaponLegal(weapon,targetDefinition,model,source.id)||!inRange(weapon,from,aim)){cancel(a.entityId);continue;}
+      if(sourceBridge){
+        const decision=evaluateOrdinaryInfantryState(sourceBridge,model,world,{sourceId:source.id,targetId:target.id});
+        contextWork+=decision.work;if(contextWork>C.sourceContextPerTick)worldFail('source-context-work');
+        if(decision.status!=='eligible'||decision.weaponId!==weapon.id||decision.programSha256!==firingProgram.fingerprint){
+          if(schedule.pending)emit('fire-cancelled-context',source.id,aim,target.id);
+          cancel(a.entityId);continue;
+        }
+      }
       if(!schedule.pending){
         if(tick<a.readyTick||schedule.rearm!==null&&tick<=schedule.rearm.shotTick)continue;
         schedule=transitionInfantryFiring(firingProgram,schedule,{kind:'begin',targetId:target.id,weaponId:weapon.id}).state;
@@ -253,8 +263,27 @@ export function stepCombat(model: WorldModel, state: CombatState, entities: Worl
   }
   // A later actor may kill an earlier actor's target; no dangling live orders survive the phase.
   for (const a of state.actors) { charge(); if (a.targetId !== null && !alive(byId.get(a.targetId))) {clearOrder(a);cancel(a.entityId);} }
+  if(sourceBridge)for(const p of firing!){
+    const pending=schedules.get(p.actorId)!.pending;if(!pending)continue;
+    // Later shots may create dying blockers inside an earlier actor's firing context.
+    const decision=evaluateOrdinaryInfantryState(sourceBridge,model,world,{sourceId:p.actorId,targetId:pending.targetId});
+    contextWork+=decision.work;if(contextWork>C.sourceContextPerTick)worldFail('source-context-work');
+    if(decision.status!=='eligible')cancel(p.actorId);
+  }
   if(firing)state.infantryFiring=firing.map(p=>{charge();return saveInfantryFiring(p,transitionInfantryFiring(p,schedules.get(p.actorId)!,{kind:'advance',tick:tick+1}).state);});
-  state.impacts.sort((a, b) => a.dueTick - b.dueTick || a.id - b.id); return work;
+  state.impacts.sort((a, b) => a.dueTick - b.dueTick || a.id - b.id); return work+contextWork;
+}
+
+/** A pending source shot must be possible in the complete owned end-of-tick state. */
+export function validateSourceCombatState(model:WorldModel,state:WorldState):void {
+  const bridge=model.combat?combatSourceBridge(model.combat):undefined;if(!bridge)return;
+  let work=0;
+  for(const schedule of state.combat!.infantryFiring!){
+    const pending=schedule.state.pending;if(!pending)continue;
+    const decision=evaluateOrdinaryInfantryState(bridge,model,state,{sourceId:schedule.state.actorId,targetId:pending.targetId});
+    work+=decision.work;if(work>C.sourceContextPerTick)worldFail('source-context-work');
+    if(decision.status!=='eligible')worldFail('source-save-pending');
+  }
 }
 
 /** Health-zero pending sequences still own their anchor. Completed corpse art owns no cells. */

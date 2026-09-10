@@ -1,16 +1,19 @@
 // SPDX-License-Identifier: MIT
 // Original bounded cell-combat policy. A native adapter must admit supported capabilities explicitly.
 import { isInfantryFiringProgram, type InfantryFiringProgram } from '../../content/src/combat-initial-runtime.ts';
+import { isOrdinaryInfantryBridge, type OrdinaryInfantryBridge } from './ordinary-infantry-bridge.ts';
 import { bindOrdinaryDeathRules, ORDINARY_DEATH_POLICY, type OrdinaryDeathRules, type OrdinaryDeathBinding } from './ordinary-death-rules.ts';
 import { bindOrdinaryCombatRules, ORDINARY_COMBAT_POLICY, type OrdinaryCombatRules, type OrdinaryCombatBinding } from './ordinary-combat-rules.ts';
 import { worldClone, worldFail, worldHash, worldInteger, worldList, worldRecord, worldSymbol, WORLD_LIMITS as W } from './world-values.ts';
+import { COMBAT_LIMITS } from './combat-limits.ts';
+export { COMBAT_LIMITS } from './combat-limits.ts';
 
 export const INFANTRY_COMBAT_POLICY = 'webra2-standing-infantry-combat-1' as const;
 export const INFANTRY_COMBAT_ENGINE_VERSION = 'webra2-world-5' as const;
+export const SOURCE_INFANTRY_COMBAT_POLICY = 'webra2-source-standing-infantry-combat-1' as const;
+export const SOURCE_INFANTRY_COMBAT_ENGINE_VERSION = 'webra2-world-6' as const;
 export const COMBAT_POLICY = 'webra2-cell-combat-1' as const;
 export const COMBAT_ENGINE_VERSION = 'webra2-world-2' as const;
-export const COMBAT_LIMITS = Object.freeze({ weapons: 1024, actors: W.entities, slots: 2, impacts: 4096,
-  shotsPerTick: 4096, operationsPerTick: 16384, burst: 64, delay: 10000, ammo: 1_000_000, range: 262144 });
 /** Nonnegative exact binary rational: significand * 2^exponent. No floating point damage arithmetic. */
 export interface CombatFactor { readonly significand: number; readonly exponent: number }
 export interface CombatWeapon {
@@ -28,11 +31,14 @@ export interface CombatModelInput {
   readonly ordinary?: OrdinaryCombatRules;
   readonly ordinaryDeath?: OrdinaryDeathRules;
   readonly infantryFiring?: readonly InfantryFiringProgram[];
+  readonly sourceBridge?: OrdinaryInfantryBridge;
   /** Directed source-owner → target-owner alliances. Same-owner targeting is always forbidden. */
   readonly allies: readonly Readonly<{ playerId: number; allyId: number }>[];
 }
-export interface CombatModel extends CombatModelInput { readonly policy: typeof COMBAT_POLICY | typeof ORDINARY_COMBAT_POLICY | typeof ORDINARY_DEATH_POLICY | typeof INFANTRY_COMBAT_POLICY; readonly sha256: string }
+export interface CombatModel extends Omit<CombatModelInput, 'sourceBridge'> { readonly sourceBridgeFingerprint?: string; readonly policy: typeof COMBAT_POLICY | typeof ORDINARY_COMBAT_POLICY | typeof ORDINARY_DEATH_POLICY | typeof INFANTRY_COMBAT_POLICY | typeof SOURCE_INFANTRY_COMBAT_POLICY; readonly sha256: string }
 const models = new WeakSet<object>();
+const sourceBindings = new WeakMap<object, OrdinaryInfantryBridge>();
+export function combatSourceBridge(model: CombatModel): OrdinaryInfantryBridge | undefined { assertCombatModel(model); return sourceBindings.get(model); }
 const firingBindings = new WeakMap<object, readonly InfantryFiringProgram[]>();
 export function combatInfantryPrograms(model:CombatModel):readonly InfantryFiringProgram[]|undefined { assertCombatModel(model);return firingBindings.get(model); }
 const deathBindings = new WeakMap<object, OrdinaryDeathBinding>();
@@ -42,10 +48,11 @@ export function combatOrdinaryBinding(model: CombatModel): OrdinaryCombatBinding
 export function assertCombatModel(model: CombatModel): void { if (!models.has(model)) worldFail('combat-model'); }
 
 export function createCombatModel(input: CombatModelInput): CombatModel {
-  const hasOrdinary=!!input&&Object.hasOwn(input,'ordinary'),hasDeath=!!input&&Object.hasOwn(input,'ordinaryDeath'),hasFiring=!!input&&Object.hasOwn(input,'infantryFiring');
+  const hasOrdinary=!!input&&Object.hasOwn(input,'ordinary'),hasDeath=!!input&&Object.hasOwn(input,'ordinaryDeath'),hasFiring=!!input&&Object.hasOwn(input,'infantryFiring'),hasSource=!!input&&Object.hasOwn(input,'sourceBridge');
+  if(hasSource&&!hasFiring)worldFail('source-requires-infantry-combat');
   if(hasFiring&&!hasDeath)worldFail('infantry-requires-death-combat');
   if(hasDeath&&!hasOrdinary)worldFail('death-requires-numerical-combat');
-  const r = worldRecord(input, ['weapons', 'actors', 'allies',...(hasOrdinary?['ordinary']:[]),...(hasDeath?['ordinaryDeath']:[]),...(hasFiring?['infantryFiring']:[])]), ids = new Set<string>();
+  const r = worldRecord(input, ['weapons', 'actors', 'allies',...(hasOrdinary?['ordinary']:[]),...(hasDeath?['ordinaryDeath']:[]),...(hasFiring?['infantryFiring']:[]),...(hasSource?['sourceBridge']:[])]), ids = new Set<string>();
   const weapons = worldList(r.weapons, COMBAT_LIMITS.weapons).map(value => {
     const w = worldRecord(value, ['id', 'damage', 'range', 'minimumRange', 'reloadTicks', 'burst', 'burstDelayTicks', 'delivery', 'speed', 'ground', 'air', 'verses']);
     const id = worldSymbol(w.id); if (ids.has(id)) worldFail('combat-duplicate-weapon'); ids.add(id);
@@ -94,7 +101,10 @@ export function createCombatModel(input: CombatModelInput): CombatModel {
   }
   const common = { ...(firing?{infantryFiring:firing}:{}), policy: firing ? INFANTRY_COMBAT_POLICY : death ? ORDINARY_DEATH_POLICY : ordinary ? ORDINARY_COMBAT_POLICY : COMBAT_POLICY, ...(death ? {ordinaryDeath:r.ordinaryDeath as OrdinaryDeathRules} : {}), ...(ordinary ? {ordinary:r.ordinary as OrdinaryCombatRules} : {}), weapons: Object.freeze(weapons), actors: Object.freeze(actors), allies: Object.freeze(allies) };
   worldClone(common);
-  const model = Object.freeze({ ...common, sha256: worldHash(common) }); models.add(model); if(ordinary)ordinaryBindings.set(model,ordinary); if(death)deathBindings.set(model,death); if(firing)firingBindings.set(model,firing); return model;
+  const source = hasSource ? r.sourceBridge : undefined;
+  if(hasSource && (!isOrdinaryInfantryBridge(source) || !source.combat || source.combat.sha256 !== worldHash(common))) worldFail('source-combat-join');
+  const bound = isOrdinaryInfantryBridge(source) ? { ...common, policy: SOURCE_INFANTRY_COMBAT_POLICY, sourceBridgeFingerprint: source.fingerprint } : common;
+  const model = Object.freeze({ ...bound, sha256: worldHash(bound) }); models.add(model); if(ordinary)ordinaryBindings.set(model,ordinary); if(death)deathBindings.set(model,death); if(firing)firingBindings.set(model,firing); if(isOrdinaryInfantryBridge(source))sourceBindings.set(model,source); return model;
 }
 
 export function combatDamage(weapon: CombatWeapon, armor: number): number {

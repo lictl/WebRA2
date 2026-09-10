@@ -2,7 +2,7 @@
 // Original content-bound world model. Native interpretation belongs to the content adapter.
 import type { ContentIdentity } from '../../contracts/src/index.ts';
 import { canonicalText } from './canonical.ts';
-import { combatInfantryPrograms, combatDeathBinding, assertCombatModel, type CombatModel } from './combat-model.ts';
+import { combatSourceBridge, combatInfantryPrograms, combatDeathBinding, assertCombatModel, type CombatModel } from './combat-model.ts';
 import { worldFail, worldRecord, worldList, worldInteger, worldSymbol as symbol, worldSourceHash as hash, worldContent, worldAddress, worldPosition, worldHash, WORLD_LIMITS } from './world-values.ts';
 export * from './world-values.ts';
 import { navigationCell, NAVIGATION_POLICY, type NavigationGrid } from './navigation.ts';
@@ -115,6 +115,8 @@ export function createWorldModel(input: WorldModelInput): WorldModel {
   }
   const common = { policy: WORLD_MODEL_POLICY, motionPolicy: WORLD_MOTION_POLICY, contentIdentity, sourceSha256, definitionsSha256,
     entities: Object.freeze(entities), blocked: Object.freeze(blocked), footprints: Object.freeze(footprints), initialSharedCells, nativeBehaviorVerified: false as const };
+  const source = combat ? combatSourceBridge(combat) : undefined;
+  if(source && source.baseModelSha256 !== worldHash({ ...common, navigation: navigation.map(b => ({ gridSha256: b.grid.sha256, costScale: b.costScale })) })) worldFail('source-world-join');
   const sha256 = worldHash({ ...common, ...(combat ? { combatSha256: combat.sha256 } : {}), navigation: navigation.map(b => ({ gridSha256: b.grid.sha256, costScale: b.costScale })) });
   const model = Object.freeze({ ...common, ...(combat ? { combat } : {}), navigation: Object.freeze(navigation), sha256 }); models.add(model); return model;
 }
