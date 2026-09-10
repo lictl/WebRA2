@@ -205,3 +205,9 @@ The shared group destination planner is original GPL-3.0-or-later WebRA2 code.
 Its [provenance notice](../packages/sim/TEAM_DESTINATIONS_PROVENANCE.md), GPL text
 and applicable corresponding source accompany distributions containing it. It
 composes existing MIT navigation/world modules and adopts no new dependency.
+
+The source-bound existing-member team runtime is original GPL-3.0-or-later code.
+Its [provenance notice](../packages/sim/TEAM_RUNTIME_PROVENANCE.md), GPL text and
+corresponding source accompany distribution; the web build includes the notice.
+The move/jump controller and compound world transactions retain their own notice
+separately from the shared destination planner and MIT world simulation.
