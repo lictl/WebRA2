@@ -117,6 +117,24 @@ for exact scenario and console/network limits. No original mission is playable a
 no essential human input is required. Continue the authorized campaign implementation
 after this wave; do not stop at these component merges.
 
+Source [binding PR191](https://github.com/lictl/WebRA2/pull/191) is in final composition
+in `local/worktrees/mission-bindings-integration`, branch
+`codex/187-mission-bindings-integration`. Coordinator independently reviews worker
+`39f6168d15707322459d407b6f39a9a58a256a1e`:14 original tests,94 native records/10319
+bytes/50 complete code spans and38034 separate raw-source assertions pass. A fresh
+438-file read reproduces both catalog hashes, all1381 actors and458 cell-tag rows.
+Both catalogs have zero identity diagnostics; the complete VM authorities remain null
+with367/531 diagnostics. Coordinator adds only cumulative notice distribution and
+this handoff after source review; another agent reviews that integration before merge.
+Composed checks pass1040 tests/types,160 documents/801 local links,562 publication
+paths and66 code/license outputs from140 inputs. No bindings/world browser activation
+is added by this distribution change.
+The [binding report](mission-bindings.md) separates native reference counts from
+dispatch membership and documents the50/100 RA2/YR local-slot capacity. Root189
+initialization work has nine focused compound save/replay/rollback and source combat
+tests, but is not part of191 or campaign acceptance. Browser190 is checking the
+original route and resolving a measured long-replay timeout under issue180.
+
 [Sleep PR171](https://github.com/lictl/WebRA2/pull/171) merged as
 `1025eb2b06908372b562d6f6e66aec6e990bef03` after923 checks and its
 [independent review](https://github.com/lictl/WebRA2/pull/171#pullrequestreview-5163583521).
