@@ -194,3 +194,8 @@ Electronic Arts Random2/Random3 under GPL-3.0-or-later. Its
 copyright and modifications. Distributions containing it must retain those notices,
 the GPL license and applicable corresponding source. It is not attached to the
 browser world yet; the build includes its notice for subsequent integration.
+
+The shared group destination planner is original GPL-3.0-or-later WebRA2 code.
+Its [provenance notice](../packages/sim/TEAM_DESTINATIONS_PROVENANCE.md), GPL text
+and applicable corresponding source accompany distributions containing it. It
+composes existing MIT navigation/world modules and adopts no new dependency.
