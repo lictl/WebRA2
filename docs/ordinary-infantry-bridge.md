@@ -153,7 +153,7 @@ Native conditional-consumer evidence is the separate ledger above.
 
 Four independent catalog sessions compare the same 438 files in sorted and reversed
 order for each profile. Ten selected root audit handles change per profile, while
-all 14 source pins, the bridge fingerprint, the combat model and every firing
+all 13 source pins, the bridge fingerprint, the combat model and every firing
 program fingerprint remain identical. Full byte hashes and source joins stay
 required; session handles are not substituted for durable identity.
 
