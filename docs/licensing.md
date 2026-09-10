@@ -304,3 +304,9 @@ The [binding provenance](../packages/sim/MISSION_BINDINGS_PROVENANCE.md) records
 static initialization/lookup evidence, source identity boundaries and explicit VM
 limits. Its notice accompanies the distribution. This component does not execute
 original missions, physical event callbacks or campaign continuation.
+
+The bounded mission cue reference compiler, contracts and caller-driven cursor
+are original GPL-3.0-or-later modules. The [cue notice](../packages/content/MISSION_CUES_PROVENANCE.md)
+records paired source/native evidence, primary layout leads and unresolved playback
+boundaries. Distribution includes that notice and the existing INI/CSF/GPL notices;
+no retail media, localized source strings or native listings are embedded.
