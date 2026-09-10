@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2026 WebRA2 contributors. See ../MISSION_BINDINGS_PROVENANCE.md.
+import type { MissionCueCatalog } from '../../content/src/mission-cues.ts';
 import { sha256 } from '@noble/hashes/sha2.js';
 import type { ProfileId } from '../../contracts/src/index.ts';
 import { compileScenarioLogic, type ScenarioLogic, type ScenarioLogicSource } from '../../content/src/scenario-logic.ts';
@@ -214,10 +215,10 @@ export function compileMissionBindings(input:MissionBindingsInput,options:Partia
 }
 
 /** No caller-supplied bindings or flags are promoted to authority. This does not start or step a VM. */
-export async function prepareMissionBindings(catalog:MissionBindingCatalog):Promise<MissionBindingPreparation>{
+export async function prepareMissionBindings(catalog:MissionBindingCatalog,cues?:MissionCueCatalog):Promise<MissionBindingPreparation>{
   const state=catalogs.get(catalog);if(!state)fail('catalog');
   let compilation:MissionCompilation|null=null;const diagnostics=catalog.diagnostics.map(d=>`catalog:${d.code}`);
-  try{compilation=await compileMissionProgram(state.logic,{contentIdentity:state.world.model.contentIdentity,difficulty:catalog.difficulty,timingPolicy:MISSION_TIMING_POLICY},async b=>hash(b));}
+  try{compilation=await compileMissionProgram(state.logic,{contentIdentity:state.world.model.contentIdentity,difficulty:catalog.difficulty,timingPolicy:MISSION_TIMING_POLICY},async b=>hash(b),cues);}
   catch(e){if(e instanceof MissionLogicError)diagnostics.push(`vm:${e.code}`);else throw e;}
   if(compilation?.diagnostics.length)diagnostics.push('vm:whole-program-unsupported');
   const bindings=catalog.tags.filter(t=>t.allocated).map(t=>({id:t.id,tagId:t.tagId,attachmentIds:t.dispatchAttachmentIds}));

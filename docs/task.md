@@ -14,37 +14,51 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
-Current wave: source bindings191, cue references192 and mission/world194 have merged.
-Mission/world194 merged as `8e01e97dbfbef741549bd91be6b0223f82b74f46`, reviewed at
-`d28a7c8e5e677aaf8261263ed8247e9c3841b46b` with1,061 composed tests and hosted checks.
-Its [corrected source review](https://github.com/lictl/WebRA2/pull/194#pullrequestreview-5165798787)
-and [final composition review](https://github.com/lictl/WebRA2/pull/194#pullrequestreview-5165859592)
-resolve the native high-byte trimming finding and preserve all cumulative notices.
-Source bindings191 merged as `44bbe8e10a1e786f22b6f6f66416f590b24836a0`; cue192 as
-`67228891f8bab824df4f7f3c37d2659d84555e2e`. Issues187/188/189 close within those scopes.
+Coordinator integrates corrected [waypoint PR198](https://github.com/lictl/WebRA2/pull/198)
+in `local/worktrees/waypoint-integration`, branch `codex/193-waypoint-integration`.
+The [independent source review](https://github.com/lictl/WebRA2/pull/198#pullrequestreview-5166057854)
+covers `92f526f3584abb14ab807d37bc620d0e4c5d5bed`: both descriptor/encoding findings
+are fixed. Nine focused tests, all 27 native ranges/1,742 bytes, fresh private
+438-file preparation and 13,279 raw comparisons across 641 references pass.
+Distribution adds the waypoint GPL notice and exact-copy test. The pre-200 build
+passed 1,077 tests, 167 documents/834 links, 589 publication paths and 69 outputs
+from 142 inputs. Final composition with merged PR200 is being checked and needs
+independent review. Dynamic waypoints and complete campaign execution remain pending.
 
-Coordinator composes [browser PR190](https://github.com/lictl/WebRA2/pull/190) on those
-merged components in `local/worktrees/infantry-browser-integration`, branch
-`codex/180-infantry-browser-integration`. Worker final report is
-`ec92bef9577400d91d0e36f4899bbb75f36a340d`; all app code is unchanged from independently
-reviewed and actual-Chrome-tested `c41642341fa35395816d1f3cade01ccfd85b19b9`.
-The [browser report](infantry-browser.md) separates the971 full438/four-start gate
-from corrected4187/c416 assets-only16 replay/cancellation/slot and YR route acceptance.
-RA2 default-player combat and long replay finish; YR pending-shot save/Stop/restore,
-completed death and native exported replay match. Coordinator independently reproduces
-the YR exported continuation from fresh16-file selection and its exact terminal hash.
-The composed build passes1,068 tests/types,165 documents/824 links,582 publication
-paths and68 outputs from142 approved inputs. All executable/style/HTML files and
-64 prior outputs are byte-identical; one copied licensing document updates and
-three source notices are added. No original mission is playable. Issue180/178
-closure follows final review and merge.
+[Cue dispatch PR200](https://github.com/lictl/WebRA2/pull/200) merged as
+`8d5e1823fc6ea6b7185bfe8df45e44fe35b368aa`, reviewed at
+`250450db1bf7dbda794ae0b25de1f13c6537c208` with 1,075 public tests and exact hosted
+checks. The [independent review](https://github.com/lictl/WebRA2/pull/200#pullrequestreview-5166119062)
+adds 6,396 assertions and fresh source reproduction. All 75 RA2 and 31 YR opening
+text/camera/radar references are accepted; full mission authority remains null
+with 292/500 other diagnostics. [Private VM dispatch](mission-cue-dispatch.md)
+preserves ordered requests, cursor continuation and atomic replay. Presentation
+consumers remain pending.
 
-Root implements [source cue dispatch195](https://github.com/lictl/WebRA2/issues/195)
-in a separate mission-cue-dispatch worktree. bootstrap_review owns
-[profile waypoint audit193](https://github.com/lictl/WebRA2/issues/193), mix_reader
-[audio source binding196](https://github.com/lictl/WebRA2/issues/196), and
-browser_feasibility [battlefield UI197](https://github.com/lictl/WebRA2/issues/197).
-Continue these authorized implementation slices; no essential human input is needed.
+browser_feasibility owns [battlefield UI197/PR199](https://github.com/lictl/WebRA2/pull/199)
+and its actual Chrome acceptance. mix_reader implements [audio source binding196](https://github.com/lictl/WebRA2/issues/196).
+Root owns shared integration and merges. Continue the authorized implementation;
+no human input is needed and no original mission is fully playable yet.
+
+[Browser PR190](https://github.com/lictl/WebRA2/pull/190) merged as
+`d296a36668771f20b2c639ea18c2614b0190121f`, reviewed at
+`81d045aad873f2f3e2b9d472d69ad67e766b68e6` with 1,068 tests and hosted checks.
+Both [source/browser](https://github.com/lictl/WebRA2/pull/190#pullrequestreview-5165959156)
+and [composition](https://github.com/lictl/WebRA2/pull/190#pullrequestreview-5165969689)
+reviews pass; issues178/180 are closed within the default-player ground/infantry
+scope. See the [browser report](infantry-browser.md) for distinct full-installation
+and assets-only Chrome gates, replay cancellation, shared infantry positions and
+YR pending-shot restore/exported continuation. Its composed executable/style/HTML
+files and 64 prior outputs are unchanged; one licensing document and three notices
+changed. No full mission execution is claimed.
+
+Source bindings191 merged as `44bbe8e10a1e786f22b6f6f66416f590b24836a0`;
+cue references192 as `67228891f8bab824df4f7f3c37d2659d84555e2e`;
+mission/world194 as `8e01e97dbfbef741549bd91be6b0223f82b74f46`.
+Issues187/188/189 close within those scopes. PR194's
+[corrected source](https://github.com/lictl/WebRA2/pull/194#pullrequestreview-5165798787)
+and [composition](https://github.com/lictl/WebRA2/pull/194#pullrequestreview-5165859592)
+reviews resolve native high-byte trimming and preserve cumulative notices.
 
 Recruitment integrates the complete source TaskForce selector, append-only claim and
 release history, persistent Flash50 and compound save/replay. Source and shared-runtime

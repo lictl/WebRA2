@@ -2,11 +2,13 @@
 // Copyright 2026 WebRA2 contributors. Original interpreter; see ../MISSION_LOGIC_PROVENANCE.md.
 import type { ContentIdentity } from '../../contracts/src/index.ts';
 import type { ScenarioLogic } from '../../content/src/scenario-logic.ts';
+import { isMissionCueCatalog, missionCueInstruction, missionCueSourceParameters, type MissionCueCatalog } from '../../content/src/mission-cues.ts';
 import { canonicalHash, canonicalText, parseJson } from './canonical.ts';
 import { identity as contentIdentity } from './validation.ts';
 import type { Digest } from './types.ts';
 
 export const MISSION_LOGIC_POLICY = 'webra2-mission-poll-2' as const;
+export const MISSION_CUE_DISPATCH_POLICY = 'webra2-source-cue-dispatch-1' as const;
 export const MISSION_TIMING_POLICY = 'yr-static-15-frame-1' as const;
 export const MISSION_LOGIC_LIMITS = Object.freeze({ triggers: 1024, tags: 1024, instructions: 8192,
   eventsPerTrigger: 32, actionsPerTrigger: 128, bindings: 256, instances: 2048, attachments: 1024,
@@ -31,6 +33,7 @@ export interface MissionProgram {
   readonly schemaVersion: 1; readonly policy: typeof MISSION_LOGIC_POLICY;
   readonly timingPolicy: typeof MISSION_TIMING_POLICY; readonly difficulty: number;
   readonly contentIdentity: ContentIdentity; readonly source: { readonly id: string; readonly profile: string; readonly sha256: string };
+  readonly cueCatalogSha256?: string;
   readonly sha256: string; readonly triggers: readonly Trigger[]; readonly tags: readonly Tag[];
   readonly canStartCampaign: false; readonly nativeBehaviorVerified: false;
 }
@@ -79,6 +82,9 @@ function freeze<T>(value: T): T {
 }
 function digestString(v: unknown): string { if (typeof v !== 'string' || !/^[a-f0-9]{64}$/.test(v)) fail('mission-hash'); return v; }
 const programs = new WeakSet<object>();
+const programCues = new WeakMap<MissionProgram, MissionCueCatalog>();
+export function missionProgramCues(value: MissionProgram): MissionCueCatalog | null { program(value); return programCues.get(value) ?? null; }
+const cueCodes = new Set([11, 48, 55]);
 function program(value: MissionProgram): void { if (!programs.has(value)) fail('mission-program'); }
 const eventCodes = new Set([0, 8, 13, 14, 27, 28, 36, 37, 47]);
 const actionCodes = new Set([0, 1, 2, 12, 22, 23, 24, 25, 26, 27, 28, 29, 53, 54, 56, 57]);
@@ -88,7 +94,7 @@ function numberToken(value: string, min: number, max: number): number | null {
 }
 
 /** Accepts compiler data, not retail execution closure. Caller authenticates its source/content identities. */
-export async function compileMissionProgram(logic: ScenarioLogic, options: MissionProgramOptions, digest: Digest): Promise<MissionCompilation> {
+export async function compileMissionProgram(logic: ScenarioLogic, options: MissionProgramOptions, digest: Digest, cues?: MissionCueCatalog): Promise<MissionCompilation> {
   // Select data through descriptors before any await. Do not clone the compiler's full retained INI/raw payload.
   const config = exact(clone(options), ['contentIdentity', 'difficulty', 'timingPolicy']);
   const content = contentIdentity(config.contentIdentity), difficulty = integer(config.difficulty, 0, 2);
@@ -97,6 +103,8 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
   const inputSource = field(logic, 'source');
   const source = { id: text(field(inputSource, 'id')), profile: text(field(inputSource, 'profile')), sha256: digestString(field(inputSource, 'sha256')) };
   if (source.profile !== content.profile) fail('mission-profile');
+  if (cues !== undefined && (!isMissionCueCatalog(cues) || cues.profile !== source.profile || cues.source.sha256 !== source.sha256)) fail('mission-cue-source');
+  const selectedCues = new Set<string>();
   const diagnostics: MissionDiagnostic[] = [], coverage = new Map<string, { namespace: 'event' | 'action'; opcode: number; occurrences: number; supported: number; effectOnly: boolean }>();
   function diagnostic(code: string, id: string) { if (diagnostics.length >= C.instructions + C.triggers * 8) fail('mission-diagnostic-limit'); diagnostics.push({ code, id }); }
   const triggerRows = list(field(logic, 'triggers'), C.triggers), tagRows = list(field(logic, 'tags'), C.tags);
@@ -114,7 +122,7 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
         const parameters = list(field(v, 'parameters'), 7).map(p => text(p, 4096));
         if (field(v, 'tokenCount') !== parameters.length + 1 || (key === 'events' && field(v, 'discriminator') !== Number(parameters[0]))) fail('mission-framing');
         const ckey = `${namespace}:${opcode}`;
-        let c = coverage.get(ckey); if (!c) { c = { namespace, opcode, occurrences: 0, supported: 0, effectOnly: namespace === 'action' && (opcode === 1 || opcode === 2) }; coverage.set(ckey, c); }
+        let c = coverage.get(ckey); if (!c) { c = { namespace, opcode, occurrences: 0, supported: 0, effectOnly: namespace === 'action' && (opcode === 1 || opcode === 2 || (cues !== undefined && cueCodes.has(opcode))) }; coverage.set(ckey, c); }
         c.occurrences++; return { id: iid, opcode, parameters };
       }) };
     });
@@ -146,6 +154,21 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
     const effects: Action[] = [];
     for (const a of actionRow?.values ?? []) {
       const p = a.parameters;
+      if (cues) {
+        const reference = missionCueInstruction(cues, a.id), operands = missionCueSourceParameters(cues, a.id);
+        if (reference) {
+          selectedCues.add(a.id);
+          if (reference.triggerId !== id || reference.opcode !== a.opcode || !operands || canonicalText(operands) !== canonicalText(p)) {
+            diagnostic('unsupported-action-cue', a.id); continue;
+          }
+        }
+      }
+      if (cues !== undefined && cueCodes.has(a.opcode)) {
+        const cue = missionCueInstruction(cues, a.id), operands = missionCueSourceParameters(cues, a.id);
+        if (!cue || cue.triggerId !== id || cue.opcode !== a.opcode || cue.status !== 'resolved-reference' ||
+          !operands || canonicalText(operands) !== canonicalText(p)) { diagnostic('unsupported-action-cue', a.id); continue; }
+        effects.push({ id: a.id, opcode: a.opcode, argument: 0, target: null }); accepted('action', a.opcode); continue;
+      }
       if (!actionCodes.has(a.opcode)) { diagnostic('unsupported-action-opcode', a.id); continue; }
       const targetAction = [12, 22, 53, 54].includes(a.opcode);
       if (p.length !== 7 || p[0] !== (targetAction ? '2' : '0') || p.slice(2, 6).some(v => numberToken(v, -0x80000000, 0x7fffffff) === null)) { diagnostic('unsupported-action-operands', a.id); continue; }
@@ -196,6 +219,7 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
   if (list(field(logic, 'triggerAttachmentCycles'), C.triggers).length) diagnostic('attachment-cycle', '');
   for (const name of ['teams', 'taskForces', 'scripts', 'orphanSections']) if (list(field(logic, name), C.instructions).length) diagnostic(`unsupported-${name}`, '');
   if (list(field(logic, 'diagnostics'), C.instructions * 2).length) diagnostic('compiler-diagnostics', '');
+  if (cues) for (const cue of cues.instructions) if (!selectedCues.has(cue.id)) diagnostic('unhandled-source-cue', cue.id);
   const report = { policy: MISSION_LOGIC_POLICY, timingPolicy: MISSION_TIMING_POLICY, source, contentIdentity: content, difficulty,
     canStartCampaign: false as const, nativeBehaviorVerified: false as const,
     coverage: [...coverage.values()].sort((a, b) => compare(a.namespace, b.namespace) || a.opcode - b.opcode), diagnostics };
@@ -204,11 +228,13 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
   // Pins the normalized execution model AND original operand encodings, including ignored fields, under the source/INI policy identity.
   const payload = freeze({ schemaVersion: 1 as const, policy: MISSION_LOGIC_POLICY, timingPolicy: MISSION_TIMING_POLICY,
     difficulty, contentIdentity: content, source, triggers, tags, compilerPolicy: 'webra2-logic-1', iniPolicy: 'webra2-ini-1',
-    operandRows: { events: eventRows, actions: actionRows } });
+    operandRows: { events: eventRows, actions: actionRows },
+    ...(cues ? { cueCatalogSha256: cues.sha256, cueDispatchPolicy: MISSION_CUE_DISPATCH_POLICY } : {}) });
   const sha256 = await canonicalHash(payload, digest);
   const result: MissionProgram = freeze({ schemaVersion: 1, policy: MISSION_LOGIC_POLICY, timingPolicy: MISSION_TIMING_POLICY,
-    difficulty, contentIdentity: content, source, sha256, triggers, tags, canStartCampaign: false, nativeBehaviorVerified: false });
-  programs.add(result); return freeze({ ...report, program: result, canExecuteTriggerSubset: true });
+    difficulty, contentIdentity: content, source, sha256, triggers, tags, canStartCampaign: false, nativeBehaviorVerified: false,
+    ...(cues ? { cueCatalogSha256: cues.sha256 } : {}) });
+  programs.add(result); if (cues) programCues.set(result, cues); return freeze({ ...report, program: result, canExecuteTriggerSubset: true });
 }
 
 export interface MissionBinding { readonly id: string; readonly tagId: string; readonly attachmentIds: readonly string[] }
@@ -222,7 +248,7 @@ type TriggerState = { id: string; enabled: boolean; destroyed: boolean; deleted:
 type BindingState = { id: string; tagId: string; attachmentIds: string[]; active: boolean; triggers: TriggerState[] };
 export interface MissionEffect {
   readonly order: number; readonly tick: number; readonly bindingId: string; readonly triggerId: string;
-  readonly instructionId: string; readonly opcode: number; readonly kind: 'action' | 'input' | 'outcome-request';
+  readonly instructionId: string; readonly opcode: number; readonly kind: 'action' | 'input' | 'outcome-request' | 'presentation-request';
   readonly value: number | boolean | null; readonly target: string | null;
 }
 type Outcome = { order: number; tick: number; opcode: 1 | 2; countryIndex: number };
@@ -426,7 +452,7 @@ export class MissionLogic {
           }
           value = timerRemaining(state.timer, state.nextTick);
         }
-        const kind = a.opcode === 1 || a.opcode === 2 ? 'outcome-request' : 'action';
+        const kind = a.opcode === 1 || a.opcode === 2 ? 'outcome-request' : cueCodes.has(a.opcode) ? 'presentation-request' : 'action';
         const order = emit({ bindingId: b.id, triggerId: t.id, instructionId: a.id, opcode: a.opcode, kind, value, target });
         if (a.opcode === 1 || a.opcode === 2) state.lastOutcomeRequest = { order, tick: state.nextTick, opcode: a.opcode, countryIndex: a.argument };
         if (a.opcode === 22) push({ kind: 'force', targets: targets.get(a.target!) ?? [], at: 0 });
