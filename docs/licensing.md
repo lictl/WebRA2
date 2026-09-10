@@ -45,6 +45,10 @@ scenario construction retains its static evidence in
 notices accompany the development bundle. The exact retained-source view uses
 the same GPL terms and includes [its provenance](../packages/content/INI_SOURCE_PROVENANCE.md)
 in the bundle.
+The original campaign launch planner and source reader are GPL-3.0-or-later.
+[Campaign launch provenance](../packages/content/CAMPAIGN_LAUNCH_PROVENANCE.md)
+records the inspected entry-selection and theater consumers; its notice accompanies
+the development bundle. Localized source strings remain on the selecting device.
 The staged typed entity-definition compiler and original fixtures also use GPL-3.0-or-later.
 [Entity-definition provenance](../packages/content/ENTITY_DEFINITIONS_PROVENANCE.md)
 records the pinned static field/load evidence and deliberate numeric/runtime boundaries;
