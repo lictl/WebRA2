@@ -172,7 +172,9 @@ export class TerrainController{
       if(result.type==='world-document')return result;
       if(result.type!=='frame'||!result.world)throw new Error('invalid');
       if(action.type==='world-restore'){this.#controlGroups.clear();this.#update({selectedEntities:[],selectedEntity:null,controlGroupFeedback:null,interacting:false,interactionEpoch:this.state.interactionEpoch+1});}
-      this.#update({frame:result,selection:null,notice:'ready',worldNotice:action.type==='world-restore'?'worldLoaded':this.state.running?'worldRunning':'worldPaused',replayHash:null});return null;
+      // Automatic frames update the clock, not the acknowledgement of the last
+      // user action. In particular, a busy-order refusal must remain readable.
+      this.#update({frame:result,selection:null,notice:'ready',...(action.type==='world-step'?{}:{worldNotice:action.type==='world-restore'?'worldLoaded':this.state.running?'worldRunning':'worldPaused'}),replayHash:null});return null;
     };
     try{const result=await run(active.signal,request);return live()?result:null;}
     catch(error){if(live()){if(transportFailed)this.#failure(error,generation);else{const code=error instanceof Error?error.message:'unavailable';this.#update({running:false,worldNotice:['quota','storage','empty'].includes(code)?'world'+code[0]!.toUpperCase()+code.slice(1):'worldRejected',error:code});}}return null;}
