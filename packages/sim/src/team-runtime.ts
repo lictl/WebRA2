@@ -309,20 +309,34 @@ function teamState(roster:TeamRoster,input:unknown,world:WorldSave):TeamState{
   return result;
 }
 /** Full structural restore, not an authentication scheme or proof of every historical world transition. */
-export function restoreTeamCheckpoint(roster:TeamRoster,input:unknown):TeamCheckpoint{
-  const p=teamRosterProgram(roster),value=typeof input==='string'||input instanceof Uint8Array?parseJson(input):worldClone(input);
+const checkedCheckpoints = new WeakMap<object, TeamRoster>();
+function checked(roster:TeamRoster,checkpoint:TeamCheckpoint):TeamCheckpoint{
+  const result=freeze(checkpoint);checkedCheckpoints.set(result,roster);return result;
+}
+function planningBudget(roster:TeamRoster,workLimit?:number):number{
+  const cap=teamRosterProgram(roster).limits;
+  return Math.min(cap.work,workLimit===undefined?cap.work:worldInteger(workLimit,0,cap.replayWork));
+}
+export function restoreTeamCheckpoint(roster:TeamRoster,input:unknown,workLimit?:number):TeamCheckpoint{
+  const budget=planningBudget(roster,workLimit);
+  // Only this exact deeply frozen value and roster may reuse a verified plan.
+  // Copied, parsed and cross-roster checkpoints always take the full source check.
+  if(input&&typeof input==='object'&&checkedCheckpoints.get(input)===roster){
+    const checkpoint=input as TeamCheckpoint;if(checkpoint.pending&&checkpoint.pending.work>budget)fail('step-work-limit');return checkpoint;
+  }
+  const value=typeof input==='string'||input instanceof Uint8Array?parseJson(input):worldClone(input);
   const r=worldRecord(value,['schemaVersion','policy','rosterSha256','world','team','pending']);
   if(r.schemaVersion!==1||r.policy!=='webra2-team-transaction-1'||r.rosterSha256!==roster.sha256)fail('checkpoint-identity');
   const world=WorldSimulation.restore(teamRosterModel(roster),r.world).save(),team=teamState(roster,r.team,world);
   const checkpoint:TeamCheckpoint={schemaVersion:1,policy:'webra2-team-transaction-1',rosterSha256:roster.sha256,world,team,pending:null};
-  if(r.pending!==null){const expected=computePlan(roster,checkpoint);if(canonicalText(r.pending)!==canonicalText(expected))fail('pending-plan-mismatch');checkpoint.pending=expected;}
-  return freeze(checkpoint);
+  if(r.pending!==null){const expected=computePlan(roster,checkpoint,budget);if(canonicalText(r.pending)!==canonicalText(expected))fail('pending-plan-mismatch');checkpoint.pending=expected;}
+  return checked(roster,checkpoint);
 }
-function computePlan(roster:TeamRoster,checkpoint:TeamCheckpoint):TeamPendingTick{
+function computePlan(roster:TeamRoster,checkpoint:TeamCheckpoint,budget:number):TeamPendingTick{
   const p=teamRosterProgram(roster),cap=p.limits,tick=checkpoint.team.nextTick;if(tick>=cap.tick)fail('tick-limit');
   const nextTeam=worldClone(checkpoint.team),world=checkpoint.world,current=new Map(world.state.entities.map(e=>[e.id,e]));
   const templates=new Map(p.templates.map(t=>[t.id,t])),orders:TeamOrder[]=[],events:TeamEvent[]=[];let work=0;
-  const charge=(n=1)=>{if(n>cap.work-work)fail('step-work-limit');work+=n;};
+  const charge=(n=1)=>{if(n>budget-work)fail('step-work-limit');work+=n;};
   charge(nextTeam.flashes.length);nextTeam.flashes=advanceTeamFlashes(nextTeam.flashes).map(f=>({...f}));
   const event=(s:TeamInstanceState,kind:TeamEvent['kind'])=>{if(events.length>=cap.trace)fail('step-trace-limit');events.push({instanceId:s.id,step:s.lastStep,kind});};
   for(let i=0;i<nextTeam.instances.length;i++){
@@ -359,7 +373,7 @@ function computePlan(roster:TeamRoster,checkpoint:TeamCheckpoint):TeamPendingTic
     }
     if(instruction.opcode===6){s.cursor=instruction.target-1;s.phase='advance';s.retryAt=null;event(s,'jump');continue;}
     const plan=planTeamDestinations({model:teamRosterModel(roster),checkpoint:world,actorIds:s.activeMembers,target:{x:instruction.x,y:instruction.y}},
-      {candidates:cap.candidateCells,work:Math.min(1_048_576,cap.work-work),expanded:Math.min(262144,cap.work-work)});
+      {candidates:cap.candidateCells,work:Math.min(1_048_576,budget-work),expanded:Math.min(262144,budget-work)},budget-work);
     charge(plan.work.visits+plan.work.expanded+plan.work.queries);
     if(plan.status==='budget-exhausted')fail('destination-budget');
     if(plan.status==='blocked'){s.phase='retry';s.retryAt=Math.min(cap.tick,tick+15);event(s,'blocked');continue;}
@@ -373,7 +387,7 @@ function computePlan(roster:TeamRoster,checkpoint:TeamCheckpoint):TeamPendingTic
   return freeze({...data,sha256:worldHash({...data,destinationPolicy:TEAM_DESTINATION_POLICY,sleepPolicy:TEAM_SLEEP_POLICY})});
 }
 /** A prepared outbox changes neither current world nor committed team state. */
-export function prepareTeamTick(roster:TeamRoster,input:unknown):TeamCheckpoint{
-  const checkpoint=restoreTeamCheckpoint(roster,input);if(checkpoint.pending)return checkpoint;
-  return freeze({...checkpoint,pending:computePlan(roster,checkpoint)});
+export function prepareTeamTick(roster:TeamRoster,input:unknown,workLimit?:number):TeamCheckpoint{
+  const budget=planningBudget(roster,workLimit),checkpoint=restoreTeamCheckpoint(roster,input,budget);if(checkpoint.pending)return checkpoint;
+  return checked(roster,{...checkpoint,pending:computePlan(roster,checkpoint,budget)});
 }

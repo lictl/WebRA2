@@ -27,8 +27,9 @@ export function admitTeamWorldCommands(roster:TeamRoster,input:unknown,commands:
 }
 /** Commit exact prepared orders and world movement together, or return no new state at all. */
 export function commitTeamTick(roster:TeamRoster,input:unknown,workLimit?:number):TeamWorldResult{
-  const checkpoint=restoreTeamCheckpoint(roster,input),p=teamRosterProgram(roster),plan=checkpoint.pending;
-  if(!plan)fail('missing-pending-plan');const budget=workLimit===undefined?p.limits.replayWork:worldInteger(workLimit,0,p.limits.replayWork);
+  const p=teamRosterProgram(roster),budget=workLimit===undefined?p.limits.replayWork:worldInteger(workLimit,0,p.limits.replayWork);
+  const checkpoint=restoreTeamCheckpoint(roster,input,budget),plan=checkpoint.pending;
+  if(!plan)fail('missing-pending-plan');
   if(plan.work>budget)fail('step-work-limit');
   const model=teamRosterModel(roster),simulation=WorldSimulation.restore(model,checkpoint.world),actors=new Set(roster.bindings.flatMap(b=>[...b.actorIds]));
   for(const c of checkpoint.world.queuedCommands)if(actors.has((c.payload as {entityId:number}).entityId))fail('competing-actor-command');
@@ -63,9 +64,9 @@ export function commitTeamTick(roster:TeamRoster,input:unknown,workLimit?:number
 export function stepTeamWorld(roster:TeamRoster,input:unknown,ticks=1,workLimit?:number):TeamWorldResult{
   const p=teamRosterProgram(roster),cap=p.limits;worldInteger(ticks,1,cap.ticks);
   const budget=workLimit===undefined?cap.replayWork:worldInteger(workLimit,0,cap.replayWork);
-  let checkpoint=restoreTeamCheckpoint(roster,input),work=0;const orders:TeamOrder[]=[],events:(TeamEvent&{tick:number})[]=[],worldEvents:WorldTrace[]=[];
+  let checkpoint=restoreTeamCheckpoint(roster,input,budget),work=0;const orders:TeamOrder[]=[],events:(TeamEvent&{tick:number})[]=[],worldEvents:WorldTrace[]=[];
   for(let i=0;i<ticks;i++){
-    const step=commitTeamTick(roster,prepareTeamTick(roster,checkpoint),budget-work);
+    const step=commitTeamTick(roster,prepareTeamTick(roster,checkpoint,budget-work),budget-work);
     if(step.orders.length+step.events.length+step.worldEvents.length>cap.trace-orders.length-events.length-worldEvents.length)fail('batch-trace-limit');
     checkpoint=step.checkpoint;work+=step.work;orders.push(...step.orders);events.push(...step.events);worldEvents.push(...step.worldEvents);
   }

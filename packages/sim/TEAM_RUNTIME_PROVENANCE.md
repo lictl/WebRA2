@@ -104,3 +104,12 @@ world/controller state, proves current constructor occupancy or recruitment
 availability, and requires terminal state before release. Historical claim
 bindings retain the source permission for surviving Flash state. These are
 structural/current-transition checks, not cryptographic proof of past gameplay.
+
+
+The mission transaction integration also bounds planning by the caller's remaining
+work before navigation. The optional destination aggregate cap covers visits,
+queries and expansions together. Exact deeply frozen prepared checkpoints retain
+private roster identity so prepare/commit does not run the same navigation plan
+twice; copied or serialized pending plans are recomputed and compared. Sufficient
+budgets preserve previous orders, plan hashes and numerical work. This is an
+original resource-accounting mechanism, not a native scheduling claim.
