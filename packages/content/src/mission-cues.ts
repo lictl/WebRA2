@@ -10,9 +10,14 @@ import { cueBytes, cueFail, cueFingerprint, cueFreeze, cueHash, cueInteger, cueR
 export type { MissionCueCatalog, MissionCueInstruction, MissionCuePayload } from './mission-cue-types.ts';
 export { MISSION_CUE_LIMITS, MISSION_CUE_POLICY, MissionCueError } from './mission-cue-types.ts';
 const brands = new WeakMap<object, ReadonlyMap<string, MissionCueInstruction>>();
+const sourceParameters = new WeakMap<object, ReadonlyMap<string, readonly string[]>>();
 export const isMissionCueCatalog = (v: unknown): v is MissionCueCatalog => !!v && typeof v === 'object' && brands.has(v);
 export function missionCueInstruction(catalog: MissionCueCatalog, id: string): MissionCueInstruction | undefined {
   const index = brands.get(catalog); if (!index) cueFail('catalog-brand'); return index.get(cueText(id));
+}
+/** Exact owned source operands for an authenticated compiler join, never caller-replaced metadata. */
+export function missionCueSourceParameters(catalog: MissionCueCatalog, id: string): readonly string[] | undefined {
+  const rows = sourceParameters.get(catalog); if (!rows) cueFail('catalog-brand'); return rows.get(cueText(id));
 }
 const opcodes: readonly MissionCueOpcode[] = Object.freeze([10, 11, 19, 20, 21, 48, 55]);
 const fold = (v: string) => v.replace(/[A-Z]/g, c => c.toLowerCase());
@@ -111,5 +116,6 @@ export function compileMissionCues(input: MissionCueInput, lower: Partial<Limits
   const data = {policy:MISSION_CUE_POLICY,profile: profile as 'ra2' | 'yr',source,pins,instructions,
     coverage:opcodes.map(opcode=>({opcode,occurrences:instructions.filter(a=>a.opcode===opcode).length,resolvedReferences:instructions.filter(a=>a.opcode===opcode&&a.status==='resolved-reference').length})),
     nativeExecutionVerified:false as const,canStartCampaign:false as const,playbackReady:false as const};
-  const catalog = cueFreeze({...data,sha256:cueFingerprint({...data,source:{profile,sha256:source.sha256}},caps.serializedBytes)}); brands.set(catalog,new Map(instructions.map(a=>[a.id,a]))); return catalog;
+  const catalog = cueFreeze({...data,sha256:cueFingerprint({...data,source:{profile,sha256:source.sha256}},caps.serializedBytes)}); brands.set(catalog,new Map(instructions.map(a=>[a.id,a])));
+  sourceParameters.set(catalog,new Map(logic.actions.flatMap(row=>row.instructions.filter(a=>opcodes.includes(a.opcode as MissionCueOpcode)).map(a=>[a.id,Object.freeze([...a.parameters])] as const)))); return catalog;
 }

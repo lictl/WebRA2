@@ -28,3 +28,10 @@ not implemented here. Unsupported whole source programs cannot start.
 
 See [the report](../../docs/mission-world.md) for bounds, save/replay semantics and
 evidence limitations. Dependencies retain their existing component notices.
+
+Source cue dispatch adds optional genuine catalog/program binding and private
+compound request emission. It reuses the paired cue operand and VM lifecycle
+evidence without asserting native screen timing or playback. The implementation
+and original tests remain GPL-3.0-or-later; see the
+[dispatch report](../../docs/mission-cue-dispatch.md) and existing
+[cue notice](../../packages/content/MISSION_CUES_PROVENANCE.md).
