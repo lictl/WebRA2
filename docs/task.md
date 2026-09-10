@@ -26,16 +26,29 @@ checks are separate from browser acceptance. Bootstrap_review now implements
 [CreateTeam recruitment175](https://github.com/lictl/WebRA2/issues/175), including
 its minimal proved Flash50 dependency, in an isolated worktree.
 
-Reviewed [Sleep PR171](https://github.com/lictl/WebRA2/pull/171), head
-`20d21e513cd3ddbdb6f44efb076eaf8af8595ed1`, passes923 checks and its
+[Sleep PR171](https://github.com/lictl/WebRA2/pull/171) merged as
+`1025eb2b06908372b562d6f6e66aec6e990bef03` after923 checks and its
 [independent review](https://github.com/lictl/WebRA2/pull/171#pullrequestreview-5163583521).
-Reviewed [firing core PR173](https://github.com/lictl/WebRA2/pull/173), head
-`a82ca1f36659f19221f253f0e8dc7d4017e91168`, passes916 checks and its
-[independent review](https://github.com/lictl/WebRA2/pull/173#pullrequestreview-5163678519).
-Normal exact-head merges currently return server errors; both remain OPEN with
-no confirmed merge SHA. Track and verify before retrying through
-[GitHub blocker176](https://github.com/lictl/WebRA2/issues/176). Implementation
-continues without bypassing reviews or pushing main directly.
+[Firing core PR173](https://github.com/lictl/WebRA2/pull/173) now integrates that
+reviewed main at `1bd0f653505b829a20e875f1d437e6315910f919`:930 checks pass;
+only the licensing-paragraph merge conflicted, resolved by retaining both notices.
+Its prior core [review](https://github.com/lictl/WebRA2/pull/173#pullrequestreview-5163678519)
+covers unchanged source at a82ca1f; final merge-delta review is pending.
+[GitHub blocker176](https://github.com/lictl/WebRA2/issues/176) records the earlier
+server errors. Verify173's actual merge before closing it; no bypass is authorized.
+
+[Source/UI PR177](https://github.com/lictl/WebRA2/pull/177) passed939 original
+checks at9130616 before the target-selector regression fix (one additional test)
+and current171 integration. The independent source174
+[review](https://github.com/lictl/WebRA2/pull/174#pullrequestreview-5163859467)
+covers adcdeb1; mix_reader reviews the coordinator's complete binding/UI delta.
+Actual Chrome4179 acceptance uses immutable9130616 and manifest
+`73805254a1641b09c53a6bdb5ab7721ad6be99ef149b56dba0a20fef00dc266c`.
+A final updated build must verify the selector fix and accurate limitation text.
+The default RA2 attacker's route gap is tracked separately in
+[traversal issue178](https://github.com/lictl/WebRA2/issues/178): private exhaustive
+reachability finds90 current cells and none of24 currently supported firing cells.
+Alternative-house combat tests do not close the original player campaign gate.
 
 The owner unlocked the Mac. D17 selects Chrome for development acceptance and
 defers full Firefox/Edge/Safari end-to-end checks until implementation is finished.
@@ -47,7 +60,7 @@ Recent reviewed merges:
 
 | Component | PR / merge SHA | Exact-head evidence |
 | --- | --- | --- |
-| Saved ordinary dying lifecycle | [172](https://github.com/lictl/WebRA2/pull/172), `7ce399d71e89767898fdc6bbd2a0aa9b4d5ad185` |909 checks; [independent review](https://github.com/lictl/WebRA2/pull/172#pullrequestreview-5163466221); pending occupancy, shared RNG corpse selection and save/replay; source authority remains132 |
+| Saved infantry death lifecycle | [172](https://github.com/lictl/WebRA2/pull/172), `7ce399d71e89767898fdc6bbd2a0aa9b4d5ad185` | 909 checks; [independent review](https://github.com/lictl/WebRA2/pull/172#pullrequestreview-5163466221), 325 extra cases/7,621 assertions and six prior-policy comparisons; source/browser permission remains132/147 |
 | Fresh actor state and standing firing | [168](https://github.com/lictl/WebRA2/pull/168), `3c0eef32c26300707fd787776ab47b7d129a6bc5` | 897 checks; [source review](https://github.com/lictl/WebRA2/pull/168#pullrequestreview-5163354482) and [integration review](https://github.com/lictl/WebRA2/pull/168#pullrequestreview-5163393603); 24,766 private leaves, 96 timing programs; live source resolution remains132/147 |
 | Source reinforcement transactions | [167](https://github.com/lictl/WebRA2/pull/167), `f315b4b6d6e657aa5884e24e950e3613d582d4f4` | 877 checks; [integration review](https://github.com/lictl/WebRA2/pull/167#pullrequestreview-5163349030), separate source/adapter reviews; eight YR occurrences move/save/replay; Sleep169 and trigger activation remain |
 | Ordinary death decision | [165](https://github.com/lictl/WebRA2/pull/165), `2e04f34281899e02566119ee50dbfba12d0bb0c9` | 845 checks; [independent integration review](https://github.com/lictl/WebRA2/pull/165#pullrequestreview-5163246014); 576 private decisions, 45 native ranges; world lifecycle remains170 |
@@ -74,7 +87,7 @@ Recent reviewed merges:
 | Initial weapon spelling proof | [142](https://github.com/lictl/WebRA2/pull/142), `c9ab75a280eaed4956de0b986ac2258210527f05` | 644 tests; [review](https://github.com/lictl/WebRA2/pull/142#pullrequestreview-5162066332) |
 | Combat actor initialization | [143](https://github.com/lictl/WebRA2/pull/143), `21588d19fa5d870163a6aaad38cdc40c017c9ba6` | 678 tests; source review on PR, [integration review](https://github.com/lictl/WebRA2/pull/143#pullrequestreview-5162128139) |
 
-Issues131,133,134,139,140,141,145,146,149,151,152,155,160,163,164 are closed within their component scope. #127 and parent120 remain open for the Safari
+Issues131,133,134,139,140,141,145,146,149,151,152,155,160,163,164,170 are closed within their component scope. #127 and parent120 remain open for the Safari
 automatic-running acceptance row shared with115; GitHub unexpectedly closed127
 during squash, so the coordinator reopened it with the exact remaining criterion.
 Both opening worlds have matching model/moving-save/replay identities in actual
@@ -159,9 +172,9 @@ the coordinator after independent exact-head COMMENT review and successful check
 
 | Role | Current work and exclusive paths | Branch / private worktree |
 | --- | --- | --- |
-| Coordinator | #170 saved death/world occupancy implemented, independent review next; #132/147 source combat integration; shared contracts/handoff | root starts `codex/170-world-death`; preserved `local/worktrees/team-spawning` and `local/worktrees/initial-firing` |
-| browser_feasibility | #147 fresh actor/standing fire source and scheduler PR168; next source combat bridge contract; sole native UI owner | `codex/147-initial-firing`, `local/worktrees/initial-firing` |
-| mix_reader | Independent death170 world review after completed168 review | `local/reviews/initial-firing-168`; preserved `local/worktrees/ordinary-death` |
+| Coordinator | #170 source-bound infantry firing and attack integration #132/147 after reviewed172; shared contracts/handoff | root `codex/132-infantry-firing-world`; preserved `local/worktrees/team-spawning` and `local/worktrees/initial-firing` |
+| browser_feasibility | #147 fresh actor/standing fire source and scheduler PR168 merged; implements source combat bridge132; sole native UI owner | `codex/132-ordinary-infantry-bridge`, `local/worktrees/ordinary-infantry-bridge`; preserved `local/worktrees/initial-firing` |
+| mix_reader | Independent persistent Sleep171 source/runtime review | `local/reviews/initial-firing-168`; preserved `local/worktrees/ordinary-death` |
 | bootstrap_review | #169 persistent Sleep source policy and proposed shared adapter | new `codex/169-team-sleep` tree; preserved `local/worktrees/team-spawning` |
 
 Voxel UI [PR144](https://github.com/lictl/WebRA2/pull/144) merged after exact-head
@@ -514,7 +527,7 @@ existing hashes, with complete explicit factors/seed and saved RNG. Follow
 
 ## Current death/world and live source bridge checkpoint
 
-Issue170 adds `ordinary-death-rules.ts` and optional world policy4. Pending dying
+Reviewed PR172 adds `ordinary-death-rules.ts` and optional world policy4. Pending dying
 infantry retain anchor occupancy in world navigation and group destinations. Saved
 records carry victim/attacker/owner/weapon/sequence/ticks; completion consumes one
 unsigned word from the numerical reload stream, selects a complete corpse vector
@@ -531,3 +544,17 @@ occupants and actor status from the genuine model and validated world state; UI
 commands contain IDs only. Native source effects remain explicit. Next root work
 joins source admission and firing168 to numerical/death transactions, then exposes
 Chrome attack controls and source-combat save/replay. No essential human input.
+
+Source Sleep171 adds a persistent script11,0 phase with atomic Stop receipts, saved
+entry/cursor, death observation and whole-script admission. Private RA2 reinforcement
+now follows its source waypoint, enters Sleep at168 and remains there through189;
+one Stop,188 restores and pending replay match. Eight prior YR cases retain world
+saves and312 trace frames. No trigger was fabricated or later script line skipped.
+Root applied the simulation worker's exact two-file proposal and owns distribution;
+worker authorship is retained in review.
+
+The current root firing branch adds model `infantryFiring` and saved scheduler
+envelopes: explicit attack delay, cancellation, reload/ammo/RNG and replay are joined
+in world policy5. Source-bound context admission is being implemented with the
+browser agent's new bridge; until that joins core before windup and shot, no retail
+attack UI is exposed. Programs authenticate initial timing, not all attack effects.

@@ -267,3 +267,9 @@ and current terrain/status before beginning and resolving shots. Its
 [notice](../packages/sim/ORDINARY_INFANTRY_BRIDGE_PROVENANCE.md), GPL text and
 corresponding source accompany the browser build. Existing separable MIT core
 files retain their licenses; the combined application remains GPL.
+
+The persistent source team Sleep policy is original GPL-3.0-or-later WebRA2 code.
+Its [notice](../packages/sim/TEAM_SLEEP_PROVENANCE.md), GPL text and corresponding
+source accompany the composed runtime. The build includes the notice separately
+from team definitions, activation, spawning and destination planning. No new
+external dependency or original-game content is adopted.
