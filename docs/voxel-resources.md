@@ -98,8 +98,12 @@ fingerprints are RA2
 `e19ca364183b8f8af2c2b695c581a34fb57c3de6a0f184532a4ea1bc9703ac62`
 and YR
 `cf17f3ec0d3018aceb5cab7ff6bb01e3531862e79e6a19f4c0bd290e9de63d1b`.
-They include source IDs, policies and supported/unsupported states; changing an
-installation snapshot or compiler policy deliberately changes the fingerprint.
+These are **session/audit identities**, including catalog source handles and
+candidate IDs. Even equivalent files selected in a different order can change
+them. They must never bind simulation, replay or save compatibility. Consumers
+need a separate logical content/policy digest that excludes ephemeral selection
+handles; verified asset SHA-256 values and the atlas source metadata remain
+available for that purpose.
 
 A separate raw-span/forward-face oracle compares every one of 133,864 selected
 voxel records and 27 HVA matrices. All 78 frames match 3,833,856 RGBA and ownership

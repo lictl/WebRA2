@@ -32,6 +32,7 @@ export interface VoxelPreview {
   readonly types: readonly Readonly<{ id: string; status: 'ready' | 'unsupported'; reasons: readonly string[];
     paletteId: string | null; bindings: readonly VoxelPreviewBinding[]; stillPartIds: readonly string[] }>[];
   readonly allocations: Readonly<{ verifiedSourceBytes: number; selectedSourceBytes: number; sections: number; columns: number; runs: number; voxels: number; matrices: number }>;
+  /** Session/audit identity includes catalog handles/candidate IDs; never a durable gameplay/save identity. */
   readonly fingerprint: string; readonly canStartCampaign: false; readonly nativeBehaviorVerified: false;
 }
 export interface VoxelPreviewProgress { readonly phase: 'verify' | 'decode'; readonly completed: number; readonly total: number; readonly path: string }
