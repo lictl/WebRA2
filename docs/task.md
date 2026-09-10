@@ -25,9 +25,9 @@ Both profile save/replay/advance/restore identities match. The four early unattr
 console messages and historical mouse-cause uncertainty remain explicit in the
 [feedback report](running-order-input.md).
 
-Current root work is [dynamic team cell context212](https://github.com/lictl/WebRA2/issues/212)
-in local/worktrees/mission-team-cell-context, branch codex/212-team-cell-context,
-from merged main19b3ec7. The root checkout is now clean main11d403e; the earlier
+Current root work is [dynamic team cell context212](https://github.com/lictl/WebRA2/issues/212) /
+[draft PR217](https://github.com/lictl/WebRA2/pull/217), in local/worktrees/mission-team-cell-context, branch codex/212-team-cell-context,
+with merged main215 included at6b0bad3. The root checkout is now clean main11d403e; the earlier
 codex/132-source-attack-world branch remains preserved. Node24.20.0 npm ci passed
 in the new root and author worktrees. No human input is needed.
 
@@ -71,19 +71,19 @@ The active wave has exclusive ownership:
   loads and explicit/AI/replacement roots. Missing default houses and initial AI
   gates do not prove lifetime inactivity. This does not add an AI scheduler or
   silently relax the existing source policy.
-- browser_feasibility completed [running-order feedback214](https://github.com/lictl/WebRA2/issues/214)
-  and the actual Chrome surface. Busy-order feedback is overwritten by automatic
-  step responses; disabled mouse/Enter behavior is being distinguished from the
-  canvas shortcut path. Keep command admission unchanged and make acknowledgments
-  durable. Use a fresh branch from main211 and preserve frozen servers through4195.
+- browser_feasibility completed215 and its actual Chrome acceptance, then owns
+  independent review of212 source/context and root integration in
+  local/reviews/mission-team-cell-212. Preserve frozen servers through4197.
 
 212 functional root02f224c and worker63a48ed pass31 focused tests/types. The
 private no-team comparison covers64 models,1,536 ticks and3,392 exact results.
 Fresh438-file preflight retains254/461 required diagnostics and null authorities.
 All1 RA2 spawn archetypes and2/4 YR archetypes meet the constructor subset;4/1
 initial mobile actors exceed the supported context, so both full invariant gates
-remain false. The source report/native/raw evidence, complete checks and independent
-review are still in progress. browser_feasibility reviews the new source/context
+remain false. Full1,219 original tests/types,189 documents/950 links,671 tracked
+publication paths, M0 and76 outputs/145 inputs passed before the final census
+commit; document/publication checks will be repeated for the final evidence head.
+The native/raw evidence and independent review are still in progress. browser_feasibility reviews the new source/context
 and root VM/world; its existing common runtime is unchanged. Root distribution
 includes the separate GPL notice. Private local/probe212.mjs and local/team212/
 contain source outputs and must never be published.
