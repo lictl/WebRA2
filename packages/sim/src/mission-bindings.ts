@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import type { ProfileId } from '../../contracts/src/index.ts';
 import { compileScenarioLogic, type ScenarioLogic, type ScenarioLogicSource } from '../../content/src/scenario-logic.ts';
 import { compileScenarioObjects } from '../../content/src/scenario-objects.ts';
-import { assembleScenarioDefinitions } from '../../content/src/scenario-construction.ts';
+import { assembleScenarioDefinitions, type ScenarioConstruction } from '../../content/src/scenario-construction.ts';
 import { createIniSourceView } from '../../content/src/ini-source-view.ts';
 import type { IniOrigin, RuntimeIni } from '../../content/src/runtime-ini.ts';
 import { isEntityDefinitions, type EntityDefinitions } from '../../content/src/entity-definitions.ts';
@@ -86,7 +86,15 @@ const compare=(a:string,b:string)=>a<b?-1:a>b?1:0;
 const hash=(b:Uint8Array)=>Array.from(sha256(b),n=>n.toString(16).padStart(2,'0')).join('');
 const identifier=(s:string)=>s.length>0&&s.length<=24&&/^[\x20-\x7e]+$/.test(s)&&!/[\[\]=,;]/.test(s)&&!['none','<none>'].includes(fold(s));
 const none=(s:string)=>fold(s)==='none'||fold(s)==='<none>';
-const catalogs=new WeakMap<MissionBindingCatalog,{logic:ScenarioLogic;world:WorldContent}>();
+export interface MissionBindingSourceContext {
+  readonly logic:ScenarioLogic; readonly world:WorldContent;
+  readonly countries:ScenarioConstruction['countries']; readonly houses:ScenarioConstruction['houses'];
+}
+const catalogs=new WeakMap<MissionBindingCatalog,MissionBindingSourceContext>();
+/** Same-realm immutable source context; copied catalog metadata grants no access. */
+export function missionBindingSourceContext(catalog:MissionBindingCatalog):MissionBindingSourceContext {
+  const context=catalogs.get(catalog);if(!context)fail('catalog');return context;
+}
 const authorities=new WeakSet<object>();
 export const isMissionBindingCatalog=(v:unknown):v is MissionBindingCatalog=>!!v&&typeof v==='object'&&catalogs.has(v as MissionBindingCatalog);
 export const isMissionBindingAuthority=(v:unknown):v is MissionBindingAuthority=>!!v&&typeof v==='object'&&authorities.has(v);
@@ -211,7 +219,7 @@ export function compileMissionBindings(input:MissionBindingsInput,options:Partia
   const metadata={policy:MISSION_BINDINGS_POLICY,profile:definitions.profile,source:definitions.source,worldSha256:world.model.sha256,worldContentSha256:world.sha256,
     definitionsSha256:definitions.fingerprint,rules:rules.layers,difficulty,triggers,tags,objects:objectRows,cells:cellRows,diagnostics,identityComplete:diagnostics.length===0,
     coverage:{triggers:triggers.length,tags:tags.length,allocatedTags:tags.filter(t=>t.allocated).length,objectAttachments:tags.reduce((n,t)=>n+t.objectEntityIds.length,0),cellAttachments:tags.reduce((n,t)=>n+t.cellIds.length,0),scenarioTags:tags.filter(t=>t.memberships.scenario).length,mapTags:tags.filter(t=>t.memberships.map).length,houseTags:tags.filter(t=>t.memberships.houseId).length,nativeReferences:tags.reduce((n,t)=>n+t.initialReferenceCount,0)},canStartCampaign:false as const,nativeBehaviorVerified:false as const};
-  const result=freeze({...metadata,fingerprint:fingerprint(metadata,cap.serializedBytes)});catalogs.set(result,{logic,world});return result;
+  const result=freeze({...metadata,fingerprint:fingerprint(metadata,cap.serializedBytes)});catalogs.set(result,Object.freeze({logic,world,countries:construction.countries,houses:construction.houses}));return result;
 }
 
 /** No caller-supplied bindings or flags are promoted to authority. This does not start or step a VM. */
