@@ -23,7 +23,7 @@ export function inspectCombatPlacement(p: ScenarioPlacement): CombatPlacementSta
   if (p.kind !== 'infantry' && p.kind !== 'unit') return done('not-applicable');
   // Native loaders use a 128-byte ReadString buffer followed by comma strtok.
   // Empty internal tokens would shift fields; larger/non-ASCII source rows need a separate parser policy.
-  const text = p.row.origin.rawValue.split(';', 1)[0]!.trim();
+  const text = p.row.origin.rawValue.split(';', 1)[0]!.replace(/^[ \t]+|[ \t]+$/g, '');
   if (text.length > 127 || /[^\x20-\x7e]/.test(text)) reasons.push('unsupported-native-row-buffer');
   if (p.row.values.length !== 14 || p.row.values.some(v => v === '')) reasons.push('unsupported-native-row-shape');
   if (reasons.length) return done('unsupported');

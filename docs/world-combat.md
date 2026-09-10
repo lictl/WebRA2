@@ -151,9 +151,11 @@ when they prevent admission. The two native rank setters multiply the integer by
 claim to implement either profile's nonzero rank rounding or veterancy effects.
 Structures, aircraft and passive objects require separate admission policies.
 
-Three original fixture tests cover both profiles, independent flags, veterancy,
+Four original fixture tests cover both profiles, independent flags, veterancy,
 bridge/follower exclusion, decimal syntax, missing/empty/oversized tails and
-comments. The [static range ledger](analysis/combat-placement-native.json) pins
+comments, including a genuine Latin-1 nonbreaking-space prefix that must remain
+unsupported. Only ASCII space/tab trimming precedes the printable-byte check.
+The [static range ledger](analysis/combat-placement-native.json) pins
 14 complete code/data ranges totaling 3,660 bytes in both full-hash-verified images.
 No native program was executed. Private reproduction uses
 `local/combat-placement/ledger.py`, the source-verified
