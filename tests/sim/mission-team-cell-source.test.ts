@@ -99,7 +99,15 @@ test('source joins, owned mission bytes and descriptor-only outer inputs fail cl
 test('source limits reject work, metadata counts and serialization before publishing a brand', () => {
   const f = fixture();
   for (const limits of [{ actors: 1 }, { types: 0 }, { actions: 2 }, { catalogs: 1 }, { references: 0 }, { sourceWork: 0 },
-    { missionBytes: 0 }, { stages: 0 }, { fields: 0 }, { serializedBytes: 0 }, { nodes: 0 }]) assert.throws(() => compileMissionTeamCellSource(f.input, limits));
+    { sourceWork: 8_388_608 }, { missionBytes: 0 }, { stages: 0 }, { fields: 0 }, { serializedBytes: 0 }, { nodes: 0 }]) assert.throws(() => compileMissionTeamCellSource(f.input, limits));
   for (const invalid of [{ contextWork: -0 }, { actors: Infinity }, { invented: 1 }, Object.defineProperty({}, 'types', { enumerable: true, get() { return 1; } })])
     assert.throws(() => compileMissionTeamCellSource(f.input, invalid));
+  // Original fixture's exact minimum after the fixed reservation and seven
+  // bounded passes; one fewer work unit cannot complete its construction audit.
+  for (const profile of profiles) {
+    const current = fixture({ profile }), minimum = compileMissionTeamCellSource(current.input, { sourceWork: 8_395_216 });
+    assert.equal(minimum.coverage.allRequiredConstructorsReady, true); assert.equal(minimum.coverage.supportedWorldInvariantReady, true);
+    assert.deepEqual(minimum.archetypes, compileMissionTeamCellSource(current.input).archetypes);
+    assert.throws(() => compileMissionTeamCellSource(current.input, { sourceWork: 8_395_215 }), /construction-structure-limit/);
+  }
 });
