@@ -27,7 +27,7 @@ function defaultPixels(gl,width,height){
  for(let y=0;y<height;y++)top.set(bottom.subarray((height-1-y)*width*4,(height-y)*width*4),y*width*4);return top;
 }
 async function correctness(){
- cleanup();const job=generation;buttons(true);const result={...await metadata(),kind:'pixel-depth-owner-lifecycle',cases:[]};if(job!==generation)return;
+ cleanup();const job=generation;buttons(true);$('output').textContent='';const result={...await metadata(),kind:'pixel-depth-owner-lifecycle',cases:[]};if(job!==generation)return;
  try{
   const gl=canvas.getContext('webgl2',options);if(!gl)throw Error('WebGL2 unavailable');const abort=new AbortController();current={renderer:null,abort};
   result.gl={version:gl.getParameter(gl.VERSION),renderer:gl.getParameter(gl.RENDERER),attributes:gl.getContextAttributes()};
@@ -64,7 +64,7 @@ async function correctness(){
  finally{if(job===generation){cleanup();$('output').textContent=JSON.stringify(result,null,2);}}
 }
 async function run(){
- cleanup();const job=generation;buttons(true);
+ cleanup();const job=generation;buttons(true);$('output').textContent='';
  const profile=$('profile').value,mapSize=Number($('map-size').value),count=Number($('actors').value),width=Number($('viewport').value),height=width===960?640:720,coupled=$('mode').value==='coupled';
  const result={...await metadata(),kind:'sustained-gpu',worldProfile:coupled?profile:null,rendererProfile:'ra2',mapSize,count,width,height,coupled,warmupMs:10000,durationMs:60000,frames:[],completions:[],rafTimes:[],worker:[],inputs:[],samples:[],pauseEvents:[]};if(job!==generation)return;
  let c;
