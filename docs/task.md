@@ -12,8 +12,8 @@ Read current GitHub head/check/review/merge state before resuming.
 The [experiment report](gpu-renderer-experiment.md) records final measurements,
 identities, method and limitations. Six rotated60second primary Chrome runs at
 960×640 and1280×720 sustained119.990–120.105 observed GPU completions/s, with
-1,024 simulated actors/64 movers and256 rendered SHP sprites. Every primary frame
-gap stayed within1000/60ms; minimum full1second completion count was118. Four
+1,024 simulated actors/64 movers and256 rendered SHP sprites. Every primary RAF timestamp
+gap between submitted frames stayed within1000/60ms; minimum full1second completion count was118. Four
 renderer-only and two smaller coupled supporting runs also exceeded60FPS; one
 renderer-only frame gap exceeded16.667ms and remains in the evidence. These are
 original diagnostic workloads, not complete campaign or physical-scanout results.
@@ -37,8 +37,8 @@ was run; no retail content was distributed. Browser timings are complete and the
 quiet window has ended. Preserve immutable servers through4209 and private evidence.
 
 Full composed check:1,271 public tests +5 baseline-tool +9 GPU-tool tests, types,
-196documents/1000links,711tracked publication paths, M0 consistency and77 application
-outputs/145inputs passed. Final documentation edits need document/diff checks.
+196documents/1001links,711tracked publication paths, M0 consistency and77 application
+outputs/145inputs passed. Final documentation link and whitespace checks also pass.
 Independent preparation and backend reviews resolved all findings, including CPU
 viewport descriptor capture866d8c9. Final exact-head GitHub COMMENT reviews remain
 required; shared-account comments are not another account's formal approval.

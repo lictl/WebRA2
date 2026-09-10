@@ -2,8 +2,8 @@
 
 [Issue225](https://github.com/lictl/WebRA2/issues/225) meets the owner’s **at least
 60 FPS** target for this original-only Chrome diagnostic: all six primary runs
-sustained **119.990–120.105 observed completed frames/s**, with no interval between
-useful submissions above16.667ms. This is evidence for the bounded terrain/SHP
+sustained **119.990–120.105 observed completed frames/s**, with no RAF timestamp interval
+between submitted frames above16.667ms. This is evidence for the bounded terrain/SHP
 backend and decoupled scheduling, not a production campaign or physical scanout
 claim. [Issue229](https://github.com/lictl/WebRA2/issues/229) owns integration into
 the actual viewport, bounded snapshot transport and retained voxel/effect fallback.
@@ -92,7 +92,7 @@ queries, sampled debt and final replay are retained in each downloaded report.
 ## Results
 
 FPS below is successful fence observations within the measurement window. Gap
-percentiles are intervals between useful submissions; service is main-thread
+percentiles are RAF timestamp intervals for submitted frames; service is main-thread
 preparation+draw+fence service. Millisecond values are rounded only for display.
 
 | Row | Completed FPS | Gap p95/p99 ms | Service p95 ms | GPU p95 ms | Gaps >16.667ms |
@@ -114,7 +114,7 @@ The12 rows contain86,437 useful submissions and86,425 fence observations inside
 measurement windows. Primary full1-second windows had at least118 observed
 completions. Their p99 gap is9.2–9.4ms, peak query/fence backlog is1–2, and sampled
 simulation debt never exceeds2 ticks. No primary skip, disjoint query or deadline
-miss was recorded. The renderer-only64-map960×640 row has one16.70ms gap; it is
+miss was recorded. The renderer-only64-map960×640 row has one16.70ms RAF gap; it is
 retained, not removed as noise. Browser/GC/foreground variance and this finite
 sample prevent a universal tail-latency or release-performance guarantee.
 
@@ -215,8 +215,8 @@ Coordinator audits are in its ignored `local/gpu-final-audit.json` and
 `local/gpu-build-audit.json`: all raw counts/percentiles, command/tick/replay
 ledgers,70 disk/HTTP files,67 source inputs and all84 CPU image hashes reproduced.
 The composed source passes1,271 public synthetic checks,5 baseline-tool checks,
-9 GPU-tool checks, types,196 docs/1,000 links, publication and the unchanged app
-build. These checks do not establish retail campaign compatibility.
+9 GPU-tool checks, types,196 docs/1,001 links, publication and the CPU product
+build (77 outputs/145 inputs). These checks do not establish retail campaign compatibility.
 
 The next decision is to integrate this backend into the genuine product viewport
 under [issue229](https://github.com/lictl/WebRA2/issues/229), preserving the CPU
