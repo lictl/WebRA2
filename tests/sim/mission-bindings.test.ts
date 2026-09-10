@@ -74,8 +74,9 @@ test('whole-program unknown closure stays closed for disabled, dormant, malforme
   const variants=[{events:'Start=1,999,0,0',triggers:'Start=Blue,<none>,Start,1,1,1,1,0'},
     {tags:'Shared=1,Sharing,Start'},{triggers:'Start=Blue,Absent,Start,0,1,1,1,0'},
     {tags:'Shared=0,Sharing,Absent'},{triggers:'Start=Blue,Start,Start,0,1,1,1,0'},
-    {triggers:'Start=Blue,<none>,Start,2,1,1,1,0'},{triggers:'Start=Blue,<none>,Start,0,1,1,1,1'},
-    {infantry:rows('Absent')},{cells:'3003=Absent'},{cells:'3003=Shared\n03003=Shared'},
+    {triggers:'Start=Blue,<none>,Start,2,1,1,1,0'},{triggers:'Start= Blue,<none>,Start,0,1,1,1,0'},
+    {tags:'Shared=0, Sharing,Start'},{triggers:'Start=Blue,,Start,0,1,1,1,0'},{triggers:'Start=Blue,<none>,Start,0,1,1,1,1'},
+    {infantry:rows('Absent')},{infantry:rows(' Shared')},{cells:'3003=Absent'},{cells:'3003=Shared\n03003=Shared'},
     {extra:'[Tags]\nOther=0,Other,Start'},{extra:'[tags]\nOther=0,Other,Start'},
     {triggers:'Start=Blue,<none>,Start,0,1,1,1,0\nHidden=Blue,<none>,Hidden,1,1,1,1,0',events:'Start=1,8,0,0\nHidden=1,999,0,0',actions:'Start=0\nHidden=0'}];
   for(const variant of variants){const c=compileMissionBindings(corpus(variant)),p=await prepareMissionBindings(c);assert.equal(p.authority,null,JSON.stringify(variant));assert.ok(p.diagnostics.length);}
@@ -106,4 +107,25 @@ test('native classification tables are profile-specific flags, never opcode exec
   assert.equal(missionEventAttachmentFlags('yr',60),16);assert.equal(missionEventAttachmentFlags('ra2',60),0);
   assert.equal(missionActionAttachmentFlags(91),2);assert.equal(missionActionAttachmentFlags(999),0);
   assert.throws(()=>missionEventAttachmentFlags('ra2',-1));assert.throws(()=>missionActionAttachmentFlags(-0));
+});
+
+test('RA2 source authority cannot use the generic VM upper local slots',async()=>{
+  for(const profile of ['ra2','yr'] as const)for(const opcode of [36,37,56,57]){
+    const input=corpus({profile,...(opcode<50?{events:`Start=1,${opcode},0,50`}:{actions:`Start=1,${opcode},0,50,0,0,0,0,A`})});
+    const c=compileMissionBindings(input),p=await prepareMissionBindings(c);
+    assert.equal(c.diagnostics.some(d=>d.code==='ra2-native-local-index'),profile==='ra2');
+    assert.equal(p.authority!==null,profile==='yr');
+  }
+  const p=await prepareMissionBindings(compileMissionBindings(corpus({profile:'ra2',events:'Start=1,36,0,49',actions:'Start=1,56,0,49,0,0,0,0,A'})));assert.ok(p.authority);
+});
+
+test('country Name alias competes with ID in native allocation order',()=>{
+  const c=compileMissionBindings(corpus({extraRules:'[Blue]\nName=Alias\n[Red]\nName=Blue',triggers:'Start=Alias,<none>,Start,0,1,1,1,0'}));
+  assert.deepEqual(c.diagnostics,[]);assert.equal(c.triggers[0]!.countryId,'country:blue');assert.equal(c.triggers[0]!.initialHouseListId,'houses:0');
+});
+
+test('preparation reports shared-instance and dispatch capacity without dropping source tags',async()=>{
+  const input=corpus({infantry:rows('None'),events:'Start=1,13,0,1',tags:Array.from({length:257},(_,i)=>`Tag${i}=0,Name${i},Start`).join('\n')});
+  const c=compileMissionBindings(input),p=await prepareMissionBindings(c);assert.equal(c.tags.length,257);assert.equal(c.identityComplete,true);assert.equal(c.coverage.allocatedTags,257);
+  assert.ok(p.compilation?.program);assert.equal(p.authority,null);assert.ok(p.diagnostics.includes('vm:binding-capacity'));
 });

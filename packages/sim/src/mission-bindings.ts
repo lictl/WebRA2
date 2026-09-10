@@ -130,7 +130,21 @@ export function compileMissionBindings(input:MissionBindingsInput,options:Partia
   for(const name of consumed){charge(stage.sections.length);const matches=stage.sections.filter(s=>fold(s.name)===fold(name));
     if(matches.length>1)diagnostic('repeated-consumed-section',name);if(matches.some(s=>s.name!==name))diagnostic('non-native-section-case',name);}
   for(const d of construction.diagnostics)if(d.severity==='unsupported')diagnostic('construction:'+d.code,d.subjectId,d.origin);
+  // Native loaders use comma strtok (empty fields collapse), fixed read buffers, and no per-token trimming.
+  // Preserve the retained text, but do not promote a differently normalized row into binding authority.
+  for(const table of [logic.triggers,logic.tags,logic.events,logic.actions])for(const record of table){
+    charge(record.row.tokens.length);const row=record.row,origin=row.entry.selected,maximum=record.id.startsWith('tag:')?127:511;
+    if(origin.rawValue.split(';',1)[0]!.length>maximum||row.tokens.some(t=>!t.length||t!==t.trim()||/[^\x20-\x7e]/.test(t)))
+      diagnostic('native-token-framing',record.id,origin);
+  }
   const events=new Map(logic.events.map(r=>[r.id.slice(10),r])),actions=new Map(logic.actions.map(r=>[r.id.slice(11),r]));
+  // Paired VariableNames source loaders expose 50 RA2 locals and 100 YR locals.
+  // The generic VM's 100-slot save shape is not a native source grant for RA2's upper half.
+  if(definitions.profile==='ra2')for(const [table,ops] of [[logic.events,[36,37]],[logic.actions,[56,57]]] as const)
+    for(const row of table)for(const instruction of row.instructions){charge();
+      const raw=instruction.parameters[1];if(ops.some(op=>op===instruction.opcode)&&raw!==undefined&&/^(?:0|[1-9][0-9]*)$/.test(raw)&&Number(raw)>=50)
+        diagnostic('ra2-native-local-index',instruction.id,row.row.entry.selected);
+    }
   const triggers:MissionBindingTrigger[]=[],triggerMap=new Map<string,MissionBindingTrigger>();
   for(const [order,t] of [...logic.triggers].sort((a,b)=>a.row.entry.selected.line-b.row.entry.selected.line).entries()){
     charge();const origin=t.row.entry.selected,rawId=origin.keySpelling;
@@ -173,7 +187,7 @@ export function compileMissionBindings(input:MissionBindingsInput,options:Partia
   for(const p of objects.placements){charge();const w=worldRows.get(p.row.id)!;let tag:Group|undefined,resolution:MissionBindingObject['resolution']='none';
     if(p.tag!==null&&!none(p.tag)){reference();tag=objectTags.get(fold(p.tag));
       resolution=tag?(fold(tag.sourceId)===fold(p.tag)?'id':'name'):'unsupported';if(!tag)diagnostic('unknown-object-tag',p.row.id,p.row.origin);
-      if(!p.tag||/[\x00-\x1f\x7f-\uffff]/.test(p.tag)||p.row.origin.rawValue.split(';',1)[0]!.length>127){diagnostic('native-object-tag-framing',p.row.id,p.row.origin);resolution='unsupported';}
+      if(!p.tag||p.row.tokens[p.kind==='infantry'?8:p.kind==='structure'?6:7]!==p.tag||p.row.tokens.slice(0,p.kind==='infantry'?9:p.kind==='structure'?7:8).some(t=>!t.length)||/[\x00-\x1f\x7f-\uffff]/.test(p.tag)||p.row.origin.rawValue.split(';',1)[0]!.length>127){diagnostic('native-object-tag-framing',p.row.id,p.row.origin);resolution='unsupported';}
     }
     const row:MissionBindingObject={entityId:w.entityId,rowId:p.row.id,typeId:w.typeId,ownerId:w.ownerId,tagRaw:p.tag,tagId:tag?.tagId??null,resolution,origin:p.row.origin};objectRows.push(row);
     if(tag){tag.objectEntityIds.push(w.entityId);tag.allocated=true;tag.initialReferenceCount++;}
