@@ -232,3 +232,11 @@ The original source combat veterancy compiler and four-consumer selector are
 GPL-3.0-or-later. The [component notice](../packages/content/COMBAT_VETERANCY_PROVENANCE.md),
 GPL text and corresponding source accompany distribution. The browser build includes
 this notice separately from actor initialization and country/difficulty modifiers.
+
+Source team activation and deterministic reinforcement spawning are original
+GPL-3.0-or-later WebRA2 code. The [activation notice](../packages/content/TEAM_ACTIVATION_PROVENANCE.md)
+and [spawn notice](../packages/sim/TEAM_SPAWN_PROVENANCE.md), GPL text and
+corresponding source accompany distribution. Both notices are included by the web
+build. The compound runtime composes the existing team and world modules without
+a new external dependency; native formation and full constructor behavior remain
+outside this bounded component.
