@@ -19,12 +19,12 @@ const bytes = (s: string) => new TextEncoder().encode(s);
 export const infantryRow = (id: number, x: number, y: number, slot: number, owner = 'Commander', tail = 'Guard,0,None,0,-1,0,1,1') =>
   `${id}=${owner},Walker,256,${x},${y},${slot},${tail}`;
 export function infantryPassageFixture({ profile = 'ra2' as 'ra2' | 'yr', rows = [infantryRow(0, 2, 2, 2), infantryRow(1, 2, 3, 4)],
-  allies = 'Rival', reverse = '', extraMap = '', extraRules = '', speed = 128 } = {}) {
-  const original = teamSpawnFixture({ profile, infantryRows: rows.join('\n'), extraMap, speed });
+  allies = 'Rival', reverse = '', extraMap = '', extraRules = '', extraArt = '', speed = 128 } = {}) {
+  const original = teamSpawnFixture({ profile, infantryRows: rows.join('\n'), extraMap, extraRules, extraArt, speed });
   const map = bytes(new TextDecoder().decode(original.mission.bytes).replace('[Commander]\nCountry=Blue', `[Commander]\nCountry=Blue\nAllies=${allies}`)
     .replace('[Rival]\nCountry=Red', `[Rival]\nCountry=Red\nAllies=${reverse}`));
   const base = bytes(`[Countries]\n0=Blue\n1=Red\n[Clear]\nFoot=1\n[InfantryTypes]\n0=Walker\n[Walker]\nStrength=100\nSpeed=${speed}\nLocomotor={4A582744-9839-11D1-B709-00A024DDAFD1}\n${extraRules}`);
-  const artBytes = bytes('[Original]\nValue=1');
+  const artBytes = bytes('[Original]\nValue=1\n' + extraArt);
   const source = { id: 'map', profile, sha256: hash(map) }, mission = { source, bytes: map };
   const rules = compileRuntimeIni(profile, [{ id: 'base', profile, kind: 'base', order: 0, sourceSha256: hash(base), bytes: base },
     { id: 'map', profile, kind: 'map', order: 1, sourceSha256: source.sha256, bytes: map }]);

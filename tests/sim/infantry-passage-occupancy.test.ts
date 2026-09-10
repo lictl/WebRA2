@@ -64,3 +64,15 @@ test('strict sorted coverage rejects slot edits, hostile fields, malformed IDs a
   assert.throws(() => createInfantryOccupancy(f.catalog, bad), /fields/); assert.equal(invoked, false);
   const index = createInfantryOccupancy(f.catalog, f.state); assert.throws(() => index.choose(99, 0), /query-entity/); assert.throws(() => index.choose(1, -0), /integer/);
 });
+test('non-infantry anchors and independent foundation cells cannot be freed by retiring a nearby infantry actor', () => {
+  const f = infantryPassageFixture({ extraRules: '[VehicleTypes]\n0=Cart\n[BuildingTypes]\n0=Depot\n[Cart]\nStrength=100\n[Depot]\nStrength=100',
+    extraArt: '[Depot]\nFoundation=2x2', extraMap: '[Units]\n0=Commander,Cart,256,3,1,0,Guard,None,0,-1,0,-1,1,1\n[Structures]\n0=Commander,Depot,256,3,3,0,None' });
+  const index = createInfantryOccupancy(f.catalog, f.state);
+  assert.equal(index.choose(1, at(3, 1)).reason, 'whole-cell-blocker');
+  assert.equal(index.choose(1, at(4, 3)).reason, 'whole-cell-blocker');
+  const dead = edit(f.state, 2, { health: 0 });
+  const after = createInfantryOccupancy(f.catalog, { ...dead, retiredEntityIds: [2] });
+  assert.equal(after.choose(1, at(4, 3)).reason, 'whole-cell-blocker');
+  assert.equal(after.choose(1, at(2, 3)).status, 'available');
+  assert(f.catalog.actors.filter(a => a.reasons.includes('non-infantry')).length === 2);
+});

@@ -1,6 +1,7 @@
 # Source-bound allied infantry passage
 
-Status: WORKING under [issue180](https://github.com/lictl/WebRA2/issues/180).
+Status: WORKING under [issue180](https://github.com/lictl/WebRA2/issues/180),
+[source/helper PR186](https://github.com/lictl/WebRA2/pull/186).
 The source catalog and pure occupied-cell helper are implemented. Existing world
 model binding, versioned saves, movement/core transactions and Chrome acceptance
 remain coordinator integration work. This checkpoint does not enable passage in
@@ -90,14 +91,31 @@ node --import tsx --test tests/sim/infantry-passage-catalog.test.ts tests/sim/in
 npm run typecheck
 ```
 
+The [metadata census](analysis/infantry-passage-census.json) records811/570 source
+actors,40/34 ordinary-slot actors and33/150 directed alliance pairs for RA2/YR.
+All original placements and source tags remain. The original default RA2 mover
+can select an available slot in the identified allied cut cell. This is a static
+permission query, not an executed route.
+
+A separate original Python parser/query oracle passes11,865 assertions across
+all1,381 source row origins, slots/statuses,183 raw-source alliance pairs and
+2,682 queries. It independently parses raw mission rows and literal house Allies,
+checks all supplied rules/art/mission hashes and locomotor origins, and
+recomputes occupied-cell queries. Typed locomotor interpretation and world
+mobility/foundation values remain reviewed upstream inputs; this comparison
+does not independently reimplement all of those native compilers.
+
 Private source reproduction uses ignored `local/probe180.mjs` in the
 `local/worktrees/infantry-passage` checkout, reading only the original `game/`
 folder. Native reproduction uses its `local/native180/ledger.py` with pinned
 images and Capstone5.0.6. Raw input, table projections and source coordinates stay
 under ignored `local/infantry180/`; public reports contain counts and hashes only.
+Run `python3 local/native180/oracle.py local/infantry180` after the source probe
+for the separate comparison. The source probe reads2,314,807 rules/art/mission
+bytes in total after verified archive import; the import also reads prerequisite
+archive/terrain metadata and assets, so that number is not total I/O.
 
-Pending gates: independent raw-source comparison and final metadata census;
-coordinator model/save/navigation/movement integration; every-tick save/replay,
+Pending gates: coordinator model/save/navigation/movement integration; every-tick save/replay,
 stop/retarget/death and budget rollback tests; actual original route proof composed
 with [ground traversal178](https://github.com/lictl/WebRA2/issues/178), followed
 by actual Chrome movement. No mission action or victory behavior is established
