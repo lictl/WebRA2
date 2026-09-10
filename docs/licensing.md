@@ -200,3 +200,8 @@ Their [provenance notice](../packages/sim/NATIVE_COMBAT_NUMBERS_PROVENANCE.md)
 records selected native observations and synthetic arithmetic evidence. Preserve
 that notice, GPL text and applicable corresponding source when distributing them.
 No additional third-party implementation is adopted.
+
+The shared group destination planner is original GPL-3.0-or-later WebRA2 code.
+Its [provenance notice](../packages/sim/TEAM_DESTINATIONS_PROVENANCE.md), GPL text
+and applicable corresponding source accompany distributions containing it. It
+composes existing MIT navigation/world modules and adopts no new dependency.
