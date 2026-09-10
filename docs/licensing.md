@@ -87,6 +87,13 @@ attributions and original CPU rasterization described in
 [voxel render provenance](../packages/render/VOXEL_PROVENANCE.md). Its notice is
 included in the code-only development bundle.
 
+The original [performance harness](performance-baseline.md) in tools/performance/
+uses GPL-3.0-or-later when composing those engine/browser components; its separable
+notice-source list is MIT. Generated benchmarks stay under ignored local/ and carry
+the existing app's broader license/provenance set, exact dependency license texts
+and corresponding-source/build location. Workload maps, tiles, sprites and commands
+are generated original fixtures. No retail assets or new dependency are included.
+
 The original bounded mission trigger interpreter and fixtures are GPL-3.0-or-later;
 [mission runtime provenance](../packages/sim/MISSION_LOGIC_PROVENANCE.md) separates
 factual native analysis from source reuse and preserves the existing compiler

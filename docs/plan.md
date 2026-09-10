@@ -37,7 +37,8 @@ not eliminate unknown behavior or integration cost.
 flowchart TD
     M0[M0 Evidence and feasibility] --> M1[M1 Import and deterministic foundation]
     M1 --> M2[M2 Real map and presentation]
-    M2 --> M3[M3 First RA2 campaign mission]
+    M2 --> P[Early performance and hybrid-engine gate]
+    P --> M3[M3 First RA2 campaign mission]
     M3 --> M4[M4 First YR campaign mission]
     M4 --> M5[M5 Complete campaign mechanics]
     M5 --> M6[M6 All campaigns and R1 release]
@@ -50,6 +51,12 @@ M0's media and storage feasibility work runs alongside archive analysis. Synthet
 simulation and renderer foundations can proceed before every archive is decoded.
 Once required contracts are frozen, independent feature tasks may overlap milestone
 work. Gates below still apply; parallel activity must not hide an unmet dependency.
+
+The owner raised TypeScript performance risk while M2/M3 components were in progress.
+[Issue222](https://github.com/lictl/WebRA2/issues/222) now establishes a Chrome
+baseline and TS/WASM boundaries before further broad gameplay expansion; preserve
+the interrupted audio branches. This gate is not deferred to M5. It selects a
+bounded optimization/migration, then repeats as major systems are integrated.
 
 ## M0 — Establish the content and behavior baseline
 
@@ -123,6 +130,27 @@ alignment and picking are checked; Traditional Chinese text and media are legibl
 memory remains bounded; four-browser rendering/input evidence is recorded. No
 mission-completion claim follows from rendering alone.
 
+## Early performance and hybrid-engine gate
+
+Follow [ADR 0004](adr/0004-hybrid-engine-and-performance-gates.md) and retain the
+[reproducible Chrome baseline](performance-baseline.md). Measure command admission,
+inclusive ticks/pathfinding, save/hash/restore/snapshot work, worker roundtrip and
+CPU rendering on original scalable workloads. Record environment/build, warmup,
+sample counts, median/p95, deterministic outputs, owned allocation scope and what
+is missing. Synthetic actors do not stand in for complete campaign AI/combat.
+
+TypeScript owns UI/content orchestration; measured coarse kernels or justified
+codecs may use WASM. Compare algorithm/data-layout improvements and the complete
+JS/WASM boundary cost before selecting a migration or native language. Plan GPU
+rendering separately. Preserve deterministic state, numeric/RNG behavior, bounded
+resources, atomic failure, save/replay and the existing mod data interface.
+
+Exit: reviewed baseline, explicit current-versus-target architecture, migration
+criteria and a linked next performance slice selected from evidence. This is not
+a full-campaign performance pass. Repeat measurements after the next optimization
+and as combat, visibility, economy and campaign AI are integrated. Release hardware
+minimums and large-mission/four-browser budgets require later evidence.
+
 ## M3 — Finish one original RA2 mission end to end
 
 - Implement the first mission's complete dependency closure: movement/pathfinding,
@@ -172,8 +200,10 @@ using each system. See [compatibility.md](compatibility.md) for the live checkli
 
 Exit: all mechanics/opcodes needed by the complete campaign manifest are implemented
 and covered. All required resource types decode; unsupported content is diagnosed.
-Measure simulation cost, renderer frame time, load time and peak memory on agreed
-hardware. Adjust implementation from profiling rather than migrating to WASM by habit.
+Extend the early performance baseline to representative campaign workloads: measure
+simulation cost, renderer frame time, load time and peak memory on agreed hardware.
+Compare against prior revisions and close budget failures with measured changes.
+WASM migrations still pass the equivalence and integration gates in ADR 0004.
 
 ## M6 — Full campaign verification and R1
 
@@ -238,6 +268,7 @@ or integration work leave no useful independent task.
 | M0 | Decision ledger, shared evidence/contracts, integration | Archives/content census | Behavior/campaign specs; synthetic reference probes | Browser/media/localization and dependency feasibility |
 | M1 | Root toolchain/contracts, CI and end-to-end review | VFS/formats/content pipeline | Deterministic sim/save/replay | Import shell/storage/localhost |
 | M2 | Integrate/profile and assign shared types | Remaining formats/assets | Headless world/selection/command behavior | Renderer/audio/controls |
+| Early performance | Hybrid boundaries, budgets, evidence integration and next-slice decision | Read-only hot-path/data-movement audit | Independent methodology and exact-head review | Sole Chrome owner; reproducible original workloads and stage timings |
 | M3–M4 | Reference comparisons, contract changes, merge gates | Campaign interpreter/AI | Required simulation mechanics | Presentation and complete player flow |
 | M5 | Prioritize mission dependency closure | Assigned independent mechanic cluster | Another independent cluster | Mission integration/regression review |
 | M6 | Release evidence and integration | Campaign/reference verification | Browser/storage/import/replay verification | Mods/localization/media/performance verification |
@@ -317,7 +348,9 @@ Do not start all queued roadmap tasks when asked merely to resume the current sl
   engine memory/state is not assumed to share our representation.
 - **Performance and distribution:** representative large missions, load/peak memory,
   tick/frame percentiles, cache budgets, package contents, license notices and no
-  unexpected network transfer. Set numeric gates on actual agreed hardware in M0.
+  unexpected network transfer. ADR 0002 covers initial import/media limits;
+  ADR 0004 brings runtime measurement before further broad gameplay expansion.
+  Use calibrated hardware/workloads for timing gates and original fixtures in CI.
 
 Evidence record fields: ID, source/build/content hash, archive/member/offset or INI
 section, observed fact, interpretation, confidence, implementation/test references,
