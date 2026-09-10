@@ -18,7 +18,7 @@ Current wave: [source combat PR177](https://github.com/lictl/WebRA2/pull/177) me
 as `cfdba372c16eeee945e9972b9f4a45cc11f16391` after957 tests, both bounded actual
 Chrome scenarios, hosted checks and [final independent review](https://github.com/lictl/WebRA2/pull/177#pullrequestreview-5164526784)
 at `3100d49138263ec72965f3398b432b73f9d3c702`.
-Coordinator integrates and reviews [recruitment PR181](https://github.com/lictl/WebRA2/pull/181)
+Coordinator merged [recruitment PR181](https://github.com/lictl/WebRA2/pull/181)
 for [issue175](https://github.com/lictl/WebRA2/issues/175), while browser_feasibility
 implements the [campaign chooser179](https://github.com/lictl/WebRA2/issues/179),
 mix_reader implements [ground traversal178](https://github.com/lictl/WebRA2/issues/178),
@@ -35,11 +35,23 @@ rerunning the author's separate Python oracle reproduces164465 assertions. Only 
 YR occurrence recruits existing actors; the RA2 pools remain unavailable or have
 unsupported anchors. No automatic source trigger activation is claimed.
 Current177-composed head643332b passes976 tests/types,150 docs/764 links,522
-publication paths and61 code/license outputs from130 inputs. Final source/shared
-COMMENT review and a separate root-distribution delta review remain merge gates.
+publication paths and61 code/license outputs from130 inputs. PR181 merged as `5459dc1cdcea10a216f467f297d472024208f2cc` after hosted checks
+and exact-c7217c0 [source/shared review](https://github.com/lictl/WebRA2/pull/181#pullrequestreview-5164577076)
+and [distribution/merge review](https://github.com/lictl/WebRA2/pull/181#pullrequestreview-5164590093).
+Issue175 is closed within its component scope.
 See [the recruitment report](team-recruitment.md) for D03 selection/retry choices,
 initial MissionClass assumptions, conservative released-actor gating and partial-loss
 limits. General combat and complete original mission preflight remain unfinished.
+
+Trigger lifecycle182 is WORKING in `local/worktrees/trigger-lifecycle`, branch
+`codex/182-trigger-lifecycle`, on main5459dc1. New poll2 VM forcing22/deletion12
+and eight original tests are implemented; full checks and independent review follow.
+The [lifecycle report](mission-trigger-lifecycle.md) explicitly distinguishes RA2
+immediate native deletion from YR deferred destruction and the VM's logical
+tombstones. Action55 is radar, not forcing; both openings have zero action22
+occurrences, and only RA2's opening has one action12. Neither whole opening becomes
+executable. Ground compiler [PR183](https://github.com/lictl/WebRA2/pull/183) is ready
+for independent source review; its world/loader adapter remains coordinator work.
 
 [Sleep PR171](https://github.com/lictl/WebRA2/pull/171) merged as
 `1025eb2b06908372b562d6f6e66aec6e990bef03` after923 checks and its
@@ -203,7 +215,7 @@ the coordinator after independent exact-head COMMENT review and successful check
 | Coordinator | Recruitment181 integration/source review,182 trigger lifecycle; contracts/build/handoff | root177 preserved; `local/worktrees/recruitment-integration`; `local/worktrees/trigger-lifecycle`, branch `codex/182-trigger-lifecycle` |
 | browser_feasibility |179 local campaign chooser after completed Chrome177 evidence; sole native UI owner | `local/worktrees/source-combat-browser`; preserved `local/worktrees/ordinary-infantry-bridge` |
 | mix_reader | Final independent177 review and178 source ground traversal | `local/reviews/source-combat-177`; `local/worktrees/ground-traversal`, branch `codex/178-ground-traversal` |
-| bootstrap_review |180 allied-infantry passage;175 source recruitment/Flash complete, independent review of root distribution only | `local/worktrees/team-recruitment`, branch `codex/175-team-recruitment`; preserved `local/worktrees/team-spawning` |
+| bootstrap_review |180 allied-infantry passage;175 source recruitment/Flash complete, independent review of root distribution only | `local/worktrees/infantry-passage`, branch `codex/180-infantry-passage`; preserved `local/worktrees/team-recruitment` and `local/worktrees/team-spawning` |
 
 Voxel UI [PR144](https://github.com/lictl/WebRA2/pull/144) merged after exact-head
 source and final browser-evidence review. All four actual browser families passed
