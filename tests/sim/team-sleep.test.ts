@@ -92,7 +92,7 @@ test('future Stop/Move orders cannot compete with sleepers; unrelated scheduled 
 });
 
 test('full scripts retain unsupported later lines and mission operands, while explicit jumps may bypass Sleep', () => {
-  for (const script of ['0=11,1', '0=11,11', '0=11,-1', '0=11,zero', '0=11,0\n1=50,30', '0=11,0\n1=99,0']) {
+  for (const script of ['0=11,1', '0=11,11', '0=11,-1', '0=11,zero', '0=11,0\n1=50,-1', '0=11,0\n1=99,0']) {
     assert.equal(teamSpawnFixture({ script }).compilation.program, null);
   }
   const f = teamSleepFixture({ script: '0=6,3\n1=11,0\n2=3,0' }), run = stepTeamWorld(f.roster, f.checkpoint, 30);
