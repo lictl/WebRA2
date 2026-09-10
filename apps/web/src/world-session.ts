@@ -56,13 +56,19 @@ export class WorldSession {
     if (action.type === 'world-restore') {
       const candidate = new WorldReplayRecorder(this.model, parseJson(action.text));
       this.#recorder = candidate; this.#events = []; this.#omittedEvents = 0;
-    } else if (action.type === 'world-order') {
-      const info = this.summary.actors.find(e => e.id === action.entityId);
-      if (!info || info.owner !== action.playerId) throw new Error('world-ui-not-owner');
-      if (!info.movable) throw new Error('world-ui-immovable');
+    } else if (action.type === 'world-order' || action.type === 'world-orders') {
+      if (action.type === 'world-orders' && action.expectedRevision !== this.#revision) throw new Error('world-ui-stale-orders');
+      const ids = action.type === 'world-orders' ? action.entityIds : [action.entityId];
       const save = this.#recorder.save(), cursor = save.state.admissionCursors.find(c => c.playerId === action.playerId);
-      const payload = action.order === 'move' ? { entityId: action.entityId, x: action.x, y: action.y } : { entityId: action.entityId };
-      this.#recorder.admitCommands([{ schemaVersion: 1, tick: save.nextTick, playerId: action.playerId, sequence: cursor ? cursor.sequence + 1 : 0, kind: action.order, payload }]);
+      for (const entityId of ids) {
+        const info = this.summary.actors.find(e => e.id === entityId), actor = save.state.entities.find(e => e.id === entityId);
+        if (!info || info.owner !== action.playerId) throw new Error('world-ui-not-owner');
+        if (!info.movable || actor?.health === null || actor?.health === undefined || actor.health <= 0) throw new Error('world-ui-immovable');
+      }
+      // The recorder validates the aggregate queue, sequences and replay on a detached candidate before committing.
+      this.#recorder.admitCommands(ids.map((entityId, index) => ({ schemaVersion: 1, tick: save.nextTick, playerId: action.playerId,
+        sequence: (cursor ? cursor.sequence + 1 : 0) + index, kind: action.order,
+        payload: action.order === 'move' ? { entityId, x: action.x, y: action.y } : { entityId } })));
       this.#events = []; this.#omittedEvents = 0;
     } else if (action.type === 'world-step') {
       const result = this.#recorder.step(action.ticks); this.#events = result.events.slice(-WORLD_UI.trace); this.#omittedEvents = Math.max(0, result.events.length - WORLD_UI.trace);
