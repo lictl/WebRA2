@@ -41,12 +41,12 @@ test('null, accessor, unknown, oversized and incomplete requests fail before fix
 });
 test('worker client bounds metadata and clears timers on failure, timeout, cancellation and stale replies',async()=>{
  const code=(await readFile(new URL('./worker-client.mjs',import.meta.url),'utf8')).replaceAll('export ','');
- for(const kind of ['valid','error','messageerror','timeout','cancel','obsolete','sparse','extra','post']){
+ for(const kind of ['valid','error','messageerror','timeout','cancel','obsolete','sparse','extra','oversized','post']){
   let worker,next=0;const timers=new Map();class FakeWorker{constructor(){worker=this;}postMessage(){if(kind==='post')throw Error('post');}terminate(){this.terminated=true;}}
   const {SimulationClient,validSnapshot}=Function('Worker','setTimeout','clearTimeout',code+';return {SimulationClient,validSnapshot};')(FakeWorker,f=>{timers.set(++next,f);return next;},id=>timers.delete(id));
   const client=new SimulationClient(),pending=client.request('init',{profile:'ra2',count:64});const settled=pending.then(()=>true,()=>false);
   if(kind==='error')worker.onerror();else if(kind==='messageerror')worker.onmessageerror();else if(kind==='timeout')[...timers.values()][0]();else if(kind==='cancel')client.dispose();else if(kind!=='post'){
-   const snapshot=fakeSnapshot();if(kind==='sparse'){delete snapshot.actors[0];snapshot.actors.payload={};}if(kind==='extra')snapshot.actors.payload={};
+   const snapshot=fakeSnapshot();if(kind==='sparse'){delete snapshot.actors[0];snapshot.actors.payload={};}if(kind==='extra')snapshot.actors.payload={};if(kind==='oversized')snapshot.actors.length=4294967295;
    worker.onmessage({data:{id:kind==='obsolete'?2:1,type:'init',snapshot,movers:8}});
   }
   assert.equal(await settled,kind==='valid');assert.equal(timers.size,0);assert.equal(validSnapshot(fakeSnapshot()),true);
@@ -117,4 +117,18 @@ test('builder refuses existing destinations and symlink entrypoints before emitt
     await symlink('actual.mjs',resolve(f.root,'tools/gpu-performance/simulation-worker.mjs'));
     await assert.rejects(buildGpuPerformance('local/new-build','full',f.root),/Symlink code input refused/);
   }finally{await rm(f.root,{recursive:true,force:true});}
+});
+
+test('hidden, pagehide and cancellation terminate pending initialization without stale UI writes',async()=>{
+ const code=(await readFile(new URL('./main.mjs',import.meta.url),'utf8')).replace(/^import .*;$/gm,'');
+ for(const trigger of ['visibilitychange','pagehide','cancel']){
+  const nodes=new Map(),events=new Map();const document={visibilityState:'visible',querySelector(id){if(!nodes.has(id))nodes.set(id,{value:({'#profile':'ra2','#actors':'64','#viewport':'960','#mode':'coupled'})[id],textContent:'',disabled:false,addEventListener(){},getContext(){return {getParameter(){return 'original';},getContextAttributes(){return {};}};}});return nodes.get(id);}};
+  let client;class Renderer{load(){}dispose(){this.disposed=true;}stats(){return {state:this.disposed?'disposed':'ready',requestedGpuBytes:0,ownedCpuBytes:0};}}
+  class Client{constructor(){client=this;this.closed=false;this.busy=false;}request(){this.busy=true;return new Promise((resolve,reject)=>{this.reject=reject;});}dispose(){this.closed=true;this.busy=false;this.reject?.(Error('cancelled'));}}
+  Function('GpuRenderer','compileGpuScene','prepareGpuFrame','pickGpuFrame','createTerrainScene','gpuOracleCases','renderFixture','digest','GpuTiming','SimulationClient','document','navigator','devicePixelRatio','requestAnimationFrame','cancelAnimationFrame','addEventListener',code)(Renderer,()=>({allocations:{}}),null,null,null,null,()=>({scene:{},batch:{}}),null,null,Client,document,{userAgent:'original'},1,()=>1,()=>{},(type,fn)=>events.set(type,fn));
+  const run=nodes.get('#run').onclick();await Promise.resolve();await Promise.resolve();assert.ok(client);assert.equal(client.busy,true);
+  if(trigger==='cancel')nodes.get('#cancel').onclick();else{if(trigger==='visibilitychange')document.visibilityState='hidden';events.get(trigger)();}
+  const status=nodes.get('#status').textContent;await run;assert.equal(nodes.get('#status').textContent,status);assert.equal(client.closed,true);assert.equal(client.busy,false);assert.equal(nodes.get('#run').disabled,false);
+  const report=JSON.parse(nodes.get('#output').textContent);assert.equal(report.kind,'terminated');assert.equal(report.stats.state,'disposed');assert.equal(report.pendingWorker,false);
+ }
 });

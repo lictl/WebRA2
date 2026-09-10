@@ -60,7 +60,7 @@ async function correctness(){
   }
   renderer.dispose();renderer.dispose();result.lifecycle.disposed=renderer.stats();if(result.lifecycle.disposed.requestedGpuBytes!==0)throw Error('Resource disposal accounting');
   result.completedAt=new Date().toISOString();$('status').textContent='Pixel/depth/pick and lifecycle checks complete';
- }catch(error){result.error=String(error);$('status').textContent=result.error;}
+ }catch(error){result.error=String(error);if(job===generation)$('status').textContent=result.error;}
  finally{if(job===generation){cleanup();$('output').textContent=JSON.stringify(result,null,2);}}
 }
 async function run(){
@@ -127,11 +127,13 @@ async function run(){
   const duration=result.measuredEnd-result.measuredStart,intervals=result.frames.slice(1).map((f,i)=>f.rafAt-result.frames[i].rafAt);
   result.summary={durationMs:duration,submittedFps:result.frames.length*1000/duration,observedCompletedWithinWindowFps:result.completions.filter(r=>r.observedAt<=result.measuredEnd).length*1000/duration,rafIntervals:stats(result.rafTimes.slice(1).map((t,i)=>t-result.rafTimes[i])),usefulFrameIntervals:stats(intervals),gapsOver16_667Ms:intervals.filter(t=>t>1000/60).length,prepare:stats(result.frames.map(f=>f.prepareMs)),submit:stats(result.frames.map(f=>f.submitMs)),frameService:stats(result.frames.map(f=>f.totalServiceMs)),gpu:stats(result.completions.filter(r=>r.gpuMs!==null).map(r=>r.gpuMs)),observedCompletion:stats(result.completions.map(r=>r.observedAt-r.submittedAt)),workerRoundtrip:stats(result.worker.map(r=>r.receivedAt-r.requestedAt))};
   result.completedAt=new Date().toISOString();$('status').textContent=`Complete: ${result.summary.submittedFps.toFixed(3)} useful submissions/s; inspect completion and replay evidence`;
- }catch(error){result.error=String(error);$('status').textContent=result.error;}
+ }catch(error){result.error=String(error);if(job===generation)$('status').textContent=result.error;}
  finally{if(job===generation){cleanup();result.disposedStats=c?.renderer.stats();$('output').textContent=JSON.stringify(result,null,2);}}
 }
 $('run').onclick=run;$('correctness').onclick=correctness;
-$('cancel').onclick=()=>{cleanup('Cancelled');$('status').textContent='Cancelled; worker and GPU resources disposed';};
+function terminate(reason){const c=current,previousGeneration=generation;cleanup(reason);$('status').textContent=reason+'; worker and GPU resources disposed';$('output').textContent=JSON.stringify({kind:'terminated',reason,generation:previousGeneration,nextGeneration:generation,snapshotTick:c?.snapshot?.nextTick??null,workerClosed:c?.client?.closed??null,verifierClosed:c?.verifier?.closed??null,pendingWorker:c?.client?.busy??false,gpuPending:c?.timing?.pending.length??0,stats:c?.renderer?.stats()??null},null,2);}
+$('cancel').onclick=()=>terminate('Cancelled');
 $('move').onclick=()=>current?.order?.('right');$('stop').onclick=()=>current?.order?.('stop');$('pause').onclick=()=>current?.togglePause?.();
-addEventListener('pagehide',()=>cleanup('Page left'));
+addEventListener('pagehide',()=>terminate('Page left'));
+addEventListener('visibilitychange',()=>{if(document.visibilityState!=='visible'&&current)terminate('Hidden measurement invalidated');});
 canvas.addEventListener('keydown',e=>{if(e.repeat||e.ctrlKey||e.metaKey||e.altKey)return;if(e.code==='KeyS'){e.preventDefault();current?.order?.('stop');}else if(e.code==='Space'){e.preventDefault();current?.togglePause?.();}});
