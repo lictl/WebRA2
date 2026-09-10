@@ -57,7 +57,8 @@ explosions, production and mission notifications are later consumers.
 Saves contain target/weapon selection, cooldown, remaining burst/timing, ammunition,
 monotonic impact IDs and every pending impact's source/target/weapon, launch/due
 ticks and launch/aim cells. Restore validates canonical framing and model joins,
-target legality, ammo bounds, burst state, range and exact flight timing. Impact
+target legality, mutual exclusion of movement and targeting, ammo bounds, burst
+clock relationships, reachable cooldown bounds, range and exact flight timing. Impact
 order and unique IDs are checked. Replay records command admission timing and
 verifies the complete terminal checkpoint including pending impacts.
 
@@ -71,11 +72,11 @@ in the step's logical `transitions` work budget alongside movement transitions;
 this is not an exhaustive CPU/allocation metric. Any fatal bound failure rolls
 back the entire requested step, including health, ammunition, commands and impacts.
 
-Thirteen original tests cover model identity/ownership, rational damage boundaries,
+Fourteen original tests cover model identity/ownership, rational damage boundaries,
 ownership/alliance/layer/immunity rejection, range endpoints, cooldowns/bursts/ammo,
 stable competing fire, impact persistence and tracking, motion cancellation,
 destruction/footprints, corrupted checkpoints, moving/firing restore/replay and
-atomic resource exhaustion. The integrated component checkpoint passes 638 public
+atomic resource exhaustion. The integrated component checkpoint passes 639 public
 tests and strict types, document/publication/M0 guards and the code-only build.
 
 These fixtures are original synthetic scenarios. Typed native weapon fields alone

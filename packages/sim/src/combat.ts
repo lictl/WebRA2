@@ -50,14 +50,19 @@ export function validateCombatState(model: WorldModel, input: unknown, entities:
     const a = worldRecord(value, ['entityId', 'targetId', 'weaponId', 'readyTick', 'burstRemaining', 'burstTick', 'ammo']), d = config.actors[i]!;
     if (a.entityId !== d.entityId) worldFail('combat-save-actor-id');
     const targetId = a.targetId === null ? null : worldInteger(a.targetId, 1, 2147483647);
-    const readyTick = worldInteger(a.readyTick, 0, W.tick + C.delay), burstRemaining = worldInteger(a.burstRemaining, 0, C.burst - 1);
+    const latestReadyTick = nextTick === 0 || !d.weapons.length ? 0 : nextTick - 1 + Math.max(...d.weapons.map(id => weapons.get(id)!.reloadTicks));
+    const readyTick = worldInteger(a.readyTick, 0, latestReadyTick), burstRemaining = worldInteger(a.burstRemaining, 0, C.burst - 1);
     const burstTick = worldInteger(a.burstTick, 0, W.tick + C.delay), ammo = worldInteger(a.ammo, -1, C.ammo);
     if (d.initialAmmo === -1 ? ammo !== -1 : ammo < 0 || ammo > d.initialAmmo) worldFail('combat-save-ammo');
     if (targetId !== null && (!actorsById.has(targetId) || !alive(byId.get(targetId)) || !alive(byId.get(d.entityId)) || !d.weapons.length || !targetLegal(model, d.entityId, targetId))) worldFail('combat-save-target');
+    if (targetId !== null && byId.get(d.entityId)!.goal !== null) worldFail('combat-save-moving-target');
+    if (!d.weapons.length && readyTick !== 0) worldFail('combat-save-unarmed-cooldown');
     if (burstRemaining) {
       const w = typeof a.weaponId === 'string' ? weapons.get(a.weaponId) : undefined;
       if (targetId === null || !w || !d.weapons.includes(w.id) || burstRemaining >= w.burst ||
         !weaponLegal(w, actorsById.get(targetId)!) || burstTick < nextTick || burstTick > nextTick + C.delay || !ammo) worldFail('combat-save-burst');
+      const lastShotTick = burstTick - w.burstDelayTicks;
+      if (lastShotTick < 0 || lastShotTick >= nextTick || readyTick !== lastShotTick + w.reloadTicks) worldFail('combat-save-burst-clock');
     } else if (a.weaponId !== null || burstTick !== 0) worldFail('combat-save-idle-burst');
     return { entityId: d.entityId, targetId, weaponId: a.weaponId as string | null, readyTick, burstRemaining, burstTick, ammo };
   });

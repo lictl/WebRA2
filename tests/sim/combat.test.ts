@@ -168,3 +168,20 @@ test('malformed attack batches and exhausted whole-step work leave the checkpoin
   const step = s.step(4), same = WorldSimulation.create(s.model); same.admitCommands([attack()]);
   assert.deepEqual(same.step(4, step.work.entityVisits + step.work.navigationExpansions + step.work.transitions), step);
 });
+
+test('restore rejects movement combined with targeting and impossible burst/cooldown clocks', () => {
+  const m = model(weapon({ burst: 3, burstDelayTicks: 2, reloadTicks: 4 }));
+  const moving = WorldSimulation.create(m); moving.admitCommands([move(0, 1, 1, 0, 0)]); moving.step();
+  const illegalMotion = moving.save(); illegalMotion.state.combat!.actors[0]!.targetId = 2;
+  assert.throws(() => WorldSimulation.restore(m, illegalMotion), /combat-save-moving-target/);
+  const firing = WorldSimulation.create(m); firing.admitCommands([attack()]); firing.step();
+  for (const readyTick of [0, 5, 999999999]) {
+    const save = firing.save(); save.state.combat!.actors[0]!.readyTick = readyTick;
+    assert.throws(() => WorldSimulation.restore(m, save), WorldError);
+  }
+  const futureShot = firing.save(); futureShot.state.combat!.actors[0]!.burstTick = 3; futureShot.state.combat!.actors[0]!.readyTick = 5;
+  assert.throws(() => WorldSimulation.restore(m, futureShot), WorldError);
+  const idle = WorldSimulation.create(m).save(); idle.state.combat!.actors[0]!.readyTick = 10000;
+  assert.throws(() => WorldSimulation.restore(m, idle), WorldError);
+  assert.deepEqual(WorldSimulation.restore(m, firing.save()).step(8), firing.step(8));
+});

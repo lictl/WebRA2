@@ -51,8 +51,8 @@ world, checkpoint and replay equality for both openings; see
 of `0ccd7d6d736e9a9dd77d44f9f55f54294f928dab` and CI run34425063937. #134 is closed.
 Preserve immutable pre-fix server4175 and its Chrome evidence. The browser agent froze corrected server4176 at UI head `fed54cd`, with
 640 passing tests and matching private application-loader identities; actual
-Chrome/Edge/Firefox/Safari world acceptance is in progress. The original [combat core](world-combat.md) now has 13 passing focused tests
-(638 integrated) for attacks, cooldowns/bursts, exact factors, impacts/death and
+Chrome/Edge/Firefox/Safari world acceptance is in progress. The original [combat core](world-combat.md) now has 14 passing focused tests
+(639 integrated) for attacks, cooldowns/bursts, exact factors, impacts/death and
 moving/firing checkpoints/replay. Native capability admission and private comparisons
 remain before combat review/merge. No original mission is playable.
 The media component has complete long-clip playback in Chrome, Edge and Firefox;
