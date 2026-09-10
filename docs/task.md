@@ -14,6 +14,24 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
+Coordinator integrates corrected [waypoint PR198](https://github.com/lictl/WebRA2/pull/198)
+in `local/worktrees/waypoint-integration`, branch `codex/193-waypoint-integration`.
+Independent source review covers `92f526f3584abb14ab807d37bc620d0e4c5d5bed`: both
+source descriptor/encoding findings are fixed,9 focused tests and all27 native
+ranges/1,742 bytes pass. A fresh private438-file preparation and separate raw oracle
+reproduce13,279 assertions across641 references/five roots; supported opening
+coverage is unchanged. Shared provenance/build integration needs a separate final
+review before merge. Dynamic waypoint and complete campaign execution remain pending.
+
+Root [cue dispatch PR200](https://github.com/lictl/WebRA2/pull/200) is independently
+reviewed by bootstrap_review at `250450db1bf7dbda794ae0b25de1f13c6537c208`, with1,075
+public tests and seven new request/compound fixtures. mix_reader implements audio
+source binding196; browser_feasibility implements battlefield UI197/PR199 and owns
+its actual Chrome acceptance. Browser190 merged as
+`d296a36668771f20b2c639ea18c2614b0190121f`; issues178/180 are closed within the bounded
+default-player route/infantry scope. Continue this authorized work; no human input
+is needed and no original mission is fully playable yet.
+
 Current wave: source bindings191, cue references192 and mission/world194 have merged.
 Mission/world194 merged as `8e01e97dbfbef741549bd91be6b0223f82b74f46`, reviewed at
 `d28a7c8e5e677aaf8261263ed8247e9c3841b46b` with1,061 composed tests and hosted checks.

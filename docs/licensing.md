@@ -316,3 +316,9 @@ are original GPL-3.0-or-later modules. The [cue notice](../packages/content/MISS
 records paired source/native evidence, primary layout leads and unresolved playback
 boundaries. Distribution includes that notice and the existing INI/CSF/GPL notices;
 no retail media, localized source strings or native listings are embedded.
+
+The authenticated initial waypoint source helper and its team/reinforcement/
+recruitment gates are original GPL-3.0-or-later work. Distribution includes the
+[initial waypoint notice](../packages/content/INITIAL_WAYPOINTS_PROVENANCE.md) and
+existing content/simulation notices. Native range metadata is factual evidence;
+no retail rows, coordinates or native listings are included in the build.
