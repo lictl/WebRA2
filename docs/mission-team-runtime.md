@@ -96,6 +96,13 @@ committing. Native source interpretations are reused from the already reviewed
 [reinforcement](team-spawning.md), [recruitment](team-recruitment.md),
 [script](team-runtime.md) and [Sleep](team-sleep.md) components.
 
+At worker checkpoint `5122bcb`, `npm run check` passes 1,176 public tests,
+typechecks, 182 documents/914 local links, the 647-path publication guard and the
+existing 72-file build. The 15 new worker tests and the coordinator's union/roster
+fixtures are synthetic; these totals are not retail validation. After the coordinator planning-budget helper was integrated, all 118 focused team
+and mission-team tests and typechecks pass with the remaining budget propagated
+into script preparation. The final combined PR separately verifies VM integration.
+
 Private installation checks use all438 selected on-device files, verified source
 catalogs and explicit selected receipts. Both cases restore a prepared pending tick
 and replay the complete transcript to the exact final checkpoint.
