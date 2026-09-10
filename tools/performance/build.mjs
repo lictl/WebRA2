@@ -26,6 +26,8 @@ export async function buildPerformance(destination, root = repositoryRoot) {
   const inputs = new Map();
   const result = await build({ absWorkingDir: root, entryPoints: { main: 'tools/performance/main.mjs', worker: 'tools/performance/worker.mjs' },
     outdir, bundle: true, format: 'esm', platform: 'browser', target: ['es2022'], minify: false,
+    // Preserve the literal path until onLoad has checked for symbolic links.
+    preserveSymlinks: true,
     legalComments: 'inline', write: false, metafile: true, logLevel: 'silent',
     plugins: [{ name: 'performance-code-only', setup(builder) {
       builder.onLoad({ filter: /.*/ }, async args => {
