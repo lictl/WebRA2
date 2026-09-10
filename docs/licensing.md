@@ -304,3 +304,9 @@ The [binding provenance](../packages/sim/MISSION_BINDINGS_PROVENANCE.md) records
 static initialization/lookup evidence, source identity boundaries and explicit VM
 limits. Its notice accompanies the distribution. This component does not execute
 original missions, physical event callbacks or campaign continuation.
+
+Source-local flag initialization and the original compound mission/world transactions
+are GPL-3.0-or-later. The [mission/world notice](../packages/sim/MISSION_WORLD_PROVENANCE.md)
+records their native initialization evidence, new-campaign policy and runtime limits;
+it accompanies the bundle. These adapters do not establish complete mission execution
+or original campaign continuation.

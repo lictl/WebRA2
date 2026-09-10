@@ -117,6 +117,19 @@ for exact scenario and console/network limits. No original mission is playable a
 no essential human input is required. Continue the authorized campaign implementation
 after this wave; do not stop at these component merges.
 
+Coordinator [mission/world189](https://github.com/lictl/WebRA2/issues/189) now has
+a source initial-flags factory and atomic compound poll/world clock in
+`local/worktrees/mission-world`. Nine original tests pass, including source combat
+with ground and infantry slots through completed death. Eight paired complete native
+spans/866 bytes establish constructor and local-source initialization behavior.
+Fresh438-file reads find2/62 local declarations and one true initial local per
+Allied opening;432 independent raw-source comparisons pass. Native continuation/reset
+order remains unverified; the explicit new-campaign policy and full-checkpoint restore
+are documented in the [compound report](mission-world.md). Both complete original
+mission authorities remain null. Composed validation passes1049 tests/types,
+162 documents/811 links,569 publication paths and67 code/license outputs from140
+inputs. Independent exact-head review and hosted checks follow.
+
 Source [binding PR191](https://github.com/lictl/WebRA2/pull/191) is in final composition
 in `local/worktrees/mission-bindings-integration`, branch
 `codex/187-mission-bindings-integration`. Coordinator independently reviews worker
