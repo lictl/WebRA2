@@ -108,3 +108,94 @@ Only factual offsets, sizes and hashes follow; there are no retail payload bytes
 | yr | combat-damage-section-pointer | `007f0c84–007f0c88` | 4131972 | 4 | `2c1ba53da03e500cb68f96d0ef4761bfb16915dfb60d5fc15ce2b5dde18f759d` |
 | yr | vector-clear-vtable-0 | `007f0d48–007f0d4c` | 4132168 | 4 | `ebc3a6af48f19abd9d9e79d8846daef47ee3f595980da54eb67579a36ea69b81` |
 | yr | combat-damage-section-name | `00839e8c–00839e99` | 4431500 | 13 | `c2a8bfd788194e175c15fe7af33726f476ef9c5c6d44fc62fa211302aff7cb61` |
+
+## Ordinary human decision and removal evidence (#163)
+
+The separate original `combat-death-runtime.ts` and its original fixtures use the
+same GPL-3.0-or-later provenance. They also compose the project's reviewed
+[combat veterancy](COMBAT_VETERANCY_PROVENANCE.md). No native table, disassembly or
+unlicensed third-party implementation is copied into the distributed code.
+Additional symbol/layout references at the same pinned YRpp commit are
+[InfantryClass](https://github.com/Phobos-developers/YRpp/blob/61d0887eb6040cfb36af16d592e9770ceae4dfb2/InfantryClass.h),
+[FootClass](https://github.com/Phobos-developers/YRpp/blob/61d0887eb6040cfb36af16d592e9770ceae4dfb2/FootClass.h)
+and the [ILocomotion interface](https://github.com/Phobos-developers/YRpp/blob/61d0887eb6040cfb36af16d592e9770ceae4dfb2/Interfaces.h).
+These name candidate fields/functions; the pinned retail paths below supply the
+static interpretation. The interface declaration alone is not behavioral proof.
+
+The inspected source loader uses RA2 AudioVisual / YR General for global
+DeadBodies, with a freshly empty Rules vector and current-value reads. Type
+DeadBodies remains incoming rules; AnimType properties remain global art.
+JumpJet's fresh false stores and incoming current-default reads are in the full
+constructor/load contexts already pinned above. New short spans identify the
+particular instructions; they do not claim a separate callable function.
+
+For ordinary human InfDeath1/2, the switch dispatch requests sequence11/12 and
+returns the native dead damage result without immediate UnInit. The update path
+keeps nonpositive Health for these sequences. The completion helper reads the
+sequence's frame count, chooses a nonempty type DeadBodies list or the global
+fallback, consumes one unsigned random word modulo count on the successful
+allocation path, constructs the corpse animation, then calls UnInit. No empty
+global-count guard is present on this path; that input remains unsupported.
+Constructor failure and total native random-call order are outside the policy.
+
+The virtual slot chain from Foot UnInit through Object UnInit and Infantry/Foot
+Limbo reaches Walk `Mark_All_Occupation_Bits(false)`; Walk dispatches to the
+infantry occupation-clear method. Both image-specific slot addresses are pinned
+below. This supports retained owned Walk occupancy until explicit completion in
+the limited standing, dry, non-bridge subset. It does not establish all native
+mission cancellation, accounting, render-list cleanup or timing semantics.
+The [public report](../../docs/combat-death.md) specifies those integration limits.
+
+Private Capstone5.0.6 decoding checks complete instructions and PE mappings for
+45 ranges / 5,774 bytes. The canonical ledger SHA-256 is
+`b35e6d53ca42d80e6c0af4af5ae296df5326ac6d7a7f4d5da4d6faba76bb463e`.
+The underlying binaries have the complete image identities in the first table
+above. Only factual locators and hashes follow.
+
+| Profile | Evidence | VA–end (exclusive) | File offset | Bytes | SHA-256 |
+| --- | --- | --- | --- | --- | --- |
+| ra2 | foot-limbo | `004c9bd0–004c9d06` | 826320 | 310 | `f127b8006e57ae19928c82cd737987d1f8a310345cf92222e27c0b4738395df6` |
+| ra2 | foot-uninit | `004cce40–004cce6f` | 839232 | 47 | `431cd6fd0d80eb9888b5419f856d60fca1f13578e04514bbe31632b8f1f94954` |
+| ra2 | human-death-sequences | `004fffaf–004fffcb` | 1048495 | 28 | `3d7199a8e4b7dbc22fc93bf52c048c352608c0c74077235623912412228ca14d` |
+| ra2 | ordinary-lethal-return | `00500184–00500193` | 1048964 | 15 | `b977e67df4d14ae00b8a2fd96ddf6914dc6acc23bdcc81a402fb6e1db025097e` |
+| ra2 | infdeath-switch | `00500328–00500344` | 1049384 | 28 | `de41924e816c6d767bf859f70e49da425a81e4d09515c189bf4ff9a2d0d4e524` |
+| ra2 | health-zero-death-sequence-exception | `00502eb6–00502efe` | 1060534 | 72 | `82a5f96bcaaf6113c36de32b31281d919966370a476ccd18c2c43155b1e062d0` |
+| ra2 | infantry-limbo | `00504f00–00504f4a` | 1068800 | 74 | `c3f407f612a4823139e1e0ded78b83581a3eacef107199f97b2907c956f51037` |
+| ra2 | sequence-completion-and-corpse | `005078b0–00507b55` | 1079472 | 677 | `ad1f95523b19845f5358f8046742e4f07d5edbb86fa7c85548fa54fab7da1144` |
+| ra2 | completion-switch | `00507b58–00507b8e` | 1080152 | 54 | `4369834cf9c2d5767fa7dc40e347f46dcf30ae8bee5d736d18b8a245a41b05d2` |
+| ra2 | infantry-clear-occupation | `005084a0–00508529` | 1082528 | 137 | `4e1bfaeb312ee85bb77a012b5a9d735af83a95919e09eb07e266fb9189ad878e` |
+| ra2 | object-uninit | `005d4e90–005d4f0c` | 1920656 | 124 | `c3cbd1febc4532051e9c90d6a98e709f478c13bd55f502284226f6a0faa8f3e6` |
+| ra2 | global-corpse-fresh-vector | `00640b80–00640d45` | 2362240 | 453 | `3b3c4722f3faced5332f66da2a68878690239c5a2ee0bb2d82075be8f89fa68d` |
+| ra2 | global-corpse-load | `00645cf6–00645dc2` | 2383094 | 204 | `4f3ef704e93fdf3f6fcc43e8f75f3abbb8e0736207ae22f5f6798d64769581ca` |
+| ra2 | jumpjet-fresh-default | `006da4d1–006da4d7` | 2991313 | 6 | `e94c09c57d80bdee6890adb5253d61c98e21a4101d94906471217fe83d42f9bd` |
+| ra2 | jumpjet-load | `006dd40f–006dd429` | 3003407 | 26 | `35b428cfc45f2ce1cd765d29b59026fd3aed7c369d750dffe31fe055ae37ce77` |
+| ra2 | walk-unmark-dispatch | `0071fce0–0071fd26` | 3276000 | 70 | `23cb4cf81db35714cc58f24739ae49d6ae449f1cbf436f57f8905994ec80d537` |
+| ra2 | infantry-slot-d0 | `007a3610–007a3614` | 3814928 | 4 | `7bfb5fe508278e666c4fbc6e610acde809cfcbfd64b1a9a65f807c90a5b20c3c` |
+| ra2 | infantry-slot-ec | `007a362c–007a3630` | 3814956 | 4 | `62bafd9bfbc9c5dc5788be3494bff3310e40d3df860897deb262a5c3b7e1810a` |
+| ra2 | infantry-slot-f0 | `007a3630–007a3634` | 3814960 | 4 | `3fc8d6ed71787d355cfd40da3e432d63c58e893a5f30fd90b6de617a610d8a76` |
+| ra2 | global-corpse-section-pointer | `007a903c–007a9040` | 3838012 | 4 | `fbd86e1694d8459ad2698b9e3a18c4b39657c95e4363903abd931d461729c531` |
+| ra2 | walk-interface-unmark-slot | `007aeb74–007aeb78` | 3861364 | 4 | `12f5af4afa4c52fbd68e0c2449cedd8bc41727dbcadd0281f3356146c7de25ca` |
+| ra2 | global-corpse-section | `007eecf0–007eecfc` | 4123888 | 12 | `6353afe22eeb66a945409d38edebdcfcc21f3c24449fcbcbc54e83c4e1656c57` |
+| yr | foot-damage-dead-return | `004d7330–004d74d9` | 881456 | 425 | `4735a840d6bf0403637ebeda3479b457e489fd911140814d0941e0f40a616838` |
+| yr | foot-limbo | `004db260–004db3bb` | 897632 | 347 | `c485fce4b04c52de5d4d42195f9942b6140f8db642c6257392657370bd470ef8` |
+| yr | foot-uninit | `004de5d0–004de612` | 910800 | 66 | `fc2791a0d9b98c8e5b3b00b29d59e9519205c4761f6343f701665e4c50cf3f77` |
+| yr | human-death-sequences | `005185d5–00518647` | 1148373 | 114 | `4036a1415dcd22c0819d376dd54b7fb5bc8e9cca72406909d125cbffa618c8db` |
+| yr | ordinary-lethal-return | `00518ba0–00518bb2` | 1149856 | 18 | `ac4a7c80ff3267db49821f0954a547b0e3ebdc0eee9f27404aac94bb5d95fdb8` |
+| yr | infdeath-switch | `00518d58–00518d80` | 1150296 | 40 | `97b8a21584243d0cac4fcc8b30cd4b3001e1113d31a8b4b6e0ec753f3015c8f0` |
+| yr | health-zero-death-sequence-exception | `0051bc57–0051bc9f` | 1162327 | 72 | `0259b6baee36cfa11f08274a617e6a3b3a6cd5f33757ef7dea5b907e49b40023` |
+| yr | infantry-limbo | `0051df10–0051df5a` | 1171216 | 74 | `3af864ff28fe97fa2089f77d32712e4cd6e6d9438b52997ca0a12b9504932350` |
+| yr | sequence-completion-and-corpse | `00520ae0–00520efc` | 1182432 | 1052 | `78bf804948710b14c7e8271066f90cb514ea12f0be79a6a01de196a20dedad15` |
+| yr | completion-switch | `00520efc–00520f38` | 1183484 | 60 | `c12096ab6ce7bd2cdacd60bbf0cfe6f9cf07f27bc005d5495f8fba3a08ea2668` |
+| yr | infantry-clear-occupation | `00521850–005218d9` | 1185872 | 137 | `0e830e45b6a399291f5c546129455068fbc290ae634120d96f19bb5e116ccbe9` |
+| yr | object-uninit | `005f65f0–005f6682` | 2057712 | 146 | `c9304209dbc512aa38482632208f0de3a54cc2077aea6f607b7af8e126438a30` |
+| yr | global-corpse-fresh-vector | `00665650–00665827` | 2512464 | 471 | `1f039407d6332b28c0af6a7af5a7a1a5aa0a26a082f6a09e8cbf3b80ed807847` |
+| yr | global-corpse-load | `0066d98e–0066da90` | 2546062 | 258 | `f75e6e7d428c5267a13fc4ed59bd00669673c0f02dbc67a1eb7fa87292729b30` |
+| yr | jumpjet-fresh-default | `00711601–00711607` | 3216897 | 6 | `79d38a2be5152ec0a0300126f179146eb08af0dad621106e07f4749923b973e6` |
+| yr | jumpjet-load | `007151e5–00715206` | 3232229 | 33 | `2e916bf4fefce7bfe394e2106db596d8364e49b2b262caab7adfe70e48e5cef3` |
+| yr | walk-unmark-dispatch | `0075ca30–0075ca76` | 3525168 | 70 | `7f34d508de287b90ae3396867f80ade4319249ee94537b9612060b5fe40e0d55` |
+| yr | infantry-slot-d4 | `007eb12c–007eb130` | 4108588 | 4 | `45182155739435c63c3f05a2c7404b6c8068543b5de550f3caca31074132fde6` |
+| yr | infantry-slot-f4 | `007eb14c–007eb150` | 4108620 | 4 | `23f21e89b22fb7dcae596b43410512063f4f967ea39d8c82addccf2453933424` |
+| yr | infantry-slot-f8 | `007eb150–007eb154` | 4108624 | 4 | `392deb78834467354311127dbc81656cd4663d9e76fbad0db94c81bdb875fe6e` |
+| yr | global-corpse-section-pointer | `007f0c9c–007f0ca0` | 4131996 | 4 | `67f0f446862123cb7bd1266f61c4de693058873c90beee546046cddbfddf4769` |
+| yr | walk-interface-unmark-slot | `007f6a94–007f6a98` | 4156052 | 4 | `8ac66db879db7f3c0373356c6cdcc9df505f3ba886313b72acd62a8ea4584aa6` |
+| yr | global-corpse-section | `00826278–00826280` | 4350584 | 8 | `de730606188d39069d9d0820cda25593bbf892ddf55c78f5500376566b5977c2` |
