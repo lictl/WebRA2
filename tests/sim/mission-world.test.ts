@@ -43,6 +43,21 @@ test('ambiguous, overflowing or unsafe native VariableNames rows do not initiali
     assert.equal(flags.canInitialize, false, variables); assert.ok(flags.diagnostics.length);
   }
 });
+test('native single-byte names preserve high-byte whitespace and enforce byte lengths', () => {
+  for (const profile of ['ra2', 'yr'] as const) {
+    for (const name of ['Ordinary\u00a0', '\u00a0Ordinary', `${'N'.repeat(38)}\u00a0`]) {
+      const f = missionBindingsFixture({ profile, mapEncoding: 'latin1', extraMap: `[VariableNames]\n0= \t${name}\t ` });
+      assert.ok(f.mission.bytes.includes(160));
+      const flags = compileMissionInitialFlags({ bindings: compileMissionBindings(f), bytes: f.mission.bytes, initialization: 'new-campaign' });
+      assert.equal(flags.canInitialize, true); assert.equal(flags.declarations[0]!.name, name);
+    }
+    for (const row of [`${'N'.repeat(39)}\u00a0`, 'Ordinary,1\u00a0', 'Ordinary,\u00a01']) {
+      const f = missionBindingsFixture({ profile, mapEncoding: 'latin1', extraMap: `[VariableNames]\n0=${row}` });
+      const flags = compileMissionInitialFlags({ bindings: compileMissionBindings(f), bytes: f.mission.bytes, initialization: 'new-campaign' });
+      assert.equal(flags.canInitialize, false, row); assert.equal(flags.declarations.length, 0);
+    }
+  }
+});
 test('initial flags own hash-verified bytes and reject forged catalogs, getters and exhausted bounds', () => {
   const f = input({ variables: '1=Ready,1' }), bindings = compileMissionBindings(f), args = { bindings, bytes: f.mission.bytes, initialization: 'new-campaign' as const };
   const flags = compileMissionInitialFlags(args); assert.equal(isMissionInitialFlags({ ...flags }), false);

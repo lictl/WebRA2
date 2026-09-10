@@ -22,6 +22,9 @@ export class MissionInitialFlagsError extends Error {
   constructor(readonly code: string) { super(`mission-initial-flags-${code}`); this.name = 'MissionInitialFlagsError'; }
 }
 function fail(code: string): never { throw new MissionInitialFlagsError(code); }
+// Native ReadString trims unsigned bytes <=0x20. Admit only space/tab padding;
+// other controls fail the row gate, and high bytes remain part of the source name.
+const trimSource = (value: string) => value.replace(/^[ \t]+|[ \t]+$/g, '');
 function freeze<T>(v: T): T {
   if (v && typeof v === 'object' && !Object.isFrozen(v)) { for (const c of Object.values(v)) freeze(c); Object.freeze(v); } return v;
 }
@@ -71,12 +74,12 @@ export function compileMissionInitialFlags(input: {
     const index = /^(?:0|[1-9][0-9]{0,2})$/.test(e.key) ? Number(e.key) : -1;
     if (index < 0 || index >= localCapacity || seen.has(index)) { diagnostic('native-variable-index', e.origin.line); continue; }
     seen.add(index);
-    const raw = e.origin.rawValue.split(';', 1)[0]!.trim(); charge(raw.length);
+    const raw = trimSource(e.origin.rawValue.split(';', 1)[0]!); charge(raw.length);
     if (!raw.length || raw.length > 127 || /[\x00-\x1f\x7f\u0100-\uffff]/.test(raw)) { diagnostic('native-variable-row', e.origin.line); continue; }
     // Native strtok collapses empty comma fields. This bounded closure requires a
     // nonempty name and at most one explicit int32 value, with no ambiguous padding.
     const tokens = raw.split(',');
-    if (tokens.length > 2 || tokens.some(t => !t.length || t !== t.trim()) || tokens[0]!.length > 39) { diagnostic('native-variable-framing', e.origin.line); continue; }
+    if (tokens.length > 2 || tokens.some(t => !t.length || t !== trimSource(t)) || tokens[0]!.length > 39) { diagnostic('native-variable-framing', e.origin.line); continue; }
     let explicitValue: boolean | null = null;
     if (tokens.length === 2) {
       const token = tokens[1]!;

@@ -8,6 +8,8 @@ listings are included. The paired static range metadata is in
 The source initializer interprets hash-verified mission VariableNames using the
 pinned RA2/YR local loader and constructor evidence: 50 globals and 50/100 locals,
 zeroed constructor values, and optional comma-delimited local integer defaults.
+Paired ReadString trim consumers compare unsigned bytes against0x20, preserving
+high bytes. WebRA2 trims only ASCII space/tab padding and rejects other controls.
 It conservatively rejects ambiguous source framing and unsafe indices. Global
 variable names do not grant lookup authority to this numeric-only VM.
 

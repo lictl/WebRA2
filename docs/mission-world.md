@@ -15,13 +15,16 @@ initializer has a separate immutable brand and source/catalog/world fingerprint.
 Malformed or ambiguous rows leave `canInitialize` false; copied metadata cannot
 grant permission to construct a mission.
 
-The [paired ledger](analysis/mission-world-native.json) contains eight selected code
-ranges totaling866 bytes, each ending on complete decoded x86 instructions. In both
+The [paired ledger](analysis/mission-world-native.json) contains twelve selected code
+ranges totaling1,115 bytes, each ending on complete decoded x86 instructions. In both
 pinned images the constructor clears50 global values. It clears50 local values in
 RA2 and100 in YR. The map-local loader clears names, enumerates at most the profile's
 local capacity, parses each key as an index, and reads up to127 value bytes. It copies
 the first comma token as the name and, if a second token exists, stores whether its
 integer value is nonzero. An omitted value retains the existing slot value.
+Paired ReadString consumers call byte trimming that preserves values above0x20.
+The bounded parser trims ASCII space/tab only and rejects other control bytes;
+it preserves0xA0 in names and counts it toward the39-byte limit.
 
 The WebRA2 policy starts a **new campaign** with zero global/local storage before
 applying those explicit map defaults. That is a deliberate D03 initialization choice

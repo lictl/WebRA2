@@ -47,6 +47,26 @@
           "bytes": 8,
           "sha256": "c91f962fa9c669be7b98485f741b088bd2c7104e27e143325564f9cd234f5915",
           "instructions": 3
+        },
+        {
+          "label": "local-readstring-trim-call",
+          "kind": "selected-code",
+          "start": "0x50eb0b",
+          "endExclusive": "0x50eb1e",
+          "fileOffset": 1108747,
+          "bytes": 19,
+          "sha256": "43e6cddea74ed3b7d5083d3535b3cdda0c9128b6f887a87fa5a03a64cb4aabe4",
+          "instructions": 5
+        },
+        {
+          "label": "native-byte-trim",
+          "kind": "selected-code",
+          "start": "0x6eef10",
+          "endExclusive": "0x6eef77",
+          "fileOffset": 3075856,
+          "bytes": 103,
+          "sha256": "f74f2347897d673f5bbc099b5c39a5700ddc02520be3fc5828f03cb7c83c7ebc",
+          "instructions": 52
         }
       ]
     },
@@ -95,10 +115,30 @@
           "bytes": 8,
           "sha256": "42eeb0e562d40538d68cad2ccb36120db70e77ab0b203a1637317a51f65b26b7",
           "instructions": 3
+        },
+        {
+          "label": "local-readstring-trim-call",
+          "kind": "selected-code",
+          "start": "0x528bd0",
+          "endExclusive": "0x528be8",
+          "fileOffset": 1215440,
+          "bytes": 24,
+          "sha256": "e18301a273f449f67b5b0e2e95bee47deabcfe81ff81803ff15dda083b311c68",
+          "instructions": 6
+        },
+        {
+          "label": "native-byte-trim",
+          "kind": "selected-code",
+          "start": "0x727cf0",
+          "endExclusive": "0x727d57",
+          "fileOffset": 3308784,
+          "bytes": 103,
+          "sha256": "f74f2347897d673f5bbc099b5c39a5700ddc02520be3fc5828f03cb7c83c7ebc",
+          "instructions": 52
         }
       ]
     }
   ],
-  "totalRanges": 8,
-  "totalBytes": 866
+  "totalRanges": 12,
+  "totalBytes": 1115
 }
