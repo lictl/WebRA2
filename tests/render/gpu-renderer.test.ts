@@ -140,9 +140,11 @@ test('resident atlas is uploaded once, linear pages include all bytes, and repea
   assert.equal(renderer.stats().ownedCpuBytes, f.scene.allocations.rasterBytes);
   renderer.draw(f.frame);
   const created = mock.calls.filter(c => c.name.startsWith('create')).length;
+  const beforeRepeat = mock.calls.length;
   renderer.draw(f.frame);
   assert.equal(mock.calls.filter(c => c.name.startsWith('create')).length, created);
   assert.equal(mock.calls.filter(c => c.name === 'texSubImage3D').length, 2);
+  assert.equal(mock.calls.slice(beforeRepeat).filter(c => c.name === 'getError' || c.name === 'getParameter' || c.name === 'readPixels' || c.name === 'finish').length, 0);
   renderer.dispose(); assert.equal(mock.live.size, 0);
 });
 
@@ -164,11 +166,13 @@ test('shader/link/allocation failure cleans candidate handles without replacing 
   renderer.load(f.scene); renderer.draw(f.frame);
   const before = renderer.stats(), objects = mock.live.size;
   mock.setCompile(false); assert.throws(() => renderer.load(f.scene), code('gpu-shader-compile'));
-  assert.equal(mock.live.size, objects); assert.deepEqual(renderer.stats(), before);
+  assert.equal(mock.live.size, objects);
+  assert.deepEqual({ ...renderer.stats(), peakRequestedGpuBytes: before.peakRequestedGpuBytes }, before);
+  assert.ok(renderer.stats().peakRequestedGpuBytes > before.requestedGpuBytes);
   mock.setCompile(true); assert.equal(renderer.draw(f.frame).sequence, 2);
   mock.size(61, 40); mock.setComplete(false);
   assert.throws(() => renderer.draw(prepareGpuFrame(f.scene, { ...view, width: 61 })), code('gpu-framebuffer'));
-  assert.equal(mock.live.size, objects); assert.deepEqual(renderer.stats(), before);
+  assert.equal(mock.live.size, objects); assert.deepEqual({ ...renderer.stats(), peakRequestedGpuBytes: before.peakRequestedGpuBytes }, before);
   mock.setComplete(true); mock.size(60, 40); assert.equal(renderer.readback().width, 60);
   renderer.dispose(); assert.equal(mock.live.size, 0);
 });
@@ -218,6 +222,8 @@ test('loss invalidates handles and frames; explicit recovery rebuilds owned uplo
   assert.equal(mock.calls.filter(c => c.name === 'texSubImage3D').length, 4);
   renderer.dispose(); const disposed = renderer.stats(); renderer.dispose(); assert.deepEqual(renderer.stats(), disposed);
   assert.equal(disposed.ownedCpuBytes, 0); assert.equal(disposed.requestedGpuBytes, 0); assert.equal(mock.live.size, 0);
+  assert.equal(mock.calls.filter(c => c.name === 'useProgram').at(-1)!.args[0], null);
+  assert.equal(mock.calls.filter(c => c.name === 'bindVertexArray').at(-1)!.args[0], null);
   assert.throws(() => renderer.restore(), code('gpu-disposed')); assert.throws(() => renderer.load(f.scene), code('gpu-disposed'));
   assert.equal(mock.lose().defaultPrevented, false); assert.deepEqual(renderer.stats(), disposed);
 });

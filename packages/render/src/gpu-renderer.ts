@@ -7,7 +7,7 @@ import type { GpuDrawReceipt, GpuFrame, GpuFrameData, GpuReadback, GpuRendererLi
   GpuRendererStats, GpuScene, GpuSceneData } from './gpu-contracts.ts';
 
 export class GpuRendererError extends Error {
-  constructor(readonly code: string) { super(code); this.name = 'GpuRendererError'; }
+  constructor(readonly code: string, detail = '') { super(code + (detail ? ': ' + detail.slice(0, 4096) : '')); this.name = 'GpuRendererError'; }
 }
 function fail(code: string): never { throw new GpuRendererError(code); }
 const NONE_DEPTH = -2147483648;
@@ -231,11 +231,11 @@ export class GpuRenderer {
       for (const [type, source] of [[gl.VERTEX_SHADER, vertex], [gl.FRAGMENT_SHADER, fragment]] as const) {
         const shader = gl.createShader(type); if (!shader) fail('gpu-allocation'); shaders.push(shader);
         gl.shaderSource(shader, source); gl.compileShader(shader);
-        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) fail('gpu-shader-compile');
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new GpuRendererError('gpu-shader-compile', gl.getShaderInfoLog(shader) ?? '');
       }
       const handle = gl.createProgram(); if (!handle) fail('gpu-allocation'); b.programs.push(handle);
       for (const shader of shaders) gl.attachShader(handle, shader);
-      gl.linkProgram(handle); if (!gl.getProgramParameter(handle, gl.LINK_STATUS)) fail('gpu-shader-link');
+      gl.linkProgram(handle); if (!gl.getProgramParameter(handle, gl.LINK_STATUS)) throw new GpuRendererError('gpu-shader-link', gl.getProgramInfoLog(handle) ?? '');
       const uniform: Record<string, WebGLUniformLocation> = Object.create(null);
       for (const name of uniforms) { const location = gl.getUniformLocation(handle, name); if (location === null) fail('gpu-shader-uniform'); uniform[name] = location; }
       return { handle, uniform: Object.freeze(uniform) };
@@ -275,6 +275,7 @@ export class GpuRenderer {
       rgba.set(r.rgba, at * 4); depths.set(r.depth, at);
     }
     try {
+      this.#peak = Math.max(this.#peak, this.#gpuBytes() + plan.bytes);
       this.#unpack(); gl.activeTexture(gl.TEXTURE0);
       const color = this.#texture(b, gl.TEXTURE_2D_ARRAY);
       gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 1, gl.RGBA8UI, plan.side, plan.side, plan.layers);
@@ -377,6 +378,7 @@ export class GpuRenderer {
   draw(frame: GpuFrame): GpuDrawReceipt {
     this.#live();
     const data = this.#frame(frame), r = this.#resident!, gl = this.#gl;
+    if (this.#sequence >= Number.MAX_SAFE_INTEGER) fail('gpu-sequence-limit');
     const { width, height } = data.viewport;
     const targetBytes = width * height * 36 + (width + height) * 4;
     const replaceTargets = !r.targets || r.targets.width !== width || r.targets.height !== height;
@@ -384,6 +386,7 @@ export class GpuRenderer {
     const bufferBytes = replaceBuffer ? data.draws.byteLength : r.bufferBytes;
     const peak = this.#gpuBytes() + (replaceTargets ? targetBytes : 0) + (replaceBuffer ? bufferBytes : 0);
     this.#budget(peak, this.#cpuBytes() + data.sampleX.byteLength + data.sampleY.byteLength + data.draws.byteLength);
+    this.#peak = Math.max(this.#peak, peak);
     let nextTargets: Targets | null = null, nextBuffer: WebGLBuffer | null = null;
     try {
       if (replaceTargets) nextTargets = this.#targets(width, height, targetBytes);
@@ -391,7 +394,7 @@ export class GpuRenderer {
         nextBuffer = gl.createBuffer(); if (!nextBuffer) fail('gpu-allocation');
         gl.bindBuffer(gl.ARRAY_BUFFER, nextBuffer); gl.bufferData(gl.ARRAY_BUFFER, bufferBytes, gl.DYNAMIC_DRAW);
       }
-      this.#check();
+      if (replaceTargets || replaceBuffer) this.#check();
     } catch (error) { if (nextTargets) this.#delete(nextTargets.bag); if (nextBuffer) gl.deleteBuffer(nextBuffer); throw error; }
     this.#peak = Math.max(this.#peak, peak);
     if (nextTargets) { if (r.targets) this.#delete(r.targets.bag); r.targets = nextTargets; }
@@ -437,7 +440,9 @@ export class GpuRenderer {
       }
       const bg = data.viewport.backgroundRgba;
       gl.uniform4ui(r.composite.uniform.uBackground!, bg[0], bg[1], bg[2], bg[3]); gl.drawArrays(gl.TRIANGLES, 0, 3);
-      this.#check(); this.#last = frame;
+      // Steady submission does not query errors or wait for completion. The explicit
+      // diagnostic readback/caller correctness harness checks errors outside cadence.
+      this.#live(); this.#last = frame;
       return Object.freeze({ sequence: ++this.#sequence, frame, submitted: true, drawCalls: calls,
         uploadedBytes: data.draws.byteLength + data.sampleX.byteLength + data.sampleY.byteLength });
     } catch (error) { this.#last = null; throw error; }
@@ -492,7 +497,17 @@ export class GpuRenderer {
   }
   dispose(): void {
     if (this.#state === 'disposed') return;
-    if (this.#resident && !this.#gl.isContextLost()) this.#deleteResident(this.#resident);
+    if (!this.#gl.isContextLost()) {
+      // Programs marked for deletion remain alive while current; release dedicated bindings.
+      const gl = this.#gl;
+      gl.useProgram(null); gl.bindVertexArray(null); gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+      for (const target of [gl.ARRAY_BUFFER, gl.PIXEL_PACK_BUFFER, gl.PIXEL_UNPACK_BUFFER]) gl.bindBuffer(target, null);
+      for (let unit = 0; unit < 6; unit++) {
+        gl.activeTexture(gl.TEXTURE0 + unit); gl.bindSampler(unit, null);
+        gl.bindTexture(gl.TEXTURE_2D, null); gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
+      }
+      if (this.#resident) this.#deleteResident(this.#resident);
+    }
     this.#resident = null; this.#data = null; this.#last = null; this.#state = 'disposed'; this.#generation++;
     this.#gl.canvas.removeEventListener('webglcontextlost', this.#onLost);
   }
