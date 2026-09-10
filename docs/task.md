@@ -17,8 +17,7 @@ mission behavior. No original mission is playable yet.
 Current wave: coordinator [dying-world lifecycle #170](https://github.com/lictl/WebRA2/issues/170)
 and [source combat #132](https://github.com/lictl/WebRA2/issues/132), joining reviewed
 numerical combat166 and ordinary human death165. The browser agent's
-[fresh actor/firing PR168](https://github.com/lictl/WebRA2/pull/168) is under independent
-review by the format agent; source attack integration remains147/132. The simulation
+[fresh actor/firing PR168](https://github.com/lictl/WebRA2/pull/168) passed independent source review at3975027; final distribution integration follows, source attack integration remains147/132. The simulation
 agent continues [persistent team Sleep #169](https://github.com/lictl/WebRA2/issues/169)
 after [source reinforcement PR167](https://github.com/lictl/WebRA2/pull/167).
 The owner unlocked the Mac and the browser tool confirms access. Per the new D17
@@ -31,6 +30,7 @@ Recent reviewed merges:
 
 | Component | PR / merge SHA | Exact-head evidence |
 | --- | --- | --- |
+| Source reinforcement transactions | [167](https://github.com/lictl/WebRA2/pull/167), `f315b4b6d6e657aa5884e24e950e3613d582d4f4` | 877 checks; [integration review](https://github.com/lictl/WebRA2/pull/167#pullrequestreview-5163349030), separate source/adapter reviews; eight YR occurrences move/save/replay; Sleep169 and trigger activation remain |
 | Ordinary death decision | [165](https://github.com/lictl/WebRA2/pull/165), `2e04f34281899e02566119ee50dbfba12d0bb0c9` | 845 checks; [independent integration review](https://github.com/lictl/WebRA2/pull/165#pullrequestreview-5163246014); 576 private decisions, 45 native ranges; world lifecycle remains170 |
 | Numerical combat transactions | [166](https://github.com/lictl/WebRA2/pull/166), `bce99e4d24e267f46955bb1eadacbfa34d72497a` | 835 checks; [independent review](https://github.com/lictl/WebRA2/pull/166#pullrequestreview-5163207383), 7,863 extra assertions; explicit numeric inputs, no source attack admission |
 | Veteran/elite ability selection | [162](https://github.com/lictl/WebRA2/pull/162), `7512b6707a337a7ca3bab0b46fc18dc7253dd6d2` | 827 checks; [independent review](https://github.com/lictl/WebRA2/pull/162#pullrequestreview-5163054208); 67,602 private values and25 native spans; ability preparation only |
@@ -55,7 +55,7 @@ Recent reviewed merges:
 | Initial weapon spelling proof | [142](https://github.com/lictl/WebRA2/pull/142), `c9ab75a280eaed4956de0b986ac2258210527f05` | 644 tests; [review](https://github.com/lictl/WebRA2/pull/142#pullrequestreview-5162066332) |
 | Combat actor initialization | [143](https://github.com/lictl/WebRA2/pull/143), `21588d19fa5d870163a6aaad38cdc40c017c9ba6` | 678 tests; source review on PR, [integration review](https://github.com/lictl/WebRA2/pull/143#pullrequestreview-5162128139) |
 
-Issues131,133,134,139,140,141,145,146,149,151,152,155,163,164 are closed within their component scope. #127 and parent120 remain open for the Safari
+Issues131,133,134,139,140,141,145,146,149,151,152,155,160,163,164 are closed within their component scope. #127 and parent120 remain open for the Safari
 automatic-running acceptance row shared with115; GitHub unexpectedly closed127
 during squash, so the coordinator reopened it with the exact remaining criterion.
 Both opening worlds have matching model/moving-save/replay identities in actual
