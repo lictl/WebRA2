@@ -27,7 +27,7 @@ export function createPlacedStill(terrain: ScenarioTerrain, objects: ScenarioObj
     const resource=resources.get(typeId);if(!resource)throw new Error('object-presentation-join');
     const asset=resource.assetId===null?undefined:sourceAssets.get(resource.assetId),palette=resource.paletteId===null?undefined:sourcePalettes.get(resource.paletteId);
     const reasons=plan.reasons.slice(0,ART_REPORT_LIMIT.reasons).map(r=>label(r,128));
-    rows.set(typeId,{id,name:label(plan.name,ART_REPORT_LIMIT.label),family:plan.kind,status:resource.status,placements:0,rendered:0,reasons,omittedReasons:plan.reasons.length-reasons.length,sourcePath:asset?.path??null,sourceHash:asset?.sha256??null,palettePath:palette?.path??null,paletteHash:palette?.source.sha256??null});
+    rows.set(typeId,{id,name:label(plan.name,ART_REPORT_LIMIT.label),family:plan.kind,format:plan.status==='voxel'?'voxel':'shp',status:resource.status,placements:0,rendered:0,reasons,omittedReasons:plan.reasons.length-reasons.length,sourcePath:asset?.path??null,sourceHash:asset?.sha256??null,palettePath:palette?.path??null,paletteHash:palette?.source.sha256??null});
   }
   const placed:SpriteObject[]=[],info=new Map<string,ObjectInfo>(),usedAssets=new Set<string>(),usedPalettes=new Set<string>();
   const seenRows=new Set<string>();
@@ -46,7 +46,7 @@ export function createPlacedStill(terrain: ScenarioTerrain, objects: ScenarioObj
     const x=baseX+(width-height)*15,y=baseY+Math.floor((width+height-2)*15/2)-cell.elevation*15;
     const id=`object-${i}`,frameId=`frame-${asset.id}`;
     placed.push(Object.freeze({id,frameId,paletteId:palette.id,x,y,anchorX:Math.floor(resource.canvas.width/2),anchorY:Math.floor(resource.canvas.height/2),depth:Object.freeze({base:baseY+15+(width+height-2)*15,rowStep:0 as const,terrainTie:'front' as const})}));
-    const description=Object.freeze({id,typeId:row.id,name:row.name,family:p.kind,owner:p.owner===null?null:label(p.owner,ART_REPORT_LIMIT.label),x:p.x,y:p.y,frame:0 as const,sourcePath:asset.path,sourceHash:asset.sha256,palettePath:palette.path,paletteHash:palette.source.sha256});
+    const description=Object.freeze({id,format:'shp' as const,voxel:null,typeId:row.id,name:row.name,family:p.kind,owner:p.owner===null?null:label(p.owner,ART_REPORT_LIMIT.label),x:p.x,y:p.y,frame:0 as const,sourcePath:asset.path,sourceHash:asset.sha256,palettePath:palette.path,paletteHash:palette.source.sha256});
     descriptorCharacters+=Object.values(description).reduce<number>((n,v)=>n+(typeof v==='string'?v.length:0),0);
     if(descriptorCharacters>8*1024**2)throw new Error('object-presentation-metadata-budget');
     info.set(id,description);row.rendered++;usedAssets.add(asset.id);usedPalettes.add(palette.id);
@@ -60,7 +60,7 @@ export function createPlacedStill(terrain: ScenarioTerrain, objects: ScenarioObj
     if (reported.length===ART_REPORT_LIMIT.types || size>ART_REPORT_LIMIT.characters-characters) {omittedTypes++;omittedPlacements+=row.placements;omittedRendered+=row.rendered;continue;}
     characters+=size;Object.freeze(row.reasons);reported.push(Object.freeze(row));
   }
-  const artwork:ArtworkSummary=Object.freeze({policy:preview.plan.policy,presentation:PLACED_STILL_POLICY,types:rows.size,rendered:placed.length,unavailable:objects.placements.length-placed.length,assets:atlas.assets.length,palettes:palettes.length,sourceBytes:atlas.allocations.sourceSnapshotBytes,decodedBytes:atlas.allocations.decodedPixelBytes,indexedFrames:atlas.allocations.indexedFrames,rows:Object.freeze(reported) as unknown as ArtworkType[],omittedTypes,omittedPlacements,omittedRendered,truncatedFields,unplaced});
+  const artwork:ArtworkSummary=Object.freeze({policy:preview.plan.policy,presentation:PLACED_STILL_POLICY,voxel:null,types:rows.size,rendered:placed.length,unavailable:objects.placements.length-placed.length,assets:atlas.assets.length,palettes:palettes.length,sourceBytes:atlas.allocations.sourceSnapshotBytes,decodedBytes:atlas.allocations.decodedPixelBytes,indexedFrames:atlas.allocations.indexedFrames,rows:Object.freeze(reported) as unknown as ArtworkType[],omittedTypes,omittedPlacements,omittedRendered,truncatedFields,unplaced});
   return {batch:Object.freeze({atlas,palettes:Object.freeze(palettes),objects:Object.freeze(placed)}),artwork,objects:info};
 }
 
