@@ -5,7 +5,7 @@ stages used by ordinary native damage and reload paths. The implementation lives
 in [native-combat-numbers.ts](../packages/sim/src/native-combat-numbers.ts), with
 [provenance and native range evidence](../packages/sim/NATIVE_COMBAT_NUMBERS_PROVENANCE.md).
 It is not attached to world combat and does not make a retail weapon executable.
-Source-bound actor modifiers, firing/death capability and integration remain147,
+Source-bound actor modifiers, firing/death capability and integration remain 147,
 [#155](https://github.com/lictl/WebRA2/issues/155) and
 [#132](https://github.com/lictl/WebRA2/issues/132).
 
@@ -23,11 +23,11 @@ state, asynchronous work, I/O, randomness, DOM or timing dependency.
 | `nativeZeroSpreadDamage` | damage, verse, maxDamage | Multiply nonnegative damage by Verses and convert; cap at MaxDamage |
 | `nativeNormalReload` | rof, houseRof, jitter, veteranRof | Multiply ROF by house factor, add jitter and convert; apply veteran factor and convert |
 
-Every multiply, divide and addition is rounded independently to53 significant
+Every multiply, divide and addition is rounded independently to 53 significant
 bits toward zero. Integer conversion also truncates toward zero. For example,
-using the binary64 input0.58, `nativeZeroSpreadDamage({damage:100, verse:0.58,
-maxDamage:100})` returns57. Ordinary JavaScript arithmetic can round an intermediate
-upward and return58. Likewise, collapsing the two veteran stages into one expression
+using the binary64 input 0.58, `nativeZeroSpreadDamage({damage:100, verse:0.58,
+maxDamage:100})` returns 57. Ordinary JavaScript arithmetic can round an intermediate
+upward and return 58. Likewise, collapsing the two veteran stages into one expression
 can change a result. Exact BigInt rational intermediates preserve these boundaries.
 
 The API accepts binary64 numbers already chosen by source/runtime policy. It does
@@ -44,7 +44,7 @@ entered; this does not authorize a zero-damage weapon hit. Verses can subsequent
 produce zero. Later immunity, prone/derived-class logic and death effects can still
 change the result and must not be silently skipped.
 
-Reload takes a supplied0..2 jitter value. The
+Reload takes a supplied 0..2 jitter value. The
 [native random component](native-random.md) preserves every rejected draw, and the
 world integration must define and save when sampling happens. Passing a value here
 does not certify its provenance or native global call order. A zero reload result
@@ -55,10 +55,10 @@ post-reload adjustments require separate capabilities.
 ## Bounds and data safety
 
 `NATIVE_COMBAT_NUMBERS_POLICY` is `webra2-native-combat-numbers-1`.
-`NATIVE_COMBAT_NUMBER_LIMITS` fixes integers to0..2147483647 and nonzero factors to
+`NATIVE_COMBAT_NUMBER_LIMITS` fixes integers to 0..2147483647 and nonzero factors to
 1/65536..65536. Fire damage and MaxDamage must be positive; other integer inputs
 may be zero. Armor factors must be positive; firepower, Verses and ROF factors may
-be zero. Jitter is exactly0,1 or2. Values outside these bounds fail explicitly.
+be zero. Jitter is exactly 0, 1 or 2. Values outside these bounds fail explicitly.
 These are WebRA2 admission limits, not a claim that original INI rules enforce them.
 
 Products/quotients in the admitted domain stay normal binary64 values with bounded
@@ -78,7 +78,7 @@ validation of imported data, not a JavaScript execution sandbox.
 
 ## Validation
 
-Seven original tests compare24,000 stage results against an independent Python
+Seven original tests compare 24,000 stage results against an independent Python
 Fraction oracle; cover stage order, default-rounding counterexamples, zero/minimum/
 maximum cases, signed32 and factor boundaries, intermediate overflow, malformed
 records and ownership. Public checks require no game assets:
@@ -89,7 +89,7 @@ npm run check
 ```
 
 Private `local/combat-modifiers/arithmetic-oracle.py` regenerates the original
-rational vectors; `arithmetic-ledger.py` rehashes the pinned images and verifies18
-complete native spans using Capstone5.0.6. Only metadata, original code and synthetic
+rational vectors; `arithmetic-ledger.py` rehashes the pinned images and verifies 18
+complete native spans using Capstone 5.0.6. Only metadata, original code and synthetic
 fixtures are distributed. No original game run, campaign outcome, actor capability,
 world save/replay integration or browser attack acceptance is claimed by this slice.
