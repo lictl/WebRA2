@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "scope": "Metadata only from both selected opening definitions. Static initialization and independent raw-source reconstruction; no retail execution, campaign or full combat capability claim.",
+  "inputSources": [
+    {
+      "profile": "ra2",
+      "role": "rules",
+      "path": "rules.ini",
+      "kind": "base",
+      "rootFile": "ra2.mix",
+      "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+      "absoluteOffset": 118552784,
+      "size": 541915,
+      "sha256": "fd1e95cea0306ea78049dc81c8cd816e18c28c496872a1ff02edd50bd082062f"
+    },
+    {
+      "profile": "ra2",
+      "role": "art",
+      "path": "art.ini",
+      "kind": "base",
+      "rootFile": "ra2.mix",
+      "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+      "absoluteOffset": 118306944,
+      "size": 245825,
+      "sha256": "b477f861063a9509e87b7836b78190204c73bea5ea5595a842c456f5920ea223"
+    },
+    {
+      "profile": "ra2",
+      "role": "mission",
+      "path": "all01t.map",
+      "kind": "map",
+      "rootFile": "maps01.mix",
+      "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+      "absoluteOffset": 308,
+      "size": 146240,
+      "sha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c"
+    },
+    {
+      "profile": "yr",
+      "role": "rules",
+      "path": "rulesmd.ini",
+      "kind": "expansion",
+      "rootFile": "expandmd01.mix",
+      "rootSha256": "0c0a64e741bdecdc3843a0beb6bb1f58aa2df5b86eb3bc4a953821ec98f3d6ec",
+      "absoluteOffset": 2220316,
+      "size": 743215,
+      "sha256": "3d341ef8a13a4b5ab24af2eef48ac94931ac2bb87d950fe3330a07e2d25672ef"
+    },
+    {
+      "profile": "yr",
+      "role": "art",
+      "path": "artmd.ini",
+      "kind": "expansion",
+      "rootFile": "ra2md.mix",
+      "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d",
+      "absoluteOffset": 6378496,
+      "size": 336535,
+      "sha256": "e1f0378394313c04ebbd5073f47785ee3e46f1b3c62d65724e8f3c310ee7ba31"
+    },
+    {
+      "profile": "yr",
+      "role": "mission",
+      "path": "all01umd.map",
+      "kind": "map",
+      "rootFile": "mapsmd03.mix",
+      "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+      "absoluteOffset": 260,
+      "size": 301077,
+      "sha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0"
+    }
+  ],
+  "nativeLedgerSha256": "db16888f83b5f5d4bfe7ded4581fbc4f1ce58a5d9142d05af290a8b75a9ef174",
+  "profiles": [
+    {
+      "profile": "ra2",
+      "fingerprint": "b67548be62241c382ecc4cd9f97387014d4a0be5d4939295f54cfa53564ca657",
+      "coverage": {
+        "identityComplete": true,
+        "initialAlliancesComplete": true,
+        "ordinaryTypes": 411,
+        "conditionalTypes": 2,
+        "unsupportedStartingAmmo": 0,
+        "allianceScope": "fresh-campaign-map-house-initialization"
+      },
+      "counts": {
+        "types": 531,
+        "placements": 811,
+        "houses": 8,
+        "pairs": 33
+      },
+      "diagnostics": {},
+      "fieldCounts": {
+        "typesWithAmmoCapacity": 9,
+        "typesWithFiniteStartingAmmo": 9,
+        "typesImmune": 64,
+        "typesTypeImmune": 2,
+        "placedFiniteStartingAmmo": 0,
+        "placedImmune": 221,
+        "placedTypeImmune": 0,
+        "rawTypeFields": 11035,
+        "rawHouseFields": 80
+      },
+      "independentRawSourceComparison": {
+        "profile": "ra2",
+        "comparedScalarLeaves": 159322,
+        "types": 531,
+        "placements": 811,
+        "houses": 8,
+        "directedPairs": 33,
+        "projectionSha256": "e6c5e9314cea417de69131ce4ad867b291b62d0995ea0783a26ef3cf00754d94",
+        "wholeProjectionEqual": true,
+        "rootAndMemberHashesVerified": true
+      }
+    },
+    {
+      "profile": "yr",
+      "fingerprint": "f1ef426a030f82d10c8e5b042c242013175d60003ebbaf937652725711c2d5cf",
+      "coverage": {
+        "identityComplete": true,
+        "initialAlliancesComplete": true,
+        "ordinaryTypes": 563,
+        "conditionalTypes": 4,
+        "unsupportedStartingAmmo": 0,
+        "allianceScope": "fresh-campaign-map-house-initialization"
+      },
+      "counts": {
+        "types": 691,
+        "placements": 570,
+        "houses": 17,
+        "pairs": 150
+      },
+      "diagnostics": {},
+      "fieldCounts": {
+        "typesWithAmmoCapacity": 20,
+        "typesWithFiniteStartingAmmo": 20,
+        "typesImmune": 64,
+        "typesTypeImmune": 2,
+        "placedFiniteStartingAmmo": 8,
+        "placedImmune": 78,
+        "placedTypeImmune": 0,
+        "rawTypeFields": 15494,
+        "rawHouseFields": 171
+      },
+      "independentRawSourceComparison": {
+        "profile": "yr",
+        "comparedScalarLeaves": 196371,
+        "types": 691,
+        "placements": 570,
+        "houses": 17,
+        "directedPairs": 150,
+        "projectionSha256": "f4a48f24fdbaaf531500dc3e55dcac9109a61f297a815e147c5db138c1299b57",
+        "wholeProjectionEqual": true,
+        "rootAndMemberHashesVerified": true
+      }
+    }
+  ]
+}

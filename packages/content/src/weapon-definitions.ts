@@ -6,7 +6,7 @@ import { createIniSourceView, findIniSourceEntries, findIniSourceSections, type 
 import type { IniOrigin, RuntimeIni } from './runtime-ini.ts';
 import { weaponBoolean, weaponCalculatedSpeed, weaponDecimal, weaponInteger, weaponVerse, weaponFloatStore } from './weapon-numbers.ts';
 
-export const WEAPON_DEFINITIONS_POLICY = 'webra2-weapon-definitions-1' as const;
+export const WEAPON_DEFINITIONS_POLICY = 'webra2-weapon-definitions-2' as const;
 export const WEAPON_DEFINITIONS_LIMITS = Object.freeze({ stages: 64, occurrences: 262144, definitions: 8192,
   links: 65536, fieldReads: 1_048_576, history: 524288, diagnostics: 32768, nodes: 2_000_000,
   characters: 64 * 1024 * 1024, serializedBytes: 64 * 1024 * 1024 });
@@ -33,9 +33,16 @@ export interface WarheadScalars {
   readonly verses: WeaponField<readonly number[]>; readonly cellSpread: WeaponField<number>;
   readonly cellInset: WeaponField<number>; readonly percentAtMax: WeaponField<number>; readonly proneDamage: WeaponField<number>;
 }
+/** Scoped initial Rules::Init prefix evidence, not a complete native allocation index. */
+export interface WeaponSpellingEvidence {
+  readonly kind: 'initial-general-weapon' | 'initial-general-projectile';
+  readonly generalRoot: IniOrigin;
+  readonly projectileReference: IniOrigin | null;
+}
 export interface WeaponRecord<T> {
   readonly id: string; readonly name: string; readonly kind: Kind;
-  readonly allocation: Readonly<{ stage: string; phase: 'entity-links' | 'warhead-registry' | 'weapon-load' | 'projectile-load'; origin: IniOrigin }>;
+  readonly allocation: Readonly<{ stage: string; phase: 'general-root' | 'entity-links' | 'warhead-registry' | 'weapon-load' | 'projectile-load'; origin: IniOrigin }>;
+  readonly spellingEvidence: WeaponSpellingEvidence | null;
   readonly references: readonly IniOrigin[]; readonly loadStages: readonly string[];
   readonly fields: T & Readonly<Record<string, WeaponField<Scalar>>>;
   readonly unhandledFields: readonly IniOrigin[];
@@ -47,12 +54,13 @@ export interface WeaponDefinitions {
   readonly schemaVersion: 1; readonly policy: typeof WEAPON_DEFINITIONS_POLICY; readonly profile: RuntimeIni['profile'];
   readonly entityFingerprint: string; readonly sources: RuntimeIni['layers']; readonly fingerprint: string;
   readonly gravity: WeaponField<number>;
+  readonly generalDropPodWeapon: WeaponField<string>;
   readonly links: readonly Readonly<{ typeId: string; slot: 'primary' | 'secondary'; field: WeaponField<string> }>[];
   readonly weapons: readonly WeaponRecord<WeaponScalars>[]; readonly projectiles: readonly WeaponRecord<ProjectileScalars>[];
   readonly warheads: readonly WeaponRecord<WarheadScalars>[];
   readonly diagnostics: readonly Readonly<{ code: string; subjectId: string; field: string; origin: IniOrigin | null }>[];
   readonly coverage: Readonly<{ rootLinksResolved: boolean; rootClosuresTyped: boolean; linkedWeaponCount: number; unsupportedRecords: number;
-    allocationScope: 'first-two-normal-history-and-warhead-registry'; nativeAllocationComplete: false }>;
+    allocationScope: 'first-two-normal-history-warhead-registry-and-general-root'; nativeAllocationComplete: false }>;
   readonly requiredRuntimeWork: readonly string[]; readonly nativeExecutionVerified: false; readonly canStartCampaign: false;
 }
 const compiled = new WeakSet<object>();
@@ -107,10 +115,10 @@ const WARHEAD_SPECS: readonly Spec[] = [numberSpec('CellSpread', 'cellSpread', 0
   numberSpec('InfDeath', 'infDeath'), numberSpec('Paralyzes', 'paralyzes'),
   ...bools('CausesDelayKill Conventional Wall WallAbsoluteDestroyer Wood Tiberium Sparky Sonic Rocker Fire EMEffect MindControl IvanBomb ElectricAssault Parasite Temporal BombDisarm Culling MakesDisguise NukeMaker Radiation PsychicDamage Bullets Veinhole'),
   ...bools('PenetratesBunker DirectRocker Poison IsLocomotor Airstrike Psychedelic').map(s => ({ ...s, yr: true })), boolSpec('AffectsAllies', true, true)];
-type Mutable = { id: string; name: string; kind: Kind; allocation: WeaponRecord<unknown>['allocation']; references: IniOrigin[];
+type Mutable = { id: string; name: string; kind: Kind; allocation: WeaponRecord<unknown>['allocation']; spellingEvidence: WeaponSpellingEvidence | null; references: IniOrigin[];
   loadStages: string[]; fields: Record<string, WeaponField<Scalar>>; unhandledFields: IniOrigin[]; resets: { field: 'verses'; layerId: string; sourceSha256: string; sectionLine: number }[]; unsupportedReasons: Set<string> };
 
-/** Compile owned first-two normal-link history, with native field/load evidence and explicitly incomplete external allocation closure. */
+/** Compile normal-link/General root histories with an evidenced initial allocation prefix; external closure remains incomplete. */
 export function compileWeaponDefinitions(input: { readonly definitions: EntityDefinitions; readonly rules: RuntimeIni }, options: Partial<Limits> = {}): WeaponDefinitions {
   const cap = limits(options); plain(input);
   if (Reflect.ownKeys(input).length !== 2 || !['definitions', 'rules'].every(k => { const d = Object.getOwnPropertyDescriptor(input, k); return d && 'value' in d; })) fail('input');
@@ -144,7 +152,7 @@ export function compileWeaponDefinitions(input: { readonly definitions: EntityDe
     const found = findIniSourceEntries(s, key); if (found.length > 1) fail('repeated-consumed-key'); return found[0];
   }
   function specs(kind: Kind): readonly Spec[] { return kind === 'weapon' ? WEAPON_SPECS : kind === 'projectile' ? PROJECTILE_SPECS : WARHEAD_SPECS; }
-  function allocate(kind: Kind, value: string, origin: IniOrigin, phase: Mutable['allocation']['phase']): string | null {
+  function allocate(kind: Kind, value: string, origin: IniOrigin, phase: Mutable['allocation']['phase'], spellingEvidence: WeaponSpellingEvidence | null = null): string | null {
     if (++linkCount > cap.links) fail('link-limit');
     if (!value || /^(none|<none>)$/i.test(value)) return null;
     if (value.length > 24 || !/^[\x21-\x7e]+$/.test(value) || /[,;\[\]=]/.test(value) || /^<.*>$/.test(value)) {
@@ -153,12 +161,14 @@ export function compileWeaponDefinitions(input: { readonly definitions: EntityDe
     const id = `${kind}:${lower(value)}`; let r = maps[kind].get(id);
     if (r) {
       if (r.name !== value) {
-        r.unsupportedReasons.add('case-variant-allocation-order'); diagnostic('case-variant-allocation-order', id, 'reference', origin);
+        if (r.spellingEvidence) diagnostic('case-variant-proven-first-spelling', id, 'reference', origin);
+        else { r.unsupportedReasons.add('case-variant-allocation-order'); diagnostic('case-variant-allocation-order', id, 'reference', origin); }
       }
       if (++historyCount > cap.history) fail('history-limit'); r.references.push(origin); return id;
     }
     if (++recordCount > cap.definitions) fail('definition-limit');
-    r = { id, name: value, kind, allocation: { stage: origin.layerId, phase, origin }, references: [], loadStages: [],
+    if (spellingEvidence) history([], spellingEvidence.projectileReference ? [spellingEvidence.generalRoot, spellingEvidence.projectileReference] : [spellingEvidence.generalRoot]);
+    r = { id, name: value, kind, allocation: { stage: origin.layerId, phase, origin }, spellingEvidence, references: [], loadStages: [],
       fields: Object.create(null) as Mutable['fields'], unhandledFields: [], resets: [], unsupportedReasons: new Set() };
     if (++historyCount > cap.history) fail('history-limit'); r.references.push(origin);
     for (const spec of specs(kind)) r.fields[spec.name] = spec.yr && rv.profile === 'ra2' ? field<Scalar>(null, 'not-applicable', 'profile-field-absent') : field(spec.initial, 'default', 'native-constructor');
@@ -184,7 +194,12 @@ export function compileWeaponDefinitions(input: { readonly definitions: EntityDe
     const e = entry(s, key); if (!e) return;
     const old = r.fields[name]!, origins = history(old.history, [e.origin]);
     if (!e.value) { r.fields[name] = { ...old, history: origins }; return; }
-    const value = allocate(kind, e.value, e.origin, r.kind === 'weapon' ? 'weapon-load' : 'projectile-load');
+    // The first General weapon is visited first after Init clears both arrays. Only
+    // its initial source's explicit Projectile read proves an earliest projectile.
+    const proof = kind === 'projectile' && r.spellingEvidence?.kind === 'initial-general-weapon' &&
+      e.origin.layerId === r.spellingEvidence.generalRoot.layerId && lists.projectile.length === 0 ?
+      { kind: 'initial-general-projectile' as const, generalRoot: r.spellingEvidence.generalRoot, projectileReference: e.origin } : null;
+    const value = allocate(kind, e.value, e.origin, r.kind === 'weapon' ? 'weapon-load' : 'projectile-load', proof);
     const clear = /^(none|<none>)$/i.test(e.value);
     r.fields[name] = field(value, value === null && !clear ? 'unsupported' : 'explicit', clear ? 'reference-none' : 'native-find-or-allocate', e.origin, origins);
   }
@@ -202,6 +217,7 @@ export function compileWeaponDefinitions(input: { readonly definitions: EntityDe
     }
   }
   let gravity: EntityField<number> = field(3, 'default', 'native-rules-constructor');
+  let generalDropPodWeapon: EntityField<string> = field<string>(null, 'default', 'fresh-native-rules-constructor');
   for (const stage of rv.stages) {
     const layer = stage.layer.id, general = section(layer, 'General'), ge = entry(general, 'Gravity');
     if (ge) {
@@ -213,6 +229,20 @@ export function compileWeaponDefinitions(input: { readonly definitions: EntityDe
     if (warheads) {
       const keys = new Set<string>();
       for (const e of warheads.entries) { if (keys.has(e.key)) fail('repeated-consumed-key'); keys.add(e.key); allocate('warhead', e.value, e.origin, 'warhead-registry'); }
+    }
+    const dropPod = entry(general, 'DropPodWeapon');
+    if (dropPod) {
+      const h = history(generalDropPodWeapon.history, [dropPod.origin]);
+      if (!dropPod.value) generalDropPodWeapon = { ...generalDropPodWeapon, history: h };
+      else {
+        // A later mod/map or missing initial root cannot certify earlier native
+        // allocations. Never upgrade an existing record's proof retroactively.
+        const initial = stage === rv.stages[0] && (stage.layer.kind === 'base' || stage.layer.kind === 'expansion') && lists.weapon.length === 0;
+        const proof = initial ? { kind: 'initial-general-weapon' as const, generalRoot: dropPod.origin, projectileReference: null } : null;
+        const value = allocate('weapon', dropPod.value, dropPod.origin, 'general-root', proof);
+        const clear = /^(none|<none>)$/i.test(dropPod.value);
+        generalDropPodWeapon = field(value, value === null && !clear ? 'unsupported' : 'explicit', clear ? 'reference-none' : 'native-general-current-default-read', dropPod.origin, h);
+      }
     }
     // All normal Techno slots precede the weapon pass. Within this scope source line order
     // is stable; case-variant spelling conflicts are unsupported, not a native index claim.
@@ -305,11 +335,11 @@ export function compileWeaponDefinitions(input: { readonly definitions: EntityDe
   }
   const linked = new Set(links.flatMap(l => l.field.value ? [l.field.value] : []));
   const body = { schemaVersion: 1 as const, policy: WEAPON_DEFINITIONS_POLICY, profile: rv.profile,
-    entityFingerprint: definitions.fingerprint, sources: rules.layers, gravity, links, weapons, projectiles, warheads, diagnostics,
+    entityFingerprint: definitions.fingerprint, sources: rules.layers, gravity, generalDropPodWeapon, links, weapons, projectiles, warheads, diagnostics,
     coverage: { rootLinksResolved: links.every(l => l.field.status !== 'unsupported' && (l.field.value === null || byId.has(l.field.value))),
       rootClosuresTyped: links.every(l => l.field.status !== 'unsupported' && (l.field.value === null || byId.get(l.field.value)?.referenceClosure === 'typed')),
       linkedWeaponCount: linked.size, unsupportedRecords: all.filter(x => x.status === 'unsupported').length,
-      allocationScope: 'first-two-normal-history-and-warhead-registry' as const, nativeAllocationComplete: false as const },
+      allocationScope: 'first-two-normal-history-warhead-registry-and-general-root' as const, nativeAllocationComplete: false as const },
     requiredRuntimeWork: ['external-elite-numbered-special-weapon-allocation-order', 'complete-projectile-object-art-properties',
       'weapon-selection-and-target-legality', 'rof-burst-ammunition-and-veterancy', 'projectile-trajectory-and-impact',
       'armor-damage-and-spread-application', 'special-weapon-warhead-effects', 'native-parser-and-decimal-boundary-parity'],
