@@ -41,15 +41,15 @@ and hosted34476232295 pass with 1,145 public tests. Issue204 is closed. The
 273 native checks, original runtime/replay tests and a 64-program unchanged
 legacy comparison. Full opening authorities remain null with268/472 diagnostics.
 
-[Audio decoder PR209](https://github.com/lictl/WebRA2/pull/209) is composed at
-1b59d41caf3d4914486ce4b8c6a5c45b2f2c4d7e in
-local/worktrees/audio-decode-integration. All 1,154 public tests pass and the exact
-decoder GPL notice is distributed. bootstrap_review's
-[source review](https://github.com/lictl/WebRA2/pull/209#pullrequestreview-5167018438)
-passes; final root-only composition review/hosted checks precede ordinary merge.
-The six author paths remain unchanged. All149 valid private decodes match
-9,961,462 scalar FFmpeg values; one malformed stereo tail is rejected. Playback
-and native stream padding remain separate work.
+[Audio decoder PR209](https://github.com/lictl/WebRA2/pull/209) merged as
+295d34f3cd697cf686dea90bc69fed00cad3afcd, reviewed at
+1b59d41caf3d4914486ce4b8c6a5c45b2f2c4d7e. All 1,154 public tests and
+hosted34476999618 pass; its
+[final review](https://github.com/lictl/WebRA2/pull/209#pullrequestreview-5167176504)
+confirms exact GPL notice distribution and unchanged author files. Issue205 is
+closed. All149 valid private decodes match9,961,462 scalar FFmpeg values; one
+malformed stereo tail is rejected. Playback and native stream padding remain
+separate work.
 
 [Control groups PR208](https://github.com/lictl/WebRA2/pull/208) merged as
 86f736da07ed3d8718f8e3c2b466ab6fd34246bd after its
