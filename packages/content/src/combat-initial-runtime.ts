@@ -141,8 +141,13 @@ export function compileCombatInitialRuntime(input: { readonly actors: CombatActo
     return { typeId: type.id, kind: type.kind, image, frames, visits,
       standingPrimary: { status: !infantry ? 'not-applicable' : reasons.length ? 'unsupported' : 'ready', reasons } };
   });
-  const placements: InitialCombatPlacement[] = actors.placements.map((p, index) => {
+  // Actor metadata is sorted by row ID, which puts infantry:10 before infantry:2.
+  // Runtime IDs follow the verified scenario placement order, shared by WorldContent.
+  const sourceIds = new Map(objects.placements.map((p, index) => { charge(); return [p.row.id, index + 1] as const; }));
+  if (sourceIds.size !== objects.placements.length || sourceIds.size !== actors.placements.length) fail('placement-identity');
+  const placements: InitialCombatPlacement[] = actors.placements.map(p => {
     charge(); const kind = p.sourcePlacement.kind, relevant = kind === 'infantry' || kind === 'unit', reasons: string[] = [];
+    const actorId = sourceIds.get(p.rowId); if (actorId === undefined) return fail('placement-identity');
     let rankPercent: number | null = null, veterancy: number | null = null;
     if (relevant) {
       const row = p.sourcePlacement.row, text = row.origin.rawValue.split(';', 1)[0]!.replace(/^[ \t]+|[ \t]+$/g, '');
@@ -162,7 +167,7 @@ export function compileCombatInitialRuntime(input: { readonly actors: CombatActo
       }
       if (p.typeId === null) reasons.push('unresolved-type');
     }
-    return { rowId: p.rowId, actorId: index + 1, typeId: p.typeId, actorArmor: relevant ? 1 : null, actorFirepower: relevant ? 1 : null,
+    return { rowId: p.rowId, actorId, typeId: p.typeId, actorArmor: relevant ? 1 : null, actorFirepower: relevant ? 1 : null,
       rankPercent, veterancy, rankOrigin: p.sourcePlacement.row.origin, status: !relevant ? 'not-applicable' : reasons.length ? 'unsupported' : 'ready', reasons };
   });
   const payload = { policy: COMBAT_INITIAL_RUNTIME_POLICY, profile: actors.profile, source: actors.source, sources: { rules: actors.sources, art: av.stages.map(s => s.layer) },
