@@ -173,3 +173,142 @@ Canonical independent field projections, including origins/history:
 - YR: `8c17b03311b7bc44f62311261deef11901182075093df176a794c7171a3e5621`
 
 No browser or original-game execution is part of this standalone component gate.
+
+## Ordinary human decision component
+
+Issue [163](https://github.com/lictl/WebRA2/issues/163) adds the separate
+[ordinary death compiler and selector](../packages/content/src/combat-death-runtime.ts).
+The prerequisite API above is unchanged. This component makes a conditional
+execution decision for ordinary human infantry after a separately established
+lethal/nonlethal damage outcome; it does not apply damage or advance a world.
+
+```ts
+const plan = compileOrdinaryDeath({
+  death, actors, definitions, weapons, effects, rules, art, veterancy,
+});
+const decision = selectOrdinaryInfantryDeath(plan, {
+  victim, attacker, attackWeaponId, warheadId, currentWeaponId,
+  lethal, context,
+});
+```
+
+`death` and `veterancy` must be genuine factory results. The compiler reconstructs
+both from the exact actor/entity/weapon/effect/rules/art inputs and compares their
+complete fingerprints before issuing its own deeply frozen brand. The additional
+source field `JumpJet` defaults false from both native constructors and follows
+actual incoming property stages. The global `DeadBodies` vector is read from
+RA2 `[AudioVisual]` or YR `[General]`; missing/empty values retain the current
+vector. The fresh global vector is empty. A known nonempty type vector replaces
+the global fallback. Every possible corpse candidate, its initial allocation
+spelling, loaded art properties and all reachable graph edges must have the
+existing component's presentation-field closure before any candidate is selected.
+Late/unknown allocation, effects, unsupported fields and cycles remain blocked.
+This closure does not claim animation-constructor or sound-engine RNG neutrality.
+
+The plan exposes `types[].status=conditional-human` or `unsupported`, with explicit
+reasons and complete candidate/source metadata. The decision returns one of:
+
+| Status | Meaning |
+| --- | --- |
+| `nonlethal` | Source/current identity joins and complete-context premise hold; no death sequence or terminal work is requested |
+| `ready-ordinary-human` | All initial ordinary-human source and active-context conditions hold; request sequence11 for InfDeath1 or sequence12 for InfDeath2 |
+| `unsupported` | An active or unknown prerequisite prevents this decision; sequence and terminal work are null |
+
+The initial lethal subset requires human, non-Cyborg, non-Crashable, non-JumpJet
+infantry with a source Walk locomotor, zero MaxDebris, no custom DeathAnims and
+no type Explodes. The current context must be complete, standing on dry ground,
+not on a bridge, at height zero and sequence zero, with an actual Walk locomotor.
+It must include transport, passengers, driver, attached effects, spawn/slave
+managers, mind control, temporal, warping and immobilization facts; active values
+are unsupported. These conditions cannot be established by omitting unknown
+world actors or effects. Unit death and other infantry sequences remain outside
+this component.
+
+`context.veterancy` supplies the current native storage value (binary64 RA2,
+exact float32 YR). The selector re-evaluates EXPLODES using the genuine
+[reviewed veterancy source](combat-veterancy.md); a caller-supplied enabled flag
+cannot replace that join. Rookie states can remain eligible when an inactive
+veteran branch is unknown; an active or unknown EXPLODES branch is blocked.
+The victim's current weapon must join a known normal source link, be a loaded typed
+record and must have
+Suicide false. An armed victim cannot omit that current weapon. Unknown normal
+weapon links also prevent admission. The distinct attacker must join an infantry
+or unit placement, and its loaded typed attack weapon must link to the exact supplied typed
+warhead. Case/allocation ambiguities and unloaded records fail both incoming and
+current-weapon joins, including for nonlethal metadata decisions. Firing/impact eligibility is checked by the separate combat components.
+
+`victim` and `attacker` each retain runtime `id`, source `rowId`, `typeId` and
+`ownerId`. This initial seam requires unchanged source ownership and original
+placement identity; spawned actors and capture are subsequent work. The output
+retains those identities, map source, attack weapon, warhead, plan fingerprint
+and the current source-bound veterancy selection. A matching source row does not
+authenticate current world state. All dynamic facts, including the damage outcome,
+current weapon and rank, must be supplied from the complete authoritative world.
+
+A ready decision's `terminal` retains all `corpseCandidates`, requests
+`selection=one-native-word-modulo-count`, `removal=at-explicit-sequence-completion`
+and `occupancy=release-owned-walk-occupancy`. Successful native corpse allocation
+consumes one word even for one candidate; the helper itself never draws RNG.
+The inspected global fallback divides by its count without an empty-count guard,
+so an empty global vector is explicitly unsupported. No invented no-draw fallback
+or native allocation-failure policy is applied.
+
+Both native profiles preserve Health<=0 for these death sequences and defer
+UnInit to sequence completion. The UnInit→Infantry/Foot Limbo→Walk unmark path
+clears the infantry occupation bit. The coordinator can therefore retain an
+owned dying actor/anchor until completion, with named WebRA2 duration ticks and
+command/combat cancellation rules. Native animation frame cadence, complete
+mission/house/team accounting and global random-call order are not reproduced
+by this component. Removal must publish victim/owner/attacker/source identity
+for that accounting. `nativeExecutionVerified` and `canStartCampaign` remain false;
+a ready component decision does not establish complete campaign admission.
+
+Limits are the prerequisite limits above and can only be lowered. Cold preparation
+runs separately bounded prerequisite reconstruction, veterancy reconstruction,
+source-view validation and this component's traversal; limits are per pass rather
+than a shared peak-memory promise. The veterancy pass additionally keeps its own
+field/token limits and 32 MiB serialization cap. The new traversal caps copied
+history, references, work and accumulated reason characters before expansion.
+Selections accept only exact plain data records and bounded primitive scalars,
+copy identities before returning, and reject extra fields/accessors/boxed values.
+No successful result is returned after a failed budget or input check.
+
+The [10 original tests](../tests/content/combat-death-runtime.test.ts) exercise both
+profiles and InfDeath outcomes, all-candidate/transitive closure, inactive versus
+lethal branches, every current-context condition, source and current weapon joins,
+rank/storage boundaries, malformed inputs, ownership and lower budgets. No source
+RNG or world is mutated. Private reproduction is separate:
+
+```sh
+node --import tsx local/probe163.ts
+python3 local/native155-runtime/oracle155.py
+python3 local/native155-runtime/animation-oracle.py
+python3 local/native155-runtime/oracle163.py
+local-native-capstone-python local/native155-runtime/ledger163.py
+```
+
+These scripts are private reviewer inputs, not distributed retail fixtures.
+The probe verifies the complete root/member identity for raw rules, art and map
+sources. Separate Python parsers rehash and reconstruct all predecessor death
+fields (181,172 scalar comparisons), the entire existing animation graph
+(270,700 scalar leaves), then the new global/type corpse and JumpJet projection,
+source histories and 576 conditional decisions (24,631 additional scalar
+comparisons). Contexts cover rank0/1/2 with lethal/nonlethal outcomes and an ordinary
+source weapon/warhead per placed infantry; they are generated contexts, not
+observed native battles.
+
+| Private opening | All types | Conditional human types | Placed conditional humans | Contexts | Ready / nonlethal / unsupported |
+| --- | --- | --- | --- | --- | --- |
+| RA2 | 531 | 35 | 36 | 240 | 108 / 120 / 12 |
+| YR | 691 | 47 | 50 | 336 | 150 / 168 / 18 |
+
+Independent canonical source/decision projections:
+
+- RA2: `1b28f33d4a5069170ca01496084f9f968db17cf6478ac55fc89accba688137a0`
+- YR: `a48aef407427f0a3a389afe5d5958c11428739d2dd8e89e560115b28e424f363`
+
+The additional native ledger has 45 complete instruction/data spans, 5,774 bytes,
+and canonical SHA-256 `b35e6d53ca42d80e6c0af4af5ae296df5326ac6d7a7f4d5da4d6faba76bb463e`.
+The [provenance appendix](../packages/content/COMBAT_DEATH_PROVENANCE.md) describes
+its interpretations and exact ranges. No original program, browser battle or
+campaign was executed for this standalone component gate.

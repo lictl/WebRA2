@@ -219,11 +219,14 @@ corresponding source accompany distribution; the web build includes the notice.
 The move/jump controller and compound world transactions retain their own notice
 separately from the shared destination planner and MIT world simulation.
 
-The original actor death prerequisite compiler is GPL-3.0-or-later. Its
+The original actor death prerequisite compiler and `combat-death-runtime.ts`
+conditional ordinary-human decision helper are GPL-3.0-or-later. Their
 [provenance notice](../packages/content/COMBAT_DEATH_PROVENANCE.md), GPL text
 and corresponding source accompany distribution. The build includes this notice
 separately from animation effects and combat actor initialization. The compiler
-retains conditional effects and source references; it does not execute death.
+retains conditional effects and source references; the decision helper preserves
+source/current-weapon/veterancy requirements and requests terminal corpse/removal
+work. Neither module applies world damage, samples RNG or schedules a death.
 
 The original source combat veterancy compiler and four-consumer selector are
 GPL-3.0-or-later. The [component notice](../packages/content/COMBAT_VETERANCY_PROVENANCE.md),
