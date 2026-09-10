@@ -36,6 +36,9 @@ test('manual target choice survives subscription updates until a new enemy inspe
   unmount=mountWorld(new Element(),controller);const target=nodes.get('#world-attack-target');assert.equal(target.value,'2');
   target.value='3';target.handlers.change();assert.equal(target.value,'3');assert.deepEqual(controller.state.selectedEntities,[1]);
   controller.selectEntities([1]);assert.equal(target.value,'3');
+  controller.selectEntities([1],'toggle');assert.deepEqual(controller.state.selectedEntities,[]);assert.equal(controller.state.worldNotice,'worldSelectionCleared');
+  controller.selectEntities([2],'toggle');assert.deepEqual(controller.state.selectedEntities,[]);assert.equal(controller.state.worldNotice,'worldCannotSelect');
+  controller.selectEntities([1]);assert.equal(controller.state.worldNotice,'worldSelectionChanged');
   const initialHash=session.snapshot().stateHash;
   nodes.get('#world-open-saves').handlers.click();assert.equal(nodes.get('#world-saves-panel').hidden,false);assert.equal(nodes.get('#world-orders-panel').hidden,true);assert.equal(controller.state.running,false);
   nodes.get('#world-open-diagnostics').handlers.click();assert.equal(nodes.get('#world-diagnostics-panel').hidden,false);assert.equal(target.value,'3');assert.equal(session.snapshot().stateHash,initialHash);
