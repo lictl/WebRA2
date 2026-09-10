@@ -13,7 +13,7 @@ let generation=0,current=null,raf=0;
 $('refresh').disabled=true;
 function stats(times){const a=[...times].sort((a,b)=>a-b);return {samples:a.length,medianMs:a[Math.floor(a.length/2)]??null,p95Ms:a[Math.ceil(a.length*.95)-1]??null,p99Ms:a[Math.ceil(a.length*.99)-1]??null,maxMs:a.at(-1)??null};}
 async function metadata(){return {schema:1,startedAt:new Date().toISOString(),browser:navigator.userAgent,details:await navigator.userAgentData?.getHighEntropyValues(['fullVersionList','architecture','platformVersion'])??null,isolated:globalThis.crossOriginIsolated,dpr:devicePixelRatio};}
-function buttons(busy){for(const id of ['run','correctness'])$(id).disabled=busy;for(const id of ['profile','actors','viewport','mode'])$(id).disabled=busy;}
+function buttons(busy){for(const id of ['run','correctness'])$(id).disabled=busy;for(const id of ['profile','actors','viewport','mode','map-size'])$(id).disabled=busy;}
 function cleanup(reason='Disposed'){
  generation++;cancelAnimationFrame(raf);const c=current;current=null;
  if(c){c.abort?.abort();c.client?.dispose(reason);c.verifier?.dispose(reason);c.timing?.dispose();c.renderer?.dispose();c.reject?.(Error(reason));}
@@ -65,18 +65,24 @@ async function correctness(){
 }
 async function run(){
  cleanup();const job=generation;buttons(true);
- const profile=$('profile').value,count=Number($('actors').value),width=Number($('viewport').value),height=width===960?640:720,coupled=$('mode').value==='coupled';
- const result={...await metadata(),kind:'sustained-gpu',profile,count,width,height,coupled,warmupMs:10000,durationMs:60000,frames:[],completions:[],rafTimes:[],worker:[],inputs:[],samples:[],pauseEvents:[]};if(job!==generation)return;
+ const profile=$('profile').value,mapSize=Number($('map-size').value),count=Number($('actors').value),width=Number($('viewport').value),height=width===960?640:720,coupled=$('mode').value==='coupled';
+ const result={...await metadata(),kind:'sustained-gpu',worldProfile:coupled?profile:null,rendererProfile:'ra2',mapSize,count,width,height,coupled,warmupMs:10000,durationMs:60000,frames:[],completions:[],rafTimes:[],worker:[],inputs:[],samples:[],pauseEvents:[]};if(job!==generation)return;
  let c;
  try{
-  if(!['ra2','yr'].includes(profile)||![64,256,1024].includes(count)||![960,1280].includes(width))throw Error('Invalid controls');
-  const coldStart=performance.now(),fixture=renderFixture(64),cpuPreparedAt=performance.now(),scene=compileGpuScene(fixture.scene,fixture.batch),scenePreparedAt=performance.now();
+  if(!['ra2','yr'].includes(profile)||![64,256,1024].includes(count)||![960,1280].includes(width)||![32,64].includes(mapSize))throw Error('Invalid controls');
+  const coldStart=performance.now(),fixture=renderFixture(mapSize),cpuPreparedAt=performance.now(),scene=compileGpuScene(fixture.scene,fixture.batch),scenePreparedAt=performance.now();
   canvas.width=width;canvas.height=height;const gl=canvas.getContext('webgl2',options);if(!gl)throw Error('WebGL2 unavailable');const renderer=new GpuRenderer(gl);renderer.load(scene);const loadedAt=performance.now();
   c={renderer,client:coupled?new SimulationClient():null,verifier:null,timing:null,paused:false,snapshot:null,snapshotReceivedAt:0,frameId:0,autoBucket:-1,pendingInput:null,finished:false};current=c;
   result.cold={fixtureMs:cpuPreparedAt-coldStart,sceneMs:scenePreparedAt-cpuPreparedAt,contextAndLoadSubmitMs:loadedAt-scenePreparedAt,sceneAllocations:scene.allocations,rendererStats:renderer.stats()};
   result.gl={version:gl.getParameter(gl.VERSION),renderer:gl.getParameter(gl.RENDERER),attributes:gl.getContextAttributes()};
+  let coldComplete=null;
+  c.timing=new GpuTiming(gl,r=>{if(r.metadata.cold)coldComplete=r;if(r.metadata.measured)append(result.completions,r);const input=result.inputs.find(i=>i.frameId===r.id);if(input)input.frameCompletedObservedAt=r.observedAt;});result.timerQueryAvailable=!!c.timing.ext;
+  const firstAt=performance.now(),firstFrame=prepareGpuFrame(scene,{cameraX:mapSize*30-width/2,cameraY:mapSize*15-height/2,zoom:1,width,height,backgroundRgba:[17,21,23,255]}),firstPrepared=performance.now();
+  c.timing.begin(0,firstPrepared,{cold:true,measured:false});const firstReceipt=renderer.draw(firstFrame),firstSubmitted=performance.now();c.timing.end();
+  while(!coldComplete){await new Promise(resolve=>setTimeout(resolve,0));if(job!==generation)return;c.timing.poll(performance.now());}
+  result.cold.firstUse={prepareMs:firstPrepared-firstAt,submitMs:firstSubmitted-firstPrepared,observedCompleteMs:coldComplete.observedAt-firstAt,gpuMs:coldComplete.gpuMs,receipt:{drawCalls:firstReceipt.drawCalls,uploadedBytes:firstReceipt.uploadedBytes}};
+  if(gl.getError()!==gl.NO_ERROR)throw Error('Cold GL error');
   if(c.client){const at=performance.now(),r=await c.client.request('init',{profile,count});if(job!==generation)return;c.snapshot=r.snapshot;c.snapshotReceivedAt=performance.now();result.world={modelHash:r.snapshot.modelHash,movers:r.movers,initRoundtripMs:c.snapshotReceivedAt-at};}
-  c.timing=new GpuTiming(gl,r=>{if(r.metadata.measured)append(result.completions,r);const input=result.inputs.find(i=>i.frameId===r.id);if(input)input.frameCompletedObservedAt=r.observedAt;});result.timerQueryAvailable=!!c.timing.ext;
   let start,measuredStart,lastStatus=0,simulationOrigin,pausedMs=0,pauseStarted=null;
   function advance(ticks,order,input=null){
    const at=performance.now(),expectedTick=c.snapshot.nextTick;
@@ -104,7 +110,7 @@ async function run(){
     }
     if(!c.paused&&c.timing.pending.length<8){
      const id=++c.frameId,phase=id%600,dx=(phase<300?phase:600-phase)-150,dy=((id%240)<120?id%240:240-id%240)-60;
-     const view={cameraX:64*30-width/2+dx,cameraY:64*15-height/2+dy,zoom:1,width,height,backgroundRgba:[17,21,23,255]};
+     const view={cameraX:mapSize*30-width/2+dx,cameraY:mapSize*15-height/2+dy,zoom:1,width,height,backgroundRgba:[17,21,23,255]};
      const objects=fixture.batch.objects.map((o,i)=>{const actor=c.snapshot?.actors[(i*4)%count],offset=actor?(actor.x-2)*.25:((id+i)%60)*.25;return {...o,x:o.x+Math.floor(offset),y:o.y+(id+i)%3,depth:{...o.depth,base:o.depth.base+(id+i)%3}};});
      const prepareAt=performance.now(),prepared=prepareGpuFrame(scene,view,objects),preparedAt=performance.now(),meta={measured,frameId:id,snapshotTick:c.snapshot?.nextTick??null,snapshotAgeMs:c.snapshot?prepareAt-c.snapshotReceivedAt:null};
      if(c.timing.begin(id,preparedAt,meta)){const receipt=renderer.draw(prepared),submittedAt=performance.now();c.timing.end();const endedAt=performance.now();

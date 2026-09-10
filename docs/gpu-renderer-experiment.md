@@ -74,3 +74,12 @@ stencil or preserved drawing buffer. Tiny16/32-pixel atlas variants use matching
 clipped viewports and retain global source order. Forced context loss/restoration
 and double disposal are measured separately. Final corrected measurements remain
 pending; exploratory failure observations are preserved privately.
+
+The frozen matrix uses an explicitly RA2-tagged original renderer fixture. The
+profile selector applies only to the original worker model. Map32/64 is recorded
+independently of actor count and viewport. Required primary rows are map64 with
+1024 total actors/64 movers, at960×640 with the RA2 world and1280×720 with the YR
+world, three rotated runs each. Supporting single-run rows cover renderer-only
+32/64 maps at both viewports and coupled64/256 actors at960×640. Single-run rows
+will not be presented as repeated evidence. Cold first use reports preparation,
+submission, an asynchronous completion observation and the available GPU query.
