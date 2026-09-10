@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 1,
+  "scope": "Static placement field framing and ordinary zero-rank ground admission only; no native program executed or full AI/combat behavior claim.",
+  "images": [
+    {
+      "profile": "ra2",
+      "filename": "game.exe",
+      "size": 5077312,
+      "sha256": "73288c03b58d370be268ca6d156b4e33bfdb2066dc980359467d8852ff3b00df",
+      "ranges": [
+        {
+          "purpose": "infantry-source-framing",
+          "kind": "code",
+          "start": "0x506960",
+          "endExclusive": "0x506b9e",
+          "offset": 1075552,
+          "size": 574,
+          "sha256": "8e183c05ff856d09a1c5e658c47896c6bf2cd919b6412e28dec8c4b3e568f837"
+        },
+        {
+          "purpose": "infantry-rank-group-bridge-recruitment",
+          "kind": "code",
+          "start": "0x506b9e",
+          "endExclusive": "0x506c88",
+          "offset": 1076126,
+          "size": 234,
+          "sha256": "678dcd8972ab8631aae7c3070ceda09cbeea67f81b02d7b3dd0cf9a57851af09"
+        },
+        {
+          "purpose": "unit-source-framing",
+          "kind": "code",
+          "start": "0x706ae0",
+          "endExclusive": "0x706cee",
+          "offset": 3173088,
+          "size": 526,
+          "sha256": "6a257d0269defd7c3f9ff499eb879d1928845366243196c850acc0e060c3db6a"
+        },
+        {
+          "purpose": "unit-rank-group-bridge-follower-recruitment",
+          "kind": "code",
+          "start": "0x706cee",
+          "endExclusive": "0x706e22",
+          "offset": 3173614,
+          "size": 308,
+          "sha256": "a8f59a668af7255cda288d9b53b3e6f609130b583b6a2b26167c9e2d5e616a42"
+        },
+        {
+          "purpose": "rank-scale-and-double-store",
+          "kind": "code",
+          "start": "0x713590",
+          "endExclusive": "0x71359f",
+          "offset": 3224976,
+          "size": 15,
+          "sha256": "caaf367f1e5e647e79f349d214f69a67a1c33904fc5d6add5fe4e271b2224a1b"
+        },
+        {
+          "purpose": "decimal-integer-and-wrapper",
+          "kind": "code",
+          "start": "0x782d72",
+          "endExclusive": "0x782e08",
+          "offset": 3681650,
+          "size": 150,
+          "sha256": "cf0b6b9b902f56acbd320c0b17a0a3e041e0897be5815056412510bdf97bbc39"
+        },
+        {
+          "purpose": "rank-multiplier",
+          "kind": "data",
+          "start": "0x79c518",
+          "endExclusive": "0x79c520",
+          "offset": 3786008,
+          "size": 8,
+          "sha256": "c738dd99fada954a0be83cb94069e65973256ed5a199cd293841c789ad3b0910"
+        }
+      ]
+    },
+    {
+      "profile": "yr",
+      "filename": "gamemd.exe",
+      "size": 5286208,
+      "sha256": "3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600",
+      "ranges": [
+        {
+          "purpose": "infantry-source-framing",
+          "kind": "code",
+          "start": "0x51fb00",
+          "endExclusive": "0x51fd45",
+          "offset": 1178368,
+          "size": 581,
+          "sha256": "7cf15e9b8409b9b1d99c56a452e8e270cbd4edfdba8f8a2fd0ce464d862c994e"
+        },
+        {
+          "purpose": "infantry-rank-group-bridge-recruitment",
+          "kind": "code",
+          "start": "0x51fd45",
+          "endExclusive": "0x51fe32",
+          "offset": 1178949,
+          "size": 237,
+          "sha256": "d0f64aeb80bdfc504b4d568769d7f63d7bf225173c585face4f003aea01ba00d"
+        },
+        {
+          "purpose": "unit-source-framing",
+          "kind": "code",
+          "start": "0x743270",
+          "endExclusive": "0x743486",
+          "offset": 3420784,
+          "size": 534,
+          "sha256": "6b116e3696d84cfe9d1689ccd5b4c3447b3054aaf47425f0779c2c507d898dfe"
+        },
+        {
+          "purpose": "unit-rank-group-bridge-follower-recruitment",
+          "kind": "code",
+          "start": "0x743486",
+          "endExclusive": "0x7435c6",
+          "offset": 3421318,
+          "size": 320,
+          "sha256": "a3fdd2951e61482720cf19fb86b4ae656059a973cc0579dc5232c46dfc7b338f"
+        },
+        {
+          "purpose": "rank-scale-and-float-store",
+          "kind": "code",
+          "start": "0x7500e0",
+          "endExclusive": "0x7500ef",
+          "offset": 3473632,
+          "size": 15,
+          "sha256": "ea8efdd2df7a22d9d0b946a0bccc5a43230105783dfe45f7eaa84ecbe7bf97c5"
+        },
+        {
+          "purpose": "decimal-integer-and-wrapper",
+          "kind": "code",
+          "start": "0x7c9b72",
+          "endExclusive": "0x7c9c08",
+          "offset": 3971954,
+          "size": 150,
+          "sha256": "d6ad65951e66032e13a2401a62560c3eddd92e6ce15067a8cd916f09cece7b5f"
+        },
+        {
+          "purpose": "rank-multiplier",
+          "kind": "data",
+          "start": "0x7e3808",
+          "endExclusive": "0x7e3810",
+          "offset": 4077576,
+          "size": 8,
+          "sha256": "c738dd99fada954a0be83cb94069e65973256ed5a199cd293841c789ad3b0910"
+        }
+      ]
+    }
+  ]
+}
