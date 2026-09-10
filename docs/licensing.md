@@ -361,3 +361,9 @@ GPL-3.0-or-later work. The [component notice](../packages/sim/MISSION_TEAM_CELL_
 is copied into the browser distribution. The retained genuine traversal accessor
 in world content has that component's existing GPL license. No new dependency,
 retail implementation, raw source table or native listing is included.
+
+The separate fresh-campaign team allocation source compiler and original tests are
+GPL-3.0-or-later. Its [allocation notice](../packages/sim/MISSION_TEAM_ALLOCATION_PROVENANCE.md)
+is included byte-for-byte in the code-only development build. It adds no dependency
+and does not grant native AI or campaign execution authority. Native listings,
+retail names and rule/mission rows are absent from the distribution.

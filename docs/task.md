@@ -25,11 +25,22 @@ Both profile save/replay/advance/restore identities match. The four early unattr
 console messages and historical mouse-cause uncertainty remain explicit in the
 [feedback report](running-order-input.md).
 
-Current root work is [dynamic team cell context212](https://github.com/lictl/WebRA2/issues/212) /
-[draft PR217](https://github.com/lictl/WebRA2/pull/217), in local/worktrees/mission-team-cell-context, branch codex/212-team-cell-context,
-with merged main215 included at6b0bad3. The root checkout is now clean main11d403e; the earlier
-codex/132-source-attack-world branch remains preserved. Node24.20.0 npm ci passed
-in the new root and author worktrees. No human input is needed.
+[Team cell PR217](https://github.com/lictl/WebRA2/pull/217) merged as
+14b5f2dbb206b812730e7a0212aa611ef05a72de after exact00cbb0c
+[independent review](https://github.com/lictl/WebRA2/pull/217#pullrequestreview-5168534640)
+and hosted34490622663. Issue212 is closed. Full1,219 tests/types,189 documents/955
+links,674 publication paths, M0 and76 outputs/145 inputs passed. Source/raw/native,
+private common-runtime and old-world adapter comparisons were independently
+reproduced; the [dispatch report](mission-team-cell-dispatch.md) preserves their
+precise scope. Both opening authorities remain null with254/461 required diagnostics.
+
+Current root work is [allocation issue213](https://github.com/lictl/WebRA2/issues/213) /
+[draft PR218](https://github.com/lictl/WebRA2/pull/218), in
+local/worktrees/team-allocation-integration, branch codex/213-team-allocation-integration.
+Root composes author242979c with merged main212 at4ffcbcd, packages the exact GPL
+notice and updates this handoff. The root checkout is clean main14b5f2d; earlier
+worktrees/branches remain preserved. Node24.20.0 npm ci passed in the integration
+and detached reviewer checkouts. No human input is needed.
 
 [Team transaction PR211](https://github.com/lictl/WebRA2/pull/211) merged as
 19b3ec78cf108dff65b39c4a695e954d4c0bcecb after final18aa5006614b4f8c7399047989d548ae283e8924
@@ -53,58 +64,46 @@ comparison handles large YR declarations without increasing save serializer limi
 
 The active wave has exclusive ownership:
 
-- Root owns212 existing VM/world/contracts, distribution, handoff and merges.
-  Add an explicit genuine team-cell capability, derive actors from common runtime
-  history after its one world step, and deliver successful cell movement before
-  scenario polling. Preserve no-team saves/hashes and reject unsupported object
-  or combat composition. Rebuild dynamic context during restore/replay.
-- mix_reader owns212 new source/context modules, tests and native evidence in
-  local/worktrees/team-cell-source, codex/212-team-cell-source. Its two-stage API
-  first checks every future spawn archetype and the supported world invariant,
-  then constructs a genuine context from the common team history. Constructor
-  defaults alone do not prove future cloak/bridge/transport eligibility. Both
-  coverage gates are required; initial and released actors retain provenance.
-  Worker commits join the combined root212 PR, with no duplicate PR.
-- bootstrap_review owns [native allocation closure213](https://github.com/lictl/WebRA2/issues/213)
-  in local/worktrees/team-allocation-source, codex/213-team-allocation-source.
-  New source-only catalog and evidence retain Name lookup aliases, ordered table
-  loads and explicit/AI/replacement roots. Missing default houses and initial AI
-  gates do not prove lifetime inactivity. This does not add an AI scheduler or
-  silently relax the existing source policy.
-- browser_feasibility completed215 and its actual Chrome acceptance, then owns
-  independent review of212 source/context and root integration in
-  local/reviews/mission-team-cell-212. Preserve frozen servers through4197.
+- Root independently reviewed allocation source242979c in
+  local/reviews/team-allocation-213. It owns current213 distribution/handoff,
+  subsequent existing contracts/VM/world/browser integration and ordinary merges.
+- mix_reader independently reviews the final root213 composition in
+  local/reviews/team-allocation-composition-218. Its own imported212 source/context
+  files are unchanged and excluded from its independent authorship scope.
+- browser_feasibility finished217 review and owns
+  [PCM playback216](https://github.com/lictl/WebRA2/issues/216): new bounded browser
+  output modules, original lifecycle tests and actual Chrome evidence. It remains
+  the sole CUA owner. Preserve frozen servers through4197 and existing media/probe
+  servers; other-browser E2E remains deferred under D17.
+- bootstrap_review owns [sound/EVA policy219](https://github.com/lictl/WebRA2/issues/219),
+  new content-only source modules/tests/native metadata from genuine cue/audio
+  catalogs with explicit fresh-process initialization. Native controls, mission
+  caller overrides and sample partitions retain unknown runtime state. Source
+  preparation does not select a random alternative or grant playback authority.
+  Sound's evidenced RNG is a separate global generator, not Scenario RNG.
 
-212 integrated code8cf3f9a includes final worker303bc6b, with31 focused tests
-and final full1,219 passing:189 docs/955 links,674 publication paths, M0,
-76 outputs/145 approved inputs. Native56 ranges/19,425 bytes/77 checks, raw19,756
-source assertions, private200/128-tick context/replay and7,913 projection assertions
-have independent reproduction. Source work now reserves two fixed counters and
-seven disjoint configurable counters;8,395,216 passes and8,395,215 rejects in both
-original fixtures. Fresh default-budget source hashes are unchanged. The existing
-no-team comparison covers64 original models/1,536 ticks/3,392 exact results while
-reusing current dependencies. Fresh438-file complete preflight still has null
-opening authorities and254/461 required diagnostics. Independent full checks and fresh source reproduction pass. Hosted checks and
-exact-head COMMENT review follow this evidence-only handoff update before ordinary merge.
+Allocation [source review](https://github.com/lictl/WebRA2/pull/218#pullrequestreview-5168484186)
+passes at242979cc0aafeb09b1e1b0a61cdf696d20e25090. A found aggregate-work issue is
+fixed with disjoint nested-view reservations. Independent original both-profile
+fixtures reject807/1887 and accept1888 with unchanged SHA and1,303 counted units.
+All10 focused cases pass. Fresh438-file preparation reproduces every public source
+census field; raw49,788 and retained22,436 assertions pass over five rehashed roots/
+eight members. The native ledger is byte-identical:44 ranges/12,515 bytes/102 checks.
+The earlier independent full1,206 and author final1,207/hosted34490074735 pass.
+Existing source diagnostics, whole-source readiness and all native/runtime/campaign
+authority gates remain unchanged; this is source evidence only. Final combined1,229 tests/types,191 documents/964 links,680 publication paths,
+M0 and77 code/license outputs from145 inputs pass. A first integration check caught
+an omitted new notice in the isolated build-test fixture; the fixture and its exact
+byte assertion are now updated. All12 executable/UI outputs match merged212 and
+the complete output/input hash audit passes; only the new notice and licensing
+summary differ. The six author source/evidence paths remain byte-identical to the
+reviewed242979c. Nonauthor final composition review and hosted checks are next
+before ordinary PR218 merge.
 
-[Allocation PR218](https://github.com/lictl/WebRA2/pull/218) is source-reviewed at
-242979cc0aafeb09b1e1b0a61cdf696d20e25090 by root. Its aggregate work allowance finding
-is fixed;10 original cases and independent fresh438/raw49,788+22,436/native102 checks
-pass. The earlier full independent suite passed1,206; author final1,207 and
-hosted34490074735 pass. Existing source diagnostics and all runtime/campaign gates
-remain unchanged. Root next composes the exact source with merged212, packages its
-notice and updates the handoff; a nonauthor reviews that final composition.
-
-[PCM playback216](https://github.com/lictl/WebRA2/issues/216) is next for
-browser_feasibility after final212 review: bounded genuine decoded-PCM output,
-user-gesture activation and lifecycle, actual Chrome original-tone evidence.
-[Sound/EVA policy219](https://github.com/lictl/WebRA2/issues/219) is independently
-assigned to bootstrap_review, new content-only source policy from genuine cue/audio
-catalogs with explicit fresh-process initialization. Native caller overrides,
-controls and sample partitions retain unknown runtime state; source preparation
-never chooses a random alternative or grants playback authority. Root owns shared
-contracts, VM/world/browser composition, distribution, handoff and ordinary merges.
-Chrome remains the development browser under D17. No human input is needed.
+Next implementation work remains the216 output consumer and219 native playback
+policy, then their exact source/VM/browser integration. Continue autonomously,
+commit coherent changes and retain linked issue/PR/review evidence. No original
+mission is yet fully playable and no human input is needed.
 
 [Object combat PR207](https://github.com/lictl/WebRA2/pull/207) merged as
 3543b567d6c652ea0648a3f5832fbcee18156ddc, reviewed at
