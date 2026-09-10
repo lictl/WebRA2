@@ -18,13 +18,16 @@ Current wave: [source combat PR177](https://github.com/lictl/WebRA2/pull/177) me
 as `cfdba372c16eeee945e9972b9f4a45cc11f16391` after957 tests, both bounded actual
 Chrome scenarios, hosted checks and [final independent review](https://github.com/lictl/WebRA2/pull/177#pullrequestreview-5164526784)
 at `3100d49138263ec72965f3398b432b73f9d3c702`.
-Coordinator merged [recruitment PR181](https://github.com/lictl/WebRA2/pull/181)
-for [issue175](https://github.com/lictl/WebRA2/issues/175), while browser_feasibility
-implements the [campaign chooser179](https://github.com/lictl/WebRA2/issues/179),
-mix_reader implements [ground traversal178](https://github.com/lictl/WebRA2/issues/178),
-and bootstrap_review investigates [allied infantry passage180](https://github.com/lictl/WebRA2/issues/180).
-Coordinator integrates ground world navigation and source infantry occupancy;
-[trigger lifecycle182](https://github.com/lictl/WebRA2/issues/182) has a reviewed VM extension.
+Recruitment181, ground traversal183, trigger lifecycle184 and campaign chooser185
+are merged. Coordinator finishes the composed infantry core186 with mix_reader
+reviewing its final merge and distribution delta. browser_feasibility owns the next
+browser adoption for [ground traversal178](https://github.com/lictl/WebRA2/issues/178)
+and [allied infantry passage180](https://github.com/lictl/WebRA2/issues/180), including
+settled slot presentation and the original default-player Chrome route.
+bootstrap_review implements the source attachment catalog for
+[mission bindings187](https://github.com/lictl/WebRA2/issues/187); coordinator retains
+existing VM/world/contracts ownership. [Lifecycle182](https://github.com/lictl/WebRA2/issues/182)
+still requires source attachment integration beyond its merged VM extension.
 
 Recruitment integrates the complete source TaskForce selector, append-only claim and
 release history, persistent Flash50 and compound save/replay. Source and shared-runtime
@@ -55,23 +58,58 @@ Action55 is radar, not forcing; both openings have zero action22 occurrences,
 and only RA2's opening has one action12. Neither whole opening becomes executable;
 automatic source attachment creation/deletion remains outside this VM.
 
-Ground [PR183](https://github.com/lictl/WebRA2/pull/183) is WORKING in
-`local/worktrees/ground-integration`, branch `codex/178-ground-integration`.
-Worker source21f6cae is preserved; root7bba382 adds genuine world/source-combat
-joins, original flat shot-context exclusions, three integration tests and the
-bundle notice. On main5459dc1,988 tests/types,152 docs/773 links,526 publication
-paths and62 code/license outputs from131 inputs pass. Main184 is then merged;
-composed checks and independent root-adapter review are pending. Root reproduces
-both private graph fingerprints and independently rehashes all38 native ranges /
-3105 bytes with complete code endpoints. The author's separate Python raw reader
-reproduces all430 TMP selections,21816 cells,94901 class rows and718726 edges.
-The original RA2 occupied component expands90 to701 cells but reaches none of24
-currently supported firing cells; this is not the default-player acceptance gate.
-[Infantry passage180](https://github.com/lictl/WebRA2/issues/180) has source/helper
-checkpoint620a83a and a private available-slot result through the original allied
-blocker. Root world/save/reservation integration and actual Chrome remain next.
-Campaign chooser179 separately owns retained-file worker/UI/loader edits; no
-original mission is playable and no human input is currently required.
+Ground [PR183](https://github.com/lictl/WebRA2/pull/183) merged as
+`059d57f1d71210ce37cb5b54342d666db0354520`, reviewed head
+`097783adf84d945c8a00527ec5f979e2c1f63cbc`, after996 tests and hosted checks.
+The separate [coordinator-adapter review](https://github.com/lictl/WebRA2/pull/183#pullrequestreview-5164963814)
+adds2030 assertions and both fresh private source-world movement/shot/restore/replay
+probes. Worker source and root adapter have distinct recorded reviewers. All actors,
+static blockers and inherited flat shot exclusions remain.
+
+[Infantry passage PR186](https://github.com/lictl/WebRA2/pull/186) is WORKING in
+`local/worktrees/infantry-integration`, branch `codex/180-infantry-integration`.
+Worker6453cb2 source/helper has [independent review](https://github.com/lictl/WebRA2/pull/186#pullrequestreview-5165028486):
+986 original tests,26951 extra assertions,44 native ranges/11239 bytes and the
+private11865-assertion source oracle pass. Its pending-death correction preserves
+settled slots but blocks incoming reservations. Root adds the complete base-model
+composition proof, optional saved slots and engine7, navigation/reservations,
+Stop/retarget/death/rollback, nine integration tests and distribution notice.
+Core5a85829 passes1013 tests/types; independent review found a revived initially
+absent hard-anchor overlap. Root restores the existing rejection and adds both-profile
+regressions. Group preflight now follows source-bound slot occupancy. Corrected
+`a04c18666b2e370b74c8e67a28ead1589981ead2` passes1015 tests and hosted checks;
+the [independent final core review](https://github.com/lictl/WebRA2/pull/186#pullrequestreview-5165201048)
+adds18044 motion assertions and312 group assertions with no remaining findings.
+Merge3ba213a composes campaign185 without changing the reviewed core. Full composed
+validation passes1026 tests/types,158 documents/795 links,554 publication paths and
+65 code/license outputs from140 approved inputs; final exact-head merge/distribution
+review and hosted checks follow. The [core report](world-infantry-passage.md)
+records D03 dual occupancy, dying-edge cancellation and work accounting. The old
+world policies retain their exact behavior; source combat keeps flat shot restrictions.
+Private fresh default RA2 movement now reaches a supported shot through allied
+slots and completes death/save/replay, retaining all811 actors/1108 footprint cells.
+This is a headless source result; source artifacts stay under ignored
+`local/worktrees/infantry-integration/local/bridge/`. RA2 reaches tick1766 with11
+checkpoints sharing an actual blocking ally. YR completes its default-player route
+and death at tick518 with full replay but zero blocking shared checkpoints; it is
+a route regression, not evidence of allied passage. Earlier private coordinate
+overlap counts included nonblocking smudges and are not passage evidence.
+Actual original-player Chrome passage and changed-slot presentation remain next.
+
+Campaign [PR185](https://github.com/lictl/WebRA2/pull/185) merged as
+`af5e45af857bd4ceecaacffe1b7169369a02e6b4`, final head
+`83efeada4befc31bfbd7205dad7d1dbbcdf00f62`, after1007 tests, hosted checks,
+[independent source review](https://github.com/lictl/WebRA2/pull/185#pullrequestreview-5165076889)
+and [final composition/evidence review](https://github.com/lictl/WebRA2/pull/185#pullrequestreview-5165217521).
+Issue179 is closed within chooser scope. Corrected b72388f fixes a reentrant duplicate
+field-orders mount. Frozen4183 validates all four faction openings, retained files,
+assets-only selection, cancellation, localization and save/replay restoration.
+Frozen4184/d8e8e8c composes ground183 and separately validates the YR Allied continuation
+using16 archives. Both manifests and every served output were independently rehashed.
+Legacy4182 remains pre-fix evidence. See the [chooser report](campaign-chooser.md)
+for exact scenario and console/network limits. No original mission is playable and
+no essential human input is required. Continue the authorized campaign implementation
+after this wave; do not stop at these component merges.
 
 [Sleep PR171](https://github.com/lictl/WebRA2/pull/171) merged as
 `1025eb2b06908372b562d6f6e66aec6e990bef03` after923 checks and its

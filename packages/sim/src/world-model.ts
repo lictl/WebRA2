@@ -6,9 +6,12 @@ import { combatSourceBridge, combatInfantryPrograms, combatDeathBinding, assertC
 import { worldFail, worldRecord, worldList, worldInteger, worldSymbol as symbol, worldSourceHash as hash, worldContent, worldAddress, worldPosition, worldHash, WORLD_LIMITS } from './world-values.ts';
 export * from './world-values.ts';
 import { navigationCell, NAVIGATION_POLICY, type NavigationGrid } from './navigation.ts';
+import { infantryPassageBase, type InfantryPassageCatalog } from './infantry-passage-catalog.ts';
 
 export const WORLD_MODEL_POLICY = 'webra2-world-model-1' as const;
 export const WORLD_MOTION_POLICY = 'webra2-cell-motion-1' as const;
+export const WORLD_INFANTRY_MOTION_POLICY = 'webra2-cell-motion-2' as const;
+export const WORLD_INFANTRY_ENGINE_VERSION = 'webra2-world-7' as const;
 export const WORLD_ENGINE_VERSION = 'webra2-world-1' as const;
 export interface WorldEntityDefinition {
   readonly id: number; readonly rowId: string; readonly typeId: string; readonly owner: number | null;
@@ -27,24 +30,26 @@ export interface WorldModelInput {
   /** Extra absolute occupied cells belonging to stationary entities; omit each anchor handled by blocksCell. */
   readonly footprints?: readonly WorldFootprint[];
   readonly combat?: CombatModel;
+  readonly infantryPassage?: InfantryPassageCatalog;
 }
 export interface WorldModel {
-  readonly policy: typeof WORLD_MODEL_POLICY; readonly motionPolicy: typeof WORLD_MOTION_POLICY;
+  readonly policy: typeof WORLD_MODEL_POLICY; readonly motionPolicy: typeof WORLD_MOTION_POLICY | typeof WORLD_INFANTRY_MOTION_POLICY;
   readonly contentIdentity: ContentIdentity; readonly sourceSha256: string; readonly definitionsSha256: string;
   readonly sha256: string; readonly entities: readonly WorldEntityDefinition[];
   readonly navigation: readonly WorldNavigationBinding[]; readonly blocked: readonly number[];
   readonly footprints: readonly Readonly<{ entityId: number; cells: readonly number[] }>[];
   readonly initialSharedCells: number; readonly nativeBehaviorVerified: false;
   readonly combat?: CombatModel;
+  readonly infantryPassage?: InfantryPassageCatalog;
 }
 const models = new WeakSet<WorldModel>();
 export function assertWorldModel(model: WorldModel): void { if (!models.has(model)) worldFail('world-model'); }
 
 /** Content adapters supply interpreted health, occupancy and traversal. No art/pixel inference occurs here. */
 export function createWorldModel(input: WorldModelInput): WorldModel {
-  const hasFootprints = !!input && Object.hasOwn(input, 'footprints'), hasCombat = !!input && Object.hasOwn(input, 'combat');
+  const hasFootprints = !!input && Object.hasOwn(input, 'footprints'), hasCombat = !!input && Object.hasOwn(input, 'combat'), hasPassage = !!input && Object.hasOwn(input, 'infantryPassage');
   const r = worldRecord(input, ['contentIdentity', 'sourceSha256', 'definitionsSha256', 'entities', 'navigation', 'blocked',
-    ...(hasFootprints ? ['footprints'] : []), ...(hasCombat ? ['combat'] : [])]);
+    ...(hasFootprints ? ['footprints'] : []), ...(hasCombat ? ['combat'] : []), ...(hasPassage ? ['infantryPassage'] : [])]);
   const contentIdentity = worldContent(r.contentIdentity), sourceSha256 = hash(r.sourceSha256), definitionsSha256 = hash(r.definitionsSha256);
   const classes = new Set<string>(), navigation: WorldNavigationBinding[] = [];
   for (const item of worldList(r.navigation, WORLD_LIMITS.grids)) {
@@ -116,9 +121,17 @@ export function createWorldModel(input: WorldModelInput): WorldModel {
   const common = { policy: WORLD_MODEL_POLICY, motionPolicy: WORLD_MOTION_POLICY, contentIdentity, sourceSha256, definitionsSha256,
     entities: Object.freeze(entities), blocked: Object.freeze(blocked), footprints: Object.freeze(footprints), initialSharedCells, nativeBehaviorVerified: false as const };
   const source = combat ? combatSourceBridge(combat) : undefined;
-  if(source && source.baseModelSha256 !== worldHash({ ...common, navigation: navigation.map(b => ({ gridSha256: b.grid.sha256, costScale: b.costScale })) })) worldFail('source-world-join');
-  const sha256 = worldHash({ ...common, ...(combat ? { combatSha256: combat.sha256 } : {}), navigation: navigation.map(b => ({ gridSha256: b.grid.sha256, costScale: b.costScale })) });
-  const model = Object.freeze({ ...common, ...(combat ? { combat } : {}), navigation: Object.freeze(navigation), sha256 }); models.add(model); return model;
+  const navigationIdentity = navigation.map(b => ({ gridSha256: b.grid.sha256, costScale: b.costScale }));
+  // Both independent source authorities must match the complete original unbound model.
+  // Adding a passage policy cannot weaken the combat bridge's source/world proof.
+  const baseHash = worldHash({ ...common, navigation: navigationIdentity });
+  if(source && source.baseModelSha256 !== baseHash) worldFail('source-world-join');
+  const infantryPassage = hasPassage ? r.infantryPassage as InfantryPassageCatalog : undefined;
+  if(hasPassage && infantryPassageBase(infantryPassage!).sha256 !== baseHash) worldFail('world-infantry-join');
+  const bound = { ...common, motionPolicy: infantryPassage ? WORLD_INFANTRY_MOTION_POLICY : WORLD_MOTION_POLICY };
+  const sha256 = worldHash({ ...bound, ...(combat ? { combatSha256: combat.sha256 } : {}),
+    ...(infantryPassage ? { infantryPassageSha256: infantryPassage.sha256 } : {}), navigation: navigationIdentity });
+  const model = Object.freeze({ ...bound, ...(combat ? { combat } : {}), ...(infantryPassage ? { infantryPassage } : {}), navigation: Object.freeze(navigation), sha256 }); models.add(model); return model;
 }
 
 /** Local adjacency/cost check used to validate persisted routes against the immutable grid policy. */

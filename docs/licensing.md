@@ -292,3 +292,9 @@ accompanies the existing flat-traversal, source-combat and world notices, GPL te
 and corresponding source in code distributions. No native listing, retail graph
 or new dependency is included. The separable MIT navigation algorithm retains its
 own license; importing a different authenticated graph does not change that.
+
+The source infantry passage catalog, occupancy helper and world binding are original
+GPL-3.0-or-later code. [Infantry passage provenance](../packages/sim/INFANTRY_PASSAGE_PROVENANCE.md)
+records paired native scope and explicit WebRA2 reservation choices; the bundle
+ships that notice. Original world/save changes retain their existing MIT notices.
+No retail slot rows, geometry or saves accompany the distribution.

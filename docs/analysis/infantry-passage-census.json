@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "scope": "Source-bound ordinary infantry slot catalog and static occupied-cell queries only; no world-core movement, game execution or browser acceptance.",
+  "policy": "webra2-directed-infantry-slots-1",
+  "nativeLedgerSha256": "467829f58d3fa6e3574f943c7ac936d1d71cf657ac44b0b614d2d55f7f11efc4",
+  "privateOracle": {
+    "assertions": 11865,
+    "inputSourceBytes": 2314807,
+    "oracleResultSha256": "11cef360b53c2007db86b9dbae015365e74068192f610d7d0811365cb92a52d8"
+  },
+  "profiles": [
+    {
+      "profile": "ra2",
+      "missionSha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+      "catalogSha256": "9c984dd97fb13f0688aff4f8ce5bf06b8605941f16438650982b800b59fe2e97",
+      "actors": 811,
+      "slots": 40,
+      "alliances": 33,
+      "alliancesComplete": true,
+      "reasons": {
+        "non-infantry": 771
+      },
+      "queryCount": 1560,
+      "available": 768
+    },
+    {
+      "profile": "yr",
+      "missionSha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+      "catalogSha256": "23ffbebee974de0c4267c8ff45af91716108a2ba98de198a8a8cc0ee97de438e",
+      "actors": 570,
+      "slots": 34,
+      "alliances": 150,
+      "alliancesComplete": true,
+      "reasons": {
+        "unavailable-mobile-actor": 2,
+        "special-source-mission": 20,
+        "non-infantry": 514
+      },
+      "queryCount": 1122,
+      "available": 594
+    }
+  ],
+  "remaining": [
+    "core-bound-model-policy-and-save-version",
+    "authoritative-slot-reservations-and-movement",
+    "compound-save-replay-and-rollback",
+    "original-route-with-ground-traversal",
+    "actual-Chrome-route"
+  ]
+}
