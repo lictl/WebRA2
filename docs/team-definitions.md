@@ -1,0 +1,116 @@
+# Typed team data foundation
+
+[Issue #131](https://github.com/lictl/WebRA2/issues/131) adds a bounded data compiler
+for subsequent team instantiation and script execution. The compiler does not spawn
+units, schedule teams, run AI, or make a campaign playable.
+
+`compileTeamDefinitions({ definitions, rules, ai, mission: { source, bytes } }, limits?)`
+accepts genuine [entity definitions](entity-definitions.md), explicit rules and one
+global AI source, and owned mission bytes. It rehashes the mission and reconstructs
+its exact retained source view and construction joins. Rules/AI physical verification
+remains the caller's source-session responsibility. `isTeamDefinitions` is a
+same-realm factory brand; JSON copies do not pass it. The immutable result includes
+source pins, policy `webra2-team-definitions-1`, ordered allocation/registration/load
+records, field histories, opaque unsupported operands, diagnostics and a canonical
+fingerprint. The existing folded RuntimeIni policy is unchanged.
+
+The scoped native load order is global TeamTypes, mission TeamTypes, global
+ScriptTypes, mission ScriptTypes, global TaskForces, mission TaskForces. Global AI
+is read from AI.INI for RA2 and AIMD.INI for YR. Each list enumerates source order;
+its numeric keys do not specify runtime indices. Each registration allocates or
+finds a case-folded ID and immediately loads the section with the first allocated
+spelling. Exact section/key spelling matters. Script/task-force registry names longer than 23 characters are rejected because
+their list readers use 24-byte buffers; reference identifiers admit at most 24.
+Repeated consumed sections/keys are rejected instead of guessing their native tie behavior. Named sections alone do
+not load an implicitly referenced definition.
+
+Team fields retain native constructor/current-value defaults and source histories.
+A TeamType House field names a country/alias and selects its first matching house;
+this differs from a placement's literal house owner. YR multiplayer selectors are
+retained as explicit special values. Absent countries are allocated in a bounded component-owned identity list, without
+creating a house. The native random selector is retained separately. Inherited
+country state and truncated names remain unsupported. Script/TaskForce references may allocate before
+those lists are visited. The native TaskForce fallback occurs before Script fallback;
+an empty TaskForce array returns from the team load first. Missing definitions and
+partial loads remain visible.
+
+Task forces probe literal keys 0–5 and scripts 0–49. Missing/empty slots are skipped;
+present script slots compact into runtime sequence order. Task-force members with
+an unresolved type do not advance the native member index, but the compiler retains
+the attempted row. Type lookup prefers infantry, then vehicles, then aircraft.
+Buildings are excluded. The compiler retains quantities without instantiating units;
+negative or greater-than-65,535 quantities are outside its typed runtime capability.
+Malformed native scanf inputs are unsupported rather than modeled as initialized
+values. Integer parsing deliberately accepts a narrow whole-token subset.
+
+Opcode operands currently typed are 3 (waypoint), 4 (legacy 128-stride packed cell),
+5 (argument multiplied by 15 native frame units), and 6 (cursor set to argument − 2
+before sequence advancement). These describe numeric operands only. Arrival,
+completion, scheduling and native timing are unimplemented. Other opcodes retain
+their integers with unsupported status. Two-letter team waypoints are decoded;
+longer forms are conservatively unsupported. No map, AI, or trigger execution is
+inferred from a successful data compilation.
+
+All options lower fixed caps. Aggregate retained source text/occurrences, declarations,
+work, field lookups, references, history copies, token pairs, diagnostics and serialized
+bytes are bounded before expansion. Task-force quantities never drive allocation.
+The canonical digest orders object keys and preserves arrays; all policy/source/history
+metadata participates. Output freezing never modifies mutable caller byte buffers.
+
+Original synthetic coverage exercises both profiles, native phases/defaults,
+implicit/first-allocated references, exact-case redeclarations, numeric-slot gaps,
+unknown fields/types/opcodes, country and house distinctions, immutable ownership,
+source/profile checks and lower-only caps. Run:
+
+```sh
+node --import tsx --test tests/content/team-definitions.test.ts
+npm run check
+```
+
+The independent Python comparison reads the raw AI/rules/map files and reconstructs
+country/house identities, source-ordered registration, current-value fields, histories,
+implicit references, sequence resets, numeric-slot compaction and operand arithmetic.
+It does not invoke TypeScript or use compiler values to generate expected fields.
+The resulting projections compare 126,771 scalar leaves for RA2 and 241,497 for YR;
+all match. A separate sorted-key digest also matches each full result fingerprint.
+These are static content comparisons, not original-game execution tests.
+
+| Pinned input scope | RA2 opening plus global AI | YR opening plus global AI |
+| --- | --- | --- |
+| Teams / task forces / scripts | 152 / 110 / 90 | 265 / 223 / 182 |
+| Final task-force member rows / script steps | 152 / 345 | 312 / 833 |
+| Late country allocations without a new house | 1 | 1 |
+| Scripts with numeric framing / fully typed selected operands | 90 / 3 | 182 / 35 |
+| Script steps with unsupported operands | 291 | 563 |
+
+The [aggregate census](analysis/team-definitions-census.json) pins all eight physical
+input sources, result and independent projection hashes, opcode counts and diagnostic
+counts. The [native range ledger](analysis/team-definitions-native.json) pins 55
+ranges totaling 12,950 bytes across the two executable images. Each range records
+virtual address, file offset, size, SHA-256 and a narrow interpretation. Metadata
+contains no original INI values, artwork, executable bytes or disassembly.
+
+Reproduction stays in ignored `local/` in the team-definitions worktree:
+
+```sh
+node --import tsx local/probe.ts
+python3 local/team-oracle.py
+python3 local/native131/ledger.py
+```
+
+The first command reads root and member hashes through the shared verified source
+reader and compiles both selected profiles. The second independently parses those
+private raw inputs and verifies complete selected projections. The third rehashes
+both complete executable files and their byte ranges; it does not execute them.
+Reviewers copy private scripts into their own checkout and use separate ignored
+outputs. Public tests and CI do not require retail files.
+
+Remaining runtime work is team creation/recruitment, quantity availability, AI
+scheduling, member completion, tag lifetime, movement/arrival/guard timing, and
+opcode execution. Other external allocation paths remain outside the scoped index
+model. `typed` is a data capability: a typed team may refer to a script whose opaque
+operands require future implementation. It never implies executable mission closure.
+Task-force/script `isGlobal` records the latest native list load, not a merged
+rules/mission namespace. General INI comment/empty normalization still follows
+`webra2-ini-1`; exact source spelling is recovered without claiming every native
+parser tie. See [component provenance](../packages/content/TEAM_DEFINITIONS_PROVENANCE.md).

@@ -1,0 +1,217 @@
+{
+  "schemaVersion": 1,
+  "scope": "Both pinned openings plus their global AI source. Factual aggregate metadata only; no mission execution or required-capability closure claim.",
+  "inputPins": [
+    {
+      "profile": "ra2",
+      "role": "rules",
+      "path": "rules.ini",
+      "kind": "base",
+      "rootFile": "ra2.mix",
+      "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+      "absoluteOffset": 118552784,
+      "size": 541915,
+      "sha256": "fd1e95cea0306ea78049dc81c8cd816e18c28c496872a1ff02edd50bd082062f"
+    },
+    {
+      "profile": "ra2",
+      "role": "art",
+      "path": "art.ini",
+      "kind": "base",
+      "rootFile": "ra2.mix",
+      "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+      "absoluteOffset": 118306944,
+      "size": 245825,
+      "sha256": "b477f861063a9509e87b7836b78190204c73bea5ea5595a842c456f5920ea223"
+    },
+    {
+      "profile": "ra2",
+      "role": "mission",
+      "path": "all01t.map",
+      "kind": "map",
+      "rootFile": "maps01.mix",
+      "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+      "absoluteOffset": 308,
+      "size": 146240,
+      "sha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c"
+    },
+    {
+      "profile": "ra2",
+      "role": "ai",
+      "rootFile": "ra2.mix",
+      "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+      "absoluteOffset": 118221968,
+      "size": 84972,
+      "sha256": "1feac6ddea6886b177ddf7e5f8580b7a99a63f12684f2cbb42831671bb7a8a79"
+    },
+    {
+      "profile": "yr",
+      "role": "rules",
+      "path": "rulesmd.ini",
+      "kind": "expansion",
+      "rootFile": "expandmd01.mix",
+      "rootSha256": "0c0a64e741bdecdc3843a0beb6bb1f58aa2df5b86eb3bc4a953821ec98f3d6ec",
+      "absoluteOffset": 2220316,
+      "size": 743215,
+      "sha256": "3d341ef8a13a4b5ab24af2eef48ac94931ac2bb87d950fe3330a07e2d25672ef"
+    },
+    {
+      "profile": "yr",
+      "role": "art",
+      "path": "artmd.ini",
+      "kind": "expansion",
+      "rootFile": "ra2md.mix",
+      "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d",
+      "absoluteOffset": 6378496,
+      "size": 336535,
+      "sha256": "e1f0378394313c04ebbd5073f47785ee3e46f1b3c62d65724e8f3c310ee7ba31"
+    },
+    {
+      "profile": "yr",
+      "role": "mission",
+      "path": "all01umd.map",
+      "kind": "map",
+      "rootFile": "mapsmd03.mix",
+      "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3",
+      "absoluteOffset": 260,
+      "size": 301077,
+      "sha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0"
+    },
+    {
+      "profile": "yr",
+      "role": "ai",
+      "rootFile": "ra2md.mix",
+      "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d",
+      "absoluteOffset": 6239952,
+      "size": 138538,
+      "sha256": "5df41eaec00a78d0760ef5eecdf27d65ae1cd537309c7eac973318266986f89d"
+    }
+  ],
+  "profiles": [
+    {
+      "profile": "ra2",
+      "fingerprint": "dc0664cbb122abf04095394f7f3d48dba8955730cf082f7b30a6c3dd182b8e58",
+      "coverage": {
+        "typedTeams": 152,
+        "typedTaskForces": 110,
+        "numericScripts": 90,
+        "typedOperandScripts": 3,
+        "allocationScope": "global-and-mission-lists-and-team-references",
+        "nativeAllocationComplete": false
+      },
+      "counts": {
+        "teams": 152,
+        "taskForces": 110,
+        "scripts": 90,
+        "lateCountryAllocations": 1,
+        "taskForceMemberRows": 152,
+        "scriptSteps": 345
+      },
+      "opcodeCounts": {
+        "0": 99,
+        "1": 5,
+        "3": 32,
+        "5": 15,
+        "6": 7,
+        "8": 8,
+        "11": 16,
+        "14": 7,
+        "19": 1,
+        "20": 1,
+        "21": 1,
+        "37": 10,
+        "39": 2,
+        "43": 7,
+        "46": 31,
+        "47": 22,
+        "49": 25,
+        "50": 3,
+        "53": 11,
+        "54": 10,
+        "55": 3,
+        "57": 1,
+        "58": 28
+      },
+      "diagnosticCounts": {
+        "country-has-no-house": 103,
+        "external-allocation-paths-unmodeled": 1,
+        "unsupported-script-operand": 291
+      },
+      "independentRawSourceComparison": {
+        "profile": "ra2",
+        "comparedScalarLeaves": 126771,
+        "teams": 152,
+        "scripts": 90,
+        "taskForces": 110,
+        "lateCountryAllocations": 1,
+        "projectionSha256": "3d3a9ae6325333fd069d975a4390a347cbd53af271357bbd6015dc5192c89519"
+      }
+    },
+    {
+      "profile": "yr",
+      "fingerprint": "361997f801cca5b0f314b5b5e0602653230c8e0eafd4efca7b845d6582f4bae9",
+      "coverage": {
+        "typedTeams": 265,
+        "typedTaskForces": 223,
+        "numericScripts": 182,
+        "typedOperandScripts": 35,
+        "allocationScope": "global-and-mission-lists-and-team-references",
+        "nativeAllocationComplete": false
+      },
+      "counts": {
+        "teams": 265,
+        "taskForces": 223,
+        "scripts": 182,
+        "lateCountryAllocations": 1,
+        "taskForceMemberRows": 312,
+        "scriptSteps": 833
+      },
+      "opcodeCounts": {
+        "0": 170,
+        "1": 14,
+        "3": 178,
+        "5": 37,
+        "6": 55,
+        "8": 9,
+        "9": 6,
+        "11": 22,
+        "14": 10,
+        "16": 27,
+        "19": 3,
+        "21": 1,
+        "37": 5,
+        "39": 4,
+        "42": 21,
+        "43": 9,
+        "46": 48,
+        "47": 24,
+        "49": 62,
+        "50": 1,
+        "53": 22,
+        "54": 34,
+        "55": 3,
+        "57": 1,
+        "58": 49,
+        "59": 11,
+        "61": 1,
+        "62": 1,
+        "63": 4,
+        "64": 1
+      },
+      "diagnosticCounts": {
+        "country-has-no-house": 163,
+        "external-allocation-paths-unmodeled": 1,
+        "unsupported-script-operand": 563
+      },
+      "independentRawSourceComparison": {
+        "profile": "yr",
+        "comparedScalarLeaves": 241497,
+        "teams": 265,
+        "scripts": 182,
+        "taskForces": 223,
+        "lateCountryAllocations": 1,
+        "projectionSha256": "285d868e6f85965f71a49cb5f60daddf76af7a1707fab4be6300b5f37b73a5c3"
+      }
+    }
+  ]
+}
