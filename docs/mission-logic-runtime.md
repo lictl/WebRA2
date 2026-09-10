@@ -80,6 +80,7 @@ Validly framed out-of-subset operands become explicit diagnostics.
 | Event 27 / 28 | Global flag set / clear, index 0–49 |
 | Event 36 / 37 | Local flag set / clear, index 0–99 |
 | Event 47 | Logical scenario frame divided by 15 has reached the argument |
+| Action 12 / 22 | Named-trigger deletion / forced action invocation; see the lifecycle extension for ordering, bounds and native limitations |
 | Action 0 | No state effect; still emits an ordered action record |
 | Action 23 / 24 | Start / stop mission timer; stop retains remaining frames |
 | Action 25 / 26 / 27 | Extend / shorten / set mission timer by argument × 15 frames; all three start it; shorten clamps to zero |
@@ -98,12 +99,14 @@ the player's country/house and additional victory/defeat acceptance behavior.
 Consumers receive the stored opcode and country index; they must resolve the player
 and campaign rules before changing a game outcome. The machine stores only the last
 ordered request and emits every request. A UI must not equate that field with victory.
-Team/combat/entity/media operations remain unsupported, including force-trigger
-recursion. These are not silently emitted as generic effects without known schemas.
+Team/combat/entity/media operations remain unsupported. Named trigger forcing22
+and deletion12 are described in the [lifecycle extension](mission-trigger-lifecycle.md),
+including explicit D03 ordering and the distinct native RA2/YR deletion paths.
+Unknown operations are not silently emitted as generic effects.
 
 ## Trigger, tag and time policies
 
-Policy `webra2-mission-poll-1` uses timing policy `yr-static-15-frame-1`. A logical tick
+Policy `webra2-mission-poll-2` uses timing policy `yr-static-15-frame-1`. A logical tick
 represents one frame-counter unit; the observed YR timer scaling is 15 units per
 stored time argument. This does not assign real-world seconds, game-speed settings,
 loading-frame offsets, render cadence or native global simulation phase ordering.
@@ -136,8 +139,9 @@ The supported native control paths establish these local rules:
 The **WebRA2 phase choice** is deliberately separate: for tick N, execute scheduled
 flag inputs in `(tick, sequence)` order, then poll active bindings by UTF-16 binding
 ID order and their compiled linked-instance order, then advance `nextTick`. Earlier
-actions are visible to later instances in that pass. Each instance is evaluated at
-most once per tick. Cross-tag order and this polling cadence are not native evidence.
+actions are visible to later instances in that pass. Each instance is polled at
+most once per tick; forced action invocations bypass this predicate poll and use
+a separate bounded counter. Cross-tag order and this polling cadence are not native evidence.
 Applications schedule calls to `step`; wall clocks, rendering and unseeded RNG are absent.
 
 ## Save, effects and replay
@@ -153,7 +157,7 @@ the live machine and all pending inputs unchanged.
 [integer canonical JSON encoding](simulation-foundation.md). `nextTick = N` means
 all effects through N−1 are complete. The component-owned checkpoint stores version,
 policy, program SHA-256 and content identity; flags; mission timer; each binding and
-its active/attachment/instance state; enabled/destroyed/fired counts, shared timer
+its active/attachment/instance state; enabled/destroyed/deleted state, polled/forced counts, shared timer
 deadline and last observations; pending inputs and admission cursor; next effect
 order and last outcome request. No host handles or raw retail rows are serialized.
 
@@ -190,6 +194,7 @@ are not added here. No shared save/replay contract was changed.
 | Explicit bindings / total attachments | 256 / 1,024 |
 | Pending inputs / future horizon | 1,024 / 10,000 ticks |
 | Single transaction ticks / counted work / returned effects | 1,024 / 131,072 / 32,768 |
+| Nested action/force frames | 256 |
 | Replay ticks / counted work / effects | 10,000 / 1,048,576 / 32,768 |
 | Replay admitted inputs / batches / checkpoints | 1,024 each |
 | Terminal logical tick | 1,000,000,000 |
