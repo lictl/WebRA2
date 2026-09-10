@@ -47,9 +47,11 @@ function fail(code: string): never { throw new CombatInitialRuntimeError(code); 
 const sources = new WeakSet<object>(), programs = new WeakSet<object>();
 export const isCombatInitialRuntime = (v: unknown): v is CombatInitialRuntime => !!v && typeof v === 'object' && sources.has(v);
 export const isInfantryFiringProgram = (v: unknown): v is InfantryFiringProgram => !!v && typeof v === 'object' && programs.has(v);
-function exact(v: unknown, keys: readonly string[]): asserts v is Record<string, unknown> {
+function owned<T>(v: T, keys: readonly string[]): T {
   if (!v || typeof v !== 'object' || ![Object.prototype, null].includes(Object.getPrototypeOf(v)) || Reflect.ownKeys(v).length !== keys.length) fail('input');
-  for (const key of keys) { const d = Object.getOwnPropertyDescriptor(v, key); if (!d || !('value' in d) || !d.enumerable) fail('input'); }
+  const result: Record<string, unknown> = Object.create(null);
+  for (const key of keys) { const d = Object.getOwnPropertyDescriptor(v, key); if (!d || !('value' in d) || !d.enumerable) fail('input'); result[key] = d.value; }
+  return result as T;
 }
 function limits(v: Partial<Limits>): Limits {
   if (!v || typeof v !== 'object' || ![Object.prototype, null].includes(Object.getPrototypeOf(v))) fail('limits');
@@ -65,9 +67,15 @@ const imageName = (v: string): boolean => /^[A-Za-z0-9_-]{1,24}$/.test(v);
 /** Authenticates mission bytes again; physical rules/art authentication belongs to the verified import session. */
 export function compileCombatInitialRuntime(input: { readonly actors: CombatActors; readonly definitions: EntityDefinitions;
   readonly rules: RuntimeIni; readonly art: RuntimeIni; readonly mission: { readonly source: CombatActors['source']; readonly bytes: Uint8Array } }, options: Partial<Limits> = {}): CombatInitialRuntime {
-  exact(input, ['actors', 'definitions', 'rules', 'art', 'mission']); const cap = limits(options);
+  input = owned(input, ['actors', 'definitions', 'rules', 'art', 'mission']); const cap = limits(options);
   if (!isCombatActors(input.actors) || !isEntityDefinitions(input.definitions)) fail('brand');
-  const { actors, definitions, rules, art, mission } = input;
+  const { actors, definitions, rules, art } = input;
+  const supplied = owned(input.mission, ['source', 'bytes']), source = owned(supplied.source, ['id', 'profile', 'sha256']);
+  const raw = supplied.bytes;
+  if (!(raw instanceof Uint8Array) || !ArrayBuffer.isView(raw) || Object.getPrototypeOf(raw) !== Uint8Array.prototype ||
+    ['byteLength', 'buffer', 'byteOffset', 'slice'].some(key => Object.hasOwn(raw, key)) || raw.byteLength > cap.missionBytes ||
+    !(raw.buffer instanceof ArrayBuffer) || Object.getOwnPropertyDescriptor(ArrayBuffer.prototype, 'resizable')?.get?.call(raw.buffer)) fail('mission-bytes');
+  const bytes = new Uint8Array(raw.byteLength); bytes.set(raw); const mission = { source, bytes };
   if (actors.entityFingerprint !== definitions.fingerprint) fail('entity-identity');
   const checked = compileCombatActors({ definitions, rules, mission }, cap);
   if (checked.fingerprint !== actors.fingerprint) fail('actor-identity');

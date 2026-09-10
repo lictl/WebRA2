@@ -2,8 +2,9 @@
 
 Issue [#147](https://github.com/lictl/WebRA2/issues/147) supplies a pure, original
 standing-primary timing component for the forthcoming ordinary combat adapter.
-It does not fire a weapon in the browser yet. Numeric/RNG execution is tracked in
-[#164](https://github.com/lictl/WebRA2/issues/164).
+It does not fire a weapon in the browser yet. Numeric/RNG execution merged under
+[#164](https://github.com/lictl/WebRA2/issues/164); the live source bridge remains
+under [#132](https://github.com/lictl/WebRA2/issues/132) and #147.
 
 `webra2-standing-fire-logical-1` maps source FireUp to logical windup ticks, then
 requires a current admission decision. This is a D03 playability policy. It does
@@ -52,10 +53,11 @@ these bounds fails atomically. Sparse arrays, extra properties, accessors, boxed
 scalars and unknown schema versions reject. No DOM, I/O, timers or randomness are
 used by the simulation component.
 
-Nine focused original timing tests cover windup and rearm, preserved zero ROF,
+Ten focused original timing tests cover windup and rearm, preserved zero ROF,
 blocked/cancelled and stale resolutions, target/weapon joins, every checkpoint's
 save/restore, 40 generated 60-tick transcripts, source/shape/boundary attacks and
-aggregate replay limits. These are synthetic execution checks, not native firing
+aggregate replay limits. Descriptor snapshots also cover Proxy-wrapped commands,
+replay arrays, nested saves and source inputs without ordinary property double reads. These are synthetic execution checks, not native firing
 or campaign validation. The private source corpus also exercises one logical
 shot/save/restore/replay for every admitted placed infantry timing program using
 original opaque test weapon IDs; this proves composition only.

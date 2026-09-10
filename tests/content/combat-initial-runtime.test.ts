@@ -69,3 +69,10 @@ test('every lower source resource limit is enforced without mutating prior sourc
   }
   assert.throws(()=>compile(input,{unknown:1} as never));assert.equal(compile(input).fingerprint,before.fingerprint);
 });
+test('outer and mission descriptor snapshots do not consume Proxy get traps or typed-array proxies',()=>{
+  const input=fixture(),expected=compile(input);let reads=0;
+  const wrapped=<T extends object>(v:T):T=>new Proxy(v,{get(){reads++;throw Error('ordinary property read');}});
+  const supplied=wrapped({...input,mission:wrapped({...input.mission,source:wrapped(input.mission.source)})});
+  assert.equal(compile(supplied,wrapped({types:100})).fingerprint,expected.fingerprint);assert.equal(reads,0);
+  assert.throws(()=>compile({...input,mission:{...input.mission,bytes:wrapped(input.mission.bytes)}}),/mission-bytes/);assert.equal(reads,0);
+});

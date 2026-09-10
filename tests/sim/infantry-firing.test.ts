@@ -94,3 +94,14 @@ test('unknown command fields and accessors are rejected without invoking caller 
   assert.equal(reads,0);assert.throws(()=>transition(p,s,{...begin,extra:true} as Command));
   assert.throws(()=>transition(p,s,{...begin,weaponId:new String('x')} as never));assert.equal(s.nextAttemptId,1);
 });
+test('descriptor snapshots prevent Proxy double reads from publishing an unrestorable state',()=>{
+  const p=fixture(0);let reads=0;const wrapped=<T extends object>(v:T):T=>new Proxy(v,{get(){reads++;throw Error('ordinary property read');}});
+  let s=transition(p,create(p),wrapped(begin)).state;const d=due(p,s)!;
+  const command=new Proxy(resolve(d,'admitted',0),{get(t,k,r){if(k==='nativeRof')return reads++===0?0:-1;return Reflect.get(t,k,r);}});
+  s=transition(p,s,command).state;assert.equal(s.rearm?.nativeRof,0);assert.equal(reads,0);assert.deepEqual(restore(p,save(p,s)),s);
+  const raw=structuredClone(save(p,s));const nested=wrapped({...raw,state:wrapped({...raw.state,rearm:wrapped(raw.state.rearm!)})});
+  assert.deepEqual(restore(p,nested),s);assert.equal(reads,0);
+  const pending=transition(p,create(p),wrapped(begin)).state,pendingSave=structuredClone(save(p,pending));
+  assert.deepEqual(restore(p,wrapped({...pendingSave,state:wrapped({...pendingSave.state,pending:wrapped(pendingSave.state.pending!)})})),pending);
+  const transcript=wrapped([wrapped(begin),wrapped(resolve(d,'admitted',0))]);assert.deepEqual(replay(p,transcript).state,s);assert.equal(reads,0);
+});

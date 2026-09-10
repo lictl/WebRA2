@@ -114,7 +114,7 @@ image, plus the two YR secondary names. Static source/frame checks do not prove
 native execution cadence or every GetFireError gate. Those require further source
 coverage and, where useful, owner-provided original observations.
 
-Nine focused original source tests cover both profiles, decimal and storage
+Ten focused original source tests cover both profiles, decimal and storage
 precision, staged Image/ART defaults, exact case, inactive alternate branches,
 unknown active fields, source/memory boundaries and every lower resource limit.
 The private value oracle rehashed five whole MIX roots and all six consumed
@@ -149,9 +149,9 @@ contains the verified range metadata. The independent Python value oracle reads
 raw INI bytes and the earlier verified construction visits, not compiler values.
 The native ledger/helper are in root `local/combat-initial-runtime/`.
 
-Validation: Node 24.20.0, real `npm ci`, all 845 public tests, type checking,
+Validation: Node 24.20.0, real `npm ci`, all 847 public tests, type checking,
 135-document / 688-link check, publication guard, M0 metadata consistency and the
-53-file / 108-input code-only build passed. Eighteen of these are new focused
+53-file / 108-input code-only build passed. Twenty of these are new focused
 source/timing tests. Retail validation is confined to the private read-only source
 comparisons above. The modules are not yet imported by the app; shared distribution
 integration belongs to the coordinator. The implementation adopts no new dependency. Its original GPL terms

@@ -32,9 +32,21 @@ export class InfantryFiringError extends Error {
 }
 function fail(code: string): never { throw new InfantryFiringError(code); }
 const states = new WeakSet<object>();
-function exact(v: unknown, keys: readonly string[]): asserts v is Record<string, unknown> {
+function owned(v: unknown, keys: readonly string[]): Record<string, unknown> {
   if (!v || typeof v !== 'object' || ![Object.prototype, null].includes(Object.getPrototypeOf(v)) || Reflect.ownKeys(v).length !== keys.length) fail('record');
-  for (const key of keys) { const d = Object.getOwnPropertyDescriptor(v, key); if (!d || !('value' in d) || !d.enumerable) fail('fields'); }
+  const result: Record<string, unknown> = Object.create(null);
+  for (const key of keys) { const d = Object.getOwnPropertyDescriptor(v, key); if (!d || !('value' in d) || !d.enumerable) fail('fields'); result[key] = d.value; }
+  return result;
+}
+function ownCommand(v: unknown): InfantryFiringCommand {
+  if (!v || typeof v !== 'object') fail('command');
+  const descriptor = Object.getOwnPropertyDescriptor(v, 'kind'); if (!descriptor || !('value' in descriptor)) fail('command');
+  const kind: unknown = descriptor.value;
+  const keys = kind === 'advance' ? ['kind', 'tick'] : kind === 'begin' ? ['kind', 'targetId', 'weaponId'] : kind === 'cancel' ? ['kind'] :
+    kind === 'resolve' ? ['kind', 'stateHash', 'attemptId', 'targetId', 'weaponId', 'decision', 'nativeRof'] : null;
+  if (!keys) fail('command-kind');
+  const result = owned(v, keys); if (result.kind !== kind) fail('command-kind');
+  return result as unknown as InfantryFiringCommand;
 }
 function integer(v: unknown, min = 0, max: number = INFANTRY_FIRING_LIMITS.tick): asserts v is number {
   if (typeof v !== 'number' || !Number.isSafeInteger(v) || Object.is(v, -0) || v < min || v > max) fail('integer');
@@ -63,19 +75,18 @@ export function inspectDueInfantryShot(p: InfantryFiringProgram, s: InfantryFiri
 export function transitionInfantryFiring(p: InfantryFiringProgram, s: InfantryFiringState, command: InfantryFiringCommand): Readonly<{
   state: InfantryFiringState; event: InfantryFiringEvent | null }> {
   checked(p, s);
-  if (!command || typeof command !== 'object') fail('command');
-  const k = Object.getOwnPropertyDescriptor(command, 'kind'); if (!k || !('value' in k)) fail('command');
+  command = ownCommand(command);
   let next: InfantryFiringState = s, event: InfantryFiringEvent | null = null;
   const emit = (kind: InfantryFiringEvent['kind'], pending: PendingShot, nativeRof: number | null = null): InfantryFiringEvent =>
     ({ kind, actorId: p.actorId, tick: s.tick, attemptId: pending.attemptId, targetId: pending.targetId, weaponId: pending.weaponId, nativeRof });
   switch (command.kind) {
     case 'advance': {
-      exact(command, ['kind', 'tick']); integer(command.tick);
+      integer(command.tick);
       if (command.tick !== s.tick + 1) fail('tick-order');
       next = { ...s, tick: command.tick }; break;
     }
     case 'begin': {
-      exact(command, ['kind', 'targetId', 'weaponId']); integer(command.targetId, 1); weapon(command.weaponId);
+      integer(command.targetId, 1); weapon(command.weaponId);
       if (command.targetId === p.actorId || s.pending || s.tick < earliest(s)) fail('not-ready');
       if (s.nextAttemptId > INFANTRY_FIRING_LIMITS.attempts) fail('attempt-limit');
       const dueTick = s.tick + p.fireUp; integer(dueTick);
@@ -83,11 +94,9 @@ export function transitionInfantryFiring(p: InfantryFiringProgram, s: InfantryFi
       next = { ...s, nextAttemptId: s.nextAttemptId + 1, pending }; event = emit('started', pending); break;
     }
     case 'cancel': {
-      exact(command, ['kind']);
       if (s.pending) { next = { ...s, pending: null }; event = emit('cancelled', s.pending); } break;
     }
     case 'resolve': {
-      exact(command, ['kind', 'stateHash', 'attemptId', 'targetId', 'weaponId', 'decision', 'nativeRof']);
       hash(command.stateHash); integer(command.attemptId, 1, INFANTRY_FIRING_LIMITS.attempts); integer(command.targetId, 1); weapon(command.weaponId);
       if (command.decision !== 'admitted' && command.decision !== 'blocked') fail('decision');
       if (command.decision === 'admitted') integer(command.nativeRof); else if (command.nativeRof !== null) fail('blocked-rof');
@@ -111,47 +120,44 @@ export function saveInfantryFiring(p: InfantryFiringProgram, s: InfantryFiringSt
 }
 /** Strict structural/source validation. A save is state, not proof that its history was genuinely played. */
 export function restoreInfantryFiring(p: InfantryFiringProgram, value: unknown): InfantryFiringState {
-  program(p); exact(value, ['schemaVersion', 'policy', 'state', 'stateHash']);
-  if (value.schemaVersion !== 1 || value.policy !== INFANTRY_FIRING_POLICY) fail('save-version'); hash(value.stateHash);
-  const s = value.state;
-  exact(s, ['schemaVersion', 'policy', 'programFingerprint', 'actorId', 'tick', 'nextAttemptId', 'shots', 'pending', 'rearm']);
+  program(p); const envelope = owned(value, ['schemaVersion', 'policy', 'state', 'stateHash']);
+  if (envelope.schemaVersion !== 1 || envelope.policy !== INFANTRY_FIRING_POLICY) fail('save-version'); hash(envelope.stateHash);
+  const s = owned(envelope.state, ['schemaVersion', 'policy', 'programFingerprint', 'actorId', 'tick', 'nextAttemptId', 'shots', 'pending', 'rearm']);
   if (s.schemaVersion !== 1 || s.policy !== INFANTRY_FIRING_POLICY || s.programFingerprint !== p.fingerprint || s.actorId !== p.actorId) fail('save-source');
   integer(s.tick); integer(s.nextAttemptId, 1, INFANTRY_FIRING_LIMITS.attempts + 1); integer(s.shots, 0, INFANTRY_FIRING_LIMITS.attempts);
   if (s.shots >= s.nextAttemptId || s.shots > s.tick + 1) fail('save-shots');
   let rearm: InfantryFiringState['rearm'] = null, pending: PendingShot | null = null;
   if (s.rearm !== null) {
-    exact(s.rearm, ['shotTick', 'nativeRof']); integer(s.rearm.shotTick, Math.max(0, s.shots * (p.fireUp + 1) - 1), s.tick); integer(s.rearm.nativeRof);
-    integer(s.rearm.shotTick + Math.max(1, s.rearm.nativeRof)); rearm = { shotTick: s.rearm.shotTick, nativeRof: s.rearm.nativeRof };
+    const saved = owned(s.rearm, ['shotTick', 'nativeRof']); integer(saved.shotTick, Math.max(0, s.shots * (p.fireUp + 1) - 1), s.tick); integer(saved.nativeRof);
+    integer(saved.shotTick + Math.max(1, saved.nativeRof)); rearm = { shotTick: saved.shotTick, nativeRof: saved.nativeRof };
   }
   if ((s.shots > 0) !== (rearm !== null)) fail('save-rearm');
   if (s.pending !== null) {
-    exact(s.pending, ['attemptId', 'startedTick', 'dueTick', 'targetId', 'weaponId']);
-    integer(s.pending.attemptId, 1, INFANTRY_FIRING_LIMITS.attempts); integer(s.pending.startedTick, 0, s.tick); integer(s.pending.dueTick);
-    integer(s.pending.targetId, 1); weapon(s.pending.weaponId);
-    if (s.pending.attemptId !== s.nextAttemptId - 1 || s.pending.dueTick !== s.pending.startedTick + p.fireUp || s.pending.targetId === p.actorId ||
-      s.pending.startedTick < (rearm ? rearm.shotTick + Math.max(1, rearm.nativeRof) : 0) || s.shots >= s.nextAttemptId - 1) fail('save-pending');
-    pending = { attemptId: s.pending.attemptId, startedTick: s.pending.startedTick, dueTick: s.pending.dueTick, targetId: s.pending.targetId, weaponId: s.pending.weaponId };
+    const saved = owned(s.pending, ['attemptId', 'startedTick', 'dueTick', 'targetId', 'weaponId']);
+    integer(saved.attemptId, 1, INFANTRY_FIRING_LIMITS.attempts); integer(saved.startedTick, 0, s.tick); integer(saved.dueTick);
+    integer(saved.targetId, 1); weapon(saved.weaponId);
+    if (saved.attemptId !== s.nextAttemptId - 1 || saved.dueTick !== saved.startedTick + p.fireUp || saved.targetId === p.actorId ||
+      saved.startedTick < (rearm ? rearm.shotTick + Math.max(1, rearm.nativeRof) : 0) || s.shots >= s.nextAttemptId - 1) fail('save-pending');
+    pending = { attemptId: saved.attemptId, startedTick: saved.startedTick, dueTick: saved.dueTick, targetId: saved.targetId, weaponId: saved.weaponId };
   }
   const result: InfantryFiringState = { schemaVersion: 1, policy: INFANTRY_FIRING_POLICY, programFingerprint: p.fingerprint,
     actorId: p.actorId, tick: s.tick, nextAttemptId: s.nextAttemptId, shots: s.shots, pending, rearm };
-  if (stateHash(result) !== value.stateHash) fail('save-hash'); return own(result);
+  if (stateHash(result) !== envelope.stateHash) fail('save-hash'); return own(result);
 }
 /** Original command transcript replay. The transcript must contain explicit due-state admission decisions. */
 export function replayInfantryFiring(p: InfantryFiringProgram, commands: readonly InfantryFiringCommand[], maxCommands: number = INFANTRY_FIRING_LIMITS.commands): Readonly<{
   state: InfantryFiringState; events: readonly InfantryFiringEvent[] }> {
   program(p); integer(maxCommands, 0, INFANTRY_FIRING_LIMITS.commands);
-  if (!Array.isArray(commands) || Object.getPrototypeOf(commands) !== Array.prototype || commands.length > maxCommands || Reflect.ownKeys(commands).length !== commands.length + 1) fail('replay-limit');
-  // Validate and own commands before executing any transition, rejecting getters, sparse slots and non-index properties.
+  if (!Array.isArray(commands) || Object.getPrototypeOf(commands) !== Array.prototype) fail('replay-limit');
+  const length = Object.getOwnPropertyDescriptor(commands, 'length');
+  if (!length || !('value' in length)) fail('replay-array');
+  const count: unknown = length.value; integer(count, 0, maxCommands);
+  if (Reflect.ownKeys(commands).length !== count + 1) fail('replay-limit');
+  // Snapshot array length, slots and command descriptors; never read an untrusted object's properties twice.
   const copied: InfantryFiringCommand[] = [];
-  for (let i = 0; i < commands.length; i++) {
+  for (let i = 0; i < count; i++) {
     const d = Object.getOwnPropertyDescriptor(commands, String(i)); if (!d || !('value' in d) || !d.enumerable) fail('replay-array');
-    const c = d.value, kind = c && typeof c === 'object' ? Object.getOwnPropertyDescriptor(c, 'kind') : undefined;
-    if (!kind || !('value' in kind)) fail('command');
-    const keys = kind.value === 'advance' ? ['kind', 'tick'] : kind.value === 'begin' ? ['kind', 'targetId', 'weaponId'] : kind.value === 'cancel' ? ['kind'] :
-      kind.value === 'resolve' ? ['kind', 'stateHash', 'attemptId', 'targetId', 'weaponId', 'decision', 'nativeRof'] : null;
-    if (!keys) fail('command-kind'); exact(c, keys);
-    // All legal fields are scalars, validated without coercion by the transition.
-    copied.push({ ...c } as InfantryFiringCommand);
+    copied.push(ownCommand(d.value));
   }
   let state = createInfantryFiringState(p); const events: InfantryFiringEvent[] = [];
   for (const c of copied) { const result = transitionInfantryFiring(p, state, c); state = result.state; if (result.event) events.push(result.event); }
