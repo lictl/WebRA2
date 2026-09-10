@@ -45,6 +45,12 @@ must be alive, stationary, free of routes/goals and all queued commands, and
 unclaimed by this controller. A is required unless Autocreate; Autocreate also
 requires B. Group -2 accepts any group; other mismatches require Recruiter.
 
+For actors not yet claimed, ordinary core move/stop completion changes live motion
+state but does not reconstruct native MissionClass transitions; recruitment
+continues to use the authenticated initial Guard/Sleep recruitability as an
+explicit D03 movement-world policy. Release takes the separate conservative gate
+described below.
+
 The D03 policy fills the entire source TaskForce atomically, in literal slot order.
 For each member it minimizes `65536 * (dx² + dy²) + groupPenalty`, where coordinates
 are logical cell centers and the penalty is 12800 for a different effective Group,
