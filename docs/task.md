@@ -14,21 +14,59 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
-Coordinator is preparing [audio decoder PR209](https://github.com/lictl/WebRA2/pull/209)
-distribution in local/worktrees/audio-decode-integration, branch
-codex/205-audio-decode-integration. Source head
-c413d23fc5ba4e29236ad0d2e06f8501fd2a980c is under bootstrap_review independent review.
-All six author paths remain unchanged. Root adds the exact GPL decoder notice to
-the build and its exact-copy check, licensing record and this handoff. The current
-composition includes reviewed control groups208, merged as
-86f736da07ed3d8718f8e3c2b466ab6fd34246bd. Complete integration checks are pending.
-The separate [object-event PR207](https://github.com/lictl/WebRA2/pull/207) is under
-browser_feasibility review at 581bb423061cf63791f1318105429b168a0829f1 with
-1,145 public tests passing. Root will compose it before the decoder merge.
-No full campaign authority or human blocker is reported. Playback scheduling and
-source team dispatch remain next integration work.
+[Object combat PR207](https://github.com/lictl/WebRA2/pull/207) merged as
+3543b567d6c652ea0648a3f5832fbcee18156ddc, reviewed at
+581bb423061cf63791f1318105429b168a0829f1. Its
+[independent review](https://github.com/lictl/WebRA2/pull/207#pullrequestreview-5167032166)
+and hosted34476232295 pass with 1,145 public tests, 178 documents/887 links,
+630 publication paths and 72 outputs/145 inputs. Issue204 is closed within the
+initial object callback scope. The [report](mission-object-events.md) and
+[dispatch census](analysis/mission-object-dispatch-census.json) retain distinct
+source/native and original runtime evidence. Full opening authorities remain null
+with 268/472 required diagnostics; no original mission is fully playable.
+The separately recorded native YR replay still reproduces its pending478 and
+terminal753 states with the new private health observations.
 
-Current [cell-entry PR202](https://github.com/lictl/WebRA2/pull/202) is being
+Coordinator prepares [audio decoder PR209](https://github.com/lictl/WebRA2/pull/209),
+issue205, in local/worktrees/audio-decode-integration, local branch
+codex/205-audio-decode-integration. All six author files remain exact
+c413d23fc5ba4e29236ad0d2e06f8501fd2a980c. The
+[source review](https://github.com/lictl/WebRA2/pull/209#pullrequestreview-5167018438)
+passes with 1,126 public tests, 2,933 additional reviewer assertions, 144 native
+checks over 22 ranges/5,328 bytes, five primary-source pins and 149 private decodes
+matching 9,961,462 scalar FFmpeg values. One malformed stereo tail is rejected.
+The root composition includes main207 and adds the exact decoder GPL notice,
+build exact-copy check, licensing record and this handoff. All four conflicts
+were confined to those root-owned files and resolved by retaining both notices
+and the current handoff. Final full checks and composition review are pending.
+
+[Control groups PR208](https://github.com/lictl/WebRA2/pull/208) merged as
+86f736da07ed3d8718f8e3c2b466ab6fd34246bd, reviewed at
+d76df3c01cd47908140a7b7624d531f106115390 after 1,125 public tests and actual Chrome
+RA2/YR acceptance at unchanged source2b3ad0e. Its
+[independent review](https://github.com/lictl/WebRA2/pull/208#pullrequestreview-5166969079)
+and hosted34475171792 pass. Issue206 is closed. Development testing remains focused
+on Chrome (D17).
+
+Next [team transaction210](https://github.com/lictl/WebRA2/issues/210): mix_reader
+owns new genuine source action coverage; browser_feasibility owns the new common
+team context/transaction, after agreeing the API with root. Root owns existing
+VM/world/shared contract changes and final integration. The existing standalone
+spawn/recruit schedulers cannot be nested because each advances the world. The new
+compound path must share membership, ordered requests and exactly one world tick.
+Retain all unsupported automatic/team/script/dynamic actor contexts. No human input
+is needed. Source callbacks, media preparation and team components alone do not
+confer full original mission authority.
+
+Cell-entry202 merged as 5430a7482733d93c94074fe826c7ab97b33f6ce9, reviewed at
+31f775811e733889ba474e51f5b9a876c8620273. Its
+[final composition review](https://github.com/lictl/WebRA2/pull/202#pullrequestreview-5166647010)
+passes with 1,117 public tests, exact hosted34472781609, 174 documents/870 links,
+616 publication paths and71 code/license outputs from144 inputs. Issue201 is closed;
+all12 JavaScript/CSS/HTML outputs remain identical to merged main203. The source
+and complete-preflight limits in the historical checkpoint below remain applicable.
+
+Historical integration checkpoint for [cell-entry PR202](https://github.com/lictl/WebRA2/pull/202) is being
 composed with merged main203 in `local/worktrees/mission-cell-entry`, branch
 `codex/201-mission-cell-entry`. Source/runtime head
 `6537b8113d2d5716da3b240cf84990de2cc8976f` passes 1,102 public tests and its
@@ -39,8 +77,7 @@ movable source actors meet the supported context. Source hashes are
 `f6c2ee31f04fe4e74f63d382e483d8250060d1199222866e4560cc7788cde6c1` and
 `6d0d7d0be05b3de9fd3b818f1ea7f78bf3818727a05a59c3a98a3913115f7193`.
 Both full authorities remain null (274/491 required diagnostics). The no-cell legacy
-comparison passes 32 programs/768 ticks/1,632 assertions. Final composition checks
-and exact-head independent review remain required before merge.
+comparison passes 32 programs/768 ticks/1,632 assertions. The final composition and review completed in the merge recorded above.
 
 [Audio PR203](https://github.com/lictl/WebRA2/pull/203) merged as
 `538a7f655bce84fc4674db57f1d35c556959ef21`, reviewed at

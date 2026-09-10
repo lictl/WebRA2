@@ -334,6 +334,12 @@ components. Distribution includes the [mission audio notice](../packages/content
 and existing GPL/format notices. No new external decoder dependency, retail registry
 rows, waveform bytes or native listings are included.
 
+The initial object combat-event source adapter and mission dispatch are original
+GPL-3.0-or-later work. Distribution includes the [object event notice](../packages/sim/MISSION_OBJECT_EVENT_PROVENANCE.md)
+and the updated mission/world notices. Pure world/combat observation bookkeeping
+and its original fixtures retain MIT notices. No retail payload, waveform, geometry
+or native executable listing accompanies the distribution.
+
 The bounded mission PCM/IMA decoder adapts the pinned GPL-3.0-or-later XCC
 tables, per-bit arithmetic and block layout under the
 [decoder notice](../packages/formats/MISSION_AUDIO_DECODE_PROVENANCE.md). The

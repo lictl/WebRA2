@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "policy": "webra2-initial-object-event-source-1",
+  "scope": "Metadata-only initial source adapter census for the selected first Allied RA2 and YR candidates. No retail execution, full mission authority or source combat runtime gate claimed. Baseline VM diagnostics are the existing no-cue/no-cell/no-object compiler, not the combined runtime preflight.",
+  "selectedFiles": 438,
+  "nativeLedgerSha256": "662e4d238573b361ba358b4363f8c195ccee468825d5f5d4c03145e9cc27803b",
+  "nativeRanges": 65,
+  "nativeBytes": 10811,
+  "rawSourceOracleAssertions": 60980,
+  "nativeVerificationAssertions": 273,
+  "oracleScope": "Independent raw mission/rules source staging, member/root pins, houses/tags and every new source projection field. Current world health is the genuine upstream projection, not a separate health decoder.",
+  "profiles": [
+    {
+      "profile": "ra2",
+      "sourceSha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+      "catalogSha256": "5e602be74dbff27ae16a2bbb618df3244e2bc80a10cfe658039168016c2f6a60",
+      "objectSourceSha256": "4a0cb56b6a43fa098ba3c12dda4889ae3acfd3ac83a1549cd1e63d5042812d5f",
+      "coverage": {
+        "events": 6,
+        "supportedEvents": 6,
+        "actors": 811,
+        "supportedActors": 249,
+        "objectAttachments": 50,
+        "sharedObjectBindings": 5,
+        "scenarioPollBindings": 86
+      },
+      "diagnostics": {},
+      "baselineVmDiagnostics": 367,
+      "originalAuthority": false,
+      "eventOpcodeCounts": {
+        "48": 4,
+        "6": 2
+      },
+      "supportedActorKinds": {
+        "infantry": 40,
+        "structure": 190,
+        "unit": 19
+      },
+      "unsupportedActorReasons": {
+        "missing-initial-house": 562,
+        "unsupported-actor-family": 562,
+        "unsupported-initial-health": 562
+      },
+      "fullPrivateProjectionSha256": "ab9557209bb551c2ec4231f7671598a3721da74d99733fbe68dc40da9a2669d9"
+    },
+    {
+      "profile": "yr",
+      "sourceSha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+      "catalogSha256": "e839e63e8b14b22e051188127bc4514ef421537804878797f321b576bd5111af",
+      "objectSourceSha256": "8c630bb224adec1baef8618ad7d03ce39b8f864d8bcb80ca6be53adf2fc34361",
+      "coverage": {
+        "events": 19,
+        "supportedEvents": 19,
+        "actors": 570,
+        "supportedActors": 263,
+        "objectAttachments": 130,
+        "sharedObjectBindings": 2,
+        "scenarioPollBindings": 127
+      },
+      "diagnostics": {},
+      "baselineVmDiagnostics": 531,
+      "originalAuthority": false,
+      "eventOpcodeCounts": {
+        "44": 8,
+        "48": 10,
+        "6": 1
+      },
+      "supportedActorKinds": {
+        "infantry": 56,
+        "structure": 189,
+        "unit": 18
+      },
+      "unsupportedActorReasons": {
+        "missing-initial-house": 307,
+        "unsupported-actor-family": 307,
+        "unsupported-initial-health": 307
+      },
+      "fullPrivateProjectionSha256": "9d5e017d59a4268b0e7a940bbbd59beec2c29054847af81257605b66e0b1f0b6"
+    }
+  ],
+  "canStartCampaign": false,
+  "nativeBehaviorVerified": false
+}
