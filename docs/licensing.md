@@ -323,6 +323,11 @@ recruitment gates are original GPL-3.0-or-later work. Distribution includes the
 existing content/simulation notices. Native range metadata is factual evidence;
 no retail rows, coordinates or native listings are included in the build.
 
+The initial source cell-entry adapter and its VM/compound dispatch are original
+GPL-3.0-or-later work. Distribution includes the [cell-entry notice](../packages/sim/MISSION_CELL_ENTRY_PROVENANCE.md)
+and the updated mission VM/world notices. Native evidence is metadata only; no
+retail source rows, cell geometry or native listings are included.
+
 The mission audio source-plan and sample preparation modules are original
 GPL-3.0-or-later work, composing the existing indexed-audio and verified-source
 components. Distribution includes the [mission audio notice](../packages/content/MISSION_AUDIO_PROVENANCE.md)

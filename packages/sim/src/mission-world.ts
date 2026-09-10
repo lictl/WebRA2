@@ -4,18 +4,21 @@ import type { CommandEnvelope } from '../../contracts/src/index.ts';
 import { canonicalText, parseJson } from './canonical.ts';
 import { isMissionBindingAuthority, type MissionBindingAuthority } from './mission-bindings.ts';
 import { isMissionInitialFlags, type MissionInitialFlags } from './mission-initial-flags.ts';
-import { missionProgramCues, MISSION_CUE_DISPATCH_POLICY, MissionLogic, type MissionEffect, type MissionInput, type MissionSave } from './mission-logic.ts';
+import { missionProgramCues, missionProgramCellEntry, MISSION_CUE_DISPATCH_POLICY, MissionLogic, type MissionEffect, type MissionInput, type MissionSave } from './mission-logic.ts';
 import { assertWorldModel, createWorldModel, type WorldModel } from './world-model.ts';
 import { combatSourceBridge } from './combat-model.ts';
 import { WorldSimulation, type WorldSave, type WorldTrace } from './world.ts';
 import { appendMissionCues, createMissionCueState, restoreMissionCueState, type MissionCueState, type MissionCueEvent } from './mission-cues.ts';
+import { missionCellEntrySourceBindings, type MissionCellEntrySource } from './mission-cell-entry-source.ts';
 import type { MissionCueCatalog } from '../../content/src/mission-cues.ts';
 import { worldClone, worldHash, worldInteger, worldList, worldPosition, worldRecord, worldSourceHash } from './world-values.ts';
 
 export const MISSION_WORLD_POLICY = 'webra2-mission-world-poll-1' as const;
+export const MISSION_WORLD_CELL_PHASE_POLICY = 'webra2-world-cell-events-before-scenario-poll-1' as const;
 export const MISSION_WORLD_LIMITS = Object.freeze({ ticks: 128, work: 16_777_216, trace: 32768, replayTicks: 10000, admissions: 1024, presentationUnits: 1_048_576 });
 export interface MissionWorldModel {
   readonly policy: typeof MISSION_WORLD_POLICY; readonly sha256: string; readonly worldSha256: string;
+  readonly cellEntrySourceSha256?: string; readonly cellEntryPhasePolicy?: typeof MISSION_WORLD_CELL_PHASE_POLICY;
   readonly cueCatalogSha256?: string; readonly cueDispatchPolicy?: typeof MISSION_CUE_DISPATCH_POLICY;
   readonly bindingsSha256: string; readonly programSha256: string; readonly flagsSha256: string;
   readonly canStartCampaign: false; readonly nativeBehaviorVerified: false;
@@ -59,7 +62,7 @@ function fail(code: string): never { throw new MissionWorldError(code); }
 function freeze<T>(v: T): T {
   if (v && typeof v === 'object' && !Object.isFrozen(v)) { for (const c of Object.values(v)) freeze(c); Object.freeze(v); } return v;
 }
-type Source = { world: WorldModel; bindings: MissionBindingAuthority; flags: MissionInitialFlags; initial: MissionSave; cues: MissionCueCatalog | null };
+type Source = { world: WorldModel; bindings: MissionBindingAuthority; flags: MissionInitialFlags; initial: MissionSave; cues: MissionCueCatalog | null; cells: MissionCellEntrySource | null; cellByAddress: ReadonlyMap<number, string> };
 const sources = new WeakMap<MissionWorldModel, Source>();
 function source(model: MissionWorldModel): Source { const s = sources.get(model); if (!s) fail('model'); return s; }
 const actions = new Set([0, 1, 2, 12, 22, 23, 24, 25, 26, 27, 28, 29, 53, 54, 56, 57]);
@@ -88,11 +91,21 @@ export function compileMissionWorld(input: {
   }
   const cues = missionProgramCues(bindings.program);
   if (cues && (cues.source.sha256 !== world.sourceSha256 || cues.profile !== world.contentIdentity.profile)) fail('cue-source');
+  const cells = missionProgramCellEntry(bindings.program), cellByAddress = new Map<number, string>();
+  if (cells) {
+    if (missionCellEntrySourceBindings(cells).fingerprint !== bindings.catalogSha256) fail('cell-source');
+    const actors = new Map(cells.actors.map(a => [a.entityId, a]));
+    for (const entity of world.entities) if (entity.movementPerTick > 0 && entity.initialHealth !== 0 && actors.get(entity.id)?.status !== 'supported') fail('cell-movement-context');
+    for (const cell of cells.cells) {
+      const address = cell.y * 512 + cell.x; if (cellByAddress.has(address)) fail('cell-source'); cellByAddress.set(address, cell.cellId);
+    }
+  }
   const initial = MissionLogic.create(bindings.program, { bindings: bindings.bindings, globals: flags.globals, locals: flags.locals }).save();
   const data = { policy: MISSION_WORLD_POLICY, worldSha256: world.sha256, bindingsSha256: bindings.catalogSha256,
     programSha256: bindings.program.sha256, flagsSha256: flags.sha256, canStartCampaign: false as const, nativeBehaviorVerified: false as const,
-    ...(cues ? { cueCatalogSha256: cues.sha256, cueDispatchPolicy: MISSION_CUE_DISPATCH_POLICY } : {}) };
-  const model = freeze({ ...data, sha256: worldHash(data) }); sources.set(model, { world, bindings, flags, initial, cues }); return model;
+    ...(cues ? { cueCatalogSha256: cues.sha256, cueDispatchPolicy: MISSION_CUE_DISPATCH_POLICY } : {}),
+    ...(cells ? { cellEntrySourceSha256: cells.sha256, cellEntryPhasePolicy: MISSION_WORLD_CELL_PHASE_POLICY } : {}) };
+  const model = freeze({ ...data, sha256: worldHash(data) }); sources.set(model, { world, bindings, flags, initial, cues, cells, cellByAddress }); return model;
 }
 function checkFlags(s: Source, mission: MissionSave): void {
   if (mission.locals.slice(s.flags.localCapacity).some(Boolean) || mission.pending.some(i => i.kind === 'local' && i.index >= s.flags.localCapacity)) fail('local-capacity');
@@ -129,7 +142,7 @@ export function admitMissionWorld(model: MissionWorldModel, value: unknown, inpu
   world.admitCommands(commands); mission.enqueue(flags); checkFlags(s, mission.save());
   return restoreMissionWorld(model, { ...checkpoint, world: world.save(), mission: mission.save() });
 }
-/** D03: apply due flags and poll controls, then advance the world once. Publish only a complete candidate. */
+/** D03: source cell policy advances the world before flags/cell delivery/scenario poll; legacy models retain poll-first order. */
 export function stepMissionWorld(model: MissionWorldModel, value: unknown, ticks = 1, workLimit: number = MISSION_WORLD_LIMITS.work): MissionWorldResult {
   const s = source(model), checkpoint = restoreMissionWorld(model, value);
   worldInteger(ticks, 1, MISSION_WORLD_LIMITS.ticks); worldInteger(workLimit, 0, MISSION_WORLD_LIMITS.work);
@@ -137,7 +150,17 @@ export function stepMissionWorld(model: MissionWorldModel, value: unknown, ticks
   const effects: MissionEffect[] = [], worldEvents: WorldTrace[] = [], requests: MissionWorldPresentationRequest[] = []; let work = 0, units = 0;
   let cursor = checkpoint.presentation;
   for (let at = 0; at < ticks; at++) {
-    const polled = mission.step(); work += polled.work;
+    const advanced = s.cells ? world.step(1, workLimit - work) : null;
+    if (advanced) work += advanced.work.entityVisits + advanced.work.navigationExpansions + advanced.work.transitions;
+    const entries: { cellId: string; entityId: number }[] = [];
+    if (advanced) for (const event of advanced.events) {
+      if (++work > workLimit) fail('work-limit');
+      if (event.phase !== 'movement' || event.kind !== 'moved' || event.cell === null) continue;
+      const cellId = s.cellByAddress.get(event.cell); if (cellId) entries.push({ cellId, entityId: event.entityId });
+    }
+    // No caller observation list is accepted. Only successful private world transitions
+    // produce source cell delivery; renderer picks, arrivals without movement and reservations do not.
+    const polled = s.cells ? mission.stepCellEntries(entries) : mission.step(); work += polled.work;
     if (s.cues && cursor) {
       // These effects are produced immediately by the private source-bound VM;
       // no public caller-supplied invocation/effect list reaches this boundary.
@@ -152,12 +175,13 @@ export function stepMissionWorld(model: MissionWorldModel, value: unknown, ticks
       requests.push(...emitted); cursor = appended.state;
     }
     if (work > workLimit) fail('work-limit');
-    const moved = world.step(1, workLimit - work); work += moved.work.entityVisits + moved.work.navigationExpansions + moved.work.transitions;
+    const moved = advanced ?? world.step(1, workLimit - work);
+    if (!advanced) work += moved.work.entityVisits + moved.work.navigationExpansions + moved.work.transitions;
     if (work > workLimit) fail('work-limit');
     if (polled.effects.length + moved.events.length > MISSION_WORLD_LIMITS.trace - effects.length - worldEvents.length) fail('trace-limit');
     if (polled.nextTick !== moved.nextTick) fail('clock');
     // Every effect is returned in source VM order. Outcome requests remain requests;
-    // this policy never resolves victory, playback, teams or physical tag callbacks.
+    // this policy never resolves victory, playback, teams or native attachment mutation.
     effects.push(...polled.effects); worldEvents.push(...moved.events);
   }
   const next = restoreMissionWorld(model, { ...checkpoint, world: world.save(), mission: mission.save(), ...(cursor ? { presentation: cursor } : {}) });
