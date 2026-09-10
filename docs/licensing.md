@@ -266,3 +266,11 @@ Its [notice](../packages/sim/TEAM_SLEEP_PROVENANCE.md), GPL text and correspondi
 source accompany the composed runtime. The build includes the notice separately
 from team definitions, activation, spawning and destination planning. No new
 external dependency or original-game content is adopted.
+
+The source CreateTeam recruitment catalog/controller, its compound save/replay
+composition and the shared persistent Flash50 policy are original GPL-3.0-or-later
+code. The [recruitment notice](../packages/sim/TEAM_RECRUITMENT_PROVENANCE.md)
+records the static native evidence, source references and explicit WebRA2 policy
+choices. Distributions retain that notice, the GPL text and corresponding source
+alongside the existing team and world notices. No retail payload or native listing
+is distributed. Separate MIT kernel code remains identified by its own headers.
