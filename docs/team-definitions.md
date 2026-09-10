@@ -67,6 +67,50 @@ node --import tsx --test tests/content/team-definitions.test.ts
 npm run check
 ```
 
-The native evidence and private comparison ledger are being completed before PR
-readiness. This checkpoint does not claim a completed private retail gate. See
-[component provenance](../packages/content/TEAM_DEFINITIONS_PROVENANCE.md).
+The independent Python comparison reads the raw AI/rules/map files and reconstructs
+country/house identities, source-ordered registration, current-value fields, histories,
+implicit references, sequence resets, numeric-slot compaction and operand arithmetic.
+It does not invoke TypeScript or use compiler values to generate expected fields.
+The resulting projections compare 126,771 scalar leaves for RA2 and 241,497 for YR;
+all match. A separate sorted-key digest also matches each full result fingerprint.
+These are static content comparisons, not original-game execution tests.
+
+| Pinned input scope | RA2 opening plus global AI | YR opening plus global AI |
+| --- | --- | --- |
+| Teams / task forces / scripts | 152 / 110 / 90 | 265 / 223 / 182 |
+| Final task-force member rows / script steps | 152 / 345 | 312 / 833 |
+| Late country allocations without a new house | 1 | 1 |
+| Scripts with numeric framing / fully typed selected operands | 90 / 3 | 182 / 35 |
+| Script steps with unsupported operands | 291 | 563 |
+
+The [aggregate census](analysis/team-definitions-census.json) pins all eight physical
+input sources, result and independent projection hashes, opcode counts and diagnostic
+counts. The [native range ledger](analysis/team-definitions-native.json) pins 55
+ranges totaling 12,925 bytes across the two executable images. Each range records
+virtual address, file offset, size, SHA-256 and a narrow interpretation. Metadata
+contains no original INI values, artwork, executable bytes or disassembly.
+
+Reproduction stays in ignored `local/` in the team-definitions worktree:
+
+```sh
+node --import tsx local/probe.ts
+python3 local/team-oracle.py
+python3 local/native131/ledger.py
+```
+
+The first command reads root and member hashes through the shared verified source
+reader and compiles both selected profiles. The second independently parses those
+private raw inputs and verifies complete selected projections. The third rehashes
+both complete executable files and their byte ranges; it does not execute them.
+Reviewers copy private scripts into their own checkout and use separate ignored
+outputs. Public tests and CI do not require retail files.
+
+Remaining runtime work is team creation/recruitment, quantity availability, AI
+scheduling, member completion, tag lifetime, movement/arrival/guard timing, and
+opcode execution. Other external allocation paths remain outside the scoped index
+model. `typed` is a data capability: a typed team may refer to a script whose opaque
+operands require future implementation. It never implies executable mission closure.
+Task-force/script `isGlobal` records the latest native list load, not a merged
+rules/mission namespace. General INI comment/empty normalization still follows
+`webra2-ini-1`; exact source spelling is recovered without claiming every native
+parser tie. See [component provenance](../packages/content/TEAM_DEFINITIONS_PROVENANCE.md).

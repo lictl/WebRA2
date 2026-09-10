@@ -297,6 +297,7 @@ export function compileTeamDefinitions(input: { readonly definitions: EntityDefi
     }
   }
   const successful = (r: MutableBase) => r.loads.some(l => l.nativeReturn === true);
+  const handled = (r: MutableBase) => r.unhandledFields.every(o => ['Name', 'UIName'].includes(o.keySpelling));
   const completeReference = (ref: TeamDefinitionReference, kind: 'script' | 'taskforce'): TeamDefinitionReference => {
     if (!ref.targetId || ref.status === 'unsupported' || ref.status === 'first-allocated') return ref;
     const r = records.get(kind)!.get(ref.targetId.slice(ref.targetId.indexOf(':') + 1));
@@ -322,7 +323,7 @@ export function compileTeamDefinitions(input: { readonly definitions: EntityDefi
       return { field, number: n, rowId, status };
     });
     return { ...base(r), kind: 'team', script, taskForce, tag: r.tag, owner: r.owner, waypoints: waypointRows,
-      typed: successful(r) && targets && r.owner.status !== 'unsupported' && Object.values(r.fields).every(f => f.status !== 'unsupported'),
+      typed: successful(r) && handled(r) && targets && r.owner.status !== 'unsupported' && Object.values(r.fields).every(f => f.status !== 'unsupported'),
       requiredRuntimeWork: ['team-instantiation-and-recruitment', 'member-quantity-and-availability', 'script-dispatch-and-completion', 'waypoint-arrival-and-guard-timing', 'team-house-and-tag-lifetime'] };
   });
   diagnostic('external-allocation-paths-unmodeled', 'program');

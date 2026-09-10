@@ -1,0 +1,572 @@
+{
+  "schemaVersion": 1,
+  "scope": "Scoped native team data evidence; no native programs executed and no behavior equivalence claim.",
+  "images": [
+    {
+      "profile": "ra2",
+      "filename": "game.exe",
+      "size": 5077312,
+      "sha256": "73288c03b58d370be268ca6d156b4e33bfdb2066dc980359467d8852ff3b00df",
+      "ranges": [
+        {
+          "id": "global-ai-file",
+          "vaStart": "0x512f98",
+          "vaEndExclusive": "0x512fd0",
+          "offset": 1126296,
+          "size": 56,
+          "sha256": "e56d96139c4242b107d7076382490701c6c2e969c553b679ede877caac69ea51",
+          "interpretation": "Global AI file is read into the INI object later used for global team/script/task-force lists.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "list-phase-order",
+          "vaStart": "0x65f63b",
+          "vaEndExclusive": "0x65f683",
+          "offset": 2487867,
+          "size": 72,
+          "sha256": "4da75b80f0abfd5fa4209183d6473103e34b6da258a1e2a21e02ed6304ee6e2e",
+          "interpretation": "Global then mission TeamTypes, ScriptTypes, TaskForces call order and isGlobal argument.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "team-constructor",
+          "vaStart": "0x6be9b0",
+          "vaEndExclusive": "0x6bebb0",
+          "offset": 2877872,
+          "size": 512,
+          "sha256": "aa73ad689119c9c21bb2ed8f09fc13e2276cfaa293a6af8cb2c3d8a6b07d731f",
+          "interpretation": "Team scalar/flag/reference defaults and array append.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "team-properties",
+          "vaStart": "0x6bf330",
+          "vaEndExclusive": "0x6bf76e",
+          "offset": 2880304,
+          "size": 1086,
+          "sha256": "6e90d5fa96930f57865c31da18ba359e12f2c79c308034b2b3793c0c5a8519be",
+          "interpretation": "Current-value scalar defaults, country/house/tag/waypoint/reference reads, TaskForce then Script fallback.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "team-list",
+          "vaStart": "0x6bfba0",
+          "vaEndExclusive": "0x6bfc99",
+          "offset": 2882464,
+          "size": 249,
+          "sha256": "2416928d26c6010988b9d19de568fb7c926356cbef655c6378ce6ee7d818b472",
+          "interpretation": "Source entry order; case-folded ID allocation; immediate property load and global flag assignment.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "taskforce-constructor",
+          "vaStart": "0x6b6850",
+          "vaEndExclusive": "0x6b6910",
+          "offset": 2844752,
+          "size": 192,
+          "sha256": "9890093236dd4c1598e5af7235d3c04fc113aebcb4f32452d93b60e6bff4169e",
+          "interpretation": "Group -1, zero count/global flag and empty six-member storage.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "taskforce-list",
+          "vaStart": "0x6b6bf0",
+          "vaEndExclusive": "0x6b6d10",
+          "offset": 2845680,
+          "size": 288,
+          "sha256": "19986361f9ab7bdb7e9ca22f1d8e4b9496eb0248837194df7993d4b9b3d386c2",
+          "interpretation": "Source list enumeration, 24-byte registry input, first-allocated case-folded identities.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "taskforce-properties",
+          "vaStart": "0x6b6df0",
+          "vaEndExclusive": "0x6b6ecb",
+          "offset": 2846192,
+          "size": 219,
+          "sha256": "7bb2c574ba9e7977471990c4b797290368329d91ca189565687302b8d76b16e8",
+          "interpretation": "Reset six literal slots, skip empty/unresolved types, compact member count, current Group default.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "taskforce-member-parser",
+          "vaStart": "0x4b4860",
+          "vaEndExclusive": "0x4b48fe",
+          "offset": 739424,
+          "size": 158,
+          "sha256": "17415e8f7e9a64d0ced24c38a2df3ae9461e59df7a364483ff9860384c14fdca",
+          "interpretation": "Quantity/name pair parsing then infantry, vehicle, aircraft type lookup.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "taskforce-reference-allocation",
+          "vaStart": "0x6b6fb0",
+          "vaEndExclusive": "0x6b7080",
+          "offset": 2846640,
+          "size": 208,
+          "sha256": "09db0bf15ff219c064c905838d26321fe782089c9b869a264444236539d5a38f",
+          "interpretation": "Case-folded reference FindOrAllocate and none sentinels.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "script-list",
+          "vaStart": "0x668ce0",
+          "vaEndExclusive": "0x668e98",
+          "offset": 2526432,
+          "size": 440,
+          "sha256": "06572cdafcaf583219e6a2d82784ca6c063e1a662e5b157252d103abbade6a1c",
+          "interpretation": "Source list enumeration, 24-byte input, zero count/global constructor and immediate property load.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "script-properties",
+          "vaStart": "0x668c10",
+          "vaEndExclusive": "0x668cd7",
+          "offset": 2526224,
+          "size": 199,
+          "sha256": "a657c705d7eb523da85728439181dba1e0505c096b85e080f735012f232e6de1",
+          "interpretation": "Probe literal keys 0 through 49, reset and compact present rows.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "script-reference-allocation",
+          "vaStart": "0x668f70",
+          "vaEndExclusive": "0x6690c0",
+          "offset": 2527088,
+          "size": 336,
+          "sha256": "ad791e3c53d61197dfc3b9366e6eced8420c2a6083bbf56d273eb636172fe01b",
+          "interpretation": "Case-folded script reference lookup/allocation preserves first ID spelling.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "script-number-pair",
+          "vaStart": "0x6eaf60",
+          "vaEndExclusive": "0x6eafa0",
+          "offset": 3059552,
+          "size": 64,
+          "sha256": "ff02c86cb4363a5f6470fbb58811f2ad77d6229234d091c4a6bb8fd1a45aab99",
+          "interpretation": "Two signed decimal scanf operands; malformed rows are excluded from typed support.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "country-read",
+          "vaStart": "0x46aa00",
+          "vaEndExclusive": "0x46aaa2",
+          "offset": 436736,
+          "size": 162,
+          "sha256": "32b981f4ea21190cf058ea82524c11c656d7183fb57e0ef13eb30a2cdadb3c31",
+          "interpretation": "Read country name with current default; missing lookup directly constructs a country.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "country-lookup",
+          "vaStart": "0x4f94d0",
+          "vaEndExclusive": "0x4f9544",
+          "offset": 1021136,
+          "size": 116,
+          "sha256": "6f4fc9c9a84b90f2e06a0623c144b90c1d790bcb5db6fc2121b1cc7e7f6fef91",
+          "interpretation": "Special random selector; first case-folded Name then ID match in physical country order.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "country-constructor",
+          "vaStart": "0x4f90f0",
+          "vaEndExclusive": "0x4f9370",
+          "offset": 1020144,
+          "size": 640,
+          "sha256": "1582405d25bca578730e3601eaaccf2c5ebf7bc61c980d38cc99f6c77d53a8e6",
+          "interpretation": "Direct country constructor appends identity; no house is allocated by this path.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "house-by-country",
+          "vaStart": "0x4ed760",
+          "vaEndExclusive": "0x4ed7e0",
+          "offset": 972640,
+          "size": 128,
+          "sha256": "1f60959004c33cefcf0c61ee3566da1b7798459ce55036f6f03cbd11610eb8a5",
+          "interpretation": "First house whose country index equals the requested country index.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "encoded-waypoint",
+          "vaStart": "0x724a70",
+          "vaEndExclusive": "0x724ac8",
+          "offset": 3295856,
+          "size": 88,
+          "sha256": "b8a26c5e48464b0dc59c97b0759741edd002f15642a8830f7181de1e7ca9471e",
+          "interpretation": "Alphabetic one/two-character waypoint decoding; longer strings remain outside compiler support.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "script-cursor-methods",
+          "vaStart": "0x668900",
+          "vaEndExclusive": "0x668935",
+          "offset": 2525440,
+          "size": 53,
+          "sha256": "b3dc8fc7f4d0d7a8d9b9731b0f45434ae9227e13336f80bd1bcb93c21b320e61",
+          "interpretation": "Reset/current-line assignment and subsequent increment in NextAction.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "completed-step-advance",
+          "vaStart": "0x6b7cf4",
+          "vaEndExclusive": "0x6b7d4a",
+          "offset": 2850036,
+          "size": 86,
+          "sha256": "1520f5a66fc15f2dc677af180f1873413a2a64924309b42e42ee44e1683f1786",
+          "interpretation": "Completed-step flag drives NextAction before fetching another command.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "numeric-dispatch",
+          "vaStart": "0x6b7da7",
+          "vaEndExclusive": "0x6b7dcb",
+          "offset": 2850215,
+          "size": 36,
+          "sha256": "d2e766ef68c2916b8142cb54913504b24399f5daf470a43ea51d552596778b8f",
+          "interpretation": "Native script opcode bounds and dispatch table reference.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "operand-dispatch-table",
+          "vaStart": "0x6b8768",
+          "vaEndExclusive": "0x6b8784",
+          "offset": 2852712,
+          "size": 28,
+          "sha256": "894ca87e5fa1640491a4fd265913b6f2419650208a1bdd659ff5624d584d7357",
+          "interpretation": "First seven function target addresses establish opcode 3/4/5/6 handler locations.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "packed-cell-waypoint-dispatch",
+          "vaStart": "0x6b7f1c",
+          "vaEndExclusive": "0x6b7f6e",
+          "offset": 2850588,
+          "size": 82,
+          "sha256": "450b1622f86eeace0d15511ac434b028f775b2be896f94e8cf346cffc042a02f",
+          "interpretation": "Opcode 4 signed 128-stride split and opcode 3 route call.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "waypoint-route",
+          "vaStart": "0x6bae60",
+          "vaEndExclusive": "0x6baf80",
+          "offset": 2862688,
+          "size": 288,
+          "sha256": "28478c8f825d4efa0e6d8066372a5d4c8ea178bfc0b8532cb333d38a1590b8e2",
+          "interpretation": "Opcode 3 argument reaches Scenario waypoint lookup.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "guard-operand",
+          "vaStart": "0x6b8135",
+          "vaEndExclusive": "0x6b8190",
+          "offset": 2851125,
+          "size": 91,
+          "sha256": "16f9f9ada0f98911c3653094597bc4a0c8c5669892fb247d1d4c533be77d1b81",
+          "interpretation": "Guard entry multiplies the operand by 15 native frame units.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "cursor-operand",
+          "vaStart": "0x6b8215",
+          "vaEndExclusive": "0x6b8230",
+          "offset": 2851349,
+          "size": 27,
+          "sha256": "34db9dd3cdb56c9559ebf608bc6e3056418061f0327f76277be6e115827aa6dd",
+          "interpretation": "Opcode 6 sets the script cursor to operand minus two and marks completion.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        }
+      ]
+    },
+    {
+      "profile": "yr",
+      "filename": "gamemd.exe",
+      "size": 5286208,
+      "sha256": "3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600",
+      "ranges": [
+        {
+          "id": "global-ai-file",
+          "vaStart": "0x52d357",
+          "vaEndExclusive": "0x52d390",
+          "offset": 1233751,
+          "size": 57,
+          "sha256": "fa6dc68d5bd07d9211ab3111bcad27ee218d4f8a50e994175d62da656df3f4e7",
+          "interpretation": "Global AI file is read into the INI object later used for global team/script/task-force lists.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "list-phase-order",
+          "vaStart": "0x68797a",
+          "vaEndExclusive": "0x6879c2",
+          "offset": 2652538,
+          "size": 72,
+          "sha256": "469aabbcad34c4d4629341364cc1ac2acb15448f613c34deee37c77d213f0cb2",
+          "interpretation": "Global then mission TeamTypes, ScriptTypes, TaskForces call order and isGlobal argument.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "team-constructor",
+          "vaStart": "0x6f06e0",
+          "vaEndExclusive": "0x6f08ea",
+          "offset": 3081952,
+          "size": 522,
+          "sha256": "47c38465a766f08de7b2d52d71973edaa1bf4edbd35e10715b86ac2b6c854c2d",
+          "interpretation": "Team scalar/flag/reference defaults and array append.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "team-properties",
+          "vaStart": "0x6f1090",
+          "vaEndExclusive": "0x6f1542",
+          "offset": 3084432,
+          "size": 1202,
+          "sha256": "00095cfdb2b6b11b862f6f1cbf0694eda75d78ecdd207504bcbc65458735c2e1",
+          "interpretation": "Current-value scalar defaults, country/house/tag/waypoint/reference reads, TaskForce then Script fallback.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "team-list",
+          "vaStart": "0x6f19b0",
+          "vaEndExclusive": "0x6f1aaa",
+          "offset": 3086768,
+          "size": 250,
+          "sha256": "a250626d72be50cb4ce0d1d3d09c4a0992cf6ddbbcfc2890811d3afa1e035850",
+          "interpretation": "Source entry order; case-folded ID allocation; immediate property load and global flag assignment.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "taskforce-constructor",
+          "vaStart": "0x6e7e80",
+          "vaEndExclusive": "0x6e7f40",
+          "offset": 3047040,
+          "size": 192,
+          "sha256": "ae1738375ec5402e9f70987bbffc7e1bfb9b5567c6e27f72fd372cc55f2578da",
+          "interpretation": "Group -1, zero count/global flag and empty six-member storage.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "taskforce-list",
+          "vaStart": "0x6e8220",
+          "vaEndExclusive": "0x6e8340",
+          "offset": 3047968,
+          "size": 288,
+          "sha256": "bf13054b864a22aa1ec773014000c253b5f57b515fee564612e9a36aadeb5cd1",
+          "interpretation": "Source list enumeration, 24-byte registry input, first-allocated case-folded identities.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "taskforce-properties",
+          "vaStart": "0x6e8420",
+          "vaEndExclusive": "0x6e8500",
+          "offset": 3048480,
+          "size": 224,
+          "sha256": "32954e6feb33d228827faaed961009b8301e621eb29c37e92e45bf0b419399dd",
+          "interpretation": "Reset six literal slots, skip empty/unresolved types, compact member count, current Group default.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "taskforce-member-parser",
+          "vaStart": "0x4c4ef0",
+          "vaEndExclusive": "0x4c4f8e",
+          "offset": 806640,
+          "size": 158,
+          "sha256": "3e377dcf346b06c8748c9571621f683d5b17f1377782501036be9d88b55a9d18",
+          "interpretation": "Quantity/name pair parsing then infantry, vehicle, aircraft type lookup.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "taskforce-reference-allocation",
+          "vaStart": "0x6e85f0",
+          "vaEndExclusive": "0x6e86c0",
+          "offset": 3048944,
+          "size": 208,
+          "sha256": "0d954befeb8c5089f2a70a498c1100d0e6c8f0305cea167ef4d0b8472e3b4a36",
+          "interpretation": "Case-folded reference FindOrAllocate and none sentinels.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "script-list",
+          "vaStart": "0x691970",
+          "vaEndExclusive": "0x691b30",
+          "offset": 2693488,
+          "size": 448,
+          "sha256": "d727e07462df550b0148862287b70e89562dc71cf356267a77506b9c0e8d04df",
+          "interpretation": "Source list enumeration, 24-byte input, zero count/global constructor and immediate property load.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "script-properties",
+          "vaStart": "0x6918a0",
+          "vaEndExclusive": "0x69196f",
+          "offset": 2693280,
+          "size": 207,
+          "sha256": "f264bf89ad0b5a762667e564f581d5fc6d0781f2a1b388ee215250740b2a9c4d",
+          "interpretation": "Probe literal keys 0 through 49, reset and compact present rows.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "script-reference-allocation",
+          "vaStart": "0x691c00",
+          "vaEndExclusive": "0x691d50",
+          "offset": 2694144,
+          "size": 336,
+          "sha256": "3ef6b96466d40cc4d29154f66e453d776b622c8ab70dc8f460e744333ce75247",
+          "interpretation": "Case-folded script reference lookup/allocation preserves first ID spelling.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "script-number-pair",
+          "vaStart": "0x723ca0",
+          "vaEndExclusive": "0x723ce0",
+          "offset": 3292320,
+          "size": 64,
+          "sha256": "ef7f85d1f3534037e09a5d323ab21d5dee67300c316af00dc9ac5fe2aaedaebd",
+          "interpretation": "Two signed decimal scanf operands; malformed rows are excluded from typed support.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "country-read",
+          "vaStart": "0x475540",
+          "vaEndExclusive": "0x475609",
+          "offset": 480576,
+          "size": 201,
+          "sha256": "b8ce585613520b6de1c365c8aee00de3f796e22e2e5792595bf00fb5bf3e8908",
+          "interpretation": "Read country name with current default; missing lookup directly constructs a country.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "country-lookup",
+          "vaStart": "0x5117d0",
+          "vaEndExclusive": "0x511844",
+          "offset": 1120208,
+          "size": 116,
+          "sha256": "792efee8444bb017acaf6d36cb0657ae76fc78d7dcaa9e3f079769b02b4334db",
+          "interpretation": "Special random selector; first case-folded Name then ID match in physical country order.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "country-constructor",
+          "vaStart": "0x5113f0",
+          "vaEndExclusive": "0x511670",
+          "offset": 1119216,
+          "size": 640,
+          "sha256": "0758f002609cb73064c38886801fcb8d5572dc593d929b7da98ce8166d093fec",
+          "interpretation": "Direct country constructor appends identity; no house is allocated by this path.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "house-by-country",
+          "vaStart": "0x502d30",
+          "vaEndExclusive": "0x502dc0",
+          "offset": 1060144,
+          "size": 144,
+          "sha256": "e89c23e0e19b5d83fd092541969b3c68dedee04ded490e30ffa665068349debe",
+          "interpretation": "First house whose country index equals the requested country index.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "encoded-waypoint",
+          "vaStart": "0x763690",
+          "vaEndExclusive": "0x7636e8",
+          "offset": 3552912,
+          "size": 88,
+          "sha256": "2712981ce5d6614ca3384512a60212e7c6f27377f207c662644d0688c5452008",
+          "interpretation": "Alphabetic one/two-character waypoint decoding; longer strings remain outside compiler support.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "script-cursor-methods",
+          "vaStart": "0x691590",
+          "vaEndExclusive": "0x6915c5",
+          "offset": 2692496,
+          "size": 53,
+          "sha256": "b3dc8fc7f4d0d7a8d9b9731b0f45434ae9227e13336f80bd1bcb93c21b320e61",
+          "interpretation": "Reset/current-line assignment and subsequent increment in NextAction.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "completed-step-advance",
+          "vaStart": "0x6e9364",
+          "vaEndExclusive": "0x6e93ba",
+          "offset": 3052388,
+          "size": 86,
+          "sha256": "7bef10fc3454e212a36921b9baa827dcbfc3f3f8ffd552930efbe7823e6c8afa",
+          "interpretation": "Completed-step flag drives NextAction before fetching another command.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "numeric-dispatch",
+          "vaStart": "0x6e9436",
+          "vaEndExclusive": "0x6e9462",
+          "offset": 3052598,
+          "size": 44,
+          "sha256": "e35da7e8d67872ec2a32eb9301703785a0b3da1e244048c0fe83d0df268f371e",
+          "interpretation": "Native script opcode bounds and dispatch table reference.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "operand-dispatch-table",
+          "vaStart": "0x6e9f74",
+          "vaEndExclusive": "0x6e9f90",
+          "offset": 3055476,
+          "size": 28,
+          "sha256": "8ec6de7f30852586c0ba3ed40feeff3c64b8279132e99d16f8acce9589c35864",
+          "interpretation": "First seven function target addresses establish opcode 3/4/5/6 handler locations.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "packed-cell-waypoint-dispatch",
+          "vaStart": "0x6e95b3",
+          "vaEndExclusive": "0x6e9605",
+          "offset": 3052979,
+          "size": 82,
+          "sha256": "6621c1d151d80fc147aea2c71d54d07d8d472fde3c5ec55741f3a74794a5a29f",
+          "interpretation": "Opcode 4 signed 128-stride split and opcode 3 route call.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "waypoint-route",
+          "vaStart": "0x6ec7d0",
+          "vaEndExclusive": "0x6ec9a0",
+          "offset": 3065808,
+          "size": 464,
+          "sha256": "604197c3a2256b35a776f14f752e0111eb2de0898f467b7562dd06bde0ae1813",
+          "interpretation": "Opcode 3 argument reaches Scenario waypoint lookup.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "guard-operand",
+          "vaStart": "0x6e97ce",
+          "vaEndExclusive": "0x6e9832",
+          "offset": 3053518,
+          "size": 100,
+          "sha256": "336d40ff54ebf75baebe545a2bd9a3761145fea7800c3c5e5c08f6a6329cd990",
+          "interpretation": "Guard entry multiplies the operand by 15 native frame units.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "cursor-operand",
+          "vaStart": "0x6e98ae",
+          "vaEndExclusive": "0x6e98c9",
+          "offset": 3053742,
+          "size": 27,
+          "sha256": "cc94d1880a9db07538171596d5b631cc6d8820811885116fd355b430158087da",
+          "interpretation": "Opcode 6 sets the script cursor to operand minus two and marks completion.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "multiplayer-country-selector",
+          "vaStart": "0x510f60",
+          "vaEndExclusive": "0x511230",
+          "offset": 1118048,
+          "size": 720,
+          "sha256": "95583d59877c0915c33e36a509ff47839f7b44f3ad565c031a19b28cd0bd4cd4",
+          "interpretation": "Exact Player @ A through H mappings and selector-range predicate; not team scheduling.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        }
+      ]
+    }
+  ]
+}

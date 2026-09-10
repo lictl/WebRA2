@@ -69,6 +69,7 @@ test('TaskForce and Script literal numeric slots compact gaps, retain missing ty
   assert.equal(r.scripts[0]!.steps[2]!.operand.ticks, 30); assert.equal(r.scripts[0]!.steps[3]!.operand.cursorBeforeAdvance, -1);
   assert.equal(r.scripts[0]!.steps[3]!.operand.targetRuntimeIndex, 0); assert.equal(r.scripts[0]!.executionReady, false);
   assert.ok(r.taskForces[0]!.unhandledFields.some(o => o.keySpelling === '00'));
+  assert.throws(() => compileTeamDefinitions(fixture({ aiText: global.replace('0=Force', '0=' + 'F'.repeat(24)) })), /registry-truncation/);
 });
 test('country aliases choose the first matching house; literal house names are not team country references; YR selectors are explicit', () => {
   const a = compileTeamDefinitions(fixture({ aiText: global.replace('House=Azure', 'House=Player') }));
@@ -93,6 +94,7 @@ test('unknown opcode, malformed pairs, overflow, negative quantities and unsuppo
   assert.equal(r.taskForces[0]!.members[0]!.quantity, -2); assert.equal(r.taskForces[0]!.members[0]!.status, 'unsupported');
   assert.equal(r.scripts[0]!.steps[0]!.opcode, 999); assert.equal(r.scripts[0]!.steps[0]!.operand.value, 123);
   assert.equal(r.scripts[0]!.steps[1]!.argument, null); assert.equal(r.scripts[0]!.steps[2]!.operand.ticks, null);
+  assert.equal(compileTeamDefinitions(fixture({ aiText: global.replace('Priority=11', 'Priority=11\nFutureFlag=yes') })).teams[0]!.typed, false);
   assert.equal(r.scripts[0]!.numericFramingComplete, false); assert.ok(r.teams[0]!.unhandledFields.some(o => o.keySpelling === 'UnknownFlag'));
 });
 test('repeated consumed sections/keys reject and prototype-looking unrelated names cannot change lookup', () => {
