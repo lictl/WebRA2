@@ -12,6 +12,9 @@ import { beginWorldGesture, finishWorldGesture, updateWorldGesture, worldShortcu
 import { TerrainController } from '../../apps/web/src/terrain-controller.ts';
 import { TerrainBridge } from '../../apps/web/src/terrain-bridge.ts';
 import { attachTerrainWorker, type TerrainScope } from '../../apps/web/src/terrain-worker-runtime.ts';
+import { ordinaryFixture } from '../sim/ordinary-infantry-fixture.ts';
+import { compileOrdinaryInfantryBridge } from '../../packages/sim/src/ordinary-infantry-bridge.ts';
+import { bindOrdinaryInfantryWorld } from '../../packages/sim/src/source-infantry-world.ts';
 import { worldText } from '../../apps/web/src/world-i18n.ts';
 
 function groupWorld(count = 4) {
@@ -123,7 +126,7 @@ function controllerHarness(prepared: WorldPreparation = groupWorld()) {
     terminated = false; scope: TerrainScope;
     constructor() {
       super(); this.scope = { onmessage: null, postMessage: (message, transfer) => { const data = structuredClone(message, { transfer: transfer ?? [] }); queueMicrotask(() => { if (!this.terminated) this.dispatchEvent(new MessageEvent('message', { data })); }); } };
-      attachTerrainWorker(this.scope, async () => ({ world: prepared, summary: { profile: 'ra2', mission: 'all01t.map', contentHash: 'a'.repeat(64), mapHash: 'c'.repeat(64), paletteHash: 'e'.repeat(64), cells: 35, objects: 4, assets: 1, verifiedBytes: 1, sourceBytes: 1, decodedBytes: 1, decodedSlots: 1, bounds: { x: 0, y: 0, width: 100, height: 100 }, diagnostics: [], artwork: { policy: 'webra2-object-still-2', presentation: 'webra2-placed-still-1', voxel: null, types: 0, rendered: 0, unavailable: 4, assets: 0, palettes: 0, sourceBytes: 0, decodedBytes: 0, indexedFrames: 0, rows: [], omittedTypes: 0, omittedPlacements: 4, omittedRendered: 0, truncatedFields: 0, unplaced: 0 } }, scene: {
+      attachTerrainWorker(this.scope, async () => ({ world: prepared, summary: { profile: 'ra2', mission: 'all01t.map', contentHash: 'a'.repeat(64), mapHash: 'c'.repeat(64), paletteHash: 'e'.repeat(64), cells: 35, objects: prepared.placements.length, assets: 1, verifiedBytes: 1, sourceBytes: 1, decodedBytes: 1, decodedSlots: 1, bounds: { x: 0, y: 0, width: 100, height: 100 }, diagnostics: [], artwork: { policy: 'webra2-object-still-2', presentation: 'webra2-placed-still-1', voxel: null, types: 0, rendered: 0, unavailable: prepared.placements.length, assets: 0, palettes: 0, sourceBytes: 0, decodedBytes: 0, indexedFrames: 0, rows: [], omittedTypes: 0, omittedPlacements: prepared.placements.length, omittedRendered: 0, truncatedFields: 0, unplaced: 0 } }, scene: {
         locate(x, y) { return { x: x * 20, y: y * 10 }; },
         render(viewport) {
           const bytes = viewport.width * viewport.height * 4;
@@ -176,5 +179,17 @@ test('interaction holds and obsolete asynchronous picks cannot restore a cleared
   const pending = controller.pick(20, 10); assert(!controller.setInteracting(true)); controller.clearSelection(); await pending;
   await new Promise<void>(resolve => setImmediate(resolve)); assert.deepEqual(controller.state.selectedEntities, []); assert.equal(controller.state.selection, null);
   const old = controller.pick(10, 10); controller.leave(); await old; assert.equal(controller.state.frame, null); assert(workers.every(w => w.terminated)); assert(!controller.state.interacting);
+  controller.dispose();
+});
+
+test('controller right-click attacks pass through the source-bound worker with delayed shots and target-only refusal', async()=>{
+  const f=ordinaryFixture(),bridge=compileOrdinaryInfantryBridge(f),prepared={...f.world,model:bindOrdinaryInfantryWorld(bridge,f.world.model)};
+  const {controller}=controllerHarness(prepared);await controller.load();assert.equal(controller.state.phase,'ready');
+  assert(controller.canAttack(2));await controller.moveAt(20,10);
+  assert.equal(controller.state.worldNotice,'worldOrdersQueued');assert.equal(controller.state.frame!.world!.queuedCommands,1);
+  await controller.step();assert.equal(controller.state.frame!.world!.actors[0]!.combat!.windupUntil,2);
+  await controller.step(2);assert.equal(controller.state.frame!.world!.actors[1]!.health,90);
+  controller.setPlayer(1);controller.selectEntity(2);assert(!controller.canAttack(1));
+  const before=structuredClone(controller.state.frame!.world);await controller.attack(1);assert.equal(controller.state.worldNotice,'worldAttackUnsupported');assert.deepEqual(controller.state.frame!.world,before);
   controller.dispose();
 });

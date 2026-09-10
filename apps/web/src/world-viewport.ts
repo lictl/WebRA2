@@ -19,7 +19,8 @@ export function createWorldViewport(scene: TerrainScene, terrain: ScenarioTerrai
   return { locate(x,y){const c=ground.get(x+y*512);return c?{x:c.column*30+30,y:c.row*15+15-c.elevation*15}:null;}, render(viewport, snapshot) {
     if (!snapshot || snapshot.modelHash !== summary.modelHash) throw new Error('world-art-snapshot');
     const positions = new Map(snapshot.actors.map(a => [a.id, a])), descriptions = new Map<string, ObjectInfo>();
-    const objects: SpriteObject[] = initial.map(({ object, info, cell, actor }) => {
+    const visible=initial.filter(({actor})=>{const p=actor?positions.get(actor.id):undefined;return p?.health!==0||(p.combat?.deathSequence!=null&&p.combat.corpseIndex===null);});
+    const objects: SpriteObject[] = visible.map(({ object, info, cell, actor }) => {
       const position = actor ? positions.get(actor.id) : undefined;
       if (actor && !position) throw new Error('world-art-entity-join');
       if (!position || (position.x === info.x && position.y === info.y)) { descriptions.set(object.id, info); return object; }

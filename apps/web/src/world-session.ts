@@ -5,6 +5,8 @@ import { WorldReplayRecorder, replayWorld } from '../../../packages/sim/src/worl
 import { planTeamDestinations } from '../../../packages/sim/src/team-runtime-destinations.ts';
 import { assertWorldModel, worldEdgeCost, worldHash, worldPosition, type WorldModel } from '../../../packages/sim/src/world-model.ts';
 import type { WorldTrace } from '../../../packages/sim/src/world.ts';
+import { combatSourceBridge } from '../../../packages/sim/src/combat-model.ts';
+import { evaluateOrdinaryInfantryAttack } from '../../../packages/sim/src/ordinary-infantry-bridge.ts';
 import { WORLD_UI, validWorldAction, validWorldSummary, validWorldSnapshot, worldDocumentText, type WorldAction, type WorldSummary, type WorldSnapshot, type WorldDocument, type WorldPlayer } from './world-protocol.ts';
 export type WorldPreparation = { model: WorldModel; players: readonly { playerId: number; houseId: string; name: string }[]; defaultPlayerId: number | null; placements: readonly { rowId: string; entityId: number | null; status: string; reasons: readonly string[] }[]; limitations: readonly string[] };
 export class WorldSession {
@@ -18,12 +20,15 @@ export class WorldSession {
     const players: WorldPlayer[] = prepared.players.map(p => ({ id: p.playerId, houseId: label(p.houseId, 255), name: label(p.name, 128) }));
     const joins = new Map(prepared.placements.map((p, i) => [p.rowId, { ...p, index: i, reasons: p.reasons.slice() }]));
     if (joins.size !== prepared.placements.length) throw new Error('world-ui-placement-join');
+    const bridge=this.model.combat?combatSourceBridge(this.model.combat):undefined;
+    const combatRows=new Map(bridge?.actors.map(a=>[a.entityId,a])??[]);
     const actors = this.model.entities.map(e => {
       const p = joins.get(e.rowId); if (!p || p.entityId !== e.id || e.id !== p.index + 1) throw new Error('world-ui-placement-join');
-      return { id: e.id, rowId: e.rowId, objectId: `object-${p.index}`, typeId: e.typeId, owner: e.owner, kind: e.kind, movable: e.movementPerTick > 0 && e.navigationClass !== null && e.owner !== null && e.initialHealth !== null && e.initialHealth > 0,
-        maximumHealth: e.maximumHealth, reasons: p.reasons.slice(0, 8).map(r => label(r, 128)), omittedReasons: Math.max(0, p.reasons.length - 8) };
+      const combat=combatRows.get(e.id),reasons=[...p.reasons,...(combat?.attackReasons??[])];
+      return { ...(bridge?{combatRole:combat!.role}:{}), id: e.id, rowId: e.rowId, objectId: `object-${p.index}`, typeId: e.typeId, owner: e.owner, kind: e.kind, movable: e.movementPerTick > 0 && e.navigationClass !== null && e.owner !== null && e.initialHealth !== null && e.initialHealth > 0,
+        maximumHealth: e.maximumHealth, reasons: reasons.slice(0, 8).map(r => label(r, 128)), omittedReasons: Math.max(0, reasons.length - 8) };
     });
-    this.summary = { policy: 'webra2-world-ui-1', modelHash: this.model.sha256, motionPolicy: this.model.motionPolicy, defaultPlayerId: prepared.defaultPlayerId, players, actors, limitations: prepared.limitations.slice(0, 32).map(s => label(s, 128)), omittedLimitations: Math.max(0, prepared.limitations.length - 32), truncatedFields };
+    this.summary = { ...(bridge?{combatPolicy:'webra2-source-standing-infantry-combat-1' as const}:{}), policy: 'webra2-world-ui-1', modelHash: this.model.sha256, motionPolicy: this.model.motionPolicy, defaultPlayerId: prepared.defaultPlayerId, players, actors, limitations: prepared.limitations.slice(0, 32).map(s => label(s, 128)), omittedLimitations: Math.max(0, prepared.limitations.length - 32), truncatedFields };
     if (!validWorldSummary(this.summary)) throw new Error('world-ui-metadata');
     // Own all descriptors before any worker await. External callers receive fresh wire clones.
     for (const a of actors) { Object.freeze(a.reasons); Object.freeze(a); } for (const p of players) Object.freeze(p);
@@ -33,10 +38,13 @@ export class WorldSession {
   get revision(): number { return this.#revision; }
   snapshot(): WorldSnapshot {
     const save = this.#recorder.save(), definitions = new Map(this.model.entities.map(e => [e.id, e]));
+    const source=this.summary.combatPolicy?save.state.combat:undefined;
+    const combatActors=new Map(source?.actors.map(a=>[a.entityId,a])??[]),windups=new Map(source?.infantryFiring?.map(s=>[s.state.actorId,s.state.pending?.dueTick??null])??[]),deaths=new Map(source?.deaths?.map(d=>[d.entityId,d])??[]);
     const actors = save.state.entities.map(e => {
       const def = definitions.get(e.id)!, grid = this.model.navigation.find(n => n.grid.movementClass === def.navigationClass)?.grid;
       const goal = e.goal === null ? null : worldPosition(e.goal), next = e.route.length < 2 ? null : worldPosition(e.route[1]!);
-      return { id: e.id, x: e.x, y: e.y, health: e.health, goalX: goal?.x ?? null, goalY: goal?.y ?? null, nextX: next?.x ?? null, nextY: next?.y ?? null, routeLength: e.route.length, progress: e.progress,
+      const combat=combatActors.get(e.id),death=deaths.get(e.id);
+      return { ...(combat?{combat:{targetId:combat.targetId,readyTick:combat.readyTick,windupUntil:windups.get(e.id)??null,deathSequence:death?.sequence??null,deathUntil:death?.completionTick??null,corpseIndex:death?.corpseIndex??null}}:{}), id: e.id, x: e.x, y: e.y, health: e.health, goalX: goal?.x ?? null, goalY: goal?.y ?? null, nextX: next?.x ?? null, nextY: next?.y ?? null, routeLength: e.route.length, progress: e.progress,
         edgeCost: next && grid ? worldEdgeCost(grid, e.route[0]!, e.route[1]!, new Set()) : null, waitTicks: e.waitTicks };
     });
     const result = { modelHash: this.model.sha256, revision: this.#revision, nextTick: save.nextTick, stateHash: worldHash(save), queuedCommands: save.queuedCommands.length, actors, events: this.#events.map(e => ({ ...e })), omittedEvents: this.#omittedEvents };
@@ -61,10 +69,16 @@ export class WorldSession {
       if (action.type === 'world-orders' && action.expectedRevision !== this.#revision) throw new Error('world-ui-stale-orders');
       const ids = action.type === 'world-orders' ? action.entityIds : [action.entityId];
       const save = this.#recorder.save(), cursor = save.state.admissionCursors.find(c => c.playerId === action.playerId);
+      const bridge=this.model.combat?combatSourceBridge(this.model.combat):undefined;
       for (const entityId of ids) {
         const info = this.summary.actors.find(e => e.id === entityId), actor = save.state.entities.find(e => e.id === entityId);
         if (!info || info.owner !== action.playerId) throw new Error('world-ui-not-owner');
         if (!info.movable || actor?.health === null || actor?.health === undefined || actor.health <= 0) throw new Error('world-ui-immovable');
+        if(action.order==='attack'){
+          if(!bridge||info.combatRole!=='attacker')throw new Error('world-ui-attack-unsupported');
+          const d=evaluateOrdinaryInfantryAttack(bridge,this.model,save,{sourceId:entityId,targetId:action.targetId});
+          if(d.status!=='eligible')throw new Error(d.reasons.includes('out-of-range')?'world-ui-attack-range':d.reasons.includes('moving-actor')?'world-ui-attack-moving':'world-ui-attack-context');
+        }
       }
       const destinations = new Map<number, { entityId: number; x: number; y: number }>();
       if (action.order === 'move') {
@@ -77,7 +91,7 @@ export class WorldSession {
       // The recorder validates the aggregate queue, sequences and replay on a detached candidate before committing.
       this.#recorder.admitCommands(ids.map((entityId, index) => ({ schemaVersion: 1, tick: save.nextTick, playerId: action.playerId,
         sequence: (cursor ? cursor.sequence + 1 : 0) + index, kind: action.order,
-        payload: action.order === 'move' ? { ...destinations.get(entityId)! } : { entityId } })));
+        payload: action.order === 'move' ? { ...destinations.get(entityId)! } : action.order==='attack'?{entityId,targetId:action.targetId}:{ entityId } })));
       this.#events = []; this.#omittedEvents = 0;
     } else if (action.type === 'world-step') {
       const result = this.#recorder.step(action.ticks); this.#events = result.events.slice(-WORLD_UI.trace); this.#omittedEvents = Math.max(0, result.events.length - WORLD_UI.trace);

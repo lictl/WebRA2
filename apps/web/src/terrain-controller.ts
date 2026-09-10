@@ -91,6 +91,10 @@ export class TerrainController{
     const frame=this.state.frame,epoch=this.state.interactionEpoch;if(!this.canOrder()||!frame){this.#update({worldNotice:this.state.busy?'worldControlsBusy':'worldCannotOrder'});return;}
     const picked=await this.pick(x,y,'inspect');
     if(epoch!==this.state.interactionEpoch||frame.frameId!==this.state.frame?.frameId||picked===undefined)return;
+    if(picked?.kind==='object'){
+      const target=frame.summary.world?.actors.find(a=>a.objectId===picked.object.id);
+      if(target&&target.owner!==this.state.playerId){await this.attack(target.id);return;}
+    }
     if(picked?.kind!=='terrain'){this.#update({worldNotice:'worldExposedGround'});return;}
     await this.order(picked.cell.x,picked.cell.y);
   }
@@ -104,13 +108,23 @@ export class TerrainController{
   setRunning(running:boolean):void{const active=running&&!this.state.busy&&this.state.phase==='ready'&&!!this.state.frame?.world;this.#update({running:active,worldNotice:active?'worldRunning':'worldPaused'});}
   hidden():void{this.#update({running:false,worldNotice:'worldHidden'});}
   canOrder():boolean{const f=this.state.frame;return !this.state.busy&&this.state.selectedEntities.length>0&&this.state.selectedEntities.every(id=>controllable(f?.summary.world,f?.world,this.state.playerId,id));}
+  canAttack(targetId:number):boolean{
+    const f=this.state.frame;if(!this.canOrder()||!f?.summary.world?.combatPolicy)return false;
+    const target=f.summary.world.actors.find(a=>a.id===targetId),state=f.world?.actors.find(a=>a.id===targetId);
+    return !!target&&target.owner!==this.state.playerId&&target.combatRole!=='movement-only'&&state?.health!==null&&state?.health!==undefined&&state.health>0&&this.state.selectedEntities.every(id=>f.summary.world!.actors.find(a=>a.id===id)?.combatRole==='attacker');
+  }
+  async attack(targetId:number):Promise<void>{
+    if(!this.canAttack(targetId)){this.#update({worldNotice:this.state.busy?'worldControlsBusy':'worldAttackUnsupported'});return;}
+    const playerId=this.state.playerId!,entityIds=this.state.selectedEntities.slice(),expectedRevision=this.state.frame!.world!.revision;
+    await this.#worldOperation(async(signal,request)=>{await request({type:'world-orders',order:'attack',targetId,playerId,entityIds,expectedRevision});if(!signal.aborted&&this.state.error===null)this.#update({worldNotice:'worldOrdersQueued'});return null;});
+  }
   async #worldOperation(run:(signal:AbortSignal,request:(action:WorldAction)=>Promise<WorldDocument|null>)=>Promise<WorldDocument|null>):Promise<WorldDocument|null>{
     if(this.state.busy||!this.#port||!this.state.frame?.world||this.state.phase!=='ready')return null;
     const generation=this.#generation,port=this.#port,active=new AbortController();let transportFailed=false;this.#active=active;this.#update({busy:true,error:null});
     const live=()=>generation===this.#generation&&!active.signal.aborted;
     const request=async(action:WorldAction):Promise<WorldDocument|null>=>{
       let result;try{result=await port.request(action,active.signal);}catch(error){transportFailed=true;throw error;}if(!live())return null;
-      if(result.type==='world-rejection'){this.#update({running:false,worldNotice:result.code==='world-ui-group-blocked'?'worldGroupBlocked':result.code==='world-ui-group-budget-exhausted'?'worldGroupBudget':'worldRejected',error:result.code});return null;}
+      if(result.type==='world-rejection'){this.#update({running:false,worldNotice:result.code==='world-ui-group-blocked'?'worldGroupBlocked':result.code==='world-ui-group-budget-exhausted'?'worldGroupBudget':result.code==='world-ui-attack-range'?'worldAttackRange':result.code==='world-ui-attack-moving'?'worldAttackMoving':result.code==='world-ui-attack-context'?'worldAttackContext':result.code==='world-ui-attack-unsupported'?'worldAttackUnsupported':'worldRejected',error:result.code});return null;}
       if(result.type==='world-document')return result;
       if(result.type!=='frame'||!result.world)throw new Error('invalid');
       if(action.type==='world-restore')this.#update({selectedEntities:[],selectedEntity:null,interacting:false,interactionEpoch:this.state.interactionEpoch+1});

@@ -93,6 +93,7 @@ export function createVoxelWorldViewport(base: ViewportScene, terrain: ScenarioT
     const positions=new Map(snapshot?.actors.map(a=>[a.id,a])??[]),instances:VoxelInstance[]=[],sources=new Map<string,ObjectInfo>();
     for(const p of initial){
       const position=p.actorId===null?p.info:positions.get(p.actorId);if(!position)throw new Error('voxel-world-actor');
+      if(p.actorId!==null&&positions.get(p.actorId)!.health===0)continue;
       const cell=ground.get(position.x+position.y*512);if(!cell)throw new Error('voxel-world-ground');
       instances.push({id:p.instanceId,partId:p.partId,paletteId:p.paletteId,modelToView:voxelWorldProjection(cell,viewport)});
       sources.set(p.instanceId,Object.freeze({...p.info,x:position.x,y:position.y}));

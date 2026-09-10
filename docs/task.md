@@ -14,22 +14,40 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
-Current wave: coordinator [dying-world lifecycle #170](https://github.com/lictl/WebRA2/issues/170)
-and [source combat #132](https://github.com/lictl/WebRA2/issues/132), joining reviewed
-numerical combat166 and ordinary human death165. The browser agent's
-[fresh actor/firing PR168](https://github.com/lictl/WebRA2/pull/168) merged after source and final distribution review; source attack integration remains147/132. The simulation
-agent continues [persistent team Sleep #169](https://github.com/lictl/WebRA2/issues/169)
-after [source reinforcement PR167](https://github.com/lictl/WebRA2/pull/167).
-The owner unlocked the Mac and the browser tool confirms access. Per the new D17
-priority, use Chrome for development acceptance and defer full Firefox/Edge/Safari
-end-to-end checks until the remaining implementation is finished. No essential
-human input is currently needed. Finish reviewed slices and continue through
-the accepted milestones; do not stop merely because a worker wave merges.
+Current wave: coordinator connects [source combat132](https://github.com/lictl/WebRA2/issues/132)
+and [actor/firing closure147](https://github.com/lictl/WebRA2/issues/147) to the
+[world and browser](source-infantry-world.md). Branch `codex/132-source-attack-world`
+contains source bridge [PR174](https://github.com/lictl/WebRA2/pull/174), the corrected
+numeric placement-ID join, source authority in world6 and browser attack controls.
+Independent source review is by mix_reader; browser_feasibility owns actual Chrome
+acceptance on a new immutable build. Source bridge checks include same-files catalog
+reimport identity and both opening move/shot/death/save/replay probes; those headless
+checks are separate from browser acceptance. Bootstrap_review now implements
+[CreateTeam recruitment175](https://github.com/lictl/WebRA2/issues/175), including
+its minimal proved Flash50 dependency, in an isolated worktree.
+
+Reviewed [Sleep PR171](https://github.com/lictl/WebRA2/pull/171), head
+`20d21e513cd3ddbdb6f44efb076eaf8af8595ed1`, passes923 checks and its
+[independent review](https://github.com/lictl/WebRA2/pull/171#pullrequestreview-5163583521).
+Reviewed [firing core PR173](https://github.com/lictl/WebRA2/pull/173), head
+`a82ca1f36659f19221f253f0e8dc7d4017e91168`, passes916 checks and its
+[independent review](https://github.com/lictl/WebRA2/pull/173#pullrequestreview-5163678519).
+Normal exact-head merges currently return server errors; both remain OPEN with
+no confirmed merge SHA. Track and verify before retrying through
+[GitHub blocker176](https://github.com/lictl/WebRA2/issues/176). Implementation
+continues without bypassing reviews or pushing main directly.
+
+The owner unlocked the Mac. D17 selects Chrome for development acceptance and
+defers full Firefox/Edge/Safari end-to-end checks until implementation is finished.
+No essential human input is currently needed. Continue through the accepted
+milestones; do not stop merely because a worker wave merges. General combat,
+mission triggers/teams, economy, AI and campaign completion are still unfinished.
 
 Recent reviewed merges:
 
 | Component | PR / merge SHA | Exact-head evidence |
 | --- | --- | --- |
+| Saved ordinary dying lifecycle | [172](https://github.com/lictl/WebRA2/pull/172), `7ce399d71e89767898fdc6bbd2a0aa9b4d5ad185` |909 checks; [independent review](https://github.com/lictl/WebRA2/pull/172#pullrequestreview-5163466221); pending occupancy, shared RNG corpse selection and save/replay; source authority remains132 |
 | Fresh actor state and standing firing | [168](https://github.com/lictl/WebRA2/pull/168), `3c0eef32c26300707fd787776ab47b7d129a6bc5` | 897 checks; [source review](https://github.com/lictl/WebRA2/pull/168#pullrequestreview-5163354482) and [integration review](https://github.com/lictl/WebRA2/pull/168#pullrequestreview-5163393603); 24,766 private leaves, 96 timing programs; live source resolution remains132/147 |
 | Source reinforcement transactions | [167](https://github.com/lictl/WebRA2/pull/167), `f315b4b6d6e657aa5884e24e950e3613d582d4f4` | 877 checks; [integration review](https://github.com/lictl/WebRA2/pull/167#pullrequestreview-5163349030), separate source/adapter reviews; eight YR occurrences move/save/replay; Sleep169 and trigger activation remain |
 | Ordinary death decision | [165](https://github.com/lictl/WebRA2/pull/165), `2e04f34281899e02566119ee50dbfba12d0bb0c9` | 845 checks; [independent integration review](https://github.com/lictl/WebRA2/pull/165#pullrequestreview-5163246014); 576 private decisions, 45 native ranges; world lifecycle remains170 |
