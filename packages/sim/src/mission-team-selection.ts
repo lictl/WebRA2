@@ -40,7 +40,7 @@ export function planMissionTeamClaim(context: MissionTeamContext, input: unknown
     const types = new Map(c.archetypes.map(a => [a.typeId, a])), grids = new Map(data.model.navigation.map(n => [n.grid.movementClass, n.grid])), actors: MissionTeamSpawnActor[] = [];
     for (const typeId of t.memberTypeIds) {
       const type = types.get(typeId)!; let found: { x: number; y: number } | undefined;
-      for (const candidate of candidates) { charge(); if (!occupied.has(worldAddress(candidate.x, candidate.y)) && navigationCell(grids.get(type.navigationClass)!, candidate)) { found = candidate; break; } }
+      for (const candidate of candidates) { charge(); if (!occupied.has(worldAddress(candidate.x, candidate.y)) && navigationCell(grids.get(type.navigationClass)!, { x: candidate.x, y: candidate.y })) { found = candidate; break; } }
       if (!found) return result(null); occupied.add(worldAddress(found.x, found.y));
       actors.push({ entityId: firstId + actors.length, typeId, houseId: t.houseId, playerId: t.playerId, initialHealth: type.maximumHealth, x: found.x, y: found.y });
     }
