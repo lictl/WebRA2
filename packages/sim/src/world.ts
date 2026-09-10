@@ -124,8 +124,8 @@ function validateSave(model: WorldModel, input: unknown): LiveSave {
   const dying=combatDyingActorIds(state.combat);
   for (let i = 0; i < entities.length; i++) {
     const e = entities[i]!, d = model.entities[i]!, at = worldAddress(e.x, e.y);
-    if (!model.infantryPassage && d.blocksCell && (e.health !== 0||dying.has(e.id)) && (counts.get(at) ?? 0) > 1 &&
-      (d.initialHealth === 0 || at !== worldAddress(d.x, d.y))) worldFail('world-save-anchor-overlap');
+    if (d.blocksCell && (e.health !== 0||dying.has(e.id)) && (counts.get(at) ?? 0) > 1 &&
+      (d.initialHealth === 0 || !model.infantryPassage && at !== worldAddress(d.x, d.y))) worldFail('world-save-anchor-overlap');
   }
   // Extra cells are occupants too. Reviving an initially absent stationary
   // footprint cannot create sharing even when every other anchor is unchanged.

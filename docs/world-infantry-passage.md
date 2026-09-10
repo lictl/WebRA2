@@ -27,6 +27,8 @@ free slot in stable actor order before entering an edge, saves it throughout the
 partial edge, and commits it on arrival. It retains the old anchor until arrival.
 Queued goals reserve nothing. Unsupported actors keep whole-cell occupancy.
 
+Group-order preflight uses the same authenticated occupancy and preserves distinct
+destinations within the group; it never reserves slots or changes the checkpoint.
 Navigation excludes only cells that the actual mover cannot enter under its
 source-bound directed alliances and current claims. The existing graph and strict
 diagonal corner rules remain. Shared source anchors retain only their exact source
@@ -64,11 +66,11 @@ charge one plus examined claims. This is a deterministic work budget, not a CPU 
 heap measurement. Fatal per-tick, aggregate, trace or validation failures roll back
 all requested ticks, commands, slots and random state.
 
-Seven original integration tests cover both profiles, whole-cell regression,
+Nine original integration tests cover both profiles, whole-cell regression,
 complete base authority, cross-policy saves, moving restore/replay, Stop/retarget,
 concurrent reservations and capacity, directed/unknown alliances, hostile saves,
 source-bound firing/death composition, pending death in settled sharing, incoming
-cancellation and rollback. They use fabricated maps/rules, never retail fixtures.
+cancellation, group-order preflight, initially absent anchor revival rejection and rollback. They use fabricated maps/rules, never retail fixtures.
 
 Private original-opening route, save/replay and Chrome evidence are separate gates.
 The source/helper census in [the earlier report](analysis/infantry-passage-census.json)

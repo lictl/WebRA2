@@ -70,15 +70,17 @@ Worker6453cb2 source/helper has [independent review](https://github.com/lictl/We
 private11865-assertion source oracle pass. Its pending-death correction preserves
 settled slots but blocks incoming reservations. Root adds the complete base-model
 composition proof, optional saved slots and engine7, navigation/reservations,
-Stop/retarget/death/rollback, seven integration tests and distribution notice.
-Current full1013 tests/types pass before final lazy-index/docs integration; fresh
-composed checks and independent core review follow. The [core report](world-infantry-passage.md)
+Stop/retarget/death/rollback, nine integration tests and distribution notice.
+Core5a85829 passes1013 tests/types; independent review found a revived initially
+absent hard-anchor overlap. Root restores the existing rejection and adds both-profile
+regressions. Group preflight now follows source-bound slot occupancy; final composed
+checks and exact-head independent review follow. The [core report](world-infantry-passage.md)
 records D03 dual occupancy, dying-edge cancellation and work accounting. The old
 world policies retain their exact behavior; source combat keeps flat shot restrictions.
 Private fresh default RA2 movement now reaches a supported shot through allied
 slots and completes death/save/replay, retaining all811 actors/1108 footprint cells.
 This is a headless source result; source artifacts stay under ignored
-`local/worktrees/infantry-integration/local/bridge/`. YR comparison is in progress.
+`local/worktrees/infantry-integration/local/bridge/`. YR also completes its default-player route and death at tick518 with full replay.
 Actual original-player Chrome passage and changed-slot presentation remain next.
 
 Campaign [PR185](https://github.com/lictl/WebRA2/pull/185) is independently reviewed

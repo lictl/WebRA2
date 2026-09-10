@@ -130,3 +130,33 @@ test('a lethal hit in settled sharing preserves other slots, cancels an incoming
     assert.deepEqual(replayWorld(m, r.document()).simulation.save(), r.save());
   }
 });
+
+test('group-order preflight follows genuine slot occupancy, retains distinct goals, and reports bounded work without mutation', async () => {
+  const { planTeamDestinations } = await import('../../packages/sim/src/team-runtime-destinations.ts');
+  for (const profile of ['ra2', 'yr'] as const) {
+    const f = infantryPassageFixture({ profile }), m = bindInfantryPassageWorld(f.catalog, f.world.model), r = new WorldReplayRecorder(m), save = r.save();
+    const plan = planTeamDestinations({ model: m, checkpoint: save, actorIds: [1], target: { x: 2, y: 3 } }, { radius: 0 });
+    assert.equal(plan.status, 'ready'); assert.deepEqual(plan.assignments, [{ entityId: 1, x: 2, y: 3 }]);
+    const old = planTeamDestinations({ model: f.world.model, checkpoint: WorldSimulation.create(f.world.model).save(), actorIds: [1], target: { x: 2, y: 3 } }, { radius: 0 }); assert.equal(old.status, 'blocked');
+    for (const work of [0, plan.work.visits - 1]) { const exhausted = planTeamDestinations({ model: m, checkpoint: save, actorIds: [1], target: { x: 2, y: 3 } }, { radius: 0, work }); assert.equal(exhausted.status, 'budget-exhausted'); assert.deepEqual(exhausted.assignments, []); }
+    assert.deepEqual(r.save(), save); r.admitCommands(plan.assignments.map(a => move(0, 0, a.entityId, a.x, a.y))); r.step();
+    const replacement = planTeamDestinations({ model: m, checkpoint: r.save(), actorIds: [1, 2], target: { x: 3, y: 3 } });
+    assert.equal(replacement.status, 'ready'); assert.equal(new Set(replacement.assignments.map(a => at(a.x, a.y))).size, 2);
+    r.admitCommands(replacement.assignments.map((a, i) => move(r.nextTick, i + 1, a.entityId, a.x, a.y))); r.step(8);
+    for (const a of replacement.assignments) { const e = r.save().state.entities.find(e => e.id === a.entityId)!; assert.deepEqual([e.x, e.y], [a.x, a.y]); }
+    assert.deepEqual(replayWorld(m, r.document()).simulation.save(), r.save());
+  }
+});
+
+test('reviving an initially absent hard anchor cannot create an original-sharing exception', () => {
+  for (const profile of ['ra2', 'yr'] as const) {
+    const f = infantryPassageFixture({ profile, extraRules: '[BuildingTypes]\n0=Depot\n[Depot]\nStrength=100',
+      extraArt: '[Depot]\nFoundation=1x1', extraMap: '[Structures]\n0=Commander,Depot,0,2,2,0,None' });
+    assert.equal(f.world.model.initialSharedCells, 0);
+    for (const model of [f.world.model, bindInfantryPassageWorld(f.catalog, f.world.model)]) {
+      const s = WorldSimulation.create(model), before = s.saveText(), changed = s.save();
+      changed.state.entities.find(e => e.id === model.entities.find(d => d.kind === 'structure')!.id)!.health = 1;
+      assert.throws(() => WorldSimulation.restore(model, changed), /world-save-anchor-overlap/); assert.equal(s.saveText(), before);
+    }
+  }
+});
