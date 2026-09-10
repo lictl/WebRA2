@@ -21,14 +21,16 @@ export class WorldSession {
     const joins = new Map(prepared.placements.map((p, i) => [p.rowId, { ...p, index: i, reasons: p.reasons.slice() }]));
     if (joins.size !== prepared.placements.length) throw new Error('world-ui-placement-join');
     const bridge=this.model.combat?combatSourceBridge(this.model.combat):undefined;
+    const passage=this.model.infantryPassage,slotRows=new Map(passage?.actors.map(a=>[a.entityId,a])??[]);
     const combatRows=new Map(bridge?.actors.map(a=>[a.entityId,a])??[]);
     const actors = this.model.entities.map(e => {
       const p = joins.get(e.rowId); if (!p || p.entityId !== e.id || e.id !== p.index + 1) throw new Error('world-ui-placement-join');
+      const slot=slotRows.get(e.id);if(passage&&(!slot||slot.rowId!==e.rowId))throw new Error('world-ui-slot-join');
       const combat=combatRows.get(e.id),reasons=[...p.reasons,...(combat?.attackReasons??[])];
-      return { ...(bridge?{combatRole:combat!.role}:{}), id: e.id, rowId: e.rowId, objectId: `object-${p.index}`, typeId: e.typeId, owner: e.owner, kind: e.kind, movable: e.movementPerTick > 0 && e.navigationClass !== null && e.owner !== null && e.initialHealth !== null && e.initialHealth > 0,
+      return { ...(passage?{initialSubcell:slot!.status==='ordinary-slots'?slot!.sourceSubcell as 2|3|4:null}:{}), ...(bridge?{combatRole:combat!.role}:{}), id: e.id, rowId: e.rowId, objectId: `object-${p.index}`, typeId: e.typeId, owner: e.owner, kind: e.kind, movable: e.movementPerTick > 0 && e.navigationClass !== null && e.owner !== null && e.initialHealth !== null && e.initialHealth > 0,
         maximumHealth: e.maximumHealth, reasons: reasons.slice(0, 8).map(r => label(r, 128)), omittedReasons: Math.max(0, reasons.length - 8) };
     });
-    this.summary = { ...(bridge?{combatPolicy:'webra2-source-standing-infantry-combat-1' as const}:{}), policy: 'webra2-world-ui-1', modelHash: this.model.sha256, motionPolicy: this.model.motionPolicy, defaultPlayerId: prepared.defaultPlayerId, players, actors, limitations: prepared.limitations.slice(0, 32).map(s => label(s, 128)), omittedLimitations: Math.max(0, prepared.limitations.length - 32), truncatedFields };
+    this.summary = { ...(passage?{infantryPolicy:passage.policy,infantryCatalogHash:passage.sha256}:{}), ...(bridge?{combatPolicy:'webra2-source-standing-infantry-combat-1' as const}:{}), policy: 'webra2-world-ui-1', modelHash: this.model.sha256, motionPolicy: this.model.motionPolicy, defaultPlayerId: prepared.defaultPlayerId, players, actors, limitations: prepared.limitations.slice(0, 32).map(s => label(s, 128)), omittedLimitations: Math.max(0, prepared.limitations.length - 32), truncatedFields };
     if (!validWorldSummary(this.summary)) throw new Error('world-ui-metadata');
     // Own all descriptors before any worker await. External callers receive fresh wire clones.
     for (const a of actors) { Object.freeze(a.reasons); Object.freeze(a); } for (const p of players) Object.freeze(p);
@@ -38,13 +40,15 @@ export class WorldSession {
   get revision(): number { return this.#revision; }
   snapshot(): WorldSnapshot {
     const save = this.#recorder.save(), definitions = new Map(this.model.entities.map(e => [e.id, e]));
+    const slots=new Map(save.state.infantrySlots?.map(s=>[s.entityId,s])??[]);
     const source=this.summary.combatPolicy?save.state.combat:undefined;
     const combatActors=new Map(source?.actors.map(a=>[a.entityId,a])??[]),windups=new Map(source?.infantryFiring?.map(s=>[s.state.actorId,s.state.pending?.dueTick??null])??[]),deaths=new Map(source?.deaths?.map(d=>[d.entityId,d])??[]);
     const actors = save.state.entities.map(e => {
       const def = definitions.get(e.id)!, grid = this.model.navigation.find(n => n.grid.movementClass === def.navigationClass)?.grid;
       const goal = e.goal === null ? null : worldPosition(e.goal), next = e.route.length < 2 ? null : worldPosition(e.route[1]!);
       const combat=combatActors.get(e.id),death=deaths.get(e.id);
-      return { ...(combat?{combat:{targetId:combat.targetId,readyTick:combat.readyTick,windupUntil:windups.get(e.id)??null,deathSequence:death?.sequence??null,deathUntil:death?.completionTick??null,corpseIndex:death?.corpseIndex??null}}:{}), id: e.id, x: e.x, y: e.y, health: e.health, goalX: goal?.x ?? null, goalY: goal?.y ?? null, nextX: next?.x ?? null, nextY: next?.y ?? null, routeLength: e.route.length, progress: e.progress,
+      const slot=slots.get(e.id);
+      return { ...(this.model.infantryPassage?{subcell:slot?.subcell??null,reservedSubcell:slot?.reservedSubcell??null}:{}), ...(combat?{combat:{targetId:combat.targetId,readyTick:combat.readyTick,windupUntil:windups.get(e.id)??null,deathSequence:death?.sequence??null,deathUntil:death?.completionTick??null,corpseIndex:death?.corpseIndex??null}}:{}), id: e.id, x: e.x, y: e.y, health: e.health, goalX: goal?.x ?? null, goalY: goal?.y ?? null, nextX: next?.x ?? null, nextY: next?.y ?? null, routeLength: e.route.length, progress: e.progress,
         edgeCost: next && grid ? worldEdgeCost(grid, e.route[0]!, e.route[1]!, new Set()) : null, waitTicks: e.waitTicks };
     });
     const result = { modelHash: this.model.sha256, revision: this.#revision, nextTick: save.nextTick, stateHash: worldHash(save), queuedCommands: save.queuedCommands.length, actors, events: this.#events.map(e => ({ ...e })), omittedEvents: this.#omittedEvents };
