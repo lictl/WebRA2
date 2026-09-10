@@ -240,3 +240,34 @@ test('genuine zero-pixel SHP resources are admitted but never submitted as drawa
   assert.ok(data.rasters.some(r => r.depth.length === 0)); assert.equal(frame.allocations.terrainDraws, frame.allocations.draws);
   const mock = recordingGl(), renderer = new GpuRenderer(mock.gl); renderer.load(scene); renderer.draw(frame); renderer.dispose();
 });
+
+test('diagnostic CPU cap refuses scratch/result allocation without invalidating the submitted frame', () => {
+  const f = fixture(), mock = recordingGl(128, 128), renderer = new GpuRenderer(mock.gl, { gpuBytes: 700000 });
+  renderer.load(f.scene); const frame = prepareGpuFrame(f.scene, { ...view, width: 128, height: 128 });
+  renderer.draw(frame); const before = renderer.stats(), reads = mock.calls.filter(c => c.name === 'readPixels').length;
+  assert.throws(() => renderer.readback(), code('gpu-cpu-memory-limit'));
+  assert.deepEqual(renderer.stats(), before); assert.equal(mock.calls.filter(c => c.name === 'readPixels').length, reads);
+  assert.equal(renderer.draw(frame).sequence, 2); renderer.dispose();
+});
+
+test('failed context rebuild stays lost with retained source, no leaked candidate, and an explicit retry', () => {
+  const f = fixture(), mock = recordingGl(), renderer = new GpuRenderer(mock.gl);
+  renderer.load(f.scene); renderer.draw(f.frame); mock.lose(); mock.recover(); mock.setCompile(false);
+  assert.throws(() => renderer.restore(), code('gpu-shader-compile')); assert.equal(mock.live.size, 0);
+  assert.equal(renderer.stats().state, 'lost'); assert.equal(renderer.stats().requestedGpuBytes, 0);
+  assert.equal(renderer.stats().ownedCpuBytes, f.scene.allocations.rasterBytes);
+  assert.throws(() => renderer.draw(f.frame), code('gpu-context-lost'));
+  mock.setCompile(true); renderer.restore(); assert.equal(renderer.draw(f.frame).sequence, 2);
+  renderer.dispose(); assert.equal(mock.live.size, 0);
+  const emptyMock = recordingGl(); emptyMock.lose(); const empty = new GpuRenderer(emptyMock.gl);
+  assert.equal(empty.stats().state, 'lost'); emptyMock.recover(); empty.restore();
+  assert.equal(empty.stats().state, 'empty'); assert.throws(() => empty.draw(f.frame), code('gpu-no-scene')); empty.dispose();
+});
+
+test('descriptor-only limits do not invoke switching Proxy get hooks', () => {
+  const f = fixture(), mock = recordingGl(); let gets = 0;
+  const input = new Proxy({ textureSide: 32, textureLayers: 1 }, { get() { gets++; return 2048; } });
+  const renderer = new GpuRenderer(mock.gl, input);
+  assert.throws(() => renderer.load(f.scene), code('gpu-texture-limit'));
+  assert.equal(gets, 0); assert.equal(mock.live.size, 0); renderer.dispose();
+});
