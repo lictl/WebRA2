@@ -138,7 +138,7 @@ export class TerrainController{
   setPlayer(id:number|null):void{if(this.state.busy)return;if(id!==null&&!this.state.frame?.summary.world?.players.some(p=>p.id===id))return;this.#update({playerId:id,running:false,selectedEntity:null,selectedEntities:[],selection:null,interacting:false,interactionEpoch:this.state.interactionEpoch+1,worldNotice:'worldSelectionCleared'});}
   setSlot(slot:SaveSlot):void{if(!this.state.busy&&[1,2,3].includes(slot))this.#update({slot});}
   setRunning(running:boolean):void{const active=running&&!this.state.busy&&this.state.phase==='ready'&&!!this.state.frame?.world;this.#update({running:active,worldNotice:active?'worldRunning':'worldPaused'});}
-  hidden():void{this.#update({running:false,worldNotice:'worldHidden'});}
+  hidden():void{this.#update({running:false,worldNotice:this.state.worldNotice==='worldVerifying'?'worldVerifying':'worldHidden'});}
   canOrder():boolean{const f=this.state.frame;return !this.state.busy&&this.state.selectedEntities.length>0&&this.state.selectedEntities.every(id=>controllable(f?.summary.world,f?.world,this.state.playerId,id));}
   canAttack(targetId:number):boolean{
     const f=this.state.frame;if(!this.canOrder()||!f?.summary.world?.combatPolicy)return false;
@@ -155,6 +155,7 @@ export class TerrainController{
     const generation=this.#generation,port=this.#port,active=new AbortController();let transportFailed=false;this.#active=active;this.#update({busy:true,error:null});
     const live=()=>generation===this.#generation&&!active.signal.aborted;
     const request=async(action:WorldAction):Promise<WorldDocument|null>=>{
+      if(action.type==='world-replay-validate')this.#update({worldNotice:'worldVerifying'});
       let result;try{result=await port.request(action,active.signal);}catch(error){transportFailed=true;throw error;}if(!live())return null;
       if(result.type==='world-rejection'){this.#update({running:false,worldNotice:result.code==='world-ui-group-blocked'?'worldGroupBlocked':result.code==='world-ui-group-budget-exhausted'?'worldGroupBudget':result.code==='world-ui-attack-range'?'worldAttackRange':result.code==='world-ui-attack-moving'?'worldAttackMoving':result.code==='world-ui-attack-context'?'worldAttackContext':result.code==='world-ui-attack-unsupported'?'worldAttackUnsupported':'worldRejected',error:result.code});return null;}
       if(result.type==='world-document')return result;

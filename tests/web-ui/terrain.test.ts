@@ -42,7 +42,7 @@ test('bridge rejects cross-profile metadata, stale pick identity and malformed t
   for(const invalid of [{...frame(),frameId:2},{...frame(),summary:{...summary,profile:'yr',mission:'all01umd.map'}},{...frame(),summary:{...summary,diagnostics:[null]}}]){const worker=new FakeWorker(),bridge=new TerrainBridge(worker),promise=bridge.request(load,new AbortController().signal);worker.emit({version:7,id:1,type:'result',result:invalid});await assert.rejects(promise,/invalid/);assert.equal(worker.terminated,1);}
   const worker=new FakeWorker(),bridge=new TerrainBridge(worker),abort=new AbortController();const promise=bridge.request(load,abort.signal);abort.abort();await assert.rejects(promise,{name:'AbortError'});worker.emit({version:7,id:1,type:'result',result:frame()});assert.equal(worker.terminated,1);
 });
-test('obsolete v5 frames cannot enter the v6 campaign session',async()=>{
+test('obsolete v6 frames cannot enter the v7 campaign session',async()=>{
   const worker=new FakeWorker(),bridge=new TerrainBridge(worker),pending=bridge.request(load,new AbortController().signal);
   worker.emit({version:6,id:1,type:'result',result:frame()});await assert.rejects(pending,/invalid/);assert.equal(worker.terminated,1);
 });
@@ -94,4 +94,18 @@ test('a fast second click cannot move the marker while the first pick owns the r
   click(10,10);click(60,20);assert.deepEqual(marker,[10,10]);assert.equal(p.calls.length,2);assert.equal(canPick(controller.state,60,20),false);
   p.calls[1]!.response.resolve({type:'pick',frameId:1,selection:{kind:'terrain',cell:{sourceRecord:0,x:1,y:2,assetId:'tile',subtile:0,worldX:10,worldY:10,depth:0}}});await tick();assert.deepEqual(marker,[10,10]);assert.equal(controller.state.selection?.kind,'terrain');assert.equal(controller.state.selection?.kind==='terrain' && controller.state.selection.cell.worldX,10);
   click(-1,10);assert.deepEqual(marker,[10,10]);controller.dispose();
+});
+
+test('only replay validation receives a longer deadline; all work still aborts and clears its timer',async(t)=>{
+ t.mock.timers.enable({apis:['setTimeout']});
+ const worker=new FakeWorker(),bridge=new TerrainBridge(worker),signal=new AbortController().signal;
+ const first=bridge.request(load,signal);worker.emit({version:7,id:1,type:'result',result:frame(1)});await first;
+ let ended=false;const replay=bridge.request({type:'world-replay-validate',text:'{}'},signal);const rejected=assert.rejects(replay,/timeout/).then(()=>{ended=true;});
+ t.mock.timers.tick(30_000);await Promise.resolve();assert.equal(ended,false);assert.equal(worker.terminated,0);
+ t.mock.timers.tick(149_999);await Promise.resolve();assert.equal(ended,false);
+ t.mock.timers.tick(1);await rejected;assert.equal(worker.terminated,1);
+ const normalWorker=new FakeWorker(),normal=new TerrainBridge(normalWorker),loaded=normal.request(load,signal);normalWorker.emit({version:7,id:1,type:'result',result:frame(1)});await loaded;
+ const operation=normal.request({type:'world-save'},signal),short=assert.rejects(operation,/timeout/);t.mock.timers.tick(30_000);await short;assert.equal(normalWorker.terminated,1);
+ const cancelWorker=new FakeWorker(),cancel=new TerrainBridge(cancelWorker),abort=new AbortController(),opened=cancel.request(load,abort.signal);cancelWorker.emit({version:7,id:1,type:'result',result:frame(1)});await opened;
+ const pending=cancel.request({type:'world-replay-validate',text:'{}'},abort.signal),aborted=assert.rejects(pending,{name:'AbortError'});abort.abort();await aborted;t.mock.timers.tick(180_000);assert.equal(cancelWorker.terminated,1);
 });

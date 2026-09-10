@@ -53,7 +53,7 @@ export async function prepareMissionWorld(catalog: BrowserCatalog, preview: Terr
     const ordinaryDeath=compileOrdinaryDeath({actors,definitions,weapons,effects,rules,art,death,veterancy});
     const bridge=compileOrdinaryInfantryBridge({world,definitions,actors,weapons,instant,effects,modifiers,veterancy,initial,death,ordinaryDeath,traversal,seed:0,sequence11Ticks:15,sequence12Ticks:15});
     return {model:bindInfantryPassageWorld(compileInfantryPassageCatalog({world,definitions,actors,rules,mission}),bindOrdinaryInfantryWorld(bridge,world.model)),players:world.players,defaultPlayerId:world.defaultPlayerId,placements:world.placements,
-      limitations:[...world.limitations.filter(s=>!bridge.combat||s!=='no-combat-or-runtime-spawns'),...(bridge.combat?['no-runtime-spawns']:[]),'infantry:directed-allied-settled-slots-no-native-interpolation','source-combat:standing-human-primary-only','source-combat:explicit-seed-0-normal-house-indices-death-15-ticks']};
+      limitations:[...world.limitations.filter(s=>s!=='no-infantry-subcells' && (!bridge.combat||s!=='no-combat-or-runtime-spawns')),...(bridge.combat?['no-runtime-spawns']:[]),'infantry:directed-allied-settled-slots-no-native-interpolation','source-combat:standing-human-primary-only','source-combat:explicit-seed-0-normal-house-indices-death-15-ticks']};
   }
   catch (error) {
     // An unsupported required native mask prevents movement, while the already

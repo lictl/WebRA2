@@ -42,6 +42,31 @@ retirement rules remain intact. The EN/Traditional Chinese panel identifies sett
 reserved slots and describes the current scope. Files remain on-device in the retained
 campaign session; this slice introduces no server asset route or dependency.
 
+## Replay workload correction
+
+The first frozen Chrome build completed the original default-player RA2 route and
+ordinary combat, reaching browser tick 2,380. Full replay verification then exceeded
+the pre-existing 30-second operation timeout and terminated that worker. Selected files
+remained available for retry; this was recorded as a failed validation, not success.
+A private reconstruction using the browser-exported moving checkpoint and the same
+admission/final ticks reproduced the exact browser terminal hash. Independent Node
+validation of those 2,379 logical ticks took 35.4 seconds, confirming that the ordinary
+operation deadline was too short even outside the browser.
+
+Only `world-replay-validate` now has a three-minute upper deadline; ordinary operations
+remain at 30 seconds and asset preparation retains its existing separate limit. The
+original replay tick/work/input caps still apply. The bilingual busy message offers an
+explicit cancellation button. Cancellation terminates the worker, clears pending reply
+handlers and returns to retained Files; saved local checkpoints remain intact. There is
+no promise of completion for every supported input or background-tab execution. Synthetic
+clock tests cover both deadlines and abort cleanup; delayed-worker and mounted-view tests
+cover cancellation, stale completion and restored local checkpoints. Native retest on the
+corrected frozen build is pending.
+
+The loader also removes the inherited `no-infantry-subcells` limitation after genuine
+passage binding, replacing it with the declared bounded slot scope. This changes reported
+limitations only, not model/checkpoint identity.
+
 ## Validation checkpoint
 
 - Original synthetic fixtures cover genuine RA2/YR slot sessions, moving restore,
@@ -49,7 +74,7 @@ campaign session; this slice introduces no server asset route or dependency.
   unsupported/legacy slot mixtures reject. Independent rational projection expectations
   cover focus and selection anchors. Original decoded SHP fixtures check shifted RGBA,
   depth, picking, overlapping actors, retirement and retained old-frame ownership.
-- `npm run check` passed 1,031 public tests, TypeScript, document/publication/evidence
+- `npm run check` passed 1,033 public tests, TypeScript, document/publication/evidence
   checks and a 65-file application build. These are public synthetic checks.
 - A separate private full 438-file local preparation loaded both source-selected
   factions in both profiles through the actual application loader. All four constructed

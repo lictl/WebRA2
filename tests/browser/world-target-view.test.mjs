@@ -38,5 +38,8 @@ test('manual target choice survives subscription updates until a new enemy inspe
   controller.selectEntities([1]);assert.equal(target.value,'3');
   controller.state={...controller.state,selection:{kind:'object',object:{id:'object-1'}}};controller.selectEntities([1]);assert.equal(target.value,'2');
   target.value='3';target.handlers.change();controller.clearSelection(false);assert.equal(target.value,'3');
+  const cancel=nodes.get('#world-cancel-replay');assert.equal(cancel.hidden,true);
+  controller.state={...controller.state,busy:true,worldNotice:'worldVerifying'};controller.setLocale('zh-Hant');assert.equal(cancel.hidden,false);
+  cancel.handlers.click();assert.equal(controller.state.phase,'cancelled');assert.equal(controller.state.frame,null);assert.equal(controller.state.busy,false);
  }finally{unmount?.();controller?.dispose();if(priorDocument===undefined)delete globalThis.document;else globalThis.document=priorDocument;await rm(directory,{recursive:true,force:true});}
 });

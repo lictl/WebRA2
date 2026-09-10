@@ -3,6 +3,7 @@
 import { shape,int,code,validAction,validProgress,validResult,type TerrainAction,type TerrainResult,type TerrainProgress } from './terrain-protocol.ts';
 import type { CampaignLaunchPlan } from './campaign-protocol.ts';
 import { validWorldAction } from './world-protocol.ts';
+export const TERRAIN_DEADLINES=Object.freeze({load:15*60_000,operation:30_000,replay:180_000});
 export interface TerrainPort { request(action:TerrainAction,signal:AbortSignal,progress?:(p:TerrainProgress)=>void):Promise<TerrainResult>; dispose():void }
 export type TerrainWorkerPort=Pick<Worker,'postMessage'|'terminate'|'addEventListener'|'removeEventListener'>;
 export class TerrainBridge implements TerrainPort {
@@ -59,8 +60,9 @@ export class TerrainBridge implements TerrainPort {
         }
         finish(undefined,result);
       };
-      // Full root hashing can be slow in Safari. Neither timeout promises background execution.
-      const timer=setTimeout(()=>finish(new Error('timeout')),['load','campaign-scan','campaign-launch'].includes(action.type)?15*60_000:30_000);
+      // Source replay is independently bounded; a measured 2,379-tick case takes over 30s.
+      // Abort terminates the worker. No deadline promises background browser execution.
+      const timer=setTimeout(()=>finish(new Error('timeout')),['load','campaign-scan','campaign-launch'].includes(action.type)?TERRAIN_DEADLINES.load:action.type==='world-replay-validate'?TERRAIN_DEADLINES.replay:TERRAIN_DEADLINES.operation);
       this.#pending=e=>finish(e);signal.addEventListener('abort',abort,{once:true});this.worker.addEventListener('message',message);this.worker.addEventListener('error',failed);this.worker.addEventListener('messageerror',failed);
       try{this.worker.postMessage({version:7,id,action});}catch{failed();}
     });
