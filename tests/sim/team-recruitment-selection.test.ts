@@ -29,6 +29,8 @@ test('stable IDs break distance ties; source group and recruitment flags retain 
   const row = (n: number, rank: number, group: number, a: number, b: number) => `${n}=Commander,Walker,256,2,3,0,Guard,0,None,${rank},${group},0,${a},${b}`;
   const f = recruitmentFixture({ infantryRows: row(0, 0, -1, 1, 1)+'\n'+row(1, 100, -1, 1, 1) });
   assert.deepEqual(prepare(f.catalog, restore(f.catalog, []), WorldSimulation.create(f.world.model).save(), f.input.actionIds[0]!).actorIds, [1]);
+  const anyGroup = recruitmentFixture({ extraTeam: 'Waypoint=A\nGroup=-2', infantryRows: row(0, 0, 99, 1, 1)+'\n'+row(1, 100, -2, 1, 1) });
+  assert.deepEqual(prepare(anyGroup.catalog, restore(anyGroup.catalog, []), WorldSimulation.create(anyGroup.world.model).save(), anyGroup.input.actionIds[0]!).actorIds, [2]);
   for (const [extraTeam, a, b, group, expected] of [
     ['Waypoint=A', 0, 1, -1, false], ['Waypoint=A\nAutocreate=yes', 0, 1, -1, true],
     ['Waypoint=A\nAutocreate=yes', 1, 0, -1, false], ['Waypoint=A', 1, 0, -1, true],
