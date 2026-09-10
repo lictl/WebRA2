@@ -83,3 +83,11 @@ world, three rotated runs each. Supporting single-run rows cover renderer-only
 32/64 maps at both viewports and coupled64/256 actors at960×640. Single-run rows
 will not be presented as repeated evidence. Cold first use reports preparation,
 submission, an asynchronous completion observation and the available GPU query.
+
+Report collection uses a bounded32MiB local JSON Blob download and a compact
+visible summary; the full telemetry is never inserted into the DOM. Superseded
+and page-exit Blob URLs are revoked. An earlier completed run froze Chrome while
+laying out its full JSON report. Native Save Page As eventually recovered that
+report, but it remains preliminary and is repeated with the corrected collector.
+[Issue228](https://github.com/lictl/WebRA2/issues/228) tracks this harness failure
+and the download/restart check; it is not a measured renderer failure.

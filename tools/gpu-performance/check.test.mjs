@@ -16,6 +16,7 @@ import { WorldReplayRecorder,replayWorld } from '../../packages/sim/src/world-re
 import { worldHash } from '../../packages/sim/src/world-model.ts';
 import { canonicalText,parseJson } from '../../packages/sim/src/canonical.ts';
 import { GpuTiming } from './gpu-timing.mjs';
+import { ReportStore } from './report-store.mjs';
 function fakeSnapshot(){return {nextTick:0,modelHash:'a'.repeat(64),stateHash:'b'.repeat(64),queued:0,actors:Array.from({length:64},(_,i)=>({id:i+1,x:2,y:2,progress:0,moving:false}))};}
 test('genuine original worker admits commands, advances, saves and independently replays both profiles',async()=>{
  const code=(await readFile(new URL('./simulation-worker.mjs',import.meta.url),'utf8')).replace(/^import .*;$/gm,'');
@@ -122,14 +123,22 @@ test('builder refuses existing destinations and symlink entrypoints before emitt
 test('hidden, pagehide and cancellation terminate pending initialization without stale UI writes',async()=>{
  const code=(await readFile(new URL('./main.mjs',import.meta.url),'utf8')).replace(/^import .*;$/gm,'');
  for(const trigger of ['visibilitychange','pagehide','cancel']){
-  const nodes=new Map(),events=new Map();const document={visibilityState:'visible',querySelector(id){if(!nodes.has(id))nodes.set(id,{value:({'#profile':'ra2','#actors':'64','#viewport':'960','#mode':'coupled','#map-size':'64'})[id],textContent:'',disabled:false,addEventListener(){},getContext(){return {NO_ERROR:0,getError(){return 0;},getParameter(){return 'original';},getContextAttributes(){return {};}};}});return nodes.get(id);}};
+  const nodes=new Map(),events=new Map();const document={visibilityState:'visible',querySelector(id){if(!nodes.has(id))nodes.set(id,{value:({'#profile':'ra2','#actors':'64','#viewport':'960','#mode':'coupled','#map-size':'64'})[id],textContent:'',disabled:false,removeAttribute(){},addEventListener(){},getContext(){return {NO_ERROR:0,getError(){return 0;},getParameter(){return 'original';},getContextAttributes(){return {};}};}});return nodes.get(id);}};
   let client;class Renderer{load(){}draw(){return {drawCalls:1,uploadedBytes:0};}dispose(){this.disposed=true;}stats(){return {state:this.disposed?'disposed':'ready',requestedGpuBytes:0,ownedCpuBytes:0};}}
   class Client{constructor(){client=this;this.closed=false;this.busy=false;}request(){this.busy=true;return new Promise((resolve,reject)=>{this.reject=reject;});}dispose(){this.closed=true;this.busy=false;this.reject?.(Error('cancelled'));}}
   class Timing{constructor(gl,complete){this.complete=complete;this.pending=[];}begin(){}end(){}poll(){this.complete({metadata:{cold:true},observedAt:performance.now(),gpuMs:null});}dispose(){}}
-  Function('GpuRenderer','compileGpuScene','prepareGpuFrame','pickGpuFrame','createTerrainScene','gpuOracleCases','renderFixture','digest','GpuTiming','SimulationClient','document','navigator','devicePixelRatio','requestAnimationFrame','cancelAnimationFrame','addEventListener',code)(Renderer,()=>({allocations:{}}),()=>({}),null,null,null,()=>({scene:{},batch:{}}),null,Timing,Client,document,{userAgent:'original'},1,()=>1,()=>{},(type,fn)=>events.set(type,fn));
+  Function('ReportStore','GpuRenderer','compileGpuScene','prepareGpuFrame','pickGpuFrame','createTerrainScene','gpuOracleCases','renderFixture','digest','GpuTiming','SimulationClient','document','navigator','devicePixelRatio','requestAnimationFrame','cancelAnimationFrame','addEventListener',code)(ReportStore,Renderer,()=>({allocations:{}}),()=>({}),null,null,null,()=>({scene:{},batch:{}}),null,Timing,Client,document,{userAgent:'original'},1,()=>1,()=>{},(type,fn)=>events.set(type,fn));
   const run=nodes.get('#run').onclick();await new Promise(resolve=>setTimeout(resolve,15));assert.ok(client);assert.equal(client.busy,true);
   if(trigger==='cancel')nodes.get('#cancel').onclick();else{if(trigger==='visibilitychange')document.visibilityState='hidden';events.get(trigger)();}
   const status=nodes.get('#status').textContent;await run;assert.equal(nodes.get('#status').textContent,status);assert.equal(client.closed,true);assert.equal(client.busy,false);assert.equal(nodes.get('#run').disabled,false);
-  const report=JSON.parse(nodes.get('#output').textContent);assert.equal(report.kind,'terminated');assert.equal(report.stats.state,'disposed');assert.equal(report.pendingWorker,false);
+  if(trigger!=='pagehide'){const report=await(await fetch(nodes.get('#download').href)).json();assert.equal(report.kind,'terminated');assert.equal(report.stats.state,'disposed');assert.equal(report.pendingWorker,false);}else assert.equal(nodes.get('#output').textContent,'');
  }
+});
+
+test('large telemetry is downloadable with compact visible summary and bounded revoked URL lifecycle',async()=>{
+ const link={hidden:true,removeAttribute(k){delete this[k];}},summary={textContent:''},store=new ReportStore(link,summary);
+ const report={schema:1,kind:'original',frames:Array.from({length:20000},(_,id)=>({id,original:'x'.repeat(64)})),summary:{submittedFps:60}};
+ store.show(report);const old=link.href;assert.ok((await(await fetch(old)).text()).length>1000000);assert.ok(summary.textContent.length<1000);assert.equal(link.hidden,false);assert.deepEqual(await(await fetch(old)).json(),report);
+ store.show({schema:1,kind:'replacement'});await assert.rejects(fetch(old));const next=link.href;store.clear();await assert.rejects(fetch(next));assert.equal(summary.textContent,'');assert.equal(link.hidden,true);
+ assert.throws(()=>store.show({value:'x'.repeat(32*1024*1024)}),/Report byte cap/);assert.equal(store.url,null);store.clear();
 });
