@@ -3,7 +3,7 @@
 import type { CommandEnvelope } from '../../contracts/src/index.ts';
 import { type WorldSave, type WorldStep, type WorldTrace, WorldSimulation } from './world.ts';
 import type { WorldModel } from './world-model.ts';
-import { worldHash, worldInteger, worldList, worldRecord, worldSymbol, worldSourceHash } from './world-values.ts';
+import { worldHash, worldInteger, worldList, worldRecord, worldSymbol, worldSourceHash, worldAddress } from './world-values.ts';
 import { teamRuntimeFreeze as freeze } from './team-runtime-program.ts';
 import { bindMissionTeamActors, migrateMissionTeamCheckpoint, createTeamCheckpoint, restoreTeamCheckpoint,
   prepareTeamTick, type TeamCheckpoint, type TeamOrder, type TeamEvent } from './team-runtime.ts';
@@ -63,6 +63,21 @@ function baseCheckpoint(runtime: MissionTeamRuntime, input: unknown): { checkpoi
   if (team.pending || team.team.startedTick !== 0 || team.team.instances.some(i => i.phase === 'finished' || i.phase === 'lost')) fail('checkpoint-team');
   if (data.records.some(h => h.kind === 'released' ? h.atTick > tick : h.bornAtTick >= tick)) fail('checkpoint-history-tick');
   const entities = new Map(team.world.state.entities.map(e => [e.id, e]));
+  // Historical constructor coordinates are not original map overlap permissions.
+  // Only the base world's source actors may retain its initially shared anchors.
+  const baseIds = new Set(missionTeamRuntimeData(runtime).baseModel.entities.map(e => e.id));
+  const counts = new Map<number, number>(), add = (at: number) => counts.set(at, (counts.get(at) ?? 0) + 1);
+  for (const at of data.model.blocked) add(at);
+  for (let i = 0; i < team.world.state.entities.length; i++) {
+    const e = team.world.state.entities[i]!, definition = data.model.entities[i]!;
+    if (e.health !== 0 && definition.blocksCell) { add(worldAddress(e.x, e.y)); if (e.progress > 0) add(e.route[1]!); }
+  }
+  for (const footprint of data.model.footprints) if (entities.get(footprint.entityId)!.health !== 0) for (const at of footprint.cells) add(at);
+  for (let i = 0; i < team.world.state.entities.length; i++) {
+    const e = team.world.state.entities[i]!, definition = data.model.entities[i]!;
+    if (!baseIds.has(e.id) && e.health !== 0 && definition.blocksCell && counts.get(worldAddress(e.x, e.y)) !== 1) fail('constructed-anchor-overlap');
+  }
+
   for (const record of data.records) if (record.kind === 'released' && record.reason === 'lost') {
     const binding = data.historyBindings.find(b => b.id === record.instanceId)!;
     if (binding.actorIds.some(id => entities.get(id)?.health !== 0)) fail('release-death-state');
@@ -212,12 +227,13 @@ export interface MissionTeamReplay {
 export function replayMissionTeamWorld(runtime: MissionTeamRuntime, input: unknown): MissionTeamResult {
   const cap = runtime.limits, r = worldRecord(missionTeamSnapshot(input), ['schemaVersion', 'runtimeSha256', 'initialCheckpoint', 'admissions', 'finalNextTick', 'finalStateSha256']);
   if (r.schemaVersion !== 1 || r.runtimeSha256 !== runtime.sha256) fail('replay-identity'); worldSourceHash(r.finalStateSha256);
-  let checkpoint = restoreMissionTeamCheckpoint(runtime, r.initialCheckpoint), work = 0, inputs = 0;
+  let checkpoint = restoreWithBudget(runtime, r.initialCheckpoint, Math.min(cap.tickWork, cap.replayWork)), work = 0, inputs = 0;
+  work += checkpoint.pending?.work ?? 0;
   const finalNextTick = worldInteger(r.finalNextTick, checkpoint.team.world.nextTick, Math.min(cap.tick, checkpoint.team.world.nextTick + cap.replayTicks));
   const admissions = worldList(r.admissions, cap.requests).map(a => worldRecord(a, ['nextTick', 'requests', 'commands']));
   const actionEvents: MissionTeamEvent[] = [], orders: TeamOrder[] = [], events: (TeamEvent & { tick: number })[] = [], worldEvents: WorldTrace[] = [];
   const advance = (tick: number) => { while (checkpoint.team.world.nextTick < tick) {
-    const step = stepMissionTeamWorld(runtime, checkpoint), count = step.actionEvents.length + step.orders.length + step.events.length + step.worldEvents.length;
+    const step = stepMissionTeamWorld(runtime, checkpoint, Math.min(cap.tickWork, cap.replayWork - work)), count = step.actionEvents.length + step.orders.length + step.events.length + step.worldEvents.length;
     if (step.work > cap.replayWork - work || count > cap.trace - actionEvents.length - orders.length - events.length - worldEvents.length) fail('replay-output');
     work += step.work; checkpoint = step.checkpoint; actionEvents.push(...step.actionEvents); orders.push(...step.orders); events.push(...step.events); worldEvents.push(...step.worldEvents);
   } };
