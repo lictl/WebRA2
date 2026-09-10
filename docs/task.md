@@ -1,6 +1,7 @@
 # Current task and refreshed-session handoff
 
-State: **WORKING — GPU experiment #225 implemented and measured; final review/merge pending.**
+State: **COMPLETE — GPU experiment #225 implementation and measurements.**
+Final exact-head review and merge status are recorded in PR227; verify them below.
 The owner requested at least60FPS on2026-09-11. No human input is needed.
 [Issue225](https://github.com/lictl/WebRA2/issues/225) /
 [PR227](https://github.com/lictl/WebRA2/pull/227) contain the WebGL2 terrain/SHP
@@ -22,7 +23,10 @@ tick/replay auditing. All8 coupled runs matched fresh-worker replay; the4 manual
 commands reached the expected rendered frame. The original17scene corpus passed
 84viewport/atlas variants,46,501pixels, integer/default framebuffer RGBA and all
 pixel depth/owner/picks. Forced context loss, refused lost draws, restoration and
-double disposal passed. Separate pause/hidden/cancel evidence is in the report.
+double disposal passed. Separate pause/cancel/restart checks passed. Native hidden-tab
+delivery remains unconfirmed because debugging kept the document visible; synthetic
+hidden/pagehide cleanup passes. Browser URL policy blocked internal GPU status
+inspection, so hardware-versus-software backend verification remains unconfirmed.
 
 Final frozen build: source ee3634eef42155debf8d553369203bc299eb2f2c,
 port4209, local/worktrees/gpu-performance/local/gpu/final-6, manifest SHA256
