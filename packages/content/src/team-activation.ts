@@ -6,7 +6,7 @@ import { isEntityDefinitions, type EntityDefinitions } from './entity-definition
 import { compileScenarioLogic } from './scenario-logic.ts';
 import { compileScenarioObjects, type ScenarioObjects } from './scenario-objects.ts';
 import { createIniSourceView, findIniSourceSections } from './ini-source-view.ts';
-import { type RuntimeIni, type IniOrigin } from './runtime-ini.ts';
+import { compileRuntimeIni, type RuntimeIni, type IniOrigin } from './runtime-ini.ts';
 import { teamFingerprint, teamFold, teamWaypoint } from './team-values.ts';
 
 export const TEAM_ACTIVATION_POLICY = 'webra2-team-activation-source-1' as const;
@@ -65,7 +65,7 @@ export function compileTeamActivationSource(input: { readonly teams: TeamDefinit
     source.id !== teams.source.id || source.profile !== teams.profile || source.sha256 !== teams.source.sha256 ||
     source.id !== definitions.source.id || source.sha256 !== definitions.source.sha256) teamActivationFail('source-identity');
   const rules = r.rules as RuntimeIni;
-  const view = createIniSourceView(rules);
+  const view = createIniSourceView(rules, { work: cap.work, occurrences: cap.tokens, characters: cap.characters });
   if (rules.profile !== teams.profile || teamFingerprint(rules.layers, cap.serializedBytes) !== teamFingerprint(teams.sources.rules, cap.serializedBytes) ||
     teamFingerprint(rules.layers, cap.serializedBytes) !== teamFingerprint(definitions.sources.rules, cap.serializedBytes)) teamActivationFail('rules-identity');
   const raw = mission.bytes;
@@ -80,9 +80,12 @@ export function compileTeamActivationSource(input: { readonly teams: TeamDefinit
   const logic = compileScenarioLogic({ profile: teams.profile, source: teams.source, bytes },
     { inputBytes: cap.missionBytes, records: cap.actions, tokens: cap.tokens, retainedCharacters: cap.characters });
   const objects = compileScenarioObjects({ profile: teams.profile, source: teams.source, bytes });
-  const mapView = createIniSourceView(logic.ini), map = view.stages.at(-1);
-  if (!map || map.layer.kind !== 'map' || map.layer.sourceSha256 !== digest ||
-    teamFingerprint(map.sections, cap.serializedBytes) !== teamFingerprint(mapView.stages[0]!.sections, cap.serializedBytes)) teamActivationFail('mission-table');
+  const map = view.stages.at(-1);
+  if (!map || map.layer.kind !== 'map' || map.layer.sourceSha256 !== digest) teamActivationFail('mission-table');
+  const { encoding: _encoding, bytes: _size, ...layer } = map.layer;
+  const mapView = createIniSourceView(compileRuntimeIni(teams.profile, [{ ...layer, bytes }]));
+  if (teamFingerprint(map.sections, cap.serializedBytes) !== teamFingerprint(mapView.stages[0]!.sections, cap.serializedBytes)) teamActivationFail('mission-table');
+  const origins = new Map(mapView.stages[0]!.sections.flatMap(s => s.entries.map(e => [e.origin.line, e.origin] as const))); 
   const sections = findIniSourceSections(mapView, mapView.stages[0]!.layer.id, 'Actions');
   if (sections.length > 1) teamActivationFail('duplicate-actions-section');
   const waypointSections = findIniSourceSections(mapView, mapView.stages[0]!.layer.id, 'Waypoints');
@@ -94,7 +97,9 @@ export function compileTeamActivationSource(input: { readonly teams: TeamDefinit
   for (const row of logic.actions) for (const a of row.instructions) {
     charge(); if (a.opcode !== 4 && a.opcode !== 7 && a.opcode !== 80) continue;
     if (plans.length >= cap.actions) teamActivationFail('action-limit');
-    const reasons = new Set<string>(), add = (s: string) => reasons.add(s), origin = row.row.entry.selected;
+    const reasons = new Set<string>(), add = (s: string) => reasons.add(s), selectedOrigin = row.row.entry.selected;
+    const origin = origins.get(selectedOrigin.line);
+    if (!origin || origin.rawValue !== selectedOrigin.rawValue || origin.sectionSpelling !== selectedOrigin.sectionSpelling || origin.keySpelling !== selectedOrigin.keySpelling) teamActivationFail('action-origin');
     if (origin.sectionSpelling !== 'Actions' || !sections.length) add('exact-actions-section');
     const mode = decimal(a.parameters[0]!), name = row.row.tokens[a.tokenStart + 2]!;
     let lookup: TeamActivationPlan['teamOperand']['lookup'] = 'unsupported', candidateIndex: number | null = null;
