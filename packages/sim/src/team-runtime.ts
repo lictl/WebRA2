@@ -7,13 +7,14 @@ import { WorldSimulation, type WorldSave, type WorldEntity } from './world.ts';
 import type { WorldModel } from './world-model.ts';
 import { teamSpawnContextData, type TeamSpawnContext } from './team-spawn-context.ts';
 import { teamRecruitmentContextData, type TeamRecruitmentContext } from './team-recruitment-context.ts';
+import { missionTeamContextData, type MissionTeamContext } from './mission-team-context.ts';
 import { worldAddress, worldClone, worldHash, worldInteger, worldList, worldRecord, worldSymbol } from './world-values.ts';
 import { navigationCell } from './navigation.ts';
 import { planTeamDestinations, TEAM_DESTINATION_LIMITS, TEAM_DESTINATION_POLICY, type TeamDestinationAssignment } from './team-runtime-destinations.ts';
 import { teamProgramWorld, teamRuntimeFail as fail, teamRuntimeFreeze as freeze, type TeamProgram, type TeamTemplate } from './team-runtime-program.ts';
 
 export interface TeamActorBinding { readonly id: string; readonly teamId: string; readonly actorIds: readonly number[]; readonly bornAtTick?: number }
-export interface TeamRoster { readonly policy: 'webra2-team-roster-1' | 'webra2-spawn-team-roster-1' | 'webra2-recruited-team-roster-1'; readonly contextSha256?: string; readonly programSha256: string; readonly worldModelSha256: string;
+export interface TeamRoster { readonly policy: 'webra2-team-roster-1' | 'webra2-spawn-team-roster-1' | 'webra2-recruited-team-roster-1' | 'webra2-mission-team-roster-1'; readonly contextSha256?: string; readonly programSha256: string; readonly worldModelSha256: string;
   readonly bindings: readonly TeamActorBinding[]; readonly sha256: string }
 export type TeamPhase = 'advance' | 'moving' | 'retry' | 'sleep' | 'finished' | 'lost';
 export interface TeamInstanceState {
@@ -34,13 +35,83 @@ export interface TeamCheckpoint {
 const rosters = new WeakMap<object, TeamProgram>();
 const spawnContexts = new WeakMap<object, TeamSpawnContext>();
 const recruitmentContexts = new WeakMap<object, TeamRecruitmentContext>();
+const missionContexts = new WeakMap<object, MissionTeamContext>();
 export const isTeamRoster = (v: unknown): v is TeamRoster => !!v && typeof v === 'object' && rosters.has(v);
 export function teamRosterProgram(roster: TeamRoster): TeamProgram { const p=rosters.get(roster);if(!p)fail('roster-brand');return p; }
 
 /** Dynamic models come only from genuine source-bound spawn contexts. */
 export function teamRosterModel(roster: TeamRoster): WorldModel {
   const program=teamRosterProgram(roster),context=spawnContexts.get(roster);
+  const mission=missionContexts.get(roster);if(mission)return missionTeamContextData(mission).model;
   return context ? teamSpawnContextData(context).model : teamProgramWorld(program).model;
+}
+/** Only a genuine common context grants combined placed/constructed membership. */
+export function bindMissionTeamActors(context: MissionTeamContext): TeamRoster {
+  const data=missionTeamContextData(context),program=data.program,cap=program.limits;
+  const templates=new Map(program.templates.map(t=>[t.id,t])),actors=new Map(data.actors.map(a=>[a.entityId,a]));
+  const definitions=new Map(data.model.entities.map(e=>[e.id,e])),seen=new Set<number>();
+  const bindings:TeamActorBinding[]=worldList(data.instances,cap.teams).map(value=>{
+    const b=value as typeof data.instances[number],t=templates.get(b.teamId),quantities=new Map<string,number>();
+    if(!t||!b.actorIds.length||b.actorIds.length>64||b.actorIds.length>cap.members-seen.size)fail('mission-binding-team');
+    for(const id of b.actorIds){const a=actors.get(id),d=definitions.get(id);
+      if(!a||!d||seen.has(id)||a.rowId!==d.rowId||a.typeId!==d.typeId||a.houseId!==t.houseId||a.playerId!==t.playerId||
+        d.owner!==t.playerId||a.bornAtTick!==b.bornAtTick||!['infantry','unit'].includes(d.kind))fail('mission-binding-actor');
+      seen.add(id);quantities.set(d.typeId,(quantities.get(d.typeId)??0)+1);
+    }
+    if(quantities.size!==t.members.length||t.members.some(m=>quantities.get(m.typeId)!==m.quantity))fail('mission-binding-taskforce');
+    return{id:b.id,teamId:b.teamId,actorIds:[...b.actorIds].sort((a,b)=>a-b),bornAtTick:b.bornAtTick};
+  }).sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
+  if(seen.size!==actors.size||new Set(bindings.map(b=>b.id)).size!==bindings.length)fail('mission-binding-coverage');
+  const value={policy:'webra2-mission-team-roster-1' as const,contextSha256:context.sha256,programSha256:program.sha256,
+    worldModelSha256:data.model.sha256,bindings};
+  const roster:TeamRoster=freeze({...value,sha256:worldHash(value)});rosters.set(roster,program);missionContexts.set(roster,context);return roster;
+}
+/** Append exactly one live claim/release while conserving the world and surviving controllers. */
+export function migrateMissionTeamCheckpoint(previousContext:MissionTeamContext,input:unknown,nextContext:MissionTeamContext,nextWorldInput:unknown):TeamCheckpoint {
+  const before=missionTeamContextData(previousContext),after=missionTeamContextData(nextContext);
+  const same=(a:unknown,b:unknown)=>canonicalText(a)===canonicalText(b);
+  if(before.runtime!==after.runtime||before.program!==after.program||after.records.length!==before.records.length+1||
+    !same(before.records,after.records.slice(0,before.records.length)))fail('mission-migration-prefix');
+  const prior=restoreTeamCheckpoint(bindMissionTeamActors(previousContext),input);if(prior.pending)fail('mission-migration-pending');
+  const event=after.records.at(-1)!,tick=prior.world.nextTick,world=WorldSimulation.restore(after.model,nextWorldInput).save();
+  const old=new Map(prior.team.instances.map(s=>[s.id,s])),current=new Map(prior.world.state.entities.map(e=>[e.id,e]));
+  if(event.kind==='spawned'){
+    if(event.bornAtTick!==tick||!same(before.model.entities,after.model.entities.slice(0,before.model.entities.length))||
+      after.model.entities.length!==before.model.entities.length+event.actors.length)fail('mission-migration-constructors');
+    const {entities:_be,sha256:_bs,initialSharedCells:_bi,...beforeModel}=before.model;
+    const {entities:_ae,sha256:_as,initialSharedCells:_ai,...afterModel}=after.model;
+    if(!same(beforeModel,afterModel))fail('mission-migration-model');
+    const expected={...prior.world,state:{...prior.world.state,modelSha256:after.model.sha256,
+      entities:[...prior.world.state.entities,...event.actors.map(a=>({id:a.entityId,x:a.x,y:a.y,health:a.initialHealth,
+        goal:null,route:[],progress:0,waitTicks:0}))]}};
+    if(!same(world,expected))fail('mission-migration-world');
+    const newIds=new Set(event.actors.map(a=>a.entityId));
+    for(const command of world.queuedCommands)if(newIds.has((command.payload as {entityId:number}).entityId))fail('mission-migration-queued-actor');
+    const occupied=new Set(before.model.blocked),live=new Map<number,boolean>();
+    for(let i=0;i<prior.world.state.entities.length;i++){
+      const e=prior.world.state.entities[i]!,d=before.model.entities[i]!;live.set(e.id,e.health!==0);
+      if(e.health!==0&&d.blocksCell){occupied.add(worldAddress(e.x,e.y));if(e.progress>0)occupied.add(e.route[1]!);}
+    }
+    for(const footprint of before.model.footprints)if(live.get(footprint.entityId))for(const cell of footprint.cells)occupied.add(cell);
+    for(const actor of event.actors){const at=worldAddress(actor.x,actor.y);if(occupied.has(at))fail('mission-migration-occupied');occupied.add(at);}
+  }else{
+    if(after.model.sha256!==before.model.sha256||!same(world,prior.world))fail('mission-migration-world');
+    if(event.kind==='recruited'){
+      if(event.bornAtTick!==tick)fail('mission-migration-birth');
+      const queued=new Set(prior.world.queuedCommands.map(c=>(c.payload as {entityId:number}).entityId));
+      for(const id of event.actorIds){const e=current.get(id);
+        if(!e||e.health===null||e.health===0||e.goal!==null||e.progress||e.route.length||queued.has(id))fail('mission-migration-busy');}
+    }else{
+      const terminal=old.get(event.instanceId);
+      if(event.atTick!==tick||!terminal||terminal.phase!==event.reason||!['finished','lost'].includes(terminal.phase))fail('mission-migration-release');
+      if(event.reason==='finished'&&terminal.activeMembers.some(id=>{const e=current.get(id)!;return e.health!==0&&(e.goal!==null||e.progress!==0||e.route.length!==0);}))fail('mission-migration-release-moving');
+      old.delete(event.instanceId);
+    }
+  }
+  const roster=bindMissionTeamActors(nextContext),fresh=new Map(initial(roster,tick).instances.map(s=>[s.id,s]));
+  const instances=roster.bindings.map(b=>old.get(b.id)??fresh.get(b.id)!);
+  if(old.size!==before.instances.length-(event.kind==='released'?1:0)||[...old.keys()].some(id=>!instances.some(s=>s.id===id)))fail('mission-migration-state');
+  return restoreTeamCheckpoint(roster,{...prior,rosterSha256:roster.sha256,world,team:{...prior.team,instances}});
 }
 /** Only the genuine source catalog can provide empty, partial-template or recruited actor bindings. */
 export function bindRecruitedTeamActors(context: TeamRecruitmentContext): TeamRoster {
@@ -226,8 +297,8 @@ function teamState(roster:TeamRoster,input:unknown,world:WorldSave):TeamState{
   });
   const durations=new Map<string,number>(),maxFlash=new Map<number,number>();
   for(const t of p.templates){let duration=-1;for(const s of t.steps)if(s.opcode===50)duration=Math.max(duration,s.duration);durations.set(t.id,duration);}
-  const recruitment=recruitmentContexts.get(roster),flashBindings=recruitment?
-    teamRecruitmentContextData(recruitment).records.filter(r=>r.kind==='recruited'):roster.bindings;
+  const recruitment=recruitmentContexts.get(roster),mission=missionContexts.get(roster),flashBindings=mission?
+    missionTeamContextData(mission).historyBindings:recruitment?teamRecruitmentContextData(recruitment).records.filter(r=>r.kind==='recruited'):roster.bindings;
   for(const binding of flashBindings){const duration=durations.get(binding.teamId)!;
     if(duration>=0)for(const id of binding.actorIds)maxFlash.set(id,Math.max(duration,maxFlash.get(id)??-1));}
   const flashes=snapshotTeamFlashes(r.flashes).map(f=>{const maximum=maxFlash.get(f.entityId);

@@ -96,3 +96,11 @@ receipt retains only the exact committed step/model pair without extending publi
 save/result shapes. Neither mechanism establishes native team activation timing
 or dynamic actor authority; those remain part of
 [mission/team integration210](https://github.com/lictl/WebRA2/issues/210).
+
+The common mission-team roster and one-record migration are original extensions
+of the reviewed spawn/recruitment transaction checks. A genuine shared context
+supplies exact source actors and complete task forces. Migration conserves prior
+world/controller state, proves current constructor occupancy or recruitment
+availability, and requires terminal state before release. Historical claim
+bindings retain the source permission for surviving Flash state. These are
+structural/current-transition checks, not cryptographic proof of past gameplay.
