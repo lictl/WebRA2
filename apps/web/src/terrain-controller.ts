@@ -112,7 +112,8 @@ export class TerrainController{
     const frame=this.state.frame;if(this.state.busy||!frame?.world||!frame.summary.world)return false;
     if(ids.length>WORLD_UI.entities){this.#update({worldNotice:'worldSelectionLimit'});return false;}
     const selected=selectWorldActors(this.state.selectedEntities,ids,mode,frame.summary.world,frame.world,this.state.playerId);
-    this.#update({selectedEntities:selected.ids,selectedEntity:selected.ids[0]??null,interactionEpoch:this.state.interactionEpoch+1,worldNotice:selected.limited?'worldSelectionLimit':ids.length&&!selected.ids.length?'worldCannotSelect':'worldSelectionChanged'});return !selected.limited;
+    const cleared=!ids.length || (mode==='toggle' && ids.some(id=>controllable(frame.summary.world,frame.world,this.state.playerId,id)));
+    this.#update({selectedEntities:selected.ids,selectedEntity:selected.ids[0]??null,interactionEpoch:this.state.interactionEpoch+1,worldNotice:selected.limited?'worldSelectionLimit':!selected.ids.length?(cleared?'worldSelectionCleared':'worldCannotSelect'):'worldSelectionChanged'});return !selected.limited;
   }
   selectEntity(id:number):void{this.selectEntities([id]);}
   selectBox(frameId:number,box:SelectionBox,additive=false):boolean{
