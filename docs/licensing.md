@@ -194,3 +194,9 @@ Electronic Arts Random2/Random3 under GPL-3.0-or-later. Its
 copyright and modifications. Distributions containing it must retain those notices,
 the GPL license and applicable corresponding source. It is not attached to the
 browser world yet; the build includes its notice for subsequent integration.
+
+The original native combat numerical stages are GPL-3.0-or-later WebRA2 code.
+Their [provenance notice](../packages/sim/NATIVE_COMBAT_NUMBERS_PROVENANCE.md)
+records selected native observations and synthetic arithmetic evidence. Preserve
+that notice, GPL text and applicable corresponding source when distributing them.
+No additional third-party implementation is adopted.
