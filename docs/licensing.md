@@ -248,3 +248,9 @@ GPL-3.0-or-later WebRA2 code. Distributions include the
 and applicable corresponding source. The web build includes both notices. The
 source compiler and pure scheduler adopt no new external dependency; live
 attack admission and world resolution are separate integration work.
+
+The persistent source team Sleep policy is original GPL-3.0-or-later WebRA2 code.
+Its [notice](../packages/sim/TEAM_SLEEP_PROVENANCE.md), GPL text and corresponding
+source accompany the composed runtime. The build includes the notice separately
+from team definitions, activation, spawning and destination planning. No new
+external dependency or original-game content is adopted.
