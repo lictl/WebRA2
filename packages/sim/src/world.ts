@@ -4,7 +4,7 @@ import { orderCommands, type CommandEnvelope, type SaveEnvelope } from '../../co
 import { canonicalText } from './canonical.ts';
 import { findNavigationPath } from './navigation.ts';
 import { ORDINARY_DEATH_ENGINE_VERSION, ORDINARY_DEATH_POLICY } from './ordinary-death-rules.ts';
-import { COMBAT_ENGINE_VERSION } from './combat-model.ts';
+import { INFANTRY_COMBAT_POLICY, INFANTRY_COMBAT_ENGINE_VERSION, COMBAT_ENGINE_VERSION } from './combat-model.ts';
 import { ORDINARY_COMBAT_ENGINE_VERSION, ORDINARY_COMBAT_POLICY } from './ordinary-combat-rules.ts';
 import { combatDyingActorIds, attackCombat, createCombatState, stepCombat, stopCombat, validateCombatState, type CombatState } from './combat.ts';
 import { assertWorldModel, worldAddress, worldClone, worldContent, worldEdgeCost, worldFail, worldInteger, worldList, worldPosition,
@@ -19,7 +19,7 @@ export type WorldTrace = { tick: number; phase: 'command' | 'navigation' | 'move
 export type WorldStep = { nextTick: number; events: WorldTrace[]; work: { entityVisits: number; navigationExpansions: number; transitions: number } };
 type LiveSave = { -readonly [K in keyof WorldSave]: WorldSave[K] } & { queuedCommands: CommandEnvelope[]; scheduledWork: []; rngStates: Record<string, never> };
 
-const engineVersion = (model: WorldModel) => model.combat?.policy===ORDINARY_DEATH_POLICY ? ORDINARY_DEATH_ENGINE_VERSION : model.combat?.policy===ORDINARY_COMBAT_POLICY ? ORDINARY_COMBAT_ENGINE_VERSION : model.combat ? COMBAT_ENGINE_VERSION : WORLD_ENGINE_VERSION;
+const engineVersion = (model: WorldModel) => model.combat?.policy===INFANTRY_COMBAT_POLICY ? INFANTRY_COMBAT_ENGINE_VERSION : model.combat?.policy===ORDINARY_DEATH_POLICY ? ORDINARY_DEATH_ENGINE_VERSION : model.combat?.policy===ORDINARY_COMBAT_POLICY ? ORDINARY_COMBAT_ENGINE_VERSION : model.combat ? COMBAT_ENGINE_VERSION : WORLD_ENGINE_VERSION;
 const rulesVersion = (model: WorldModel) => model.combat ? model.combat.policy : WORLD_MOTION_POLICY;
 function command(value: unknown, combat: boolean): CommandEnvelope {
   const r = worldRecord(value, ['schemaVersion', 'tick', 'playerId', 'sequence', 'kind', 'payload']);
@@ -182,11 +182,11 @@ export class WorldSimulation {
           continue;
         }
         if (c.kind === 'stop' && state.combat && e.health !== null && e.health > 0) {
-          stopCombat(state.combat, e.id); e.goal = null; e.route = []; e.progress = 0; e.waitTicks = 0;
+          stopCombat(this.#model, state.combat, e.id); e.goal = null; e.route = []; e.progress = 0; e.waitTicks = 0;
           emit('command', 'stopped', e.id, worldAddress(e.x, e.y)); continue;
         }
         if (e.health === 0 || e.health === null || !d.movementPerTick || d.navigationClass === null) { emit('command', 'immovable', e.id); continue; }
-        if (state.combat) stopCombat(state.combat, e.id);
+        if (state.combat) stopCombat(this.#model, state.combat, e.id);
         e.waitTicks = 0;
         if (c.kind === 'stop') { e.goal = null; e.route = []; e.progress = 0; emit('command', 'stopped', e.id, worldAddress(e.x, e.y)); }
         else {

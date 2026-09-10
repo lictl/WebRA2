@@ -255,6 +255,12 @@ corresponding source accompany distributions. The browser build includes the not
 separately from native source death preparation and random arithmetic. Existing MIT
 world modules compose this policy; no new external dependency is adopted.
 
+The optional standing-infantry world integration composes the GPL firing scheduler
+inside existing MIT combat/world modules. The retained
+[firing notice](../packages/sim/INFANTRY_FIRING_PROVENANCE.md) covers this original
+composition and its explicit cadence. Distribution includes that notice, GPL text
+and applicable corresponding source; no additional dependency is adopted.
+
 The persistent source team Sleep policy is original GPL-3.0-or-later WebRA2 code.
 Its [notice](../packages/sim/TEAM_SLEEP_PROVENANCE.md), GPL text and corresponding
 source accompany the composed runtime. The build includes the notice separately

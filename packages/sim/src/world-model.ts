@@ -2,7 +2,7 @@
 // Original content-bound world model. Native interpretation belongs to the content adapter.
 import type { ContentIdentity } from '../../contracts/src/index.ts';
 import { canonicalText } from './canonical.ts';
-import { combatDeathBinding, assertCombatModel, type CombatModel } from './combat-model.ts';
+import { combatInfantryPrograms, combatDeathBinding, assertCombatModel, type CombatModel } from './combat-model.ts';
 import { worldFail, worldRecord, worldList, worldInteger, worldSymbol as symbol, worldSourceHash as hash, worldContent, worldAddress, worldPosition, worldHash, WORLD_LIMITS } from './world-values.ts';
 export * from './world-values.ts';
 import { navigationCell, NAVIGATION_POLICY, type NavigationGrid } from './navigation.ts';
@@ -101,6 +101,11 @@ export function createWorldModel(input: WorldModelInput): WorldModel {
     for (const a of combat!.actors) {
       const d = byId.get(a.entityId);
       if (!d || d.maximumHealth === null || a.weapons.length > 0 && d.owner === null) worldFail('world-combat-actor');
+    }
+    const firing=combatInfantryPrograms(combat!);
+    if(firing)for(const p of firing){
+      const d=byId.get(p.actorId)!;
+      if(p.profile!==contentIdentity.profile||p.rowId!==d.rowId||p.typeId!==d.typeId||d.kind!=='infantry'||d.initialHealth===0)worldFail('world-infantry-program');
     }
     const death=combatDeathBinding(combat!);
     if(death)for(const a of death.rules.actors){
