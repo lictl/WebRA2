@@ -120,7 +120,7 @@ export function restoreInfantryFiring(p: InfantryFiringProgram, value: unknown):
   if (s.shots >= s.nextAttemptId || s.shots > s.tick + 1) fail('save-shots');
   let rearm: InfantryFiringState['rearm'] = null, pending: PendingShot | null = null;
   if (s.rearm !== null) {
-    exact(s.rearm, ['shotTick', 'nativeRof']); integer(s.rearm.shotTick, Math.max(0, s.shots - 1), s.tick); integer(s.rearm.nativeRof);
+    exact(s.rearm, ['shotTick', 'nativeRof']); integer(s.rearm.shotTick, Math.max(0, s.shots * (p.fireUp + 1) - 1), s.tick); integer(s.rearm.nativeRof);
     integer(s.rearm.shotTick + Math.max(1, s.rearm.nativeRof)); rearm = { shotTick: s.rearm.shotTick, nativeRof: s.rearm.nativeRof };
   }
   if ((s.shots > 0) !== (rearm !== null)) fail('save-rearm');

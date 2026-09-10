@@ -72,7 +72,8 @@ test('save schema, source identity, impossible timing and descriptor attacks fai
   for(const change of [(v:any)=>v.state.tick=-0,(v:any)=>v.state.pending.dueTick++,(v:any)=>v.state.pending.attemptId++,
     (v:any)=>v.state.nextAttemptId=0,(v:any)=>v.state.pending.targetId=p.actorId,(v:any)=>v.state.shots=50,
     (v:any)=>v.state.rearm={shotTick:0,nativeRof:0},(v:any)=>v.state.programFingerprint='0'.repeat(64),
-    (v:any)=>v.state.pending.weaponId='',(v:any)=>v.state.extra=true])assert.throws(()=>restore(p,mutate(change)));
+    (v:any)=>v.state.pending.weaponId='',(v:any)=>v.state.extra=true,
+    (v:any)=>{v.state.pending=null;v.state.shots=1;v.state.rearm={shotTick:0,nativeRof:0};}])assert.throws(()=>restore(p,mutate(change)));
   assert.throws(()=>restore(fixture(3),save(p,s)));assert.throws(()=>restore(p,{...save(p,s),stateHash:'0'.repeat(64)}));
   let reads=0;const v=structuredClone(save(p,s));Object.defineProperty(v.state,'tick',{enumerable:true,get(){reads++;return 0;}});assert.throws(()=>restore(p,v));assert.equal(reads,0);
   assert.throws(()=>transition(p,{...s},begin));assert.throws(()=>create({...p}));
