@@ -4,6 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createTerrainScene, type TerrainFrame, type TerrainPick, type TerrainScene } from '../../packages/render/src/terrain-scene.ts';
 import type { SpriteBatch, SpritePick, SpriteTerrainFrame } from '../../packages/render/src/sprite-layer.ts';
+import { createSpriteAtlas } from '../../packages/render/src/sprite-layer.ts';
 import { GPU_DRAW as D, GPU_DRAW_STRIDE, type GpuFrame, type GpuFrameData, type GpuReadback, type GpuScene, type GpuSceneData } from '../../packages/render/src/gpu-contracts.ts';
 import { compileGpuScene, copyGpuFrameData, copyGpuSceneData, pickGpuFrame, prepareGpuFrame } from '../../packages/render/src/gpu-scene.ts';
 import { gpuOracleCases, makeOriginalSprites, makeOriginalTerrain, originalHash, originalObject, originalPalette, originalViewport, type GpuOracleCase } from './gpu-fixtures.ts';
@@ -141,6 +142,45 @@ test('GPU background snapshots use validated data descriptors without rereading 
   const frame = prepareGpuFrame(gpu, { ...originalViewport(), backgroundRgba: background as unknown as readonly [number, number, number, number] });
   assert.deepEqual(frame.viewport.backgroundRgba, [1, 2, 3, 4]); assert.equal(reads, 0);
   background[0] = 9; assert.deepEqual(frame.viewport.backgroundRgba, [1, 2, 3, 4]);
+});
+
+test('initial and dynamic sprite descriptor snapshots preserve validated geometry and native array caps', () => {
+  const cpu = createTerrainScene(makeOriginalTerrain()), { atlasInput, batch } = makeOriginalSprites();
+  let reads = 0;
+  const noGet = <T extends object>(value: T): T => new Proxy(value, { get() { reads++; throw Error('unchecked property read'); } });
+  const object = noGet(originalObject({ depth: noGet({ base: 100, rowStep: 0, terrainTie: 'front' }) }));
+  const wrapped = noGet({ atlas: batch.atlas, palettes: noGet([noGet(batch.palettes[0]!)]), objects: noGet([object]) });
+  const gpu = compileGpuScene(cpu, wrapped), frame = prepareGpuFrame(gpu, originalViewport(), noGet([object]));
+  assert.equal(reads, 0);
+  assert.deepEqual(pickGpuFrame(frame, { kind: 2, owner: 0, depth: 100 }, 28, 10),
+    cpuPick(cpu.renderSprites(originalViewport(), batch), 28, 10));
+  const single = { ...batch, atlas: createSpriteAtlas(atlasInput, { objects: 1 }) };
+  const two = new Proxy([originalObject({ id: 'A' }), originalObject({ id: 'B' })], {
+    get(target, key, receiver) { if (key === 'length') return 1; return Reflect.get(target, key, receiver); },
+  });
+  assert.throws(() => compileGpuScene(cpu, { ...single, objects: two }), /sprite-array/);
+  assert.throws(() => prepareGpuFrame(compileGpuScene(cpu, single), originalViewport(), two), /sprite-array/);
+  let xReads = 0;
+  const variant = new Proxy(originalObject(), { get(target, key, receiver) {
+    if (key === 'x') return ++xReads === 2 ? NaN : 28; return Reflect.get(target, key, receiver);
+  } });
+  const selected = pickGpuFrame(prepareGpuFrame(gpu, originalViewport(), [variant]), { kind: 2, owner: 0, depth: 100 }, 28, 10);
+  assert.equal(xReads, 0); assert.equal((selected as SpritePick).canvasX, 0);
+});
+
+test('diagnostic picks validate one owned sample, independent of subsequent Proxy reads', () => {
+  const frame = prepareGpuFrame(compileGpuScene(createTerrainScene(makeOriginalTerrain())), originalViewport());
+  let reads = 0;
+  const changing = new Proxy({ kind: 1, owner: 0, depth: 10 }, { get(target, key, receiver) {
+    if (key === 'depth') return ++reads === 1 ? 10 : NaN; return Reflect.get(target, key, receiver);
+  } });
+  assert.equal(pickGpuFrame(frame, changing, 28, 10)?.depth, 10); assert.equal(reads, 0);
+  const throwing = new Proxy({ kind: 0, owner: -1, depth: EMPTY_DEPTH }, { get() { throw Error('unchecked sample read'); } });
+  assert.equal(pickGpuFrame(frame, throwing, 0, 0), null);
+  const invalid = new Proxy({ kind: 1, owner: 0, depth: NaN }, { get(target, key, receiver) {
+    return key === 'depth' ? 10 : Reflect.get(target, key, receiver);
+  } });
+  assert.throws(() => pickGpuFrame(frame, invalid, 28, 10), /gpu-pick-depth/);
 });
 
 test('owned source and detached packets cannot mutate a prepared frame, future upload or CPU pick', () => {
