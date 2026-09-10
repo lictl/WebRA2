@@ -67,6 +67,11 @@ records native naming/mount evidence and the explicit unlit still limits; its no
 accompanies the development bundle. No retail models, matrices, palettes or pixels
 are distributed.
 
+The typed team/task-force/script compiler, helpers and original fixtures are
+GPL-3.0-or-later. [Team-definition provenance](../packages/content/TEAM_DEFINITIONS_PROVENANCE.md)
+records staged native allocation/load evidence and unsupported execution boundaries;
+its notice accompanies the development bundle. No retail AI or mission rows are shipped.
+
 The CPU terrain scene and composing browser viewport are GPL-3.0-or-later;
 [render provenance](../packages/render/PROVENANCE.md) records pinned OpenRA placement
 and composition references. The selected-frame SHP compositor uses the same license;
