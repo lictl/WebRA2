@@ -1,0 +1,237 @@
+{
+  "schemaVersion": 1,
+  "policy": "webra2-mission-audio-reference-1",
+  "scope": "private supplied opening sources, explicit side reference preparation; no playback",
+  "independentOracle": {
+    "checks": 6143,
+    "verifiedRoots": 7
+  },
+  "profiles": [
+    {
+      "profile": "ra2",
+      "missionSha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+      "cuesSha256": "5e973c4bc16c4e604b40f229e14856e811be7bf2f258d6e9acc99c88327a73da",
+      "coverage": [
+        {
+          "opcode": 19,
+          "occurrences": 39
+        },
+        {
+          "opcode": 20,
+          "occurrences": 0
+        },
+        {
+          "opcode": 21,
+          "occurrences": 18
+        }
+      ],
+      "sourcePins": [
+        {
+          "path": "sound.ini",
+          "rootPath": "ra2.mix",
+          "archivePath": [
+            "local.mix"
+          ],
+          "absoluteOffset": 119103488,
+          "size": 60455,
+          "sha256": "0bae295685bbe7e83d7fbd765d25825df392695676b9e73fa456a5c4305bf6f5",
+          "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914"
+        },
+        {
+          "path": "eva.ini",
+          "rootPath": "ra2.mix",
+          "archivePath": [
+            "local.mix"
+          ],
+          "absoluteOffset": 119245584,
+          "size": 58619,
+          "sha256": "b4716e8c76c18f7aa01bbfcbe5e348c107393148e10c67fd9ed696e57fbf144b",
+          "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914"
+        },
+        {
+          "path": "theme.ini",
+          "rootPath": "ra2.mix",
+          "archivePath": [
+            "local.mix"
+          ],
+          "absoluteOffset": 119163952,
+          "size": 3646,
+          "sha256": "fcb705bb6a01b35e70a619197f51b897210f52f4c9653cdbe26de80bee82bd78",
+          "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914"
+        },
+        {
+          "path": "audio.idx",
+          "rootPath": "language.mix",
+          "archivePath": [
+            "audio.mix"
+          ],
+          "absoluteOffset": 37415318,
+          "size": 41520,
+          "sha256": "283a991075fe3c5d5f65cfdb78f77be234e23250010f3879cdfe5c6f950caa28",
+          "rootSha256": "870c3bcc596e8690c55077a4c651f88d0dbc35f2a786c6c4891df8ffdb9ce192"
+        }
+      ],
+      "sideResults": [
+        {
+          "side": 0,
+          "planSha256": "eba0b57b5655a38fc6e50201b3b9f283e1c8b6807aca8e7636634b64eb8db9d7",
+          "catalogSha256": "ea12fb174c5894968dd8ad05a971e13b4e5706476a6543d02aae2dd6381c1973",
+          "occurrences": 57,
+          "resolved": 57,
+          "samples": 45,
+          "bytes": 1101906,
+          "reasons": {}
+        },
+        {
+          "side": 1,
+          "planSha256": "7e1d730b4d16bf42f3f8084e11f08907e501223239aaab68b67f89abe49e98ad",
+          "catalogSha256": "1cd7f2f7f87123c3f9b293addb56bf4cf0904684b9eff14b36f5fcfdb82979f7",
+          "occurrences": 57,
+          "resolved": 57,
+          "samples": 45,
+          "bytes": 1113170,
+          "reasons": {}
+        }
+      ],
+      "sideZeroKinds": [
+        {
+          "kind": "bag",
+          "samples": 29
+        },
+        {
+          "kind": "wav",
+          "samples": 16
+        }
+      ]
+    },
+    {
+      "profile": "yr",
+      "missionSha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+      "cuesSha256": "35aafd0acff193253413503b007fb688690e648c6fc4769817bcbed5fb6d3777",
+      "coverage": [
+        {
+          "opcode": 19,
+          "occurrences": 10
+        },
+        {
+          "opcode": 20,
+          "occurrences": 0
+        },
+        {
+          "opcode": 21,
+          "occurrences": 14
+        }
+      ],
+      "sourcePins": [
+        {
+          "path": "soundmd.ini",
+          "rootPath": "expandmd01.mix",
+          "archivePath": [],
+          "absoluteOffset": 2963532,
+          "size": 99392,
+          "sha256": "0a8e85381aef1a0f97074c953bfe99504da00c6220fae1a023a1afd857023232",
+          "rootSha256": "0c0a64e741bdecdc3843a0beb6bb1f58aa2df5b86eb3bc4a953821ec98f3d6ec"
+        },
+        {
+          "path": "soundmd.ini",
+          "rootPath": "ra2md.mix",
+          "archivePath": [
+            "localmd.mix"
+          ],
+          "absoluteOffset": 7464480,
+          "size": 99292,
+          "sha256": "d1be76491a0888396b4d0e53f4857f33879a5afd40a8bcea65ea1d1a3096d419",
+          "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d"
+        },
+        {
+          "path": "evamd.ini",
+          "rootPath": "ra2md.mix",
+          "archivePath": [
+            "localmd.mix"
+          ],
+          "absoluteOffset": 7730992,
+          "size": 79889,
+          "sha256": "e4df441ac619ba3b68e84ceee55e3eaf7c64c0410176cf2ea442085da9feeadc",
+          "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d"
+        },
+        {
+          "path": "thememd.ini",
+          "rootPath": "ra2md.mix",
+          "archivePath": [
+            "localmd.mix"
+          ],
+          "absoluteOffset": 7563776,
+          "size": 2718,
+          "sha256": "b7cf74e6bbac7a0656e4739e9158bd6e9988e867d19bb20c54706b755be23085",
+          "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d"
+        },
+        {
+          "path": "audio.idx",
+          "rootPath": "langmd.mix",
+          "archivePath": [
+            "audiomd.mix"
+          ],
+          "absoluteOffset": 75278920,
+          "size": 82272,
+          "sha256": "b3be1ac75032d062dce3d7415cb7dbe7ceec0b479bc6450241dee3148b7c12c1",
+          "rootSha256": "0290bc3e40c38406e2ec6805dc18ef6c3a9b6feee6db42df717ac920e93294c8"
+        },
+        {
+          "path": "audio.idx",
+          "rootPath": "language.mix",
+          "archivePath": [
+            "audio.mix"
+          ],
+          "absoluteOffset": 37415318,
+          "size": 41520,
+          "sha256": "283a991075fe3c5d5f65cfdb78f77be234e23250010f3879cdfe5c6f950caa28",
+          "rootSha256": "870c3bcc596e8690c55077a4c651f88d0dbc35f2a786c6c4891df8ffdb9ce192"
+        }
+      ],
+      "sideResults": [
+        {
+          "side": 0,
+          "planSha256": "306ac56d6693280e47597b8267995e1556e683dac368ebbf53b5f56a2f27de41",
+          "catalogSha256": "376b5982057c146ea4648fede79b3db1157e925e8b42c8fa20b05d31067ca99c",
+          "occurrences": 24,
+          "resolved": 24,
+          "samples": 18,
+          "bytes": 962692,
+          "reasons": {}
+        },
+        {
+          "side": 1,
+          "planSha256": "4762e948977aa947ff7859a9e83055c1477dd3ab4942b708457c23da6cf154ed",
+          "catalogSha256": "6455392a30c664b11e6bcd20909ccb8b5e4b676e7906ecabe573324523b63d66",
+          "occurrences": 24,
+          "resolved": 24,
+          "samples": 18,
+          "bytes": 972932,
+          "reasons": {}
+        },
+        {
+          "side": 2,
+          "planSha256": "1192ee8ef1c176965be616c90716fc2718b90e80c00fb20849e5a6360f00ec54",
+          "catalogSha256": "0d5965d700adaccdaf10e379d55e23e89bf815e7b8a1eb888d1337ed6ebc2fcd",
+          "occurrences": 24,
+          "resolved": 15,
+          "samples": 9,
+          "bytes": 161532,
+          "reasons": {
+            "unsupported-wave-stem": 9
+          }
+        }
+      ],
+      "sideZeroKinds": [
+        {
+          "kind": "bag",
+          "samples": 5
+        },
+        {
+          "kind": "wav",
+          "samples": 13
+        }
+      ]
+    }
+  ]
+}
