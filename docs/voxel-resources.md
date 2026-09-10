@@ -73,17 +73,42 @@ the guard. Cooperative tasks run between model preflights and before the synchro
 atlas call. This CPU work belongs in a worker; JavaScript cannot interrupt a
 synchronous decoder mid-call. Catalog ownership/disposal remains with the caller.
 
-## Validation checkpoint
+## Validation
 
-Twelve original synthetic tests cover naming/stages/profile identity, container
-precedence and omission, missing/incompatible pairs, owned geometry/picking,
-metadata mutation, budgets, cancellation, reentrancy and recovery. Type checking
-passes. Private fresh catalog preparation accounts for all 10 RA2 and five YR
-opening voxel types. All named model resources resolve and pair; eight RA2 and four
-YR types expose still bindings. The two spawn-alternate types and one numbered
-turret type retain explicit selection limitations. This is component evidence,
-not browser or native-game execution. Independent private source/geometry/raster
-comparison and final full checks remain in progress at this checkpoint.
+The component head passes 635 public synthetic tests, TypeScript, document links,
+publication paths, M0 evidence consistency and the actual build. Twelve new
+original tests cover naming/stages/profile identity, container precedence and
+omission, missing/incompatible pairs, owned geometry/picking, metadata mutation,
+budgets, cancellation, reentrancy and recovery. Hosted public checks pass.
+
+Private fresh catalog preparations and the independent Python source oracle
+account for both openings:
+
+| Profile | Placed voxel rows / types | Requests / complete pairs / absent optional | Verified model assets / atlas parts | Still-ready types |
+| --- | --- | --- | --- | --- |
+| RA2 | 19 / 10 | 14 / 14 / 0 | 28 / 14 | 8 |
+| YR | 18 / 5 | 17 / 13 / 4 | 26 / 13 | 4 |
+
+All required pairs resolve. The two spawn-alternate types and one numbered turret
+type retain explicit selection limitations; their source/model bindings are
+prepared but they expose no partial still. The independent raw-source oracle
+matches 80 field values/origins, all 31 naming requests and 37 row joins after
+rehashing 60 physical ranges / 3,086,009 bytes across five roots. The resource
+fingerprints are RA2
+`e19ca364183b8f8af2c2b695c581a34fb57c3de6a0f184532a4ea1bc9703ac62`
+and YR
+`cf17f3ec0d3018aceb5cab7ff6bb01e3531862e79e6a19f4c0bd290e9de63d1b`.
+They include source IDs, policies and supported/unsupported states; changing an
+installation snapshot or compiler policy deliberately changes the fingerprint.
+
+A separate raw-span/forward-face oracle compares every one of 133,864 selected
+voxel records and 27 HVA matrices. All 78 frames match 3,833,856 RGBA and ownership
+pixels, with maximum depth error `2.1316282072803006e-14`. These cases cover every
+available body/attachment/alternative and all 12 complete still types at two
+caller-chosen headings. The private contact sheet was inspected: all models were
+visible and supported body/turret/barrel composites aligned under the explicit
+unlit transform policy. Images remain private. This is component evidence, not
+browser or native-game execution, native visual equivalence or campaign acceptance.
 
 ```sh
 npm ci
@@ -92,6 +117,11 @@ npm run check
 git diff --check
 ```
 
-Private reproduction scripts and outputs live in ignored `local/` in the issue's
-worktree; missing retail inputs skip that gate and do not pass it. No game programs,
+Private reproduction in the issue worktree uses `local/prepare.mjs`,
+`local/source-oracle.py`, `local/render-probe.ts` and `local/raster-oracle.py`.
+Run them with Node 24/tsx and the local Python with Pillow; native metadata uses
+the private Capstone 5.0.6 environment and `local/evidence.py`. Rebuild the private
+prepared inputs before the source and raster checks. The scripts rehash actual
+roots, keep outputs under `local/corpus` and `local/raster`, and emit aggregate
+facts. Missing retail inputs skip that gate and do not pass it. No game programs,
 retail models, source INIs, matrices, geometry or rendered pixels are distributed.
