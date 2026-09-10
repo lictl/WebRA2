@@ -76,3 +76,17 @@ test('outer and mission descriptor snapshots do not consume Proxy get traps or t
   assert.equal(compile(supplied,wrapped({types:100})).fingerprint,expected.fingerprint);assert.equal(reads,0);
   assert.throws(()=>compile({...input,mission:{...input.mission,bytes:wrapped(input.mission.bytes)}}),/mission-bytes/);assert.equal(reads,0);
 });
+
+test('fourteen numerically keyed source rows retain scenario actor IDs despite lexicographic metadata ordering',()=>{
+  const rows=Array.from({length:14},(_,key)=>`${key}=Commander,Walker,256,2,2,0,Guard,0,None,0,-1,0,1,1`).reverse().join('\n');
+  const mapText=initialMap.replace('0=Commander,Walker,256,2,2,0,Guard,0,None,0,-1,0,1,1',rows);
+  for(const profile of ['ra2','yr'] as const){
+    const source=compile(fixture({profile,mapText}));
+    assert.equal(source.placements[2]!.rowId,'infantry:10');assert.equal(source.placements[2]!.actorId,11);
+    for(let key=0;key<14;key++){
+      const rowId=`infantry:${key}`,row=source.placements.find(p=>p.rowId===rowId)!;
+      assert.equal(row.actorId,key+1);assert.equal(program(source,rowId).actorId,key+1);
+    }
+    assert.equal(source.placements.find(p=>p.rowId==='units:0')?.actorId,15);
+  }
+});
