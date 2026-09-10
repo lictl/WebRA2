@@ -52,6 +52,9 @@ health, clocks, combat and retirement lifecycle. The helper is not a save loader
 An arbitrary `retiredEntityIds` array is not an external capability: only the core
 may derive it from its authoritative validated lifecycle. Zero health without
 explicit retirement remains a whole-cell blocker, including pending death.
+An already settled dying actor retains its last slot for validating an existing
+legal shared cell. Its claim blocks every new query and incoming reservation;
+death does not invalidate the surviving occupants or manufacture free space.
 Independent building footprints remain blockers when a mobile actor retires.
 
 Admission requires the mover to be allied toward every other claimant. Slots

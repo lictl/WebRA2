@@ -69,7 +69,9 @@ export function createInfantryOccupancy(catalog: InfantryPassageCatalog, input: 
   for (const at of model.blocked) add(at, { entityId: null, slot: null, initial: true, anchor: true });
   for (const d of model.entities) {
     const e = byId.get(d.id)!; if (!d.blocksCell || retired.has(d.id)) continue;
-    const s = e.health !== 0 ? slots.get(d.id) : undefined;
+    // A dying actor retains its already-occupied slot so legal settled sharing survives death.
+    // It separately blocks every incoming query/reservation until authoritative retirement.
+    const s = slots.get(d.id);
     add(e.at, { entityId: d.id, slot: s?.subcell ?? null, initial: e.at === worldAddress(d.x, d.y) &&
       (!s || s.subcell === e.row.sourceSubcell), anchor: true });
     if (e.head !== null) add(e.head, { entityId: d.id, slot: s?.reservedSubcell ?? null, initial: false, anchor: false });
@@ -91,6 +93,7 @@ export function createInfantryOccupancy(catalog: InfantryPassageCatalog, input: 
     if (list.length > 3 || list.some(c => c.entityId === null || c.slot === null) ||
         new Set(list.map(c => c.slot)).size !== list.length || !arrivalOrder(list)) fail('slot-overlap');
     // Active reservations have a known incoming actor, so a possible inverse arrival order is insufficient.
+    if (list.some(c => !c.anchor && list.some(other => other !== c && byId.get(other.entityId!)!.health === 0))) fail('reservation-dying-blocker');
     if (list.some(c => !c.anchor && list.some(other => other !== c && !allied(c.entityId!, other.entityId!)))) fail('reservation-alliance');
   }
   const result: InfantryOccupancy = {
@@ -105,7 +108,7 @@ export function createInfantryOccupancy(catalog: InfantryPassageCatalog, input: 
       const list = claims.get(at) ?? [], used = new Set<number>(); let work = 0;
       for (const claim of list) {
         work++; if (claim.entityId === id) continue;
-        if (claim.entityId === null || claim.slot === null) return answer('whole-cell-blocker', null, work);
+        if (claim.entityId === null || claim.slot === null || byId.get(claim.entityId)!.health === 0) return answer('whole-cell-blocker', null, work);
         if (!allied(id, claim.entityId)) return answer(catalog.alliancesComplete ? 'non-allied-occupant' : 'unknown-alliance', null, work);
         used.add(claim.slot);
       }

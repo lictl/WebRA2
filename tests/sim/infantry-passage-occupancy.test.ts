@@ -54,6 +54,20 @@ test('zero health remains a hard blocker until the core supplies validated retir
   assert.throws(() => createInfantryOccupancy(f.catalog, { ...f.state, retiredEntityIds: [2] }), /retired-projection/);
   assert.throws(() => createInfantryOccupancy(f.catalog, { ...dead, infantrySlots: dead.infantrySlots.slice(0, 1), retiredEntityIds: [2] }), /slot-coverage/);
 });
+test('legal settled sharing survives pending death while every new arrival stays blocked until retirement', () => {
+  const f = infantryPassageFixture({ rows: [infantryRow(0, 2, 2, 2), infantryRow(1, 3, 2, 3), infantryRow(2, 2, 3, 4)] });
+  const settled = edit(edit(f.state, 1, { x: 3, y: 3 }), 2, { x: 3, y: 3 });
+  assert.equal(createInfantryOccupancy(f.catalog, settled).choose(3, at(3, 3)).subcell, 4);
+  const pending = edit(settled, 2, { health: 0 });
+  assert.equal(createInfantryOccupancy(f.catalog, pending).choose(3, at(3, 3)).reason, 'whole-cell-blocker');
+  assert.equal(createInfantryOccupancy(f.catalog, pending).choose(1, at(3, 4)).status, 'available');
+  const incoming = edit(pending, 3, { goal: at(3, 3), route: [at(2, 3), at(3, 3)], progress: 1 }, { reservedSubcell: 4 });
+  assert.throws(() => createInfantryOccupancy(f.catalog, incoming), /reservation-dying-blocker/);
+  const retired = { ...pending, retiredEntityIds: [2] };
+  assert.equal(createInfantryOccupancy(f.catalog, retired).choose(3, at(3, 3)).subcell, 4);
+  assert.equal(createInfantryOccupancy(f.catalog, retired).choose(3, at(3, 3)).work, 1);
+  assert.equal(retired.infantrySlots.find(s => s.entityId === 2)!.subcell, 3);
+});
 test('strict sorted coverage rejects slot edits, hostile fields, malformed IDs and broken motion projections', () => {
   const f = infantryPassageFixture();
   for (const slots of [[], [...f.state.infantrySlots].reverse(), [{ ...f.state.infantrySlots[0]!, subcell: 0 }, f.state.infantrySlots[1]!]])
