@@ -14,6 +14,21 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
+Coordinator composes [battlefield PR199](https://github.com/lictl/WebRA2/pull/199)
+in `local/worktrees/battlefield-integration`, branch `codex/197-battlefield-integration`,
+with main198 (`06d61025b6c7a0a811dedb9a6ea2e8702d4b25bc`). The clean merge retains
+all reviewed app files from report head `4f04d34cc15084eabccd2ec27bbdd450dd7a4180`.
+The [source/browser review](https://github.com/lictl/WebRA2/pull/199#pullrequestreview-5166383543)
+passes, including fresh private 16-file YR replay reproduction and all 68 served
+files across three immutable Chrome checkpoints. Final composition checks and
+independent root-change review remain required before merge.
+
+Current implementation also continues [cell-entry issue201/PR202](https://github.com/lictl/WebRA2/pull/202):
+root owns existing VM/world contracts; bootstrap_review owns the new genuine source
+adapter and paired movement/house evidence. [Audio PR203](https://github.com/lictl/WebRA2/pull/203)
+is independently reviewed by browser_feasibility. All three worktrees remain
+isolated. Continue until full campaign play or essential human input; none is needed now.
+
 Coordinator integrates corrected [waypoint PR198](https://github.com/lictl/WebRA2/pull/198)
 in `local/worktrees/waypoint-integration`, branch `codex/193-waypoint-integration`.
 The [independent source review](https://github.com/lictl/WebRA2/pull/198#pullrequestreview-5166057854)

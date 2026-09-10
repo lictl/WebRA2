@@ -6,10 +6,14 @@ import { worldText, worldEventText } from './world-i18n.ts';
 import { worldShortcut } from './terrain-gestures.ts';
 import { WorldTickSchedule } from './world-scheduler.ts';
 import './world.css';
-const template = `<section class="world-panel" hidden><div class="world-heading"><h2 data-world="title"></h2><span id="world-clock"></span></div><div class="world-orders"><button id="world-run" class="primary"></button><button id="world-step" data-world="step"></button><button id="world-stop" data-world="stop"></button><button id="world-clear" data-world="clearSelection"></button><button id="world-focus" data-world="focus"></button></div><div id="world-combat-controls" class="world-orders" hidden><label><span data-world="attackTarget"></span><select id="world-attack-target"></select></label><button id="world-attack" data-world="attack"></button><span id="world-attack-status" role="status" aria-live="polite"></span></div><p id="world-selection-status" role="status" aria-live="polite"></p><ul id="world-hud" class="world-hud"></ul><p id="world-hud-omitted" class="scope-note"></p><p id="world-notice" role="status" aria-live="polite"></p><button id="world-cancel-replay" data-world="cancelReplay" hidden></button><p class="scope-note" data-world="directControls"></p><details class="world-development"><summary data-world="development"></summary><p class="scope-note" data-world="scope"></p><div class="world-selectors"><label><span data-world="house"></span><select id="world-house"></select></label><label><span data-world="unit"></span><select id="world-unit" multiple size="5"></select></label></div><p class="scope-note" data-world="keyboardSelection"></p><div class="world-orders"><button id="world-picked" data-world="picked"></button><form id="world-target"><label><span data-world="targetX"></span><input id="world-x" type="number" min="0" max="511" step="1" required value="1"></label><label><span data-world="targetY"></span><input id="world-y" type="number" min="0" max="511" step="1" required value="1"></label><button id="world-move" data-world="move"></button></form></div><p class="scope-note" data-world="timing"></p><div class="world-state"><div><h3 data-world="selected"></h3><dl id="world-entity"></dl></div><div><h3 data-world="trace"></h3><pre id="world-events"></pre></div></div></details><details><summary data-world="persistence"></summary><p class="scope-note" data-world="storage"></p><div class="world-storage"><label><span data-world="slot"></span> <select id="world-slot"><option>1</option><option>2</option><option>3</option></select></label><button id="world-save" data-world="save"></button><button id="world-load" data-world="load"></button><button id="world-delete" data-world="remove"></button><button id="world-export-save" data-world="exportSave"></button><button id="world-import-save" data-world="importSave"></button><button id="world-export-replay" data-world="exportReplay"></button><button id="world-import-replay" data-world="importReplay"></button><button id="world-verify" data-world="verify"></button><input id="world-save-file" type="file" accept=".json,application/json" class="file-input" tabindex="-1" aria-hidden="true"><input id="world-replay-file" type="file" accept=".json,application/json" class="file-input" tabindex="-1" aria-hidden="true"></div><dl id="world-identities"></dl><p data-world="remaining"></p><pre id="world-limitations"></pre></details><p id="world-error"></p></section>`;
+import { worldTemplate } from './world-template.ts';
+import { mountBattlefieldPanels } from './battlefield-panels.ts';
+
 export function mountWorld(root: HTMLElement, controller: TerrainController): () => void {
-  const holder = document.createElement('div'); holder.innerHTML = template; const panel = holder.firstElementChild as HTMLElement;
-  root.querySelector('.terrain-stage')!.before(panel);
+  const holder = document.createElement('div'); holder.innerHTML = worldTemplate; const panel = holder.firstElementChild as HTMLElement;
+  const stage = root.querySelector('.terrain-stage')!;
+  const sidebar = root.querySelector<HTMLElement>('#battlefield-sidebar');
+  if (sidebar) sidebar.append(panel); else stage.before(panel);
   const get = <T extends HTMLElement = HTMLElement>(id: string) => panel.querySelector<T>('#world-' + id)!;
   const click = (id: string, action: () => void) => get(id).addEventListener('click', action);
   const toggleRunning = () => { if (document.hidden) controller.hidden(); else controller.setRunning(!controller.state.running); };
@@ -37,6 +41,13 @@ export function mountWorld(root: HTMLElement, controller: TerrainController): ()
     }); });
   }
   const canvas = root.querySelector<HTMLCanvasElement>('#terrain-canvas')!;
+  const releasePanels = mountBattlefieldPanels(panel, canvas, () => controller.setRunning(false));
+  const sourceDetails = root.querySelector<HTMLElement>('.terrain-details');
+  const cameraHelp = root.querySelector<HTMLElement>('#terrain-controls');
+  const scope = root.querySelector<HTMLElement>('#terrain-scope');
+  const artwork = root.querySelector<HTMLElement>('#terrain-artwork');
+  const sourceHome = root.querySelector<HTMLElement>('#terrain-static-details');
+  const place = (parent: Element | null, child: Element | null) => { if (parent && child && child.parentElement !== parent) parent.append(child); };
   const key = (event: KeyboardEvent) => {
     const action = worldShortcut(event.key, event.target === canvas, event); if (!action || event.repeat) return;
     event.preventDefault(); controller.cancelInteraction();
@@ -49,6 +60,10 @@ export function mountWorld(root: HTMLElement, controller: TerrainController): ()
   const unsubscribe = controller.subscribe(state => {
     const t = (key: string) => worldText(state.locale, key), summary = state.frame?.summary.world, world = state.frame?.world;
     panel.hidden = !summary || !world;
+    if (sidebar) sidebar.hidden = panel.hidden;
+    const destination = panel.hidden ? sourceHome : get('source-diagnostics');
+    for (const element of [artwork, scope, sourceDetails]) place(destination, element);
+    place(panel.hidden ? sourceHome : get('camera-help'), cameraHelp);
     if (locale !== state.locale) { locale = state.locale; for (const el of panel.querySelectorAll<HTMLElement>('[data-world]')) el.textContent = t(el.dataset.world!); }
     if (!summary || !world) { selectKey = ''; priorEntity = -1; return; }
     const selectionKey = `${summary.modelHash}:${state.playerId}:${state.locale}`;
@@ -71,6 +86,7 @@ export function mountWorld(root: HTMLElement, controller: TerrainController): ()
     for(const option of attackTarget.options){const a=world.actors.find(a=>String(a.id)===option.value);option.disabled=!!a&&(a.health===null||a.health<=0);}
     attackTarget.disabled=state.busy;get<HTMLButtonElement>('attack').disabled=!attackTarget.value||!controller.canAttack(Number(attackTarget.value));
     get('attack-status').textContent=targetState?`${t('health')}: ${targetState.health} · ${t(targetState.health===0?(targetState.combat?.corpseIndex===null?'dying':'destroyed'):'alive')}`:'';
+    get('selection-help').hidden = state.selectedEntities.length > 0;
     get('selection-status').textContent = `${t('selectionCount')}: ${state.selectedEntities.length} / 64`;
     const hud = get('hud'); hud.replaceChildren();
     for (const id of state.selectedEntities.slice(0, 8)) {
@@ -85,6 +101,8 @@ export function mountWorld(root: HTMLElement, controller: TerrainController): ()
     get<HTMLButtonElement>('clear').disabled = state.selectedEntities.length === 0;
     const actor = world.actors.find(a => a.id === state.selectedEntity), info = summary.actors.find(a => a.id === state.selectedEntity);
     if (actor && actor.id !== priorEntity) { priorEntity = actor.id; get<HTMLInputElement>('x').value = String(actor.x); get<HTMLInputElement>('y').value = String(actor.y); }
+    get('playback').textContent = t(state.running ? 'runningState' : 'pausedState');
+    get('playback').dataset.running = String(state.running);
     get('clock').textContent = `${t('tick')} ${world.nextTick} · ${t('queued')} ${world.queuedCommands}`;
     get('cancel-replay').hidden=!(state.busy&&state.verifyingReplay);
     get('run').textContent = t(state.running ? 'pause' : 'run'); get('notice').textContent = t(state.verifyingReplay?'worldVerifying':state.worldNotice);
@@ -99,5 +117,5 @@ export function mountWorld(root: HTMLElement, controller: TerrainController): ()
   });
   const schedule = new WorldTickSchedule(), timer = setInterval(() => { const state = controller.state, ticks = schedule.advance(performance.now(), state.running && !document.hidden, state.busy || state.interacting); if (ticks) void controller.step(ticks); }, 1000 / 15);
   const hidden = () => { if (document.hidden) controller.hidden(); }; document.addEventListener('visibilitychange', hidden); hidden();
-  return () => { mounted = false; clearInterval(timer); unsubscribe(); canvas.removeEventListener('keydown', key); document.removeEventListener('visibilitychange', hidden); for (const [url, timer] of urls) { clearTimeout(timer); URL.revokeObjectURL(url); } urls.clear(); panel.remove(); };
+  return () => { mounted = false; releasePanels(); clearInterval(timer); unsubscribe(); canvas.removeEventListener('keydown', key); document.removeEventListener('visibilitychange', hidden); for (const [url, timer] of urls) { clearTimeout(timer); URL.revokeObjectURL(url); } urls.clear(); panel.remove(); };
 }
