@@ -42,7 +42,7 @@ test('Damage, MakeInfantry and the DropZone global identity block a zero-effect 
   const ra2 = compileAnimationEffects(fixture({ profile: 'ra2', art: '[Flash]\nMakeInfantry=0\n[Impact]\n' }));
   assert.equal(firing(ra2).status, 'presentation-only'); assert.equal(ra2.animations[0]!.fields.MakeInfantry!.history.length, 2);
   for (const profile of ['ra2', 'yr'] as const) {
-    const r = compileAnimationEffects(fixture({ profile, rules: base + '[General]\nDropZoneAnim=Flash\n' }));
+    const r = compileAnimationEffects(fixture({ profile, rules: base + `[${profile === 'ra2' ? 'AudioVisual' : 'General'}]\nDropZoneAnim=Flash\n` }));
     assert.equal(firing(r).status, 'gameplay-active'); assert.equal(r.globals.dropZoneAnim.value, 'animation:flash');
   }
 });
@@ -135,4 +135,17 @@ test('lower-only budgets bound source reconstruction, dynamic expansion, histori
   assert.throws(() => compileAnimationEffects(input, { work: -0 }), /limit/);
   let touched = false; const cap = Object.defineProperty({}, 'work', { enumerable: true, get() { touched = true; return 1; } });
   assert.throws(() => compileAnimationEffects(input, cap), /limit/); assert.equal(touched, false);
+});
+
+
+test('RA2 AudioVisual globals follow properties while YR General globals precede them', () => {
+  for (const profile of ['ra2', 'yr'] as const) {
+    const section = profile === 'ra2' ? 'AudioVisual' : 'General';
+    const r = compileAnimationEffects(fixture({ profile, rules: base + `[${section}]\nWeatherConBoltExplosion=Other\n`, art: '[Flash]\n[Impact]\n[Other]\nDamage=7\n' }));
+    const n = r.animations.find(a => a.name === 'Other')!;
+    assert.equal(n.allocation.phase, profile === 'ra2' ? 'audio-visual' : 'general');
+    assert.deepEqual(n.loadStages, profile === 'ra2' ? ['map'] : ['rules', 'map']);
+    const wrong = compileAnimationEffects(fixture({ profile, rules: base + `[${profile === 'ra2' ? 'General' : 'AudioVisual'}]\nDropZoneAnim=Flash\n` }));
+    assert.equal(wrong.globals.dropZoneAnim.value, null); assert.equal(firing(wrong).status, 'presentation-only');
+  }
 });

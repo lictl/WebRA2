@@ -16,7 +16,7 @@ type Scalar = number | boolean | string | readonly number[];
 export type AnimationEffectStatus = 'presentation-only' | 'gameplay-active' | 'unknown' | 'unsupported';
 export interface AnimationEffectRecord {
   readonly id: string; readonly name: string;
-  readonly allocation: Readonly<{ stage: string; phase: 'registry' | 'general' | 'animation-load' | 'weapon-load' | 'warhead-load'; origin: IniOrigin }>;
+  readonly allocation: Readonly<{ stage: string; phase: 'registry' | 'general' | 'audio-visual' | 'animation-load' | 'weapon-load' | 'warhead-load'; origin: IniOrigin }>;
   /** The initial registry precedes omitted external allocation paths; no complete native array index is claimed. */
   readonly initialRegistrySpelling: boolean;
   readonly references: readonly IniOrigin[]; readonly loadStages: readonly string[];
@@ -82,7 +82,10 @@ const specs: readonly Spec[] = [
   { key: 'SpawnsParticle', initial: -1, parse: () => null, yr: true },
   ...['RandomRate', 'RandomLoopDelay'].map(key => ({ key, initial: [0, 0], parse: (s: string): readonly number[] | null => {
     if (s.length > 127 || !/^[+-]?\d+,[+-]?\d+$/.test(s)) return null;
-    const values = s.split(',').map(weaponInteger); return values.every(v => v !== null) ? values as number[] : null;
+    const values = s.split(',').map(weaponInteger);
+    // RandomRate is converted to reciprocal native delays after reading. Only the
+    // all-zero disabled case is typed until that conversion is exposed here.
+    return values.every(v => v !== null) && (key !== 'RandomRate' || values.every(v => v === 0)) ? values as number[] : null;
   } })),
 ];
 const chains = ['Next', 'Spawns', 'BounceAnim', 'ExpireAnim', 'TrailerAnim'] as const;
@@ -105,8 +108,9 @@ export function compileAnimationEffects(input: { readonly weapons: WeaponDefinit
   const rv = createIniSourceView(rules, viewOptions), av = createIniSourceView(art, viewOptions);
   function pins(a: RuntimeIni['layers'], b: RuntimeIni['layers']): void { if (a.length !== b.length || a.some((v, i) => Object.keys(v).some(k => v[k as keyof typeof v] !== b[i]![k as keyof typeof v]))) fail('profile-source'); }
   pins(definitions.sources.rules, rules.layers); pins(weapons.sources, rules.layers); pins(definitions.sources.art, art.layers);
-  let work = 0, histories = 0, references = 0;
+  let work = 0, histories = 0, references = 0, reasonCharacters = 0;
   const charge = (n = 1): void => { if (n > cap.work - work) fail('work-limit'); work += n; };
+  function rootReason(set: Set<string>, value: string): void { charge(); if (set.has(value)) return; if (value.length > cap.characters - reasonCharacters) fail('reason-character-limit'); reasonCharacters += value.length; set.add(value); }
   const diagnostics: { code: string; subjectId: string; origin: IniOrigin | null }[] = [];
   function diagnostic(code: string, subjectId: string, origin: IniOrigin | null): void { if (diagnostics.length >= cap.diagnostics) fail('diagnostic-limit'); diagnostics.push({ code, subjectId, origin }); }
   function history(old: readonly IniOrigin[], add: readonly IniOrigin[]): readonly IniOrigin[] { if (old.length + add.length > cap.history - histories) fail('history-limit'); histories += old.length + add.length; return [...old, ...add]; }
@@ -137,7 +141,7 @@ export function compileAnimationEffects(input: { readonly weapons: WeaponDefinit
   if (weapons.weapons.length + weapons.warheads.length + 1 > cap.roots) fail('root-limit');
   const sourceRecords = [...weapons.weapons, ...weapons.warheads];
   const recordRoots = sourceRecords.map(r => { const out = root(r.id, r.kind === 'weapon' ? 'Anim' : 'AnimList', r.kind === 'weapon' ? 'ordinary-firing' : 'ordinary-impact'); if (r.status === 'unsupported') out.reasons.add('unsupported-owner-definition'); return { record: r, root: out }; });
-  const weatherRoot = root('general', 'WeatherConBoltExplosion', 'lightning-warhead-impact');
+  const weatherRoot = root(rv.profile === 'ra2' ? 'audio-visual' : 'general', 'WeatherConBoltExplosion', 'lightning-warhead-impact');
   const globals = { dropZoneAnim: field<string>(null), lightningWarhead: field<string>(null), weatherConBoltExplosion: field<string>(null) };
   function reference(old: EntityField<Scalar>, e: IniSourceEntry, phase: Mutable['allocation']['phase'], animation: boolean): EntityField<Scalar> {
     const h = history(old.history, [e.origin]); if (!e.value) return { ...old, history: h };
@@ -163,10 +167,14 @@ export function compileAnimationEffects(input: { readonly weapons: WeaponDefinit
     const id = stage.layer.id; currentStage = id; const registry = section(rv, id, 'Animations');
     if (registry) { const keys = new Set<string>(); for (const e of registry.entries) { charge(); if (keys.has(e.key)) fail('repeated-registry-key'); keys.add(e.key); allocate(e.value, e.origin, 'registry', stage === initial); } }
     const general = section(rv, id, 'General');
-    // Weather and DropZone precede the animation pass. Other native global allocations are outside this proof.
-    for (const [key, property] of [['WeatherConBoltExplosion', 'weatherConBoltExplosion'], ['DropZoneAnim', 'dropZoneAnim'], ['LightningWarhead', 'lightningWarhead']] as const) {
-      const e = entry(general, key); if (e) globals[property] = reference(globals[property], e, 'general', key !== 'LightningWarhead') as EntityField<string>;
+    // YR moved these AudioVisual fields into General. RA2 reads AudioVisual
+    // after the property pass, so its newly allocated references wait for a later pass.
+    function readGlobals(s: IniSourceSection | undefined, phase: 'general' | 'audio-visual', keys: readonly (readonly [string, keyof typeof globals])[]): void {
+      for (const [key, property] of keys) { const e = entry(s, key); if (e) globals[property] = reference(globals[property], e, phase, key !== 'LightningWarhead') as EntityField<string>; }
     }
+    const animationGlobals = [['WeatherConBoltExplosion', 'weatherConBoltExplosion'], ['DropZoneAnim', 'dropZoneAnim']] as const;
+    if (rv.profile === 'yr') readGlobals(general, 'general', animationGlobals);
+    readGlobals(general, 'general', [['LightningWarhead', 'lightningWarhead']]);
     for (let index = 0; index < allocated.length; index++) {
       charge(); const r = allocated[index]!;
       if (av.stages.length !== 1) continue;
@@ -194,7 +202,8 @@ export function compileAnimationEffects(input: { readonly weapons: WeaponDefinit
       for (const key of [...chains, ...otherReferences]) { charge(); const matches = findIniSourceEntries(s, key), e = matches.length === 1 ? matches[0] : undefined; if (e) r.fields[key] = reference(r.fields[key]!, e, 'animation-load', chains.includes(key as typeof chains[number])); }
     }
     // Existing genuine graph loadStages preserve source/property-phase allocation timing.
-    for (const pair of recordRoots) { charge(); if (pair.record.loadStages.includes(id)) list(pair.root, entry(section(rv, id, pair.record.name), pair.root.key), pair.record.kind === 'weapon' ? 'weapon-load' : 'warhead-load'); }
+    for (const pair of recordRoots) { charge(pair.record.loadStages.length + 1); if (pair.record.loadStages.includes(id)) list(pair.root, entry(section(rv, id, pair.record.name), pair.root.key), pair.record.kind === 'weapon' ? 'weapon-load' : 'warhead-load'); }
+    if (rv.profile === 'ra2') readGlobals(section(rv, id, 'AudioVisual'), 'audio-visual', animationGlobals);
   }
   weatherRoot.animations = { ...globals.weatherConBoltExplosion, value: globals.weatherConBoltExplosion.value ? [globals.weatherConBoltExplosion.value] : globals.weatherConBoltExplosion.value === null && globals.weatherConBoltExplosion.status !== 'unsupported' ? [] : null };
   const records: AnimationEffectRecord[] = allocated.map(r => {
@@ -232,7 +241,7 @@ export function compileAnimationEffects(input: { readonly weapons: WeaponDefinit
       if (visited.has(item.id)) continue;
       visited.add(item.id); visiting.add(item.id); const n = recordsById.get(item.id);
       if (!n) { reasons.add('missing-animation-record'); unsupported = true; continue; }
-      for (const reason of n.reasons) { charge(); reasons.add(`${n.id}:${reason}`); }
+      for (const reason of n.reasons) { charge(); rootReason(reasons, `${n.id}:${reason}`); }
       if (n.localStatus === 'gameplay-active') active = true;
       charge(n.edges.length); pending.push({ id: item.id, exit: true });
       for (let i = n.edges.length - 1; i >= 0; i--) pending.push({ id: n.edges[i]!.targetId, exit: false });
