@@ -14,6 +14,22 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
+Coordinator integrates [audio PR203](https://github.com/lictl/WebRA2/pull/203) in
+`local/worktrees/mission-audio-integration`, branch `codex/196-mission-audio-integration`.
+The [independent source review](https://github.com/lictl/WebRA2/pull/203#pullrequestreview-5166459642)
+covers `6c2721568c5584f2804815a11025b31e6d902e3e`: 1,097 public tests, 89 extra
+reviewer assertions, fresh private 438-file preparation, 6,143 raw comparisons over
+seven roots, and all 85 native ranges/15,015 bytes pass. Root composes merged UI199
+and packages the exact new GPL notice. Final composition review/checks remain pending.
+Source reference readiness does not authorize audio dispatch or playback.
+
+UI199 merged as `58841e3d05d96a91562ce245ccd13e3637163bb0`, reviewed at
+`2573ae1843955a32e666ba8f81ad080a76715da8`. Its
+[final composition review](https://github.com/lictl/WebRA2/pull/199#pullrequestreview-5166425812)
+and hosted34470673681 pass with 1,086 tests and all 12 JavaScript/CSS/HTML outputs unchanged from
+actual Chrome source654. Issue197 is closed. Root201/PR202 and bootstrap source
+cell-entry work continue, independently reviewed by mix_reader; no human input is needed.
+
 Coordinator composes [battlefield PR199](https://github.com/lictl/WebRA2/pull/199)
 in `local/worktrees/battlefield-integration`, branch `codex/197-battlefield-integration`,
 with main198 (`06d61025b6c7a0a811dedb9a6ea2e8702d4b25bc`). The clean merge retains

@@ -322,3 +322,9 @@ recruitment gates are original GPL-3.0-or-later work. Distribution includes the
 [initial waypoint notice](../packages/content/INITIAL_WAYPOINTS_PROVENANCE.md) and
 existing content/simulation notices. Native range metadata is factual evidence;
 no retail rows, coordinates or native listings are included in the build.
+
+The mission audio source-plan and sample preparation modules are original
+GPL-3.0-or-later work, composing the existing indexed-audio and verified-source
+components. Distribution includes the [mission audio notice](../packages/content/MISSION_AUDIO_PROVENANCE.md)
+and existing GPL/format notices. No new external decoder dependency, retail registry
+rows, waveform bytes or native listings are included.
