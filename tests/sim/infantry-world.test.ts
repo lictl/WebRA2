@@ -2,6 +2,7 @@
 // Original source-timing programs with explicit invented engine combat rules; no retail admission claim.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {combatActorFingerprint} from '../../packages/content/src/combat-actor-values.ts';
 import {initialFixture} from '../content/combat-initial-fixture.ts';
 import {compileCombatInitialRuntime,createInfantryFiringProgram} from '../../packages/content/src/combat-initial-runtime.ts';
 import {createCombatModel,combatFactor} from '../../packages/sim/src/combat-model.ts';
@@ -11,11 +12,11 @@ import {createWorldModel,worldHash} from '../../packages/sim/src/world-model.ts'
 import {createNavigationGrid} from '../../packages/sim/src/navigation.ts';
 import {WorldSimulation} from '../../packages/sim/src/world.ts';
 import {WorldReplayRecorder,replayWorld} from '../../packages/sim/src/world-replay.ts';
-function setup(profile:'ra2'|'yr'='ra2',fireUp=2){
+function setup(profile:'ra2'|'yr'='ra2',fireUp=2,ammo=20){
  const f=initialFixture({profile,artText:`[Walker]\nFireUp=${fireUp}\n`,mapText:'[Basic]\nNewINIFormat=4\n[Map]\nSize=0,0,6,6\n[Houses]\n0=Commander\n1=Rival\n[Commander]\nCountry=Blue\n[Rival]\nCountry=Blue\n[Infantry]\n0=Commander,Walker,256,2,2,0,Guard,0,None,0,-1,0,1,1\n1=Rival,Walker,256,4,2,0,Guard,0,None,0,-1,0,1,1\n'});
  const initial=compileCombatInitialRuntime(f),p=createInfantryFiringProgram(initial,initial.placements[0]!.rowId);
  const weapons=[{id:'original:gun',damage:2,range:1024,minimumRange:0,reloadTicks:0,burst:1,burstDelayTicks:1,delivery:'instant' as const,speed:0,ground:true,air:false,verses:Array.from({length:11},()=>combatFactor(1))}];
- const actors=[1,2].map(id=>({entityId:id,armor:0,layer:'ground' as const,weapons:id===1?['original:gun']:[],initialAmmo:id===1?20:-1}));
+ const actors=[1,2].map(id=>({entityId:id,armor:0,layer:'ground' as const,weapons:id===1?['original:gun']:[],initialAmmo:id===1?ammo:-1}));
  const ordinary=createOrdinaryCombatRules({seed:0,actors:[1,2].map(entityId=>({entityId,houseFirepower:1,actorFirepower:1,veteranCombat:1,countryArmor:1,actorArmor:1,veteranArmor:1,houseRof:0,veteranRof:0})),weapons:[{weaponId:'original:gun',maxDamage:1000}]});
  const ordinaryDeath=createOrdinaryDeathRules({actors:[{entityId:2,corpseAnimationIds:['original:corpse'],sequence11Ticks:2,sequence12Ticks:3}],weapons:[{weaponId:'original:gun',infDeath:1}]});
  const combat=createCombatModel({weapons,actors,allies:[],ordinary,ordinaryDeath,infantryFiring:[p]});
@@ -63,4 +64,16 @@ test('world restore joins scheduler tick, cooldown, ammunition and pending targe
  const wrong=setup('ra2',3);assert.throws(()=>WorldSimulation.restore(wrong.model,before),/world-save-model/);
  simulation.step(2);const fired=simulation.save(),s=structuredClone(fired);s.state.combat!.actors[0]!.ammo++;
  assert.throws(()=>WorldSimulation.restore(model,s),/infantry-save-ammo/);
+});
+
+test('recomputed scheduler hashes cannot admit an overdue windup or a currently out-of-range pending target',()=>{
+ const {simulation,model}=setup();simulation.admitCommands([attack()]);simulation.step();const before=simulation.save();
+ const overdue=structuredClone(before);Object.assign(overdue,{nextTick:10});const firing=overdue.state.combat!.infantryFiring![0]!;
+ Object.assign(firing.state,{tick:10});Object.assign(firing,{stateHash:combatActorFingerprint(firing.state,65536)});
+ assert.throws(()=>WorldSimulation.restore(model,overdue),/infantry-save-pending/);
+ const range=structuredClone(before);range.state.entities[1]!.x=7;assert.throws(()=>WorldSimulation.restore(model,range),/infantry-save-pending/);
+ const empty=setup('ra2',2,0).model,noAmmo=structuredClone(before);noAmmo.state.modelSha256=empty.sha256;noAmmo.state.combat!.actors[0]!.ammo=0;
+ assert.throws(()=>WorldSimulation.restore(empty,noAmmo),/infantry-save-pending/);
+ simulation.step();assert.equal(simulation.save().state.combat!.infantryFiring![0]!.state.pending!.dueTick,simulation.nextTick);
+ assert.deepEqual(WorldSimulation.restore(model,simulation.save()).step(),simulation.step());
 });
