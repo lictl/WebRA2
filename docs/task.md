@@ -14,23 +14,35 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
-Current root [team transaction210](https://github.com/lictl/WebRA2/issues/210)
-worktree is local/worktrees/mission-team-actions, branch codex/210-mission-team-actions.
-Root owns existing mission VM/world and shared helper contracts. mix_reader owns
-new mission-team-action-source.ts and source tests/provenance in a separate tree.
-browser_feasibility owns new common team context/runtime files and original tests,
-with API changes agreed before coding. All work retains complete source coverage,
-explicit automatic/unknown behavior gates and one authoritative world tick.
-No human input is needed.
+Current root [team transaction210](https://github.com/lictl/WebRA2/issues/210) /
+[PR211](https://github.com/lictl/WebRA2/pull/211) is in
+local/worktrees/mission-team-actions, branch codex/210-mission-team-actions.
+Source catalog, common runtime and root VM/world transaction are implemented and
+committed; merged main209 is included. Full composition verification/review is
+underway. No human input is needed. See the [dispatch report](mission-team-dispatch.md).
 
-The source API accepts genuine bindings, activation, programs, spawn catalogs and
-recruitment catalogs. It retains every action4/7/80 occurrence and complete
-declaration coverage; a selected runnable team is insufficient to make a full
-mission ready. VM action admission joins exact instruction/trigger/opcode/operands.
-Existing global effect order supplies receipt identity, including forced/repeated
-actions. The compound creates ordered requests from its own VM effects for the
-next tick. Source initial cell/object adapters cannot silently authorize spawned
-actors; combat/infantry/dynamic context gaps remain explicit until implemented.
+Source preparation retains every4/7/80 action and complete declarations. The VM
+creates ordered receipts from private effects, due at the next common world tick.
+Claims, retries, movement, Flash/release and saved continuation share one world.
+Original tests cover mixed requests, force/delete ordering, cue interleaving,
+competing commands, every boundary/replay, resource rollback and explicit dynamic
+context gates. The fresh438-file complete source check reports null authorities
+with254/461 required diagnostics;12/9 team actions are individually supported.
+These are component results, not playable original campaigns.
+
+mix_reader authored the five source paths through bdb04ed; bootstrap_review
+independently reviewed those and root VM/world. browser_feasibility authored the
+four new common runtime modules and tests/report through d143166; mix_reader
+independently reviewed that component plus root union/roster/planning helpers.
+Shared-authorship exclusions and exact reviewed SHAs belong in final GitHub COMMENT
+reviews. Root owns distribution, full checks and ordinary merge. Private source,
+native and200/128-tick runtime evidence remain in ignored local/ trees.
+
+The combined source test exposed a YR declaration array exceeding the smaller
+save serializer budget. d0b846c compares against the genuine catalog's bounded
+source shape with an original large-script regression; save limits stay unchanged.
+Next: finish exact composition reviews and checks, merge211, then continue dynamic
+mission context and remaining campaign actions. Do not stop for routine approval.
 
 [Object combat PR207](https://github.com/lictl/WebRA2/pull/207) merged as
 3543b567d6c652ea0648a3f5832fbcee18156ddc, reviewed at

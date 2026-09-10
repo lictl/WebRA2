@@ -347,3 +347,11 @@ original ownership, bounds and metadata code uses the same license. Distribution
 copies that exact notice, including corresponding-source obligations and the
 separate primary/native evidence. FFmpeg remains a private independent comparison
 tool; no FFmpeg executable or retail waveform is distributed.
+
+
+The original complete mission team action source and common team transaction are
+GPL-3.0-or-later. Their [source notice](../packages/sim/MISSION_TEAM_ACTION_PROVENANCE.md)
+and [runtime notice](../packages/sim/MISSION_TEAM_RUNTIME_PROVENANCE.md) accompany
+both the source and the browser distribution, alongside GPL text and applicable
+corresponding source. The root VM/world adapter retains its existing GPL notices.
+No new external dependency or retail content is introduced by this integration.
