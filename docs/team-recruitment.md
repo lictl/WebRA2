@@ -64,7 +64,9 @@ release ownership at the completed tick boundary. Released actors accept unrelat
 world commands, but automatic recruitment again is gated as
 `released-mission-unverified`: native Liberate invokes further actor idle/mission
 behavior whose result this slice does not invent. History space for eventual
-releases is reserved when claims are admitted.
+releases is reserved when claims are admitted. Partial member loss stays visible in
+the existing controller; this transaction does not recruit replacements into an
+already active team or reproduce native continuous TaskForce replenishment.
 
 ## Flash and compound tick policy
 
