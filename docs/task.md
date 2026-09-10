@@ -7,6 +7,13 @@ codex/225-gpu-renderer in local/worktrees/gpu-renderer-integration, with real
 Node24.20.0 npm ci. [Issue225](https://github.com/lictl/WebRA2/issues/225) records
 the scope, ownership and acceptance. No human input is currently needed.
 
+[Draft PR227](https://github.com/lictl/WebRA2/pull/227) contains the implementation
+wave. Contracts928fada and preparation94538f9 pass typecheck and the20existing
+CPU terrain/sprite tests. [Preparation design](gpu-scene.md) describes resource,
+sampling, ownership and compatibility boundaries. GPU backend, original oracle
+fixtures and actual Chrome sustained/lifecycle evidence remain in progress; the
+20CPU checks are not a GPU correctness or60FPS pass.
+
 The 960×640 app viewport is the primary gate, with 1280×720 as a required renderer
 stress row. Measure GPU completion and sustained distinct-frame cadence against
 1000/60 ms, including a genuine 15 Hz worker simulation. CPU submission time alone
