@@ -62,3 +62,13 @@ comparison against merged main211 passes3,392 exact comparisons across64 origina
 models and1,536 ticks, including existing cell/object/cue combinations; identities,
 saves, traces, work, batches and replay match. Complete source-corpus, full-suite
 and independent review gates are still in progress.
+
+A fresh [whole-source census](analysis/mission-team-cell-dispatch-census.json) reads
+all438 local files and preserves complete declarations/instructions. It retains
+254 RA2 and461 YR required VM diagnostics, with both authorities null. The source
+team-cell check represents1/8 spawn actions and1/4 distinct spawn archetypes;1/2
+archetypes meet the bounded constructor conditions. Four RA2 initial movable actors
+and one YR actor exceed the supported initial context. All190/189 placed cloak
+provider fields are false. Both complete constructor/action coverage and world
+invariant readiness therefore remain false. These explicit limits are not removed
+to make a source mission execute. Raw source tables and projections remain private.
