@@ -84,5 +84,16 @@ The YR probe uses its default player. Both profiles also cancel a real pending
 shot when the target receives a move order, with no RNG draw or damage. Independent
 catalog sessions with reversed file order preserve all source bridge/program
 identities despite changing transient root handles. These are private headless
-checks; they do not establish native game or Chrome execution. Actual Chrome
-acceptance is the next gate. Other browser end-to-end work remains deferred by D17.
+checks; they do not establish native game execution.
+
+Separate [actual Chrome acceptance](analysis/source-combat-browser.md) on immutable
+26d1b3a confirms both profiles' movement, pending attack cancellation and restore,
+completed deaths without losing the preview, and matching terminal replay hashes.
+RA2 also validates an exported replay file while preserving a different live state.
+The saved continuations start at pending checkpoints; earlier movement and attack
+admissions were observed separately in the UI. RA2 uses an alternate development
+house, so the original player's traversal gap remains issue178. A fresh-page RA2
+reselection/restore was measured on the earlier failing build and then imported
+compatibly into the corrected build; it was not repeated for YR. General combat,
+mission triggers and original campaign completion remain unfinished. Other browser
+end-to-end work remains deferred by D17.
