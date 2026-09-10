@@ -223,3 +223,8 @@ The original actor death prerequisite compiler is GPL-3.0-or-later. Its
 and corresponding source accompany distribution. The build includes this notice
 separately from animation effects and combat actor initialization. The compiler
 retains conditional effects and source references; it does not execute death.
+
+The original source combat veterancy compiler and four-consumer selector are
+GPL-3.0-or-later. The [component notice](../packages/content/COMBAT_VETERANCY_PROVENANCE.md),
+GPL text and corresponding source accompany distribution. The browser build includes
+this notice separately from actor initialization and country/difficulty modifiers.
