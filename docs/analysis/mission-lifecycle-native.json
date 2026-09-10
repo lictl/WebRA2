@@ -1,0 +1,364 @@
+{
+  "schemaVersion": 1,
+  "method": "Static PE range hashes and complete selected instruction boundaries; no native execution. Source instance allocation, destruction callbacks and global tick order remain outside the explicit-binding VM.",
+  "profiles": [
+    {
+      "profile": "ra2",
+      "image": "game.exe",
+      "imageSha256": "73288c03b58d370be268ca6d156b4e33bfdb2066dc980359467d8852ff3b00df",
+      "imageBytes": 5077312,
+      "ranges": [
+        {
+          "label": "action-loader",
+          "kind": "selected-code",
+          "start": "0x6ad860",
+          "endExclusive": "0x6adaad",
+          "fileOffset": 2807904,
+          "bytes": 589,
+          "sha256": "b53ee2766373b290952c8114f5f9f3471b4edf3898239d47157e239403d6cb66",
+          "instructions": 209
+        },
+        {
+          "label": "dispatch-entry",
+          "kind": "selected-code",
+          "start": "0x6adae0",
+          "endExclusive": "0x6adb18",
+          "fileOffset": 2808544,
+          "bytes": 56,
+          "sha256": "5fc5216e2013d7d51bbca53a0dbfef9ac834d1183b06de8e5d88c929f7814fac",
+          "instructions": 20
+        },
+        {
+          "label": "delete-dispatch",
+          "kind": "selected-code",
+          "start": "0x6af0f4",
+          "endExclusive": "0x6af147",
+          "fileOffset": 2814196,
+          "bytes": 83,
+          "sha256": "bedee47207c2cf4f416292608f432e2b2a79325b442100edd50c63e39fa262ec",
+          "instructions": 30
+        },
+        {
+          "label": "force-dispatch",
+          "kind": "selected-code",
+          "start": "0x6af19a",
+          "endExclusive": "0x6af1ea",
+          "fileOffset": 2814362,
+          "bytes": 80,
+          "sha256": "36c79000dd91f03993291dcea8d29f601c04ca4e345be929b6ac0017aa461da9",
+          "instructions": 27
+        },
+        {
+          "label": "enable-dispatch",
+          "kind": "selected-code",
+          "start": "0x6af1ea",
+          "endExclusive": "0x6af217",
+          "fileOffset": 2814442,
+          "bytes": 45,
+          "sha256": "8b9a1f41c58b7c12cf3e686a1fc7935c31095d5a6d5c5e762e2c96b4dd6c3cf1",
+          "instructions": 15
+        },
+        {
+          "label": "disable-dispatch",
+          "kind": "selected-code",
+          "start": "0x6af217",
+          "endExclusive": "0x6af260",
+          "fileOffset": 2814487,
+          "bytes": 73,
+          "sha256": "528999247c1a530a643ec78f3711a5f0ae8a31f454816076b635036479f66e06",
+          "instructions": 24
+        },
+        {
+          "label": "radar-dispatch",
+          "kind": "selected-code",
+          "start": "0x6af260",
+          "endExclusive": "0x6af28e",
+          "fileOffset": 2814560,
+          "bytes": 46,
+          "sha256": "eb5babeef04667b70d7b970d19c050e94f0d7f7e4fc5fdab6e2a268ee443eb4c",
+          "instructions": 17
+        },
+        {
+          "label": "dispatch-tail",
+          "kind": "selected-code",
+          "start": "0x6af745",
+          "endExclusive": "0x6af754",
+          "fileOffset": 2815813,
+          "bytes": 15,
+          "sha256": "c351ca1dba71e21903e6e0f58b62341555a616c3d6e78b2d67f7c9af9bb1e93d",
+          "instructions": 7
+        },
+        {
+          "label": "trigger-constructor",
+          "kind": "selected-code",
+          "start": "0x6ed220",
+          "endExclusive": "0x6ed3b2",
+          "fileOffset": 3068448,
+          "bytes": 402,
+          "sha256": "de97665ce824d6ac2bfa8175fade6bee1f4615c3eaead0724e26230515f4e1e9",
+          "instructions": 119
+        },
+        {
+          "label": "fire-actions",
+          "kind": "selected-code",
+          "start": "0x6ed830",
+          "endExclusive": "0x6ed896",
+          "fileOffset": 3070000,
+          "bytes": 102,
+          "sha256": "d5911645b84939f5ab43a1b29b756a2b16519fd7aeab6bba5347b85e2773cc4f",
+          "instructions": 43
+        },
+        {
+          "label": "trigger-destructor",
+          "kind": "selected-code",
+          "start": "0x6ed3c0",
+          "endExclusive": "0x6ed4cb",
+          "fileOffset": 3068864,
+          "bytes": 267,
+          "sha256": "9e0e90c022178ab3bf2c82c71c913e956781c986b638c6ab2da48062bf964006",
+          "instructions": 80
+        },
+        {
+          "label": "scalar-delete",
+          "kind": "selected-code",
+          "start": "0x6edba0",
+          "endExclusive": "0x6edcbf",
+          "fileOffset": 3070880,
+          "bytes": 287,
+          "sha256": "b7da8f202cd4fe5ce4566bc41373b819e1ccb9a8117d5289c5c0d25769bb9f18",
+          "instructions": 86
+        },
+        {
+          "label": "action-12-dispatch-slot",
+          "kind": "pointer",
+          "start": "0x6af780",
+          "endExclusive": "0x6af784",
+          "fileOffset": 2815872,
+          "bytes": 4,
+          "sha256": "1b2ab268323421f5f9420a3252640f7f8baae71b8c5b5ec13e435cfa18ebabe1",
+          "uint32Value": "0x6af0f4"
+        },
+        {
+          "label": "action-22-dispatch-slot",
+          "kind": "pointer",
+          "start": "0x6af7a8",
+          "endExclusive": "0x6af7ac",
+          "fileOffset": 2815912,
+          "bytes": 4,
+          "sha256": "ae5739954d2654117f281ecf067bb528d7189c45e2916aa5542aa13d64e1d6e3",
+          "uint32Value": "0x6af19a"
+        },
+        {
+          "label": "action-53-dispatch-slot",
+          "kind": "pointer",
+          "start": "0x6af824",
+          "endExclusive": "0x6af828",
+          "fileOffset": 2816036,
+          "bytes": 4,
+          "sha256": "874da84346048b07fb1191390a5e4af2d20026de51dd55bcaf9eed3014532013",
+          "uint32Value": "0x6af1ea"
+        },
+        {
+          "label": "action-54-dispatch-slot",
+          "kind": "pointer",
+          "start": "0x6af828",
+          "endExclusive": "0x6af82c",
+          "fileOffset": 2816040,
+          "bytes": 4,
+          "sha256": "db7152486016fd44e6079f9a4ca9b9474ea0b3585966b5cf3b1b605c12b6e7b0",
+          "uint32Value": "0x6af217"
+        },
+        {
+          "label": "action-55-dispatch-slot",
+          "kind": "pointer",
+          "start": "0x6af82c",
+          "endExclusive": "0x6af830",
+          "fileOffset": 2816044,
+          "bytes": 4,
+          "sha256": "b97e364d6fadb1178aab190a4c960c8c68a681e3b8d81c8d6190c8637045cc76",
+          "uint32Value": "0x6af260"
+        },
+        {
+          "label": "trigger-vtable-delete-slot",
+          "kind": "pointer",
+          "start": "0x7ada00",
+          "endExclusive": "0x7ada04",
+          "fileOffset": 3856896,
+          "bytes": 4,
+          "sha256": "9e266e8c10e8cfbff9bb139cd6972bae51717c9cdb1011d9d9edfca864c21c62",
+          "uint32Value": "0x6edba0"
+        }
+      ]
+    },
+    {
+      "profile": "yr",
+      "image": "gamemd.exe",
+      "imageSha256": "3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600",
+      "imageBytes": 5286208,
+      "ranges": [
+        {
+          "label": "action-loader",
+          "kind": "selected-code",
+          "start": "0x6dd5b0",
+          "endExclusive": "0x6dd87d",
+          "fileOffset": 3003824,
+          "bytes": 717,
+          "sha256": "4c10f8e7bb69e52af2e0405b71fe405d3b46d9f09ecd5497bf567386b0a03806",
+          "instructions": 241
+        },
+        {
+          "label": "dispatch-entry",
+          "kind": "selected-code",
+          "start": "0x6dd8b0",
+          "endExclusive": "0x6dd8ee",
+          "fileOffset": 3004592,
+          "bytes": 62,
+          "sha256": "1ca5f0ea2f71687b8c44779f82f912bde7a722986102d9ae905b6c678d61714d",
+          "instructions": 20
+        },
+        {
+          "label": "delete-dispatch",
+          "kind": "selected-code",
+          "start": "0x6df051",
+          "endExclusive": "0x6df094",
+          "fileOffset": 3010641,
+          "bytes": 67,
+          "sha256": "40c13e5c7265b506ba59d443875c3918b651b82289bc01ae74866f4681c7cfdf",
+          "instructions": 22
+        },
+        {
+          "label": "force-dispatch",
+          "kind": "selected-code",
+          "start": "0x6df0e7",
+          "endExclusive": "0x6df137",
+          "fileOffset": 3010791,
+          "bytes": 80,
+          "sha256": "905bd6ace1917918c493dd1cffd1efec7768cdef850fa0274cf435ecd2f784c0",
+          "instructions": 27
+        },
+        {
+          "label": "enable-dispatch",
+          "kind": "selected-code",
+          "start": "0x6df137",
+          "endExclusive": "0x6df164",
+          "fileOffset": 3010871,
+          "bytes": 45,
+          "sha256": "5ab07f3d4d795f0996c5d3b53c64adecc7188dae9a70c875b2803f8c3a81c875",
+          "instructions": 15
+        },
+        {
+          "label": "disable-dispatch",
+          "kind": "selected-code",
+          "start": "0x6df164",
+          "endExclusive": "0x6df1ad",
+          "fileOffset": 3010916,
+          "bytes": 73,
+          "sha256": "e95ec46b8a75445d432b2d8905da925914fa95cb07639b42f0169b435e862d97",
+          "instructions": 24
+        },
+        {
+          "label": "radar-dispatch",
+          "kind": "selected-code",
+          "start": "0x6df1ad",
+          "endExclusive": "0x6df1de",
+          "fileOffset": 3010989,
+          "bytes": 49,
+          "sha256": "4c25cce402183d76c184340539ea48b7c696bf9a576fe3ad9128fe304f67a5b4",
+          "instructions": 17
+        },
+        {
+          "label": "dispatch-tail",
+          "kind": "selected-code",
+          "start": "0x6dfddb",
+          "endExclusive": "0x6dfdec",
+          "fileOffset": 3014107,
+          "bytes": 17,
+          "sha256": "d5750163d319e6557807516ca40ade469ac2a560c3609ae08c2a8a2eb4120f09",
+          "instructions": 8
+        },
+        {
+          "label": "trigger-constructor",
+          "kind": "selected-code",
+          "start": "0x725fa0",
+          "endExclusive": "0x726133",
+          "fileOffset": 3301280,
+          "bytes": 403,
+          "sha256": "99d8d9fe4a125aab123566b5e5d2ca5b082c7d5b73aca8445042cfdc3208a34b",
+          "instructions": 119
+        },
+        {
+          "label": "fire-actions",
+          "kind": "selected-code",
+          "start": "0x7265c0",
+          "endExclusive": "0x726626",
+          "fileOffset": 3302848,
+          "bytes": 102,
+          "sha256": "d7f0feb1450735f9a30e3e8e13c886731e0dc6fdb549bc3c5f1ccf2091634f35",
+          "instructions": 43
+        },
+        {
+          "label": "deferred-destroy",
+          "kind": "selected-code",
+          "start": "0x726720",
+          "endExclusive": "0x72677c",
+          "fileOffset": 3303200,
+          "bytes": 92,
+          "sha256": "81b5099588697412ef5dd58cbe84e92b86c90817aedc7ec17a5dbf85476fa100",
+          "instructions": 30
+        },
+        {
+          "label": "action-12-dispatch-slot",
+          "kind": "pointer",
+          "start": "0x6dfe18",
+          "endExclusive": "0x6dfe1c",
+          "fileOffset": 3014168,
+          "bytes": 4,
+          "sha256": "aa1a61a4480ec60023599b626c268e75fc6dac8a519714d7989da8fd000f9786",
+          "uint32Value": "0x6df051"
+        },
+        {
+          "label": "action-22-dispatch-slot",
+          "kind": "pointer",
+          "start": "0x6dfe40",
+          "endExclusive": "0x6dfe44",
+          "fileOffset": 3014208,
+          "bytes": 4,
+          "sha256": "745e23f7f2144ca9c1f1dcd4d0522f503732dcbe6651e448bae38d33bd8b466a",
+          "uint32Value": "0x6df0e7"
+        },
+        {
+          "label": "action-53-dispatch-slot",
+          "kind": "pointer",
+          "start": "0x6dfebc",
+          "endExclusive": "0x6dfec0",
+          "fileOffset": 3014332,
+          "bytes": 4,
+          "sha256": "cf90153042808b27c11d638502ceda9399dbc7db834e68f273ba25fb5605c7ca",
+          "uint32Value": "0x6df137"
+        },
+        {
+          "label": "action-54-dispatch-slot",
+          "kind": "pointer",
+          "start": "0x6dfec0",
+          "endExclusive": "0x6dfec4",
+          "fileOffset": 3014336,
+          "bytes": 4,
+          "sha256": "6419b85f303feba8f2d41322cf0f75bc4a5602dd9b87362a2e257b8e254dc23c",
+          "uint32Value": "0x6df164"
+        },
+        {
+          "label": "action-55-dispatch-slot",
+          "kind": "pointer",
+          "start": "0x6dfec4",
+          "endExclusive": "0x6dfec8",
+          "fileOffset": 3014340,
+          "bytes": 4,
+          "sha256": "4bf8f23e8ddb967f0ffa85952c815cbd21b5cc05fa336d35f18a8be089f4d7ba",
+          "uint32Value": "0x6df1ad"
+        }
+      ]
+    }
+  ],
+  "totalBytes": 3796,
+  "totalRanges": 34
+}
