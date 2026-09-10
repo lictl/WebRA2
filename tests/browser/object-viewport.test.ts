@@ -106,7 +106,7 @@ test('real sprite frames survive pending death, completed retirement and restore
   const states=[alive,pending,completed,restored],frames=states.map((s,i)=>wire(s,i+1));
   for(let i=0;i<frames.length;i++){
     const frame=frames[i]!,action:TerrainAction=i===0?{type:'load',profile:'ra2',files:[{file:file('original.mix',new Uint8Array(1)),relativePath:''}],width:180,height:120}:i===3?{type:'world-restore',text:'{}'}:{type:'world-step',ticks:1};
-    const result=bridge.request(action,signal);worker.emit({version:5,id:i+1,type:'result',result:frame});assert.equal((await result).type,'frame');
+    const result=bridge.request(action,signal);worker.emit({version:6,id:i+1,type:'result',result:frame});assert.equal((await result).type,'frame');
     assert.equal(frame.summary.artwork.rendered,1);assert.equal(frame.allocations.objects,i===2?0:1);assert.deepEqual(frame.allocations.retiredObjectIds,i===2?[info.id]:[]);
   }
   assert.equal(worker.terminated,0);bridge.dispose();

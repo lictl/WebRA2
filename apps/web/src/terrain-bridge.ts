@@ -1,15 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2026 WebRA2 contributors.
 import { shape,int,code,validAction,validProgress,validResult,type TerrainAction,type TerrainResult,type TerrainProgress } from './terrain-protocol.ts';
+import type { CampaignLaunchPlan } from './campaign-protocol.ts';
 import { validWorldAction } from './world-protocol.ts';
 export interface TerrainPort { request(action:TerrainAction,signal:AbortSignal,progress?:(p:TerrainProgress)=>void):Promise<TerrainResult>; dispose():void }
 export type TerrainWorkerPort=Pick<Worker,'postMessage'|'terminate'|'addEventListener'|'removeEventListener'>;
 export class TerrainBridge implements TerrainPort {
-  #sequence=0;#pending:((e:Error)=>void)|null=null;#dead=false;#identity:string|null=null;#worldHash:string|null=null;#revision=0;
+  #sequence=0;#pending:((e:Error)=>void)|null=null;#dead=false;#identity:string|null=null;#worldHash:string|null=null;#revision=0;#campaign:CampaignLaunchPlan|null=null;
   constructor(private worker:TerrainWorkerPort=new Worker('/workers/terrain.js',{type:'module'})){}
   request(action:TerrainAction,signal:AbortSignal,progress?:(p:TerrainProgress)=>void):Promise<TerrainResult>{
     if(this.#dead || this.#pending || !validAction(action))return Promise.reject(new Error('unavailable'));
     if(signal.aborted){this.dispose();return Promise.reject(new DOMException('Cancelled','AbortError'));}
+    if(action.type==='campaign-launch'&&(!this.#campaign||this.#campaign.fingerprint!==action.fingerprint||!this.#campaign.entries.some(e=>e.id===action.entryId&&e.status==='ready')))return Promise.reject(new Error('campaign-plan-identity'));
+    if(action.type==='campaign-back'&&this.#campaign?.fingerprint!==action.fingerprint)return Promise.reject(new Error('campaign-plan-identity'));
     const id=++this.#sequence;
     return new Promise((resolve,reject)=>{
       let settled=false,lastProgress=0;
@@ -18,12 +21,18 @@ export class TerrainBridge implements TerrainPort {
       const message=(event:Event)=>{
         const v:unknown=(event as MessageEvent).data;
         if(!v || typeof v!=='object' || !Object.hasOwn(v,'id') || (v as {id:unknown}).id!==id)return;
-        if(shape(v,['version','id','type','sequence','progress']) && v.version===5 && v.type==='progress' && action.type==='load' && int(v.sequence,1) && v.sequence>lastProgress && validProgress(v.progress)){
-          lastProgress=v.sequence;try{progress?.(v.progress);if(!settled)this.worker.postMessage({version:5,id,type:'ack',sequence:v.sequence});}catch{failed();}return;
+        if(shape(v,['version','id','type','sequence','progress']) && v.version===6 && v.type==='progress' && ['load','campaign-scan','campaign-launch'].includes(action.type) && int(v.sequence,1) && v.sequence>lastProgress && validProgress(v.progress)){
+          lastProgress=v.sequence;try{progress?.(v.progress);if(!settled)this.worker.postMessage({version:6,id,type:'ack',sequence:v.sequence});}catch{failed();}return;
         }
-        if(shape(v,['version','id','type','code']) && v.version===5 && v.type==='error' && code(v.code)){finish(new Error(v.code));return;}
-        if(!shape(v,['version','id','type','result']) || v.version!==5 || v.type!=='result' || !validResult(v.result)){finish(new Error('invalid'));return;}
+        if(shape(v,['version','id','type','code']) && v.version===6 && v.type==='error' && code(v.code)){finish(new Error(v.code));return;}
+        if(!shape(v,['version','id','type','result']) || v.version!==6 || v.type!=='result' || !validResult(v.result)){finish(new Error('invalid'));return;}
         const result=v.result;
+        if(result.type==='campaign-plan'){
+          if(action.type==='campaign-scan'?result.plan.profile!==action.profile:action.type==='campaign-back'?result.plan.fingerprint!==action.fingerprint:true){finish(new Error('invalid'));return;}
+          this.#campaign=structuredClone(result.plan);this.#identity=null;this.#worldHash=null;this.#revision=0;finish(undefined,result);return;
+        }
+        if(action.type==='campaign-scan'||action.type==='campaign-back'){finish(new Error('invalid'));return;}
+
         if(result.type==='world-document' || result.type==='world-rejection'){
           if(!validWorldAction(action) || result.modelHash!==this.#worldHash || result.revision!==this.#revision){finish(new Error('invalid'));return;}
           if(result.type==='world-document'){
@@ -36,9 +45,14 @@ export class TerrainBridge implements TerrainPort {
           if(result.type!=='pick' || result.frameId!==action.frameId){finish(new Error('invalid'));return;}
         }else{
           if(result.type!=='frame' || result.frameId!==id || (action.type==='load' && (result.summary.profile!==action.profile || result.camera.width!==action.width || result.camera.height!==action.height)) || (action.type==='render' && Object.entries(action.camera).some(([key,value])=>result.camera[key as keyof typeof result.camera]!==value))){finish(new Error('invalid'));return;}
+          if(action.type==='load'&&result.summary.mission!==(action.profile==='ra2'?'all01t.map':'all01umd.map')){finish(new Error('invalid'));return;}
+          if(action.type==='campaign-launch'){
+            const entry=this.#campaign!.entries.find(e=>e.id===action.entryId)!;
+            if(result.summary.profile!==this.#campaign!.profile||result.summary.mission!==entry.missionPath||result.summary.mapHash!==entry.missionSha256||result.camera.width!==action.width||result.camera.height!==action.height){finish(new Error('invalid'));return;}
+          }
           const identity=result.summary.profile+':'+result.summary.mapHash+':'+result.summary.contentHash+':'+result.summary.artwork.presentation+':'+(result.summary.artwork.voxel?.presentation??'none')+':'+(result.summary.world?.modelHash??'none');
-          if(action.type!=='load' && identity!==this.#identity){finish(new Error('invalid'));return;}
-          const expectedRevision=action.type==='load'?0:validWorldAction(action)?this.#revision+1:this.#revision;
+          if(action.type!=='load' && action.type!=='campaign-launch' && identity!==this.#identity){finish(new Error('invalid'));return;}
+          const expectedRevision=(action.type==='load'||action.type==='campaign-launch')?0:validWorldAction(action)?this.#revision+1:this.#revision;
           if(result.world && result.world.revision!==expectedRevision){finish(new Error('invalid'));return;}
           if(validWorldAction(action) && (!result.world || !['world-order','world-orders','world-step','world-restore'].includes(action.type))){finish(new Error('invalid'));return;}
           this.#identity=identity;this.#worldHash=result.summary.world?.modelHash??null;this.#revision=result.world?.revision??0;
@@ -46,9 +60,9 @@ export class TerrainBridge implements TerrainPort {
         finish(undefined,result);
       };
       // Full root hashing can be slow in Safari. Neither timeout promises background execution.
-      const timer=setTimeout(()=>finish(new Error('timeout')),action.type==='load'?15*60_000:30_000);
+      const timer=setTimeout(()=>finish(new Error('timeout')),['load','campaign-scan','campaign-launch'].includes(action.type)?15*60_000:30_000);
       this.#pending=e=>finish(e);signal.addEventListener('abort',abort,{once:true});this.worker.addEventListener('message',message);this.worker.addEventListener('error',failed);this.worker.addEventListener('messageerror',failed);
-      try{this.worker.postMessage({version:5,id,action});}catch{failed();}
+      try{this.worker.postMessage({version:6,id,action});}catch{failed();}
     });
   }
   dispose():void{if(this.#dead)return;this.#dead=true;this.#pending?.(new DOMException('Cancelled','AbortError'));this.worker.terminate();}

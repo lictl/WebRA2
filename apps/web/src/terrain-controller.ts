@@ -1,24 +1,25 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2026 WebRA2 contributors. DOM-independent viewport job state.
+import type { CampaignLaunchPlan, CampaignFaction } from './campaign-protocol.ts';
 import { TerrainBridge,type TerrainPort } from './terrain-bridge.ts';
 import { centered,VIEW_LIMIT,validCamera,type Camera,type FrameResult,type TerrainProfile,type TerrainProgress,type ViewportPick,type Zoom } from './terrain-protocol.ts';
 import { actorsInBox, controllable, selectWorldActors, type SelectionBox, type SelectionMode } from './world-selection.ts';
 import type { Locale } from './i18n.ts';
 import { WORLD_UI, worldDocumentText, type WorldAction, type WorldDocument } from './world-protocol.ts';
 import { LocalWorldStorage, type WorldStorage, type SaveSlot } from './world-storage.ts';
-export type TerrainState={locale:Locale;profile:TerrainProfile;phase:'empty'|'selected'|'loading'|'ready'|'cancelled'|'failed';files:number;bytes:number;busy:boolean;progress:TerrainProgress|null;frame:FrameResult|null;selection:ViewportPick;notice:string;error:string|null;running:boolean;playerId:number|null;selectedEntity:number|null;selectedEntities:number[];interactionEpoch:number;interacting:boolean;slot:SaveSlot;worldNotice:string;replayHash:string|null};
+export type TerrainState={locale:Locale;profile:TerrainProfile;phase:'empty'|'selected'|'loading'|'choosing'|'ready'|'cancelled'|'failed';campaign:CampaignLaunchPlan|null;files:number;bytes:number;busy:boolean;progress:TerrainProgress|null;frame:FrameResult|null;selection:ViewportPick;notice:string;error:string|null;running:boolean;playerId:number|null;selectedEntity:number|null;selectedEntities:number[];interactionEpoch:number;interacting:boolean;slot:SaveSlot;worldNotice:string;replayHash:string|null};
 export function canPick(state:TerrainState,x:number,y:number):boolean {const f=state.frame;return !!f && !state.busy && state.phase==='ready' && Number.isInteger(x) && Number.isInteger(y) && x>=0 && y>=0 && x<f.camera.width && y<f.camera.height;}
 export class TerrainController{
   #files:File[]=[];#port:TerrainPort|null=null;#active:AbortController|null=null;#generation=0;#desired:Camera|null=null;#listeners=new Set<(s:TerrainState)=>void>();#width=960;#height=640;
   state:TerrainState;
-  constructor(locale:Locale='en',private factory:()=>TerrainPort=()=>new TerrainBridge(),private storage:WorldStorage=new LocalWorldStorage()){this.state={locale,profile:'ra2',phase:'empty',files:0,bytes:0,busy:false,progress:null,frame:null,selection:null,notice:'choose',error:null,running:false,playerId:null,selectedEntity:null,selectedEntities:[],interactionEpoch:0,interacting:false,slot:1,worldNotice:'worldPaused',replayHash:null};}
+  constructor(locale:Locale='en',private factory:()=>TerrainPort=()=>new TerrainBridge(),private storage:WorldStorage=new LocalWorldStorage()){this.state={locale,profile:'ra2',phase:'empty',campaign:null,files:0,bytes:0,busy:false,progress:null,frame:null,selection:null,notice:'choose',error:null,running:false,playerId:null,selectedEntity:null,selectedEntities:[],interactionEpoch:0,interacting:false,slot:1,worldNotice:'worldPaused',replayHash:null};}
   subscribe(fn:(s:TerrainState)=>void):()=>void{this.#listeners.add(fn);fn(this.state);return()=>this.#listeners.delete(fn);}
   #update(p:Partial<TerrainState>):void{
     this.state={...this.state,...p};
     if(Object.hasOwn(p,'frame')){const f=this.state.frame;const ids=this.state.selectedEntities.filter(id=>controllable(f?.summary.world,f?.world,this.state.playerId,id));this.state={...this.state,selectedEntities:ids,selectedEntity:ids[0]??null};}
     for(const fn of this.#listeners)fn(this.state);
   }
-  #stop():void{this.#generation++;this.#active?.abort();this.#active=null;this.#port?.dispose();this.#port=null;this.#desired=null;this.state={...this.state,running:false,playerId:null,selectedEntity:null,selectedEntities:[],interactionEpoch:this.state.interactionEpoch+1,interacting:false,replayHash:null,worldNotice:'worldPaused'};}
+  #stop():void{this.#generation++;this.#active?.abort();this.#active=null;this.#port?.dispose();this.#port=null;this.#desired=null;this.state={...this.state,campaign:null,running:false,playerId:null,selectedEntity:null,selectedEntities:[],interactionEpoch:this.state.interactionEpoch+1,interacting:false,replayHash:null,worldNotice:'worldPaused'};}
   select(files:ArrayLike<File>):void{
     this.#stop();if(!Number.isSafeInteger(files.length) || files.length<0 || files.length>VIEW_LIMIT.files){this.#files=[];this.#update({phase:'failed',files:0,bytes:0,busy:false,progress:null,frame:null,selection:null,notice:'tooMany',error:null});return;}
     this.#files=Array.from(files);this.#update({phase:files.length?'selected':'empty',files:files.length,bytes:this.#files.reduce((n,f)=>n+f.size,0),busy:false,progress:null,frame:null,selection:null,notice:files.length?'selected':'choose',error:null});
@@ -37,6 +38,37 @@ export class TerrainController{
       this.#active=null;this.#desired={...result.camera};const playerId=result.summary.world?.defaultPlayerId??null;this.#update({phase:'ready',busy:false,progress:null,frame:result,notice:'ready',playerId,selectedEntities:result.summary.world?.actors.filter(a=>a.owner===playerId&&a.movable).slice(0,1).map(a=>a.id)??[]});
       // A resize during load changes the desired next viewport, not the in-flight request.
       if(result.camera.width!==this.#width || result.camera.height!==this.#height)this.resize(this.#width,this.#height);
+    }catch(e){this.#failure(e,generation);}
+  }
+  async scanCampaigns():Promise<void>{
+    if(!this.#files.length||this.state.busy)return;this.#stop();const generation=this.#generation,active=new AbortController();this.#active=active;
+    this.#update({phase:'loading',frame:null,selection:null,busy:true,progress:null,notice:'loading',error:null});
+    try{
+      const port=this.factory();this.#port=port;
+      const result=await port.request({type:'campaign-scan',profile:this.state.profile,files:this.#files.map(file=>({file,relativePath:file.webkitRelativePath||''}))},active.signal,p=>{if(generation===this.#generation)this.#update({progress:p});});
+      if(generation!==this.#generation)return;if(result.type!=='campaign-plan')throw new Error('invalid');
+      this.#active=null;this.#update({phase:'choosing',campaign:result.plan,busy:false,progress:null,notice:'selected'});
+    }catch(e){this.#failure(e,generation);}
+  }
+  async launchCampaign(entryId:CampaignFaction):Promise<void>{
+    const plan=this.state.campaign,port=this.#port;if(!port||!plan||this.state.phase!=='choosing'||this.state.busy||!plan.entries.some(e=>e.id===entryId&&e.status==='ready'))return;
+    const generation=this.#generation,active=new AbortController();this.#active=active;
+    this.#update({phase:'loading',frame:null,selection:null,busy:true,progress:null,notice:'loading',error:null});
+    try{
+      const result=await port.request({type:'campaign-launch',fingerprint:plan.fingerprint,entryId,width:this.#width,height:this.#height},active.signal,p=>{if(generation===this.#generation)this.#update({progress:p});});
+      if(generation!==this.#generation)return;if(result.type!=='frame')throw new Error('invalid');
+      this.#active=null;this.#desired={...result.camera};const playerId=result.summary.world?.defaultPlayerId??null;
+      this.#update({phase:'ready',busy:false,progress:null,frame:result,notice:'ready',playerId,selectedEntities:result.summary.world?.actors.filter(a=>a.owner===playerId&&a.movable).slice(0,1).map(a=>a.id)??[]});
+      if(result.camera.width!==this.#width||result.camera.height!==this.#height)this.resize(this.#width,this.#height);
+    }catch(e){this.#failure(e,generation);}
+  }
+  async backCampaigns():Promise<void>{
+    const plan=this.state.campaign,port=this.#port;if(!plan||!port||this.state.busy)return;
+    this.setRunning(false);this.cancelInteraction();const generation=this.#generation,active=new AbortController();this.#active=active;this.#update({busy:true});
+    try{
+      const result=await port.request({type:'campaign-back',fingerprint:plan.fingerprint},active.signal);
+      if(generation!==this.#generation)return;if(result.type!=='campaign-plan')throw new Error('invalid');
+      this.#active=null;this.#desired=null;this.#update({phase:'choosing',campaign:result.plan,frame:null,selection:null,busy:false,progress:null,playerId:null,selectedEntity:null,selectedEntities:[],replayHash:null,worldNotice:'worldPaused'});
     }catch(e){this.#failure(e,generation);}
   }
   #failure(e:unknown,generation:number):void{if(generation!==this.#generation)return;this.#stop();this.#update({phase:'failed',busy:false,progress:null,frame:null,selection:null,notice:'failure',error:e instanceof Error?e.message:'unavailable'});}
