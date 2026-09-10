@@ -78,10 +78,25 @@ Noninitial edited saves remain structurally validated rather than historically p
 
 ## Validation status
 
-Seven original both-profile runtime fixtures pass, together with seven initial
-source fixtures and 31 existing binding/compound/cue tests (45 focused tests total).
+Seven original both-profile runtime fixtures pass. The source adapter now has
+11 fixtures after its actor-context audit; the previous 31 binding/compound/cue
+tests also pass.
 They cover source joins, owner matching, shared cells, transient mixed predicates,
 multiple entries, nested force/deletion, atomic failure and every-boundary
-save/replay. Type checking passes. Fresh private source coverage, final source actor
-context audit and exact-head independent review remain required before merge. No original campaign execution or browser acceptance is
+save/replay. Type checking passes. An independent private comparison against the pre-change
+VM passes 1,632 comparisons over 32 original programs and 768 ticks, with and
+without cue catalogs: program identities, saves, effects and work counts match.
+The source actor audit requires complete 14-field rows, OnBridge0 and independent
+unit follower -1. Exact-head independent review remains required before merge. No original campaign execution or browser acceptance is
 claimed by this component.
+
+A [fresh source census](analysis/mission-cell-dispatch-census.json) reads all 438
+supplied files on-device and recompiles source worlds, bindings, cues and cell
+references. All 18 RA2 and nine YR opening event1 instructions resolve; all 180/278
+cell references remain represented. The source adapter retains all 811/570 actors,
+with 58/70 eligible initial ordinary ground contexts. This is reference eligibility,
+not proof of placement/movement or an original mission run. Complete preflight
+still returns null authority, with required diagnostics reduced from 292 to 274
+and from 500 to 491 compared with cue-enabled preflight. Initial binding, cue and
+flag hashes remain unchanged. The private probe and raw source outputs stay under
+`local/probe201.mjs` and `local/dispatch201/` in the preserved coordinator worktree.

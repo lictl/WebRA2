@@ -14,6 +14,21 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
+Current201/PR202 checkpoint includes the source adapter and compound runtime.
+Root's seven original runtime fixtures and bootstrap's 11 source fixtures pass.
+Fresh private 438-file preparation accepts all 18/9 event1 references with source
+hashes `f6c2ee31f04fe4e74f63d382e483d8250060d1199222866e4560cc7788cde6c1` and
+`6d0d7d0be05b3de9fd3b818f1ea7f78bf3818727a05a59c3a98a3913115f7193`.
+Both full authorities remain null (274/491 required diagnostics). A private
+pre-change VM comparison passes 32 programs/768 ticks/1,632 assertions with exact
+legacy identities, states, effects and work. mix_reader reviews the combined
+source/runtime; bootstrap finishes the source raw oracle. Final checks/merge remain pending.
+
+Audio203 source review passed; root's distribution composition is independently
+reviewed by browser_feasibility. UI199 merged as
+`58841e3d05d96a91562ce245ccd13e3637163bb0`, issue197 closed after source/browser and
+final composition reviews. Continue the authorized engine work; no human input is needed.
+
 Current root slice: [source cell-entry events201](https://github.com/lictl/WebRA2/issues/201)
 in `local/worktrees/mission-cell-entry`, branch `codex/201-mission-cell-entry`.
 Root owns shared VM/compound event delivery and RegisterEvent/TagRaiseEvent evidence;

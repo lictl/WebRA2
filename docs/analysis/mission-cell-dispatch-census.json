@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "scope": "Fresh private source preflight with source cues and cell-entry references; no original mission executed",
+  "profiles": [
+    {
+      "profile": "ra2",
+      "missionSha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+      "catalogSha256": "5e602be74dbff27ae16a2bbb618df3244e2bc80a10cfe658039168016c2f6a60",
+      "cueCatalogSha256": "5e973c4bc16c4e604b40f229e14856e811be7bf2f258d6e9acc99c88327a73da",
+      "cellSourceSha256": "f6c2ee31f04fe4e74f63d382e483d8250060d1199222866e4560cc7788cde6c1",
+      "cellCoverage": {
+        "events": 18,
+        "supportedEvents": 18,
+        "cellReferences": 180,
+        "resolvedCells": 180,
+        "actors": 811,
+        "supportedActors": 58,
+        "scenarioPollBindings": 86
+      },
+      "cellSourceDiagnostics": [],
+      "cueBaselineDiagnostics": 292,
+      "cellEventCoverage": [
+        {
+          "namespace": "event",
+          "opcode": 1,
+          "occurrences": 18,
+          "supported": 18,
+          "effectOnly": false
+        }
+      ],
+      "vmDiagnostics": 274,
+      "authority": false
+    },
+    {
+      "profile": "yr",
+      "missionSha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+      "catalogSha256": "e839e63e8b14b22e051188127bc4514ef421537804878797f321b576bd5111af",
+      "cueCatalogSha256": "35aafd0acff193253413503b007fb688690e648c6fc4769817bcbed5fb6d3777",
+      "cellSourceSha256": "6d0d7d0be05b3de9fd3b818f1ea7f78bf3818727a05a59c3a98a3913115f7193",
+      "cellCoverage": {
+        "events": 9,
+        "supportedEvents": 9,
+        "cellReferences": 278,
+        "resolvedCells": 278,
+        "actors": 570,
+        "supportedActors": 70,
+        "scenarioPollBindings": 127
+      },
+      "cellSourceDiagnostics": [],
+      "cueBaselineDiagnostics": 500,
+      "cellEventCoverage": [
+        {
+          "namespace": "event",
+          "opcode": 1,
+          "occurrences": 9,
+          "supported": 9,
+          "effectOnly": false
+        }
+      ],
+      "vmDiagnostics": 491,
+      "authority": false
+    }
+  ]
+}
