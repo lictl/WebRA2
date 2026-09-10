@@ -1,0 +1,290 @@
+{
+  "schemaVersion": 1,
+  "scope": "Paired native static PCM/IMA block decoding; stream flush, playback and scheduling excluded. Inspected complete-instruction spans, not claimed exact function extents.",
+  "tool": {
+    "name": "Capstone",
+    "version": "5.0.6"
+  },
+  "images": [
+    {
+      "profile": "ra2",
+      "file": "game.exe",
+      "size": 5077312,
+      "sha256": "73288c03b58d370be268ca6d156b4e33bfdb2066dc980359467d8852ff3b00df"
+    },
+    {
+      "profile": "yr",
+      "file": "gamemd.exe",
+      "size": 5286208,
+      "sha256": "3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600"
+    }
+  ],
+  "records": [
+    {
+      "profile": "ra2",
+      "id": "indexed-format",
+      "kind": "code",
+      "startVa": "0x401640",
+      "endVaExclusive": "0x4016a1",
+      "fileOffset": 5696,
+      "size": 97,
+      "sha256": "6c83408113464bead38ccdfb1a9bee93071f85cb35ad255863ab8b6f9b81c1c3",
+      "instructions": 31,
+      "interpretation": "Flags bit0 selects channels, bit3 IMA/16-bit output, otherwise bit2 selects PCM8/16; input chunk size copied."
+    },
+    {
+      "profile": "ra2",
+      "id": "wave-format",
+      "kind": "code",
+      "startVa": "0x408530",
+      "endVaExclusive": "0x408704",
+      "fileOffset": 34096,
+      "size": 468,
+      "sha256": "de80ec1be4b968870fd182553eaf308a7da6363e0d33a374fa158e1cd155bf60",
+      "instructions": 153,
+      "interpretation": "RIFF/WAVE reader recognizes fmt/data, skips other chunks including fact; tag1 PCM and tag17 IMA, channel/rate/block alignment projection."
+    },
+    {
+      "profile": "ra2",
+      "id": "wave-format-call",
+      "kind": "code",
+      "startVa": "0x407b6b",
+      "endVaExclusive": "0x407b91",
+      "fileOffset": 31595,
+      "size": 38,
+      "sha256": "9f9a77eb434384b1cf62239222e679e7c363d3daa870405cd74bf07153522c70",
+      "instructions": 11,
+      "interpretation": "AudioStream file reader passes format and data-byte count destinations to RIFF reader."
+    },
+    {
+      "profile": "ra2",
+      "id": "codec-dispatch",
+      "kind": "code",
+      "startVa": "0x409b60",
+      "endVaExclusive": "0x409c0c",
+      "fileOffset": 39776,
+      "size": 172,
+      "sha256": "52bd66abd86f0821d6a20f63588c3ecf87968bb57571ce3e21a8f73eb045b8d6",
+      "instructions": 42,
+      "interpretation": "Native compression1 selects IMA block callback and format chunk size; compression0 selects PCM byte-copy callback."
+    },
+    {
+      "profile": "ra2",
+      "id": "pcm-copy",
+      "kind": "code",
+      "startVa": "0x409cb0",
+      "endVaExclusive": "0x409cfc",
+      "fileOffset": 40112,
+      "size": 76,
+      "sha256": "d65206fe31a2785d74dd64a4bdd8c1bb18be7b59922a2fd9a96aa3cce80d3ec6",
+      "instructions": 34,
+      "interpretation": "Uncompressed native callback copies original bytes without changing PCM values."
+    },
+    {
+      "profile": "ra2",
+      "id": "compressed-feed",
+      "kind": "code",
+      "startVa": "0x409d00",
+      "endVaExclusive": "0x409ef9",
+      "fileOffset": 40192,
+      "size": 505,
+      "sha256": "06cf944441b2af468b7ca339009b54a3a12653bd18679f0ec0835ff3d65e3924",
+      "instructions": 154,
+      "interpretation": "Stream state copies compressed input and decoded output; indirect block callback success required. Native flush bookkeeping is not emulated."
+    },
+    {
+      "profile": "ra2",
+      "id": "ima-block",
+      "kind": "code",
+      "startVa": "0x40a990",
+      "endVaExclusive": "0x40abee",
+      "fileOffset": 43408,
+      "size": 606,
+      "sha256": "f9aade65be08843cc695c46afc32ac2d0318412b2c14a4224e02893c764f6dfe",
+      "instructions": 185,
+      "interpretation": "Block headers are signed16 predictor, uint8 step index0..88 and reserved0; emits first predictor, consumes groups of4 bytes/channel low nibble first, interleaved channel output; non-group remainder fails."
+    },
+    {
+      "profile": "ra2",
+      "id": "ima-nibble",
+      "kind": "code",
+      "startVa": "0x40abf0",
+      "endVaExclusive": "0x40ac7e",
+      "fileOffset": 44016,
+      "size": 142,
+      "sha256": "5827a1c18df778d9ad5a6dcf19688e0dc6245aa9c7b4604e5d145987bf65d475",
+      "instructions": 49,
+      "interpretation": "Per-bit shifted delta, sign, signed16 predictor saturation and step-index clamping0..88."
+    },
+    {
+      "profile": "ra2",
+      "id": "pcm-output-format",
+      "kind": "code",
+      "startVa": "0x40a770",
+      "endVaExclusive": "0x40a7fa",
+      "fileOffset": 42864,
+      "size": 138,
+      "sha256": "f74363e82929b97eac72198c94459590a8cc6e9612042d2074e113cc65ebae5c",
+      "instructions": 35,
+      "interpretation": "DirectSound buffer WAVEFORMATEX PCM tag1 uses source channel count and source byte width; no resampling or device behavior reproduced."
+    },
+    {
+      "profile": "ra2",
+      "id": "ima-step-table",
+      "kind": "data",
+      "startVa": "0x7cd020",
+      "endVaExclusive": "0x7cd184",
+      "fileOffset": 3985440,
+      "size": 356,
+      "sha256": "0d9dfda921258ad4f2e62a1f93df7f6aaa0bd2b58569d53a74883f24e67b4c68",
+      "interpretation": "Every entry independently compared with GPL XCC primary table; native bytes not copied into product."
+    },
+    {
+      "profile": "ra2",
+      "id": "ima-index-adjust-table",
+      "kind": "data",
+      "startVa": "0x7ccfe0",
+      "endVaExclusive": "0x7cd020",
+      "fileOffset": 3985376,
+      "size": 64,
+      "sha256": "0b45ddadddc2d6d1b0cbfaf3fabfbe714ae2b22b74af4c5df04c35a5194f1396",
+      "interpretation": "Every entry independently compared with GPL XCC primary table; native bytes not copied into product."
+    },
+    {
+      "profile": "yr",
+      "id": "indexed-format",
+      "kind": "code",
+      "startVa": "0x401640",
+      "endVaExclusive": "0x4016a1",
+      "fileOffset": 5696,
+      "size": 97,
+      "sha256": "6c83408113464bead38ccdfb1a9bee93071f85cb35ad255863ab8b6f9b81c1c3",
+      "instructions": 31,
+      "interpretation": "Flags bit0 selects channels, bit3 IMA/16-bit output, otherwise bit2 selects PCM8/16; input chunk size copied."
+    },
+    {
+      "profile": "yr",
+      "id": "wave-format",
+      "kind": "code",
+      "startVa": "0x408610",
+      "endVaExclusive": "0x4087eb",
+      "fileOffset": 34320,
+      "size": 475,
+      "sha256": "4b9c798ee72cf1c7a5b6afd99890c84084cf2215560b959487debf5aa5397210",
+      "instructions": 155,
+      "interpretation": "RIFF/WAVE reader recognizes fmt/data, skips other chunks including fact; tag1 PCM and tag17 IMA, channel/rate/block alignment projection."
+    },
+    {
+      "profile": "yr",
+      "id": "wave-format-call",
+      "kind": "code",
+      "startVa": "0x407c3b",
+      "endVaExclusive": "0x407c5e",
+      "fileOffset": 31803,
+      "size": 35,
+      "sha256": "09071208537708f951f636bf43cfcc1bbbb96c2b12c9867e73b71c0d3fa743ea",
+      "instructions": 10,
+      "interpretation": "AudioStream file reader passes format and data-byte count destinations to RIFF reader."
+    },
+    {
+      "profile": "yr",
+      "id": "codec-dispatch",
+      "kind": "code",
+      "startVa": "0x409c40",
+      "endVaExclusive": "0x409cec",
+      "fileOffset": 40000,
+      "size": 172,
+      "sha256": "35610c96de7932fd6bdc69fcbfb2aa59429169db8d3a640c67ca003208c96a50",
+      "instructions": 42,
+      "interpretation": "Native compression1 selects IMA block callback and format chunk size; compression0 selects PCM byte-copy callback."
+    },
+    {
+      "profile": "yr",
+      "id": "pcm-copy",
+      "kind": "code",
+      "startVa": "0x409d90",
+      "endVaExclusive": "0x409ddc",
+      "fileOffset": 40336,
+      "size": 76,
+      "sha256": "d65206fe31a2785d74dd64a4bdd8c1bb18be7b59922a2fd9a96aa3cce80d3ec6",
+      "instructions": 34,
+      "interpretation": "Uncompressed native callback copies original bytes without changing PCM values."
+    },
+    {
+      "profile": "yr",
+      "id": "compressed-feed",
+      "kind": "code",
+      "startVa": "0x409de0",
+      "endVaExclusive": "0x409fd9",
+      "fileOffset": 40416,
+      "size": 505,
+      "sha256": "af0808efaca810a57473b86f4b5d271c4c49cc1a20fdb63a9dbd792ff5d41b55",
+      "instructions": 154,
+      "interpretation": "Stream state copies compressed input and decoded output; indirect block callback success required. Native flush bookkeeping is not emulated."
+    },
+    {
+      "profile": "yr",
+      "id": "ima-block",
+      "kind": "code",
+      "startVa": "0x40aa70",
+      "endVaExclusive": "0x40acce",
+      "fileOffset": 43632,
+      "size": 606,
+      "sha256": "f9aade65be08843cc695c46afc32ac2d0318412b2c14a4224e02893c764f6dfe",
+      "instructions": 185,
+      "interpretation": "Block headers are signed16 predictor, uint8 step index0..88 and reserved0; emits first predictor, consumes groups of4 bytes/channel low nibble first, interleaved channel output; non-group remainder fails."
+    },
+    {
+      "profile": "yr",
+      "id": "ima-nibble",
+      "kind": "code",
+      "startVa": "0x40acd0",
+      "endVaExclusive": "0x40ad5e",
+      "fileOffset": 44240,
+      "size": 142,
+      "sha256": "f32d65ea7eb1433e22872837db812c93132ba62644b46b90a2fbcd35f6716e36",
+      "instructions": 49,
+      "interpretation": "Per-bit shifted delta, sign, signed16 predictor saturation and step-index clamping0..88."
+    },
+    {
+      "profile": "yr",
+      "id": "pcm-output-format",
+      "kind": "code",
+      "startVa": "0x40a850",
+      "endVaExclusive": "0x40a8da",
+      "fileOffset": 43088,
+      "size": 138,
+      "sha256": "5b64aae2f8d22168aabceabad445daef578d0182fe60a7d80467c0f2b03f0ff3",
+      "instructions": 35,
+      "interpretation": "DirectSound buffer WAVEFORMATEX PCM tag1 uses source channel count and source byte width; no resampling or device behavior reproduced."
+    },
+    {
+      "profile": "yr",
+      "id": "ima-step-table",
+      "kind": "data",
+      "startVa": "0x816558",
+      "endVaExclusive": "0x8166bc",
+      "fileOffset": 4285784,
+      "size": 356,
+      "sha256": "0d9dfda921258ad4f2e62a1f93df7f6aaa0bd2b58569d53a74883f24e67b4c68",
+      "interpretation": "Every entry independently compared with GPL XCC primary table; native bytes not copied into product."
+    },
+    {
+      "profile": "yr",
+      "id": "ima-index-adjust-table",
+      "kind": "data",
+      "startVa": "0x816518",
+      "endVaExclusive": "0x816558",
+      "fileOffset": 4285720,
+      "size": 64,
+      "sha256": "0b45ddadddc2d6d1b0cbfaf3fabfbe714ae2b22b74af4c5df04c35a5194f1396",
+      "interpretation": "Every entry independently compared with GPL XCC primary table; native bytes not copied into product."
+    }
+  ],
+  "summary": {
+    "ranges": 22,
+    "codeRanges": 18,
+    "dataRanges": 4,
+    "bytes": 5328
+  }
+}
