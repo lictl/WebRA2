@@ -18,9 +18,12 @@ Current wave: [source combat PR177](https://github.com/lictl/WebRA2/pull/177) me
 as `cfdba372c16eeee945e9972b9f4a45cc11f16391` after957 tests, both bounded actual
 Chrome scenarios, hosted checks and [final independent review](https://github.com/lictl/WebRA2/pull/177#pullrequestreview-5164526784)
 at `3100d49138263ec72965f3398b432b73f9d3c702`.
-Recruitment181, ground traversal183, trigger lifecycle184 and campaign chooser185
-are merged. Coordinator finishes the composed infantry core186 with mix_reader
-reviewing its final merge and distribution delta. browser_feasibility owns the next
+Recruitment181, ground traversal183, trigger lifecycle184, campaign chooser185 and
+infantry core186 are merged. Coordinator implements
+[mission/world initialization189](https://github.com/lictl/WebRA2/issues/189) in
+`local/worktrees/mission-world`, branch `codex/189-mission-world`. mix_reader implements
+[mission presentation cues188](https://github.com/lictl/WebRA2/issues/188).
+browser_feasibility owns the next
 browser adoption for [ground traversal178](https://github.com/lictl/WebRA2/issues/178)
 and [allied infantry passage180](https://github.com/lictl/WebRA2/issues/180), including
 settled slot presentation and the original default-player Chrome route.
@@ -66,7 +69,9 @@ adds2030 assertions and both fresh private source-world movement/shot/restore/re
 probes. Worker source and root adapter have distinct recorded reviewers. All actors,
 static blockers and inherited flat shot exclusions remain.
 
-[Infantry passage PR186](https://github.com/lictl/WebRA2/pull/186) is WORKING in
+[Infantry passage PR186](https://github.com/lictl/WebRA2/pull/186) merged as
+`0b9a5d56c3c247b5937930d42639e75294b39a8d`, final reviewed head
+`facef7a98535d26a48b8d3c0e4c539c524f045fa`. Preserved implementation is in
 `local/worktrees/infantry-integration`, branch `codex/180-infantry-integration`.
 Worker6453cb2 source/helper has [independent review](https://github.com/lictl/WebRA2/pull/186#pullrequestreview-5165028486):
 986 original tests,26951 extra assertions,44 native ranges/11239 bytes and the
@@ -82,8 +87,9 @@ the [independent final core review](https://github.com/lictl/WebRA2/pull/186#pul
 adds18044 motion assertions and312 group assertions with no remaining findings.
 Merge3ba213a composes campaign185 without changing the reviewed core. Full composed
 validation passes1026 tests/types,158 documents/795 links,554 publication paths and
-65 code/license outputs from140 approved inputs; final exact-head merge/distribution
-review and hosted checks follow. The [core report](world-infantry-passage.md)
+65 code/license outputs from140 approved inputs. Hosted checks and
+[final independent composition/distribution review](https://github.com/lictl/WebRA2/pull/186#pullrequestreview-5165314056)
+pass atfacef7a. Issues178/180 retain their browser gates. The [core report](world-infantry-passage.md)
 records D03 dual occupancy, dying-edge cancellation and work accounting. The old
 world policies retain their exact behavior; source combat keeps flat shot restrictions.
 Private fresh default RA2 movement now reaches a supported shot through allied
