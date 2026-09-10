@@ -355,3 +355,9 @@ and [runtime notice](../packages/sim/MISSION_TEAM_RUNTIME_PROVENANCE.md) accompa
 both the source and the browser distribution, alongside GPL text and applicable
 corresponding source. The root VM/world adapter retains its existing GPL notices.
 No new external dependency or retail content is introduced by this integration.
+
+The source-bound team-cell context and compound dispatch are original
+GPL-3.0-or-later work. The [component notice](../packages/sim/MISSION_TEAM_CELL_PROVENANCE.md)
+is copied into the browser distribution. The retained genuine traversal accessor
+in world content has that component's existing GPL license. No new dependency,
+retail implementation, raw source table or native listing is included.

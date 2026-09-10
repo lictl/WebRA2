@@ -62,7 +62,12 @@ function ownedMap(input: Uint8Array, max: number): Uint8Array {
   const bytes = new Uint8Array(size); Uint8Array.prototype.set.call(bytes, input); return bytes;
 }
 const results = new WeakSet<object>();
+const traversals = new WeakMap<WorldContent, TerrainTraversal | TerrainTraversalGround>();
 export const isWorldContent = (input: unknown): input is WorldContent => !!input && typeof input === 'object' && results.has(input);
+/** Exact genuine traversal used by this factory; copied metadata cannot establish navigation context. */
+export function worldContentTraversal(world: WorldContent): TerrainTraversal | TerrainTraversalGround {
+  const traversal = traversals.get(world); if (!traversal) fail('factory'); return traversal;
+}
 
 /** Recompile authentic map geometry/joins; source-authenticated rules remain the import pipeline's responsibility. */
 export function compileWorldContent(input: WorldContentInput, options: Partial<Limits> = {}): WorldContent {
@@ -154,5 +159,5 @@ export function compileWorldContent(input: WorldContentInput, options: Partial<L
   const coverage = Object.freeze({ placements: placements.length, mobile: placements.filter(p => p.status === 'mobile').length,
     stationary: placements.filter(p => p.status === 'stationary').length, passive: placements.filter(p => p.status === 'passive').length,
     unavailable: placements.filter(p => p.status === 'unavailable').length, sharedAnchors: model.initialSharedCells, footprintCells });
-  const result = Object.freeze({ ...metadata, sha256: digest, model, coverage }); results.add(result); return result;
+  const result = Object.freeze({ ...metadata, sha256: digest, model, coverage }); results.add(result); traversals.set(result, traversal); return result;
 }

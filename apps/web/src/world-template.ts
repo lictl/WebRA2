@@ -3,8 +3,9 @@
 export const worldTemplate = `<section class="world-panel" hidden aria-labelledby="world-title">
   <div class="world-heading"><h2 id="world-title" data-world="title"></h2><span id="world-playback" role="status"></span></div>
   <div class="world-clock-row"><span id="world-clock"></span></div>
-  <div class="world-primary-orders"><button id="world-run" class="primary"></button><button id="world-stop" data-world="stop"></button><button id="world-focus" data-world="focus"></button></div>
-  <div class="world-operation"><p id="world-notice" role="status" aria-live="polite"></p><button id="world-cancel-replay" data-world="cancelReplay" hidden></button></div>
+  <div class="world-primary-orders"><button id="world-run" class="primary"></button><button id="world-stop" data-world="stop" aria-describedby="world-order-timing"></button><button id="world-focus" data-world="focus"></button></div>
+  <div class="world-operation"><p id="world-notice" role="status" aria-live="polite" aria-atomic="true"></p><button id="world-cancel-replay" data-world="cancelReplay" hidden></button></div>
+  <p class="scope-note" id="world-order-timing" data-world="orderTiming"></p>
   <div class="world-panel-switch" role="group"><button id="world-open-orders" data-world="ordersPanel" aria-controls="world-orders-panel" aria-expanded="true"></button><button id="world-open-saves" data-world="savesPanel" aria-controls="world-saves-panel" aria-expanded="false"></button><button id="world-open-diagnostics" data-world="diagnosticsPanel" aria-controls="world-diagnostics-panel" aria-expanded="false"></button></div>
   <div class="world-panel-body">
     <section id="world-orders-panel" aria-labelledby="world-open-orders">
@@ -13,11 +14,11 @@ export const worldTemplate = `<section class="world-panel" hidden aria-labelledb
       <div class="world-selection-heading"><p id="world-selection-status" role="status" aria-live="polite"></p><button id="world-clear" class="quiet" data-world="clearSelection"></button></div>
       <ul id="world-hud" class="world-hud"></ul><p id="world-hud-omitted" class="scope-note"></p>
       <p class="scope-note world-empty-selection" id="world-selection-help" data-world="selectionHelp"></p>
-      <div id="world-combat-controls" class="world-combat-controls" hidden><label><span data-world="attackTarget"></span><select id="world-attack-target"></select></label><button id="world-attack" data-world="attack"></button><span id="world-attack-status" role="status" aria-live="polite"></span></div>
+      <div id="world-combat-controls" class="world-combat-controls" hidden><label><span data-world="attackTarget"></span><select id="world-attack-target"></select></label><button id="world-attack" data-world="attack" aria-describedby="world-order-timing"></button><span id="world-attack-status" role="status" aria-live="polite"></span></div>
       <details class="world-keyboard"><summary data-world="keyboardOrders"></summary>
         <label><span data-world="unit"></span><select id="world-unit" multiple size="5"></select></label>
-        <p class="scope-note" data-world="keyboardSelection"></p><button id="world-picked" data-world="picked"></button>
-        <form id="world-target"><label><span data-world="targetX"></span><input id="world-x" type="number" min="0" max="511" step="1" required value="1"></label><label><span data-world="targetY"></span><input id="world-y" type="number" min="0" max="511" step="1" required value="1"></label><button id="world-move" data-world="move"></button></form>
+        <p class="scope-note" data-world="keyboardSelection"></p><button id="world-picked" data-world="picked" aria-describedby="world-order-timing"></button>
+        <form id="world-target"><label><span data-world="targetX"></span><input id="world-x" type="number" min="0" max="511" step="1" required value="1"></label><label><span data-world="targetY"></span><input id="world-y" type="number" min="0" max="511" step="1" required value="1"></label><button id="world-move" data-world="move" aria-describedby="world-order-timing"></button></form>
       </details>
       <details class="world-help"><summary data-world="controlsHelp"></summary><p class="scope-note" data-world="directControls"></p><p class="scope-note" data-world="timing"></p><p class="scope-note" data-world="controlGroupsScope"></p><div id="world-camera-help"></div></details>
     </section>
