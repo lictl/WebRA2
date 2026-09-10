@@ -14,23 +14,32 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
-Current wave: [source combat PR177](https://github.com/lictl/WebRA2/pull/177) merged
-as `cfdba372c16eeee945e9972b9f4a45cc11f16391` after957 tests, both bounded actual
-Chrome scenarios, hosted checks and [final independent review](https://github.com/lictl/WebRA2/pull/177#pullrequestreview-5164526784)
-at `3100d49138263ec72965f3398b432b73f9d3c702`.
-Recruitment181, ground traversal183, trigger lifecycle184, campaign chooser185 and
-infantry core186 are merged. Coordinator implements
-[mission/world initialization189](https://github.com/lictl/WebRA2/issues/189) in
-`local/worktrees/mission-world`, branch `codex/189-mission-world`. mix_reader implements
-[mission presentation cues188](https://github.com/lictl/WebRA2/issues/188).
-browser_feasibility owns the next
-browser adoption for [ground traversal178](https://github.com/lictl/WebRA2/issues/178)
-and [allied infantry passage180](https://github.com/lictl/WebRA2/issues/180), including
-settled slot presentation and the original default-player Chrome route.
-bootstrap_review implements the source attachment catalog for
-[mission bindings187](https://github.com/lictl/WebRA2/issues/187); coordinator retains
-existing VM/world/contracts ownership. [Lifecycle182](https://github.com/lictl/WebRA2/issues/182)
-still requires source attachment integration beyond its merged VM extension.
+Current wave: source combat177, recruitment181, ground traversal183, trigger
+lifecycle184, campaign chooser185, infantry core186 and source bindings191 have
+merged. Source bindings191 merged as `44bbe8e10a1e786f22b6f6f66416f590b24836a0`
+at reviewed head `f426be2bccd15763bdf7ed330ce593c30543862a`, with1,040 tests,
+hosted checks and [source review](https://github.com/lictl/WebRA2/pull/191#pullrequestreview-5165532650)
+plus [distribution review](https://github.com/lictl/WebRA2/pull/191#pullrequestreview-5165635412).
+Issue187 is closed within its source attachment catalog scope.
+
+Coordinator is integrating [cue PR192](https://github.com/lictl/WebRA2/pull/192)
+in `local/worktrees/mission-cues-integration`, branch `codex/188-mission-cues-integration`.
+The worker source at `94fc887f906bb0cd9e31a5473b58d2775cf7a576` has an independent
+coordinator review:11 focused tests, all67 native ranges/4,849 bytes,21,426 private
+raw-source assertions and1,484 additional generated catalogs/12,524 assertions.
+All0..701 alpha waypoints are checked for each profile. Shared notice/build/licensing integration and current-main composition pass1,051
+tests/types,162 documents/807 links,572 publication paths and67 code/license outputs
+from140 inputs. A separate exact-head distribution review precedes merge. Cue references and caller cursor have no playback or source dispatch authority.
+
+[Mission/world PR194](https://github.com/lictl/WebRA2/pull/194) is independently
+reviewed by mix_reader; root owns its source initialization and compound transaction
+implementation. browser_feasibility owns final corrected actual Chrome acceptance
+for [infantry PR190](https://github.com/lictl/WebRA2/pull/190); technical review is green
+at `c41642341fa35395816d1f3cade01ccfd85b19b9`, while browser completion remains pending.
+Keep issues180/178 open through that gate. bootstrap_review owns the next
+[profile waypoint execution audit193](https://github.com/lictl/WebRA2/issues/193).
+[Lifecycle182](https://github.com/lictl/WebRA2/issues/182) still requires physical
+attachment integration beyond its merged VM controls. No original mission is playable.
 
 Recruitment integrates the complete source TaskForce selector, append-only claim and
 release history, persistent Flash50 and compound save/replay. Source and shared-runtime
@@ -126,9 +135,16 @@ Fresh438-file reads find2/62 local declarations and one true initial local per
 Allied opening;432 independent raw-source comparisons pass. Native continuation/reset
 order remains unverified; the explicit new-campaign policy and full-checkpoint restore
 are documented in the [compound report](mission-world.md). Both complete original
-mission authorities remain null. Composed validation passes1050 tests/types,
-162 documents/811 links,569 publication paths and67 code/license outputs from140
-inputs. Independent exact-head review and hosted checks follow.
+mission authorities remain null. Original pre-composition validation passes1,050 tests/types,162 documents/811 links,
+569 publication paths and67 outputs. Independent corrected-source review at
+`9fe3a8b1cc5a717353845629f41d77b509c6539f` adds2,944 generated assertions and
+1,028 separate raw-source comparisons; [final source review](https://github.com/lictl/WebRA2/pull/194#pullrequestreview-5165798787)
+and hosted34465156760 pass. The byte-trim finding is fixed with real Latin-1 fixtures.
+Current composition includes cue192, merged as `67228891f8bab824df4f7f3c37d2659d84555e2e`,
+with cumulative source notices; final composition review/checks precede merge.
+Root continues source-authorized cue dispatch195 in a separate worktree; mix_reader
+then owns audio source binding196, bootstrap_review waypoint audit193, and
+browser_feasibility the final infantry190 browser report. No human input is needed.
 
 Source [binding PR191](https://github.com/lictl/WebRA2/pull/191) is in final composition
 in `local/worktrees/mission-bindings-integration`, branch

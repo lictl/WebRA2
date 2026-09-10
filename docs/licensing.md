@@ -310,3 +310,9 @@ are GPL-3.0-or-later. The [mission/world notice](../packages/sim/MISSION_WORLD_P
 records their native initialization evidence, new-campaign policy and runtime limits;
 it accompanies the bundle. These adapters do not establish complete mission execution
 or original campaign continuation.
+
+The bounded mission cue reference compiler, contracts and caller-driven cursor
+are original GPL-3.0-or-later modules. The [cue notice](../packages/content/MISSION_CUES_PROVENANCE.md)
+records paired source/native evidence, primary layout leads and unresolved playback
+boundaries. Distribution includes that notice and the existing INI/CSF/GPL notices;
+no retail media, localized source strings or native listings are embedded.
