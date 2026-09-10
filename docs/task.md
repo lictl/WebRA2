@@ -70,11 +70,14 @@ unsupported reasons remain; original combat is not playable. Root merged the rev
 actor state and140 corrected weapon graph, preserving both distribution notices.
 The new placement helper admits only authenticated zero-rank, ground infantry/unit
 rows without follower links. The integrated root checkpoint passes709 public
-tests,111docs/585links and44outputs/95inputs. Three original tests and a separate raw-source oracle
+tests,111docs/585links and44outputs/95inputs at7f6e34b. The later four-test
+placement correction bd814f2 passes its [independent review](https://github.com/lictl/WebRA2/pull/137#pullrequestreview-5162201463). A separate raw-source oracle
 check1,381 rows/9,681 scalar leaves and14 complete native ranges/3,660 bytes.
-Next join actor state and corrected weapons with genuine WorldContent, then require
-145 obstruction/impact context and146 animation-effect closure before enabling
-weapons. Privately verify source identity/admission/combat checkpoints before attack UI.
+The new source-bound combat roster now joins genuine WorldContent with actor,
+entity and weapon results; six tests and a private38,067-leaf composition oracle
+verify1,381row joins and44/69 initial-state candidates. It remains preparation only
+with canExecuteCombat=false. Require145 obstruction/impact context,146 animation
+effects and source-bound actor modifiers before enabling weapons. Privately verify source identity/admission/combat checkpoints before attack UI.
 The browser agent independently integrates complete ready voxel still parts.
 Team/script runtime and mission/world trigger integration follow these foundations.
 

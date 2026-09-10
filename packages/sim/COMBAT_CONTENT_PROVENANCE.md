@@ -32,3 +32,10 @@ field/buffer/decimal/rank observations are pinned in the
 explained in [the placement policy](../../docs/world-combat.md#initial-placement-admission).
 This helper reconstructs only the documented ordinary initial-state subset;
 no assembly, retail placement data or external implementation is copied.
+
+The original GPL [combat roster](src/combat-roster.ts) and
+[synthetic integration fixtures](../../tests/sim/combat-roster.test.ts) join the
+reviewed [combat actor initialization](../content/COMBAT_ACTORS_PROVENANCE.md),
+entity/weapon compilers and [world adapter](WORLD_CONTENT_PROVENANCE.md).
+Its initial-state status is deliberately distinct from executable combat
+capability. This integration adopts no additional external implementation.

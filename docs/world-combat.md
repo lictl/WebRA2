@@ -171,3 +171,51 @@ requirements still apply. Canonical private projections have hashes
 `25b306a521658cb0f6679225ca577c22f17063fec17d0c93b58bb4d7c261e2c5`
 (RA2) and `1c4d36f8dbb8f61ba47786f92d21c40fc884cfb55370adc94bafc605db49deb7`
 (YR); source rows and projections are not distributed.
+
+## Combat roster and world identity
+
+`compileCombatRoster({world,definitions,actors,weapons,capabilities})` joins five
+privately branded compiler results. Every source/profile/definition fingerprint,
+rule layer, house ID/index, source row, world entity ID, coordinate, owner and
+known initial-health value must agree. Typed placements are sorted by row ID;
+world entity IDs follow placement order. The adapter joins them by row ID rather
+than assuming their array positions agree. Limits bound types, links, placements,
+alliance pairs and logical work; aggregate canonical limits still apply.
+
+The immutable roster retains armor, source-selected initial ammunition, immunity,
+placement-tail facts and both ordered normal slots, including empty or unsupported
+slots. It never drops an unsupported primary weapon to make a secondary appear to
+be the original first choice. Unknown alliance initialization produces an explicit
+unsupported status and no usable pair list. Complete initial alliances retain
+directed owner IDs.
+
+`initial-state-ready` describes only the named initial-state prerequisites. It is
+independent of weapon-slot status and does not authorize execution. The roster
+always has `canExecuteCombat: false`; source-bound type/country/house/difficulty
+modifiers, animation effects, dynamic impact/obstruction, standing/subcell distance,
+firing delay and death behavior still require completion before model attachment.
+No world/model/save/replay identity is changed by preparing a roster.
+
+Six original fixture tests cover both profiles, row ordering, scalar/slot joins,
+initial rank/immunity/ammo/selector gates, directed and unresolved alliances,
+forged and mismatched source results, immutable publication and lower bounds.
+Private preparation lives under `local/combat-roster/`; the full source projections
+remain private. This adapter introduces no new native behavior claim.
+
+Fresh full-selection probes join all 811 RA2 and 570 YR placements. The initial
+subset contains 44 and 69 rows respectively, with 33 and 150 directed alliance
+pairs; all retail weapon slots remain non-executable under the current gates.
+The previous world hashes remain exact. An independent composition oracle matches
+38,067 projected scalar leaves, using separately reverified raw-INI actor and
+entity projections (355,693 actor leaves and 17,108 entity fields), while treating
+the previously reviewed world/navigation and weapon-capability results as inputs.
+It does not independently reimplement those upstream semantics. The raw-source
+oracles distinguish the selected-object source ID from the rule-layer map ID,
+even where they refer to the same physical mission bytes.
+
+Current roster fingerprints are
+`a20e18b44e2bea2748a1c71d7e2a18fb44140895ca3515ddf2cb04628138aaa3`
+(RA2) and `6e0aedcd73fcb05bc9cf41206a9b6e972f54ec18be1d1665040019b513fa89f0`
+(YR). The comparison scripts are `local/combat-roster/probe.mjs`,
+`local/combat-roster/oracle/{actor-oracle,entity-oracle}.py` and
+`local/combat-roster/roster-oracle.py`. Reproduction inputs and results stay ignored.
