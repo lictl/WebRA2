@@ -14,36 +14,49 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
-Current root [object combat PR207](https://github.com/lictl/WebRA2/pull/207), issue204,
-is in local/worktrees/mission-object-events, branch codex/204-mission-object-events.
-The genuine source adapter and VM/world dispatch are implemented; source review is
-in progress with browser_feasibility. The private world hit facts preserve existing
-public traces/save shapes. Events6/7/44/48 retain source family order, attacker-house
-matching and repeating death latches. The [working report](mission-object-events.md)
-and [dispatch census](analysis/mission-object-dispatch-census.json) distinguish the
-original synthetic runtime tests from private source/native checks. All6/19 opening
-references resolve; complete source preflight still has268/472 required diagnostics
-and neither original opening has authority. All25/48 eligible browser combat actors
-have supported callback context. The legacy comparison passes64 programs,1,536ticks
-and3,264 assertions with unchanged existing program/work/save identities.
+[Object combat PR207](https://github.com/lictl/WebRA2/pull/207) merged as
+3543b567d6c652ea0648a3f5832fbcee18156ddc, reviewed at
+581bb423061cf63791f1318105429b168a0829f1. Its
+[independent review](https://github.com/lictl/WebRA2/pull/207#pullrequestreview-5167032166)
+and hosted34476232295 pass with 1,145 public tests, 178 documents/887 links,
+630 publication paths and 72 outputs/145 inputs. Issue204 is closed within the
+initial object callback scope. The [report](mission-object-events.md) and
+[dispatch census](analysis/mission-object-dispatch-census.json) retain distinct
+source/native and original runtime evidence. Full opening authorities remain null
+with 268/472 required diagnostics; no original mission is fully playable.
+The separately recorded native YR replay still reproduces its pending478 and
+terminal753 states with the new private health observations.
 
-[Audio decoder PR209](https://github.com/lictl/WebRA2/pull/209), issue205, is implemented
-by mix_reader at c413d23fc5ba4e29236ad0d2e06f8501fd2a980c; bootstrap_review owns
-independent exact-head review. Public1,126 tests pass, and149 private decodes match
-9,961,462 scalar FFmpeg samples; one malformed stereo tail remains explicitly rejected.
-[Control groups PR208](https://github.com/lictl/WebRA2/pull/208), issue206, is implemented
-at d76df3c01cd47908140a7b7624d531f106115390 with1,125 public tests and actualChrome
-RA2/YR acceptance at unchanged source2b3ad0e. It merged as
-86f736da07ed3d8718f8e3c2b466ab6fd34246bd after the
+Coordinator prepares [audio decoder PR209](https://github.com/lictl/WebRA2/pull/209),
+issue205, in local/worktrees/audio-decode-integration, local branch
+codex/205-audio-decode-integration. All six author files remain exact
+c413d23fc5ba4e29236ad0d2e06f8501fd2a980c. The
+[source review](https://github.com/lictl/WebRA2/pull/209#pullrequestreview-5167018438)
+passes with 1,126 public tests, 2,933 additional reviewer assertions, 144 native
+checks over 22 ranges/5,328 bytes, five primary-source pins and 149 private decodes
+matching 9,961,462 scalar FFmpeg values. One malformed stereo tail is rejected.
+The root composition includes main207 and adds the exact decoder GPL notice,
+build exact-copy check, licensing record and this handoff. All four conflicts
+were confined to those root-owned files and resolved by retaining both notices
+and the current handoff. Final full checks and composition review are pending.
+
+[Control groups PR208](https://github.com/lictl/WebRA2/pull/208) merged as
+86f736da07ed3d8718f8e3c2b466ab6fd34246bd, reviewed at
+d76df3c01cd47908140a7b7624d531f106115390 after 1,125 public tests and actual Chrome
+RA2/YR acceptance at unchanged source2b3ad0e. Its
 [independent review](https://github.com/lictl/WebRA2/pull/208#pullrequestreview-5166969079)
-and hosted34475171792 passed. Issue206 is closed; PR207 includes the clean UI merge.
-The user continues to preferChrome during development (D17).
+and hosted34475171792 pass. Issue206 is closed. Development testing remains focused
+on Chrome (D17).
 
-Next root slice: compose reviewed changes and their exact GPL notices; then connect
-source team actions to one shared world/team tick owner. mix_reader is performing a
-read-only assessment of existing activation/recruit/spawn contracts before issue
-scope is fixed. Root owns shared contracts/configuration/task and merges. No human
-input is needed. No original mission is fully playable yet.
+Next [team transaction210](https://github.com/lictl/WebRA2/issues/210): mix_reader
+owns new genuine source action coverage; browser_feasibility owns the new common
+team context/transaction, after agreeing the API with root. Root owns existing
+VM/world/shared contract changes and final integration. The existing standalone
+spawn/recruit schedulers cannot be nested because each advances the world. The new
+compound path must share membership, ordered requests and exactly one world tick.
+Retain all unsupported automatic/team/script/dynamic actor contexts. No human input
+is needed. Source callbacks, media preparation and team components alone do not
+confer full original mission authority.
 
 Cell-entry202 merged as 5430a7482733d93c94074fe826c7ab97b33f6ce9, reviewed at
 31f775811e733889ba474e51f5b9a876c8620273. Its

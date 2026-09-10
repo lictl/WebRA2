@@ -339,3 +339,11 @@ GPL-3.0-or-later work. Distribution includes the [object event notice](../packag
 and the updated mission/world notices. Pure world/combat observation bookkeeping
 and its original fixtures retain MIT notices. No retail payload, waveform, geometry
 or native executable listing accompanies the distribution.
+
+The bounded mission PCM/IMA decoder adapts the pinned GPL-3.0-or-later XCC
+tables, per-bit arithmetic and block layout under the
+[decoder notice](../packages/formats/MISSION_AUDIO_DECODE_PROVENANCE.md). The
+original ownership, bounds and metadata code uses the same license. Distribution
+copies that exact notice, including corresponding-source obligations and the
+separate primary/native evidence. FFmpeg remains a private independent comparison
+tool; no FFmpeg executable or retail waveform is distributed.
