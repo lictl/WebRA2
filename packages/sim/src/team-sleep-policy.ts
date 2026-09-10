@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Original bounded Sleep policy. Source/native scope: ../TEAM_SLEEP_PROVENANCE.md.
 import { WORLD_LIMITS, worldInteger, worldList, worldRecord } from './world-values.ts';
+import { type TeamFlashInstruction, teamFlashInstruction } from './team-recruitment-flash.ts';
 
 export const TEAM_SLEEP_POLICY = 'webra2-team-sleep-stationary-1' as const;
 export const TEAM_SLEEP_LIMITS = Object.freeze({ members: 64, steps: 50, orders: 64 });
 export interface TeamSleepInstruction { readonly opcode: 11; readonly mission: 0; readonly sourceSlot: number }
-export type TeamSleepFlowInstruction = Readonly<{ opcode: 3 }> | Readonly<{ opcode: 6; target: number }> | TeamSleepInstruction;
+export type TeamSleepFlowInstruction = Readonly<{ opcode: 3 }> | Readonly<{ opcode: 6; target: number }> | TeamSleepInstruction | TeamFlashInstruction;
 export interface TeamSleepFlow { readonly reachableSteps: readonly number[]; readonly canFinish: boolean }
 export interface TeamSleepMember {
   readonly entityId: number; readonly health: number | null; readonly goal: number | null;
@@ -37,6 +38,11 @@ export function teamSleepFlow(steps: readonly TeamSleepFlowInstruction[]): TeamS
     const d = Object.getOwnPropertyDescriptor(s, 'opcode');
     if (!d || !('value' in d)) fail('instruction');
     if (d.value === 3) next.push(i + 1);
+    else if (d.value === 50) {
+      const duration = Object.getOwnPropertyDescriptor(s, 'duration'), slot = Object.getOwnPropertyDescriptor(s, 'sourceSlot');
+      if (!duration || !('value' in duration) || !slot || !('value' in slot) || !teamFlashInstruction(50, duration.value, slot.value)) fail('flash');
+      next.push(i + 1);
+    }
     else if (d.value === 6) {
       const target = Object.getOwnPropertyDescriptor(s, 'target');
       if (!target || !('value' in target)) fail('instruction');
