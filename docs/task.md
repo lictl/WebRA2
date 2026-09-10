@@ -20,7 +20,8 @@ reviewed [core/source-preparation checkpoint PR137](https://github.com/lictl/Web
 browser agent [RTS selection and group orders #149](https://github.com/lictl/WebRA2/issues/149);
 format agent [actor death prerequisites #155](https://github.com/lictl/WebRA2/issues/155),
 after independent review of the shared team destination helper;
-simulation agent [team movement runtime #152](https://github.com/lictl/WebRA2/issues/152).
+simulation agent [source team activation/spawning #160](https://github.com/lictl/WebRA2/issues/160),
+after the reviewed [team runtime PR158](https://github.com/lictl/WebRA2/pull/158).
 The owner unlocked the Mac and the browser tool confirms access. Per the new D17
 priority, use Chrome for development acceptance and defer full Firefox/Edge/Safari
 end-to-end checks until the remaining implementation is finished. No essential
@@ -31,6 +32,8 @@ Recent reviewed merges:
 
 | Component | PR / merge SHA | Exact-head evidence |
 | --- | --- | --- |
+| Source-bound campaign house modifiers | [159](https://github.com/lictl/WebRA2/pull/159), `8f9b4b08340dc80fa0ec4636de38cc1b2cc9cc12` | 780 checks; [independent review](https://github.com/lictl/WebRA2/pull/159#pullrequestreview-5162842856); 999 private numerical comparisons; explicit difficulty indices, preparation only |
+| Existing-member team transactions | [158](https://github.com/lictl/WebRA2/pull/158), `ec904eff30b59662b19607096cf6f282ea5abb21` | 796 checks; root source review and [separate integration review](https://github.com/lictl/WebRA2/pull/158#pullrequestreview-5162862680); source move/jump, compound saves/replay; spawning remains160 |
 | Native combat arithmetic | [157](https://github.com/lictl/WebRA2/pull/157), `48bb1908116166e30c01c537923977ba90a77e0c` | 772 tests; independent source and final integration COMMENT reviews on PR; numerical stages only |
 | Shared group destinations | [156](https://github.com/lictl/WebRA2/pull/156), `f7ece4216bc520d889a8350407c5dabcb383e055` | 765 tests; independent source and final distribution COMMENT reviews on PR; explicit WebRA2 policy |
 | Native random primitive | [154](https://github.com/lictl/WebRA2/pull/154), `a35c989b4d35f3b635de54d7c3c20dc6ef6d9130` | 759 tests; independent source and [integration review](https://github.com/lictl/WebRA2/pull/154#pullrequestreview-5162531908); explicit state only, global sequencing remains open |
@@ -133,10 +136,10 @@ the coordinator after independent exact-head COMMENT review and successful check
 
 | Role | Current work and exclusive paths | Branch / private worktree |
 | --- | --- | --- |
-| Coordinator | #147 actor modifiers/firing/death; shared configuration/handoff and reviews | `codex/147-house-modifiers` at root |
+| Coordinator | #147 actor modifiers/firing/death; shared configuration/handoff and reviews | `codex/147-actor-runtime` at root |
 | browser_feasibility | #149 RTS selection/group orders/HUD; apps/web/**, tests/browser/**, tests/web-ui/** and focused docs; sole native UI owner | `codex/149-world-controls`, `local/worktrees/world-controls` |
-| mix_reader | Shared group planner review, then #155 actor death prerequisites; new content source/tests/provenance | `codex/155-combat-death`, `local/worktrees/combat-death` (creating); preserved `local/worktrees/native-random` |
-| bootstrap_review | #152 source-bound team movement transactions and reusable group destination policy; new sim source/tests/provenance | `codex/152-team-runtime`, `local/worktrees/team-runtime` |
+| mix_reader |  #155 actor death prerequisites; new content source/tests/provenance | `codex/155-combat-death`, `local/worktrees/combat-death`; preserved `local/worktrees/native-random` |
+| bootstrap_review | #160 source-defined activation/spawning; new content/sim source/tests/provenance; existing world/contracts remain coordinator-owned | `codex/160-team-spawning`, `local/worktrees/team-spawning`; preserve reviewed `local/worktrees/team-runtime` |
 
 Voxel UI [PR144](https://github.com/lictl/WebRA2/pull/144) merged after exact-head
 source and final browser-evidence review. All four actual browser families passed
@@ -443,3 +446,27 @@ completion of a worker wave or a rendered map is not a stopping point.
 
 For final integration PRs, verify merge SHAs live. Record a PR's own final merge SHA
 in GitHub until the next substantive handoff update, avoiding metadata-only cycles.
+
+## Active continuation after PR158/159
+
+Reviewed main is `ec904eff30b59662b19607096cf6f282ea5abb21`. House modifier
+preparation has complete explicit difficulty choices and source identities; current
+actor/veteran eligibility, firing timing and executable composition remain147.
+Root branch147-actor-runtime proceeds with these and integration of reviewed
+145/146/151/157 plus conditional death prerequisites155 into132.
+
+PR153 Chrome acceptance is complete at frozen runtime
+`adbd0e7b694c9d39c9e164f4a44c107dd3344713` on4178, with final main/notice
+integration and exact-head evidence review in progress. Root independently matched
+all48 built/frozen/HTTP artifact hashes. The captured request log has19 total GETs
+(18 successful code/style requests and one favicon404), with no asset endpoint or
+body. Private source group/save/replay probes reproduce both openings; actual Chrome
+actions remain author-observed evidence. Modifier-drag combinations are synthetic
+tests only; other-browser development reruns remain deferred per D17.
+
+New issue160 owns source-defined team activation and spawning. Its first step is
+native action4/7/80 operand/context evidence plus a reviewed dynamic-world insertion
+contract, followed by source spawn/move/compound persistence. Do not fabricate map
+placements, preallocate dead actors as a substitute for spawning, or skip unsupported
+team scripts. Seven YR opening templates already admit the existing-member move/jump
+subset; RA2 needs additional opcodes. These counts do not imply mission playability.
