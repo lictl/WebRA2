@@ -22,6 +22,7 @@ This file is the product decision record; `task.md` is the work-state record.
 | D13 | All languages actually present in the supplied installation at launch | Census playable language packs; multilingual manuals alone do not prove localized game assets |
 | D14 | Accept one coordinator plus three workers, incremental milestones, no promised completion date | Default maximum is four active agents; no monetary budget or paid service authorization was specified |
 | D15 | Agents must use GitHub integration or `gh` CLI to create issues, PRs, reviews and merges so work is traceable | Every substantive slice follows the linked issue → branch/PR → review → validated merge workflow; record URLs and merge SHA in the handoff |
+| D17 | During development, focus browser testing on Chrome for speed; defer full Firefox/Edge/Safari end-to-end tests until the remaining implementation is finished (owner update 2026-09-10) | Chrome is the active development acceptance target; all four desktop families remain final release scope |
 | D16 | Commit changes during implementation; record blockers as GitHub issues; involve humans only when necessary; proceed with the accepted plan | Agents resolve routine issues autonomously, commit coherent work and preserve blocker evidence; execution starts with planning bootstrap followed by M0 |
 
 ## Completed question round
