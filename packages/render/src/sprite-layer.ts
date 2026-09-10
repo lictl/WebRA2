@@ -206,9 +206,37 @@ function prepareSpriteBatchData(batch: SpriteBatch, viewport: TerrainViewport, c
 
 /** Presentation-only snapshot with owned palette values and lazily copied, resolved rasters. */
 export function describeSpriteRasters(batch: SpriteBatch, coordinate: number) {
+  // This bridge snapshots descriptors before the CPU validator, so proxy get/iterator traps
+  // cannot substitute unchecked geometry between validation, placement and retained picking.
+  const capture = (value: unknown, keys: readonly string[]): Record<string, unknown> => {
+    fields(value, keys); const result: Record<string, unknown> = {};
+    for (const key of keys) result[key] = Object.getOwnPropertyDescriptor(value, key)!.value;
+    return result;
+  };
+  const captureArray = (value: unknown, maximum: number): unknown[] => {
+    if (!Array.isArray(value) || Object.getPrototypeOf(value) !== Array.prototype) fail('sprite-array');
+    const length = Object.getOwnPropertyDescriptor(value, 'length')?.value;
+    integer(length, 0, maximum, 'sprite-array');
+    if (Reflect.ownKeys(value).length !== length + 1) fail('sprite-array');
+    const result: unknown[] = [];
+    for (let i = 0; i < length; i++) {
+      const d = Object.getOwnPropertyDescriptor(value, String(i));
+      if (!d || !('value' in d) || !d.enumerable) fail('sprite-array'); result.push(d.value);
+    }
+    return result;
+  };
+  const captureObjects = (value: unknown, maximum: number): SpriteObject[] => captureArray(value, maximum).map(value => {
+    const o = capture(value, ['id', 'frameId', 'paletteId', 'x', 'y', 'anchorX', 'anchorY', 'depth']);
+    o.depth = capture(o.depth, ['base', 'rowStep', 'terrainTie']); return o as unknown as SpriteObject;
+  });
+  const input = capture(batch, ['atlas', 'palettes', 'objects']), atlas = atlases.get(input.atlas as SpriteAtlas);
+  if (!atlas) fail('sprite-atlas');
+  const captured: SpriteBatch = { atlas: input.atlas as SpriteAtlas,
+    palettes: captureArray(input.palettes, atlas.cap.palettes).map(p => capture(p, ['id', 'rgba', 'remap', 'transparentIndex']) as unknown as SpritePalette),
+    objects: captureObjects(input.objects, atlas.cap.objects) };
   const neutral: TerrainViewport = { cameraX: 0, cameraY: 0, zoom: 1, width: 1, height: 1, backgroundRgba: [0, 0, 0, 0] };
-  const data = prepareSpriteBatchData(batch, neutral, coordinate, 64 * 1024 * 1024);
-  const owned: SpriteBatch = { atlas: batch.atlas, objects: data.placements.map(p => p.object),
+  const data = prepareSpriteBatchData(captured, neutral, coordinate, 64 * 1024 * 1024);
+  const owned: SpriteBatch = { atlas: captured.atlas, objects: data.placements.map(p => p.object),
     palettes: [...data.palettes].map(([id, p]) => ({ id, ...p })) };
   const resources = new Map<string, { key: string; width: number; height: number; copy(): { rgba: Uint8Array; depth: Int32Array; minDepth: number; maxDepth: number } }>();
   for (const p of data.placements) {
@@ -230,10 +258,8 @@ export function describeSpriteRasters(batch: SpriteBatch, coordinate: number) {
   return { resources: [...resources.values()], objects: owned.objects,
     prepare(objects: readonly SpriteObject[], viewport: TerrainViewport, samples: number) {
       // Dropping all users of a prepared palette is valid for an animation frame.
-      array(objects, atlases.get(owned.atlas)!.cap.objects);
-      for (const object of objects) fields(object, ['id', 'frameId', 'paletteId', 'x', 'y', 'anchorX', 'anchorY', 'depth']);
-      const used = new Set(objects.map(o => o.paletteId));
-      const prepared = prepareSpriteBatchData({ ...owned, palettes: owned.palettes.filter(p => used.has(p.id)), objects }, viewport, coordinate, samples);
+      const capturedObjects = captureObjects(objects, atlas.cap.objects), used = new Set(capturedObjects.map(o => o.paletteId));
+      const prepared = prepareSpriteBatchData({ ...owned, palettes: owned.palettes.filter(p => used.has(p.id)), objects: capturedObjects }, viewport, coordinate, samples);
       return { samples: prepared.samples, placements: prepared.placements.map(p => ({ object: p.object,
         metadata: p.frame.metadata, left: p.left, top: p.top, x0: p.x0, y0: p.y0, x1: p.x1, y1: p.y1 })) };
     },
