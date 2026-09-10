@@ -1,6 +1,7 @@
 # Infantry passage provenance
 
-The original TypeScript catalog and occupancy helper are licensed
+The original TypeScript catalog, occupancy helper and `src/world-infantry-passage.ts`
+binding are licensed
 `GPL-3.0-or-later`. They compose the reviewed entity, actor/alliance and world
 compilers. No retail code, source row, image or extracted asset is distributed.
 
@@ -55,3 +56,9 @@ bridge layers, unsupported source slots/locomotors and unverified current state
 remain whole-cell blockers. Tag metadata is retained; this component does not
 execute tag triggers. See the [component report](../../docs/infantry-passage.md)
 for the core integration and acceptance boundaries.
+
+The coordinator's world model/save adapter is an original extension of the existing
+MIT world implementation. The combined distribution retains both component notices.
+Version7 uses the catalog only after a complete unbound model identity join, and
+saves chosen subcells and active reservations. See the [core integration report](../../docs/world-infantry-passage.md)
+for death/Stop, work accounting and prior-save boundaries; these are D03 policies.

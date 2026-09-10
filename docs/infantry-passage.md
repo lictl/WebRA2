@@ -2,9 +2,8 @@
 
 Status: WORKING under [issue180](https://github.com/lictl/WebRA2/issues/180),
 [source/helper PR186](https://github.com/lictl/WebRA2/pull/186).
-The source catalog and pure occupied-cell helper are implemented. Existing world
-model binding, versioned saves, movement/core transactions and Chrome acceptance
-remain coordinator integration work. This checkpoint does not enable passage in
+The source catalog and pure occupied-cell helper are implemented. The coordinator has added [world binding and saved movement](world-infantry-passage.md);
+independent composed review and Chrome acceptance remain integration gates. This checkpoint does not enable passage in
 the browser or close the original route issue.
 
 `compileInfantryPassageCatalog({world,definitions,actors,rules,mission})` requires
@@ -33,7 +32,7 @@ scripted location changes require a new source-bound runtime extension.
 
 ## Saved slots and atomic integration seam
 
-The proposed optional `WorldState.infantrySlots` is sorted by `entityId`, with
+The optional `WorldState.infantrySlots` is sorted by `entityId`, with
 one `{entityId,subcell,reservedSubcell}` row per catalog-supported actor. The last
 slot remains present after retirement; the reservation becomes null. A published
 `progress > 0` requires a route head and reserved slot; zero progress has no

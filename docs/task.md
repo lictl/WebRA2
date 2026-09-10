@@ -55,23 +55,40 @@ Action55 is radar, not forcing; both openings have zero action22 occurrences,
 and only RA2's opening has one action12. Neither whole opening becomes executable;
 automatic source attachment creation/deletion remains outside this VM.
 
-Ground [PR183](https://github.com/lictl/WebRA2/pull/183) is WORKING in
-`local/worktrees/ground-integration`, branch `codex/178-ground-integration`.
-Worker source21f6cae is preserved; root7bba382 adds genuine world/source-combat
-joins, original flat shot-context exclusions, three integration tests and the
-bundle notice. On main5459dc1,988 tests/types,152 docs/773 links,526 publication
-paths and62 code/license outputs from131 inputs pass. Main184 is then merged;
-composed checks and independent root-adapter review are pending. Root reproduces
-both private graph fingerprints and independently rehashes all38 native ranges /
-3105 bytes with complete code endpoints. The author's separate Python raw reader
-reproduces all430 TMP selections,21816 cells,94901 class rows and718726 edges.
-The original RA2 occupied component expands90 to701 cells but reaches none of24
-currently supported firing cells; this is not the default-player acceptance gate.
-[Infantry passage180](https://github.com/lictl/WebRA2/issues/180) has source/helper
-checkpoint620a83a and a private available-slot result through the original allied
-blocker. Root world/save/reservation integration and actual Chrome remain next.
-Campaign chooser179 separately owns retained-file worker/UI/loader edits; no
-original mission is playable and no human input is currently required.
+Ground [PR183](https://github.com/lictl/WebRA2/pull/183) merged as
+`059d57f1d71210ce37cb5b54342d666db0354520`, reviewed head
+`097783adf84d945c8a00527ec5f979e2c1f63cbc`, after996 tests and hosted checks.
+The separate [coordinator-adapter review](https://github.com/lictl/WebRA2/pull/183#pullrequestreview-5164963814)
+adds2030 assertions and both fresh private source-world movement/shot/restore/replay
+probes. Worker source and root adapter have distinct recorded reviewers. All actors,
+static blockers and inherited flat shot exclusions remain.
+
+[Infantry passage PR186](https://github.com/lictl/WebRA2/pull/186) is WORKING in
+`local/worktrees/infantry-integration`, branch `codex/180-infantry-integration`.
+Worker6453cb2 source/helper has [independent review](https://github.com/lictl/WebRA2/pull/186#pullrequestreview-5165028486):
+986 original tests,26951 extra assertions,44 native ranges/11239 bytes and the
+private11865-assertion source oracle pass. Its pending-death correction preserves
+settled slots but blocks incoming reservations. Root adds the complete base-model
+composition proof, optional saved slots and engine7, navigation/reservations,
+Stop/retarget/death/rollback, seven integration tests and distribution notice.
+Current full1013 tests/types pass before final lazy-index/docs integration; fresh
+composed checks and independent core review follow. The [core report](world-infantry-passage.md)
+records D03 dual occupancy, dying-edge cancellation and work accounting. The old
+world policies retain their exact behavior; source combat keeps flat shot restrictions.
+Private fresh default RA2 movement now reaches a supported shot through allied
+slots and completes death/save/replay, retaining all811 actors/1108 footprint cells.
+This is a headless source result; source artifacts stay under ignored
+`local/worktrees/infantry-integration/local/bridge/`. YR comparison is in progress.
+Actual original-player Chrome passage and changed-slot presentation remain next.
+
+Campaign [PR185](https://github.com/lictl/WebRA2/pull/185) is independently reviewed
+by bootstrap_review while browser_feasibility owns actual Chrome acceptance.
+Corrected b72388f fixes a reentrant duplicate field-orders mount; frozen4183 retains
+its manifest and private evidence. Legacy4182 remains pre-fix evidence. Both RA2
+factions reach ready scenes; YR/lifecycle acceptance is ongoing. Root has not changed
+its exclusive loader/UI paths. No original mission is playable and no essential
+human input is required. Continue the authorized campaign implementation after this
+wave; do not stop at these component merges.
 
 [Sleep PR171](https://github.com/lictl/WebRA2/pull/171) merged as
 `1025eb2b06908372b562d6f6e66aec6e990bef03` after923 checks and its
