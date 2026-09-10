@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: MIT
 // Original bounded cell-combat policy. A native adapter must admit supported capabilities explicitly.
+import { isInfantryFiringProgram, type InfantryFiringProgram } from '../../content/src/combat-initial-runtime.ts';
 import { bindOrdinaryDeathRules, ORDINARY_DEATH_POLICY, type OrdinaryDeathRules, type OrdinaryDeathBinding } from './ordinary-death-rules.ts';
 import { bindOrdinaryCombatRules, ORDINARY_COMBAT_POLICY, type OrdinaryCombatRules, type OrdinaryCombatBinding } from './ordinary-combat-rules.ts';
 import { worldClone, worldFail, worldHash, worldInteger, worldList, worldRecord, worldSymbol, WORLD_LIMITS as W } from './world-values.ts';
 
+export const INFANTRY_COMBAT_POLICY = 'webra2-standing-infantry-combat-1' as const;
+export const INFANTRY_COMBAT_ENGINE_VERSION = 'webra2-world-5' as const;
 export const COMBAT_POLICY = 'webra2-cell-combat-1' as const;
 export const COMBAT_ENGINE_VERSION = 'webra2-world-2' as const;
 export const COMBAT_LIMITS = Object.freeze({ weapons: 1024, actors: W.entities, slots: 2, impacts: 4096,
@@ -24,11 +27,14 @@ export interface CombatModelInput {
   readonly weapons: readonly CombatWeapon[]; readonly actors: readonly CombatActor[];
   readonly ordinary?: OrdinaryCombatRules;
   readonly ordinaryDeath?: OrdinaryDeathRules;
+  readonly infantryFiring?: readonly InfantryFiringProgram[];
   /** Directed source-owner → target-owner alliances. Same-owner targeting is always forbidden. */
   readonly allies: readonly Readonly<{ playerId: number; allyId: number }>[];
 }
-export interface CombatModel extends CombatModelInput { readonly policy: typeof COMBAT_POLICY | typeof ORDINARY_COMBAT_POLICY | typeof ORDINARY_DEATH_POLICY; readonly sha256: string }
+export interface CombatModel extends CombatModelInput { readonly policy: typeof COMBAT_POLICY | typeof ORDINARY_COMBAT_POLICY | typeof ORDINARY_DEATH_POLICY | typeof INFANTRY_COMBAT_POLICY; readonly sha256: string }
 const models = new WeakSet<object>();
+const firingBindings = new WeakMap<object, readonly InfantryFiringProgram[]>();
+export function combatInfantryPrograms(model:CombatModel):readonly InfantryFiringProgram[]|undefined { assertCombatModel(model);return firingBindings.get(model); }
 const deathBindings = new WeakMap<object, OrdinaryDeathBinding>();
 export function combatDeathBinding(model: CombatModel): OrdinaryDeathBinding | undefined { assertCombatModel(model); return deathBindings.get(model); }
 const ordinaryBindings = new WeakMap<object, OrdinaryCombatBinding>();
@@ -36,9 +42,10 @@ export function combatOrdinaryBinding(model: CombatModel): OrdinaryCombatBinding
 export function assertCombatModel(model: CombatModel): void { if (!models.has(model)) worldFail('combat-model'); }
 
 export function createCombatModel(input: CombatModelInput): CombatModel {
-  const hasOrdinary=!!input&&Object.hasOwn(input,'ordinary'),hasDeath=!!input&&Object.hasOwn(input,'ordinaryDeath');
+  const hasOrdinary=!!input&&Object.hasOwn(input,'ordinary'),hasDeath=!!input&&Object.hasOwn(input,'ordinaryDeath'),hasFiring=!!input&&Object.hasOwn(input,'infantryFiring');
+  if(hasFiring&&!hasDeath)worldFail('infantry-requires-death-combat');
   if(hasDeath&&!hasOrdinary)worldFail('death-requires-numerical-combat');
-  const r = worldRecord(input, ['weapons', 'actors', 'allies',...(hasOrdinary?['ordinary']:[]),...(hasDeath?['ordinaryDeath']:[])]), ids = new Set<string>();
+  const r = worldRecord(input, ['weapons', 'actors', 'allies',...(hasOrdinary?['ordinary']:[]),...(hasDeath?['ordinaryDeath']:[]),...(hasFiring?['infantryFiring']:[])]), ids = new Set<string>();
   const weapons = worldList(r.weapons, COMBAT_LIMITS.weapons).map(value => {
     const w = worldRecord(value, ['id', 'damage', 'range', 'minimumRange', 'reloadTicks', 'burst', 'burstDelayTicks', 'delivery', 'speed', 'ground', 'air', 'verses']);
     const id = worldSymbol(w.id); if (ids.has(id)) worldFail('combat-duplicate-weapon'); ids.add(id);
@@ -75,9 +82,19 @@ export function createCombatModel(input: CombatModelInput): CombatModel {
   }).sort((a, b) => a.playerId - b.playerId || a.allyId - b.allyId);
   const ordinary=hasOrdinary?bindOrdinaryCombatRules(r.ordinary as OrdinaryCombatRules,actors,weapons):undefined;
   const death=hasDeath?bindOrdinaryDeathRules(r.ordinaryDeath as OrdinaryDeathRules,actors,weapons):undefined;
-  const common = { policy: death ? ORDINARY_DEATH_POLICY : ordinary ? ORDINARY_COMBAT_POLICY : COMBAT_POLICY, ...(death ? {ordinaryDeath:r.ordinaryDeath as OrdinaryDeathRules} : {}), ...(ordinary ? {ordinary:r.ordinary as OrdinaryCombatRules} : {}), weapons: Object.freeze(weapons), actors: Object.freeze(actors), allies: Object.freeze(allies) };
+  let firing:readonly InfantryFiringProgram[]|undefined;
+  if(hasFiring){
+    const seen=new Set<number>();firing=Object.freeze(worldList(r.infantryFiring,COMBAT_LIMITS.actors).map(value=>{
+      if(!isInfantryFiringProgram(value)||seen.has(value.actorId))worldFail('infantry-program');seen.add(value.actorId);
+      worldInteger(value.fireUp,0,COMBAT_LIMITS.delay);
+      const a=actors.find(a=>a.entityId===value.actorId);if(!a||a.weapons.length!==1||a.layer!=='ground')worldFail('infantry-program-actor');
+      return value;
+    }).sort((a,b)=>a.actorId-b.actorId));
+    if(!firing.length||actors.some(a=>a.weapons.length&&!seen.has(a.entityId)))worldFail('infantry-program-coverage');
+  }
+  const common = { ...(firing?{infantryFiring:firing}:{}), policy: firing ? INFANTRY_COMBAT_POLICY : death ? ORDINARY_DEATH_POLICY : ordinary ? ORDINARY_COMBAT_POLICY : COMBAT_POLICY, ...(death ? {ordinaryDeath:r.ordinaryDeath as OrdinaryDeathRules} : {}), ...(ordinary ? {ordinary:r.ordinary as OrdinaryCombatRules} : {}), weapons: Object.freeze(weapons), actors: Object.freeze(actors), allies: Object.freeze(allies) };
   worldClone(common);
-  const model = Object.freeze({ ...common, sha256: worldHash(common) }); models.add(model); if(ordinary)ordinaryBindings.set(model,ordinary); if(death)deathBindings.set(model,death); return model;
+  const model = Object.freeze({ ...common, sha256: worldHash(common) }); models.add(model); if(ordinary)ordinaryBindings.set(model,ordinary); if(death)deathBindings.set(model,death); if(firing)firingBindings.set(model,firing); return model;
 }
 
 export function combatDamage(weapon: CombatWeapon, armor: number): number {
