@@ -10,7 +10,8 @@ import { isFoundationOccupancy, type FoundationOccupancy } from '../../content/s
 import type { RuntimeIni } from '../../content/src/runtime-ini.ts';
 import { canonicalText } from './canonical.ts';
 import { createNavigationGrid, navigationCell } from './navigation.ts';
-import { createWorldModel, worldAddress, worldHash, worldRecord, worldInteger, WORLD_LIMITS, type WorldModel, type WorldEntityDefinition, type WorldFootprint } from './world-model.ts';
+import { createWorldModel, type WorldModel, type WorldEntityDefinition, type WorldFootprint } from './world-model.ts';
+import { worldAddress, worldHash, worldRecord, worldInteger, WORLD_LIMITS } from './world-values.ts';
 
 export const WORLD_CONTENT_POLICY = 'webra2-opening-world-1' as const;
 export const WORLD_CONTENT_LIMITS = Object.freeze({ mapBytes: 16 * 1024 ** 2, entities: WORLD_LIMITS.entities,

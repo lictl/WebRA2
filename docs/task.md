@@ -14,17 +14,58 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
-Current wave: coordinator [dying-world lifecycle #170](https://github.com/lictl/WebRA2/issues/170)
-and [source combat #132](https://github.com/lictl/WebRA2/issues/132), joining reviewed
-numerical combat166 and ordinary human death165. The browser agent's
-[fresh actor/firing PR168](https://github.com/lictl/WebRA2/pull/168) merged after source and final distribution review; source attack integration remains147/132. The simulation
-agent continues [persistent team Sleep #169](https://github.com/lictl/WebRA2/issues/169)
-after [source reinforcement PR167](https://github.com/lictl/WebRA2/pull/167).
-The owner unlocked the Mac and the browser tool confirms access. Per the new D17
-priority, use Chrome for development acceptance and defer full Firefox/Edge/Safari
-end-to-end checks until the remaining implementation is finished. No essential
-human input is currently needed. Finish reviewed slices and continue through
-the accepted milestones; do not stop merely because a worker wave merges.
+Current wave: coordinator finishes [source combat132](https://github.com/lictl/WebRA2/issues/132)
+and [actor/firing closure147](https://github.com/lictl/WebRA2/issues/147) in
+[PR177](https://github.com/lictl/WebRA2/pull/177). The authenticated world6 binding,
+browser attack controls and corrected death retirement pass both bounded opening
+scenarios in actual Chrome. Independent technical review is by mix_reader;
+browser_feasibility records actual browser acceptance separately from source authorship.
+The next parallel work is [CreateTeam recruitment175](https://github.com/lictl/WebRA2/issues/175)
+with its proved Flash50 dependency, [ground traversal178](https://github.com/lictl/WebRA2/issues/178),
+and a [local-content campaign chooser179](https://github.com/lictl/WebRA2/issues/179).
+
+[Sleep PR171](https://github.com/lictl/WebRA2/pull/171) merged as
+`1025eb2b06908372b562d6f6e66aec6e990bef03` after923 checks and its
+[independent review](https://github.com/lictl/WebRA2/pull/171#pullrequestreview-5163583521).
+[Firing core PR173](https://github.com/lictl/WebRA2/pull/173) merged as
+`b9aa45a0228dd9733c9ba182652c5246ffeaf3f6` after930 checks and its
+[final independent review](https://github.com/lictl/WebRA2/pull/173#pullrequestreview-5163968992).
+[Source bridge PR174](https://github.com/lictl/WebRA2/pull/174) merged as
+`512e4776ea32b25937806819d88a2a1937f52507` after942 checks and its
+[final independent review](https://github.com/lictl/WebRA2/pull/174#pullrequestreview-5164053349).
+Both reviewed trees are integrated into177, preserving its genuine source binding.
+[GitHub blocker176](https://github.com/lictl/WebRA2/issues/176) is closed after
+normal merges recovered; no review or branch-protection bypass was used.
+
+[Source/UI PR177](https://github.com/lictl/WebRA2/pull/177) passes957 original
+tests, type checks,147 documents/752 links,506 publication paths and60 code/license
+outputs from130 inputs at `26d1b3a829450ab40f9188fe9eefed258690f51f`.
+The independent review found a target-selector reset;2e6f025 corrects it with an
+actual mounted-view fixture. Chrome4179 at9130616 then found that completed deaths
+and an initially zero-health YR placement invalidate the unchanged initial artwork
+count.34f4f86 adds explicit bounded retired object IDs joined to validated dead
+actors, preserves pending death artwork, and filters unused palettes. Original
+sprite/bridge and multipart voxel regressions pass; the independent technical review
+accepts this delta at150f5bb.
+Chrome acceptance now uses immutable4181 at26d1b3a, manifest
+`5775c5d17141972f47e1daf6bbdbbe07a3bfd0c93a8c33f0093afe279850582f`.
+The [Chrome report](analysis/source-combat-browser.md) records both profiles reaching
+completed death while the preview stays ready, exact pending Stop/restore and
+terminal replay hashes. RA2 additionally validates the exported replay file without
+changing the live world. These exported continuations start at pending checkpoints;
+they are not full launch-to-death command recordings. The [browser acceptance review](https://github.com/lictl/WebRA2/pull/177#pullrequestreview-5164386625)
+and [independent technical review](https://github.com/lictl/WebRA2/pull/177#pullrequestreview-5164236293)
+remain distinct. Failed9130616 evidence stays private as regression evidence.
+The default RA2 attacker's route gap is tracked separately in
+[traversal issue178](https://github.com/lictl/WebRA2/issues/178): private exhaustive
+reachability finds90 current cells and none of24 currently supported firing cells.
+Alternative-house combat tests do not close the original player campaign gate.
+
+The owner unlocked the Mac. D17 selects Chrome for development acceptance and
+defers full Firefox/Edge/Safari end-to-end checks until implementation is finished.
+No essential human input is currently needed. Continue through the accepted
+milestones; do not stop merely because a worker wave merges. General combat,
+mission triggers/teams, economy, AI and campaign completion are still unfinished.
 
 Recent reviewed merges:
 
@@ -142,10 +183,10 @@ the coordinator after independent exact-head COMMENT review and successful check
 
 | Role | Current work and exclusive paths | Branch / private worktree |
 | --- | --- | --- |
-| Coordinator | #170 source-bound infantry firing and attack integration #132/147 after reviewed172; shared contracts/handoff | root `codex/132-infantry-firing-world`; preserved `local/worktrees/team-spawning` and `local/worktrees/initial-firing` |
-| browser_feasibility | #147 fresh actor/standing fire source and scheduler PR168 merged; implements source combat bridge132; sole native UI owner | `codex/132-ordinary-infantry-bridge`, `local/worktrees/ordinary-infantry-bridge`; preserved `local/worktrees/initial-firing` |
-| mix_reader | Independent persistent Sleep171 source/runtime review | `local/reviews/initial-firing-168`; preserved `local/worktrees/ordinary-death` |
-| bootstrap_review | #169 persistent Sleep source policy and proposed shared adapter | new `codex/169-team-sleep` tree; preserved `local/worktrees/team-spawning` |
+| Coordinator | Source/UI177 merge, recruitment175 shared integration and independent source review; contracts/build/handoff | root `codex/132-source-attack-world`; `local/worktrees/recruitment-integration`, branch `codex/175-recruitment-integration` |
+| browser_feasibility | Completed actual Chrome177 evidence; next179 local campaign chooser; sole native UI owner | `local/worktrees/source-combat-browser`; preserved `local/worktrees/ordinary-infantry-bridge` |
+| mix_reader | Final independent177 review and178 source ground traversal | `local/reviews/source-combat-177`; `local/worktrees/ground-traversal`, branch `codex/178-ground-traversal` |
+| bootstrap_review |175 source recruitment/Flash and shared proposal, source review of root distribution only; next allied-infantry passage | `local/worktrees/team-recruitment`, branch `codex/175-team-recruitment`; preserved `local/worktrees/team-spawning` |
 
 Voxel UI [PR144](https://github.com/lictl/WebRA2/pull/144) merged after exact-head
 source and final browser-evidence review. All four actual browser families passed

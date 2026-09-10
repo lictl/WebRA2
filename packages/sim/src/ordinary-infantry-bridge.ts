@@ -15,7 +15,7 @@ import { combatActorFingerprint } from '../../content/src/combat-actor-values.ts
 import { isWorldContent, type WorldContent } from './world-content.ts';
 import { compileCombatWeapons } from './combat-weapons.ts';
 import { compileCombatRoster } from './combat-roster.ts';
-import { createCombatModel, combatFactor, type CombatModel, type CombatWeapon, type CombatActor } from './combat-model.ts';
+import { createCombatModel, combatFactor, combatSourceBridge, type CombatModel, type CombatWeapon, type CombatActor } from './combat-model.ts';
 import { createOrdinaryCombatRules, type OrdinaryCombatActor } from './ordinary-combat-rules.ts';
 import { createOrdinaryDeathRules, type OrdinaryDeathActor } from './ordinary-death-rules.ts';
 import { assertWorldModel, worldHash, worldRecord, worldInteger, worldPosition, type WorldModel } from './world-model.ts';
@@ -209,7 +209,7 @@ function joined(bridge: OrdinaryInfantryBridge, model: WorldModel): Private {
   const data = bridges.get(bridge); if (!data) return fail('bridge-factory'); assertWorldModel(model);
   if (movementHash(model) !== data.movementHash) fail('world-join');
   // The root's source-bound combat factory will compare its unbound projection against this exact model.
-  if (model.combat && model.combat.sha256 !== bridge.combat?.sha256) fail('combat-join'); return data;
+  if (model.combat && model.combat.sha256 !== bridge.combat?.sha256 && combatSourceBridge(model.combat) !== bridge) fail('combat-join'); return data;
 }
 
 /** Engine-internal only: state must be the core's validated, owned current state. It never admits commands or consumes RNG.

@@ -78,6 +78,6 @@ test('world storage uses its own database, bounds text before opening and expose
   await assert.rejects(store.write(1, 'x'.repeat(2 * 1024 ** 2 + 1), signal), /invalid/); assert.equal(opens, 0);
   await assert.rejects(store.write(1, '{}', signal), /quota/); assert.equal(opens, 1);
   for (const key of ['worldPaused', 'worldSaved', 'worldLoaded', 'worldRejected', 'worldVerified', 'worldQuota', 'worldStorage', 'worldHidden', 'constructor', '__proto__']) for (const locale of ['en', 'zh-Hant'] as const) assert.equal(typeof worldText(locale, key), 'string');
-  assert.match(worldText('zh-Hant', 'scope'), /尚未執行戰鬥/);
+  assert.match(worldText('zh-Hant', 'scope'), /有限的步兵戰鬥/);
   for(const code of ['stopped','move-accepted','arrived','path-found','blocked','progress','moved','unreachable','budget-exhausted','missing-goal','blocked-goal','constructor','__proto__'])assert.match(worldEventText('zh-Hant',code),/[\u3400-\u9fff]/);
 });

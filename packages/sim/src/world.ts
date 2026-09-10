@@ -4,9 +4,9 @@ import { orderCommands, type CommandEnvelope, type SaveEnvelope } from '../../co
 import { canonicalText } from './canonical.ts';
 import { findNavigationPath } from './navigation.ts';
 import { ORDINARY_DEATH_ENGINE_VERSION, ORDINARY_DEATH_POLICY } from './ordinary-death-rules.ts';
-import { INFANTRY_COMBAT_POLICY, INFANTRY_COMBAT_ENGINE_VERSION, COMBAT_ENGINE_VERSION } from './combat-model.ts';
+import { SOURCE_INFANTRY_COMBAT_POLICY, SOURCE_INFANTRY_COMBAT_ENGINE_VERSION, INFANTRY_COMBAT_POLICY, INFANTRY_COMBAT_ENGINE_VERSION, COMBAT_ENGINE_VERSION } from './combat-model.ts';
 import { ORDINARY_COMBAT_ENGINE_VERSION, ORDINARY_COMBAT_POLICY } from './ordinary-combat-rules.ts';
-import { combatDyingActorIds, attackCombat, createCombatState, stepCombat, stopCombat, validateCombatState, type CombatState } from './combat.ts';
+import { combatDyingActorIds, attackCombat, createCombatState, stepCombat, stopCombat, validateCombatState, validateSourceCombatState, type CombatState } from './combat.ts';
 import { assertWorldModel, worldAddress, worldClone, worldContent, worldEdgeCost, worldFail, worldInteger, worldList, worldPosition,
   worldRecord, WORLD_ENGINE_VERSION, WORLD_LIMITS as C, WORLD_MOTION_POLICY, type WorldModel, type WorldEntityDefinition } from './world-model.ts';
 
@@ -19,7 +19,7 @@ export type WorldTrace = { tick: number; phase: 'command' | 'navigation' | 'move
 export type WorldStep = { nextTick: number; events: WorldTrace[]; work: { entityVisits: number; navigationExpansions: number; transitions: number } };
 type LiveSave = { -readonly [K in keyof WorldSave]: WorldSave[K] } & { queuedCommands: CommandEnvelope[]; scheduledWork: []; rngStates: Record<string, never> };
 
-const engineVersion = (model: WorldModel) => model.combat?.policy===INFANTRY_COMBAT_POLICY ? INFANTRY_COMBAT_ENGINE_VERSION : model.combat?.policy===ORDINARY_DEATH_POLICY ? ORDINARY_DEATH_ENGINE_VERSION : model.combat?.policy===ORDINARY_COMBAT_POLICY ? ORDINARY_COMBAT_ENGINE_VERSION : model.combat ? COMBAT_ENGINE_VERSION : WORLD_ENGINE_VERSION;
+const engineVersion = (model: WorldModel) => model.combat?.policy===SOURCE_INFANTRY_COMBAT_POLICY ? SOURCE_INFANTRY_COMBAT_ENGINE_VERSION : model.combat?.policy===INFANTRY_COMBAT_POLICY ? INFANTRY_COMBAT_ENGINE_VERSION : model.combat?.policy===ORDINARY_DEATH_POLICY ? ORDINARY_DEATH_ENGINE_VERSION : model.combat?.policy===ORDINARY_COMBAT_POLICY ? ORDINARY_COMBAT_ENGINE_VERSION : model.combat ? COMBAT_ENGINE_VERSION : WORLD_ENGINE_VERSION;
 const rulesVersion = (model: WorldModel) => model.combat ? model.combat.policy : WORLD_MOTION_POLICY;
 function command(value: unknown, combat: boolean): CommandEnvelope {
   const r = worldRecord(value, ['schemaVersion', 'tick', 'playerId', 'sequence', 'kind', 'payload']);
@@ -102,6 +102,7 @@ function validateSave(model: WorldModel, input: unknown): LiveSave {
   }
   const state: WorldState = { modelSha256: model.sha256, entities, planningCursor, admissionCursors,
     ...(model.combat ? { combat: validateCombatState(model, s.combat, entities, nextTick) } : {}) }, counts = occupancy(model, state);
+  validateSourceCombatState(model,state);
   // Only original shared anchors may overlap. A legal edit cannot introduce a new
   // occupant at a blocked cell or move immutable static footprints away from their actor.
   const dying=combatDyingActorIds(state.combat);
@@ -247,7 +248,7 @@ export class WorldSimulation {
         }
       }
       // Phase 4: due death completions, impacts, then stable-ID firing. Completed deaths release cells next tick.
-      if (state.combat) work.transitions += stepCombat(this.#model, state.combat, state.entities, save.nextTick,
+      if (state.combat) work.transitions += stepCombat(this.#model, state, save.nextTick,
         (kind, id, cell, value) => emit('combat', kind, id, cell, value));
       // Logical work accounting; not CPU timings or exhaustive validation/allocation operations.
       work.entityVisits += 3 * state.entities.length;

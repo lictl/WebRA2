@@ -2,7 +2,8 @@
 // Original capability admission over source-bound weapon records. Native execution fidelity remains unverified.
 import { isWeaponDefinitions, type WeaponDefinitions, type WeaponRecord } from '../../content/src/weapon-definitions.ts';
 import type { IniOrigin } from '../../content/src/runtime-ini.ts';
-import { combatFactor, createCombatModel, COMBAT_LIMITS, type CombatWeapon } from './combat-model.ts';
+import { combatFactor, createCombatModel, type CombatWeapon } from './combat-model.ts';
+import { COMBAT_LIMITS } from './combat-limits.ts';
 import { worldHash, worldInteger, worldRecord } from './world-values.ts';
 
 export const COMBAT_WEAPONS_POLICY = 'webra2-standing-direct-weapons-1' as const;
