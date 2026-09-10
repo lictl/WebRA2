@@ -46,3 +46,21 @@ test('zero FireUp and ROF still produce one shot per tick and a failed death com
  const restored=WorldSimulation.restore(model,simulation.save());assert.deepEqual(simulation.step(5),restored.step(5));assert.deepEqual(simulation.save(),restored.save());
  assert.equal(simulation.save().state.combat!.infantryFiring![0]!.state.pending,null);
 });
+test('target leaving range cancels windup and must complete a new windup after returning',()=>{
+ const {simulation}=setup('ra2',6);simulation.admitCommands([attack(),
+  {schemaVersion:1,tick:0,sequence:0,playerId:1,kind:'move',payload:{entityId:2,x:7,y:2}},
+  {schemaVersion:1,tick:7,sequence:1,playerId:1,kind:'move',payload:{entityId:2,x:4,y:2}}]);
+ const before=simulation.step(8);assert.equal(before.events.filter(e=>e.kind==='fired').length,0);assert.equal(simulation.save().state.combat!.ordinaryRandom!.draws,0);
+ const run=simulation.step(10);assert.deepEqual(run.events.filter(e=>e.kind==='fire-started').map(e=>e.tick),[8,15]);
+ assert.deepEqual(run.events.filter(e=>e.kind==='fired').map(e=>e.tick),[14]);
+});
+test('world restore joins scheduler tick, cooldown, ammunition and pending target to the authoritative combat actor',()=>{
+ const {simulation,model}=setup();simulation.admitCommands([attack()]);simulation.step();const before=simulation.save();
+ for(const change of [(s:typeof before)=>{delete s.state.combat!.infantryFiring;},
+  (s:typeof before)=>{s.state.combat!.actors[0]!.ammo--;},
+  (s:typeof before)=>{s.state.combat!.actors[0]!.targetId=null;},
+  (s:typeof before)=>{s.state.combat!.actors[0]!.readyTick=1;}]){const s=structuredClone(before);change(s);assert.throws(()=>WorldSimulation.restore(model,s));}
+ const wrong=setup('ra2',3);assert.throws(()=>WorldSimulation.restore(wrong.model,before),/world-save-model/);
+ simulation.step(2);const fired=simulation.save(),s=structuredClone(fired);s.state.combat!.actors[0]!.ammo++;
+ assert.throws(()=>WorldSimulation.restore(model,s),/infantry-save-ammo/);
+});

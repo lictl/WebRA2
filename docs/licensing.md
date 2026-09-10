@@ -254,3 +254,9 @@ Its [notice](../packages/sim/ORDINARY_DEATH_PROVENANCE.md), GPL text and applica
 corresponding source accompany distributions. The browser build includes the notice
 separately from native source death preparation and random arithmetic. Existing MIT
 world modules compose this policy; no new external dependency is adopted.
+
+The optional standing-infantry world integration composes the GPL firing scheduler
+inside existing MIT combat/world modules. The retained
+[firing notice](../packages/sim/INFANTRY_FIRING_PROVENANCE.md) covers this original
+composition and its explicit cadence. Distribution includes that notice, GPL text
+and applicable corresponding source; no additional dependency is adopted.
