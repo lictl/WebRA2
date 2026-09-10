@@ -82,7 +82,9 @@ function teamState(roster:TeamRoster,input:unknown,world:WorldSave):TeamState{
       const step=t.steps[cursor]!;if(step.opcode!==3)fail('checkpoint-moving');
       for(const a of assignments){const d=entityTypes.get(a.entityId)!;
         if(Math.abs(a.x-step.x)>TEAM_DESTINATION_LIMITS.radius||Math.abs(a.y-step.y)>TEAM_DESTINATION_LIMITS.radius||
-          !navigationCell(grids.get(d.navigationClass!)!,{x:a.x,y:a.y}))fail('checkpoint-destination');}
+          !navigationCell(grids.get(d.navigationClass!)!,{x:a.x,y:a.y}))fail('checkpoint-destination');
+        const e=current.get(a.entityId)!,at=worldAddress(a.x,a.y);
+        if(e.health!==0&&e.goal!==at&&!(e.goal===null&&e.x===a.x&&e.y===a.y&&e.progress===0&&e.route.length===0))fail('checkpoint-world-goal');}
       if(nextOrderId<assignments.length)fail('checkpoint-order-counter');
     }else if(assignments.length||issuedAt!==null)fail('checkpoint-idle-assignment');
     if(phase==='retry'){

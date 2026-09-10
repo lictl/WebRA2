@@ -88,6 +88,8 @@ test('strict destination/counter/timer and replay wire checks reject malformed r
  const bad=structuredClone(first);bad.team.instances[0]!.assignments[0]={entityId:1,x:511,y:3};
  assert.throws(()=>restoreTeamCheckpoint(f.roster,bad),/checkpoint-destination/);
  bad.team.instances[0]!.assignments[0]={entityId:1,x:0,y:3};assert.throws(()=>restoreTeamCheckpoint(f.roster,bad),/checkpoint-destination/);
+ const mismatch=structuredClone(first);mismatch.team.instances[0]!.assignments[0]={entityId:1,x:3,y:3};
+ assert.throws(()=>restoreTeamCheckpoint(f.roster,mismatch),/checkpoint-world-goal/);
  const counter=structuredClone(first);counter.team.nextOrderId=0;assert.throws(()=>restoreTeamCheckpoint(f.roster,counter),/checkpoint-order-counter/);
  const timer=structuredClone(first);timer.team.instances[0]!.retryAt=30;assert.throws(()=>restoreTeamCheckpoint(f.roster,timer),/checkpoint-moving/);
  assert.throws(()=>restoreTeamCheckpoint(f.roster,'{"schemaVersion":1,"schemaVersion":1}'),/duplicate-json-key/);
@@ -98,4 +100,27 @@ test('strict destination/counter/timer and replay wire checks reject malformed r
  const p=compileTeamProgram({teams:f.teams,world:f.world,mission:f.mission,teamIds:f.teamIds},{candidateCells:0}).program!;
  const roster=bindTeamActors(p,[{id:'bounded',teamId:'team:squad',actorIds:[1]}]),zero=createTeamCheckpoint(roster);
  assert.throws(()=>prepareTeamTick(roster,zero),/destination-budget/);assert.equal(zero.team.nextOrderId,0);
+});
+
+test('no free reachable slot retains a bounded retry timer through every-tick restore and replay',()=>{
+ const cells=[[1,3],[2,2],[3,1],[2,3],[3,2],[2,4],[3,3],[4,2],[3,4],[4,3]];
+ const infantryRows=['0=Commander,Walker,256,2,2,0,Guard,0,None',...cells.map(([x,y],i)=>`${i+1}=Rival,Walker,256,${x},${y},0,Guard,0,None`)].join('\n');
+ const f=fixture({infantryRows});let checkpoint=f.checkpoint;const blockedTicks:number[]=[];
+ for(let tick=0;tick<30;tick++){
+  const run=stepTeamWorld(f.roster,checkpoint);assert.deepEqual(stepTeamWorld(f.roster,JSON.stringify(checkpoint)),run);
+  assert.equal(run.orders.length,0);assert.equal(run.checkpoint.team.instances[0]!.phase,'retry');
+  blockedTicks.push(...run.events.filter(e=>e.kind==='blocked').map(e=>e.tick));checkpoint=run.checkpoint;
+ }
+ assert.deepEqual(blockedTicks,[0,15]);assert.equal(checkpoint.team.instances[0]!.retryAt,30);
+ const replay=replayTeamWorld(f.roster,{schemaVersion:1,rosterSha256:f.roster.sha256,initialCheckpoint:f.checkpoint,admissions:[],finalNextTick:30,finalStateSha256:worldHash(checkpoint)});
+ assert.deepEqual(replay.checkpoint,checkpoint);assert.equal(replay.events.some(e=>e.kind==='finished'),false);
+});
+test('multiple instances preserve stable outbox and owner sequence order independent of binding input order',()=>{
+ const f=fixture(),bindings=[{id:'z-last',teamId:'team:squad',actorIds:[1]},{id:'a-first',teamId:'team:squad',actorIds:[2]}];
+ const a=bindTeamActors(f.compilation.program!,bindings),b=bindTeamActors(f.compilation.program!,[...bindings].reverse());
+ assert.equal(a.sha256,b.sha256);const before=createTeamCheckpoint(a),pending=prepareTeamTick(a,before),run=commitTeamTick(a,pending);
+ assert.deepEqual(run,stepTeamWorld(b,createTeamCheckpoint(b)));assert.deepEqual(run.orders.map(o=>[o.orderId,o.instanceId,o.entityId]),[[0,'a-first',2],[1,'z-last',1]]);
+ assert.deepEqual(run.checkpoint.world.state.admissionCursors,[{playerId:0,sequence:1}]);
+ assert.deepEqual(run.worldEvents.filter(e=>e.phase==='command').map(e=>[e.entityId,e.kind]),[[2,'move-accepted'],[1,'move-accepted']]);
+ assert.equal(before.world.queuedCommands.length,0);assert.equal(before.team.nextOrderId,0);
 });

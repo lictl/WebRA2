@@ -34,3 +34,9 @@ test('lower limits and hostile list properties fail before expansions; source fi
   assert.throws(()=>compileTeamProgram({...input,teamIds:Object.assign(['team:squad'],{constructor:'hostile'})}));
   assert.notEqual(a.compilation.program!.sha256,teamFixture({extraAI:'[Unused]\nKey=Value'}).compilation.program!.sha256);
 });
+
+test('repeated exact waypoint headers are not silently merged into native lookup proof',()=>{
+ for(const extraMap of ['[Waypoints]\n1=3004','[Waypoints]']){
+  assert.throws(()=>teamFixture({extraMap}),/team-duplicate-section/);
+ }
+});
