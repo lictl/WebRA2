@@ -85,5 +85,13 @@ full authorities remain null. The actual browser world combat bridges have25/48
 eligible actors; every one has supported source callback context and exact
 row/type/player joins. These are source/compiler checks, not original mission runs.
 The root private probe is local/probe204.mjs and outputs stay in local/dispatch204/
-inside the preserved coordinator worktree. Final source metadata hashes, independent
-review and complete integrated checks remain required before merge.
+inside the preserved coordinator worktree. The [dispatch census](analysis/mission-object-dispatch-census.json)
+pins the final source hashes, bridge identities and complete preflight results. The
+[source census](analysis/mission-object-events-census.json) separately records 60,980
+raw source assertions and 273 paired native checks over 65 ranges / 10,811 bytes.
+
+A separate comparison with merged main202 runs 64 original programs over 1,536 ticks
+with 3,264 exact comparisons, including optional cues and cell callbacks but no new
+object source. Programs, work, effects, checkpoints and restored continuation remain
+identical. Private helpers are local/legacy204-{vm,compare}.ts; results stay local.
+Independent review and complete integrated checks remain required before merge.

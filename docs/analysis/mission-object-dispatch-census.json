@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "scope": "Metadata-only full source preflight with cues, cells and initial object callbacks; actual browser combat bridge actor eligibility comparison only, no original mission execution.",
+  "selectedFiles": 438,
+  "legacyComparison": {
+    "programs": 64,
+    "ticks": 1536,
+    "comparisons": 3264
+  },
+  "legacyBaseCommit": "5430a7482733d93c94074fe826c7ab97b33f6ce9",
+  "profiles": [
+    {
+      "profile": "ra2",
+      "missionSha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+      "catalogSha256": "5e602be74dbff27ae16a2bbb618df3244e2bc80a10cfe658039168016c2f6a60",
+      "objectSourceSha256": "4a0cb56b6a43fa098ba3c12dda4889ae3acfd3ac83a1549cd1e63d5042812d5f",
+      "cellSourceSha256": "f6c2ee31f04fe4e74f63d382e483d8250060d1199222866e4560cc7788cde6c1",
+      "cueCatalogSha256": "5e973c4bc16c4e604b40f229e14856e811be7bf2f258d6e9acc99c88327a73da",
+      "flagsSha256": "afa1f87b5ad18d7eeaa806c6c90f30f6c1d7e576c60d53446727e6c1d789e6af",
+      "objectCoverage": {
+        "events": 6,
+        "supportedEvents": 6,
+        "actors": 811,
+        "supportedActors": 249,
+        "objectAttachments": 50,
+        "sharedObjectBindings": 5,
+        "scenarioPollBindings": 86
+      },
+      "objectEventCoverage": [
+        {
+          "namespace": "event",
+          "opcode": 6,
+          "occurrences": 2,
+          "supported": 2,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 48,
+          "occurrences": 4,
+          "supported": 4,
+          "effectOnly": false
+        }
+      ],
+      "combatGate": {
+        "worldSha256": "d806540b34de53b0571b73ee6954694bb58b8ee24a4bd014e68da3d47627f17d",
+        "bridgeSha256": "dd27e17c3acd158df7b4b0471d85d0c0fb47259b6c7ebe4be7cd75924338a0a5",
+        "eligibleActors": 25,
+        "unsupportedEligibleActors": 0
+      },
+      "vmDiagnostics": 268,
+      "authority": false
+    },
+    {
+      "profile": "yr",
+      "missionSha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+      "catalogSha256": "e839e63e8b14b22e051188127bc4514ef421537804878797f321b576bd5111af",
+      "objectSourceSha256": "8c630bb224adec1baef8618ad7d03ce39b8f864d8bcb80ca6be53adf2fc34361",
+      "cellSourceSha256": "6d0d7d0be05b3de9fd3b818f1ea7f78bf3818727a05a59c3a98a3913115f7193",
+      "cueCatalogSha256": "35aafd0acff193253413503b007fb688690e648c6fc4769817bcbed5fb6d3777",
+      "flagsSha256": "b82818937b829daf6fdf26152e80b0e37fb06f287aeb7a1ca9d8dc6c2b159aa7",
+      "objectCoverage": {
+        "events": 19,
+        "supportedEvents": 19,
+        "actors": 570,
+        "supportedActors": 263,
+        "objectAttachments": 130,
+        "sharedObjectBindings": 2,
+        "scenarioPollBindings": 127
+      },
+      "objectEventCoverage": [
+        {
+          "namespace": "event",
+          "opcode": 6,
+          "occurrences": 1,
+          "supported": 1,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 44,
+          "occurrences": 8,
+          "supported": 8,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 48,
+          "occurrences": 10,
+          "supported": 10,
+          "effectOnly": false
+        }
+      ],
+      "combatGate": {
+        "worldSha256": "a39150b933eaf2070743bfba49797501ba5276aba5b6ffb4234fee5ce2abc952",
+        "bridgeSha256": "3fa4758067229215410fee4ea1fb594b64a63882999545addfafed4fd86d97f4",
+        "eligibleActors": 48,
+        "unsupportedEligibleActors": 0
+      },
+      "vmDiagnostics": 472,
+      "authority": false
+    }
+  ],
+  "canStartCampaign": false,
+  "nativeTimingVerified": false
+}
