@@ -3,6 +3,7 @@
 import type { Locale } from './i18n.ts';
 import type { ControlGroupFeedback } from './world-control-groups.ts';
 const en = {
+  orderTiming: 'Orders are unavailable during an update. Pause Run, wait for the controls to become available, then retry.',
   controlGroupsHelp: 'Battlefield shortcuts: Ctrl+0–9 assigns; 0–9 recalls. Use Control on Mac.',
   controlGroupsScope: 'Groups clear when you restore a save, change players, or leave this battlefield. Assign an empty selection to clear one group.',
   ordersPanel:'Orders',savesPanel:'Save & replay',diagnosticsPanel:'Diagnostics',keyboardOrders:'Keyboard orders',controlsHelp:'Controls & shortcuts',returnBattlefield:'Return to battlefield',checkpointFiles:'Checkpoint files',replayFiles:'Replay files',identities:'Content and state identities',selectionHelp:'Select your units on the map, or open Keyboard orders. Right-click clear terrain to move or a supported enemy to attack.',runningState:'Running',pausedState:'Paused',
@@ -13,7 +14,7 @@ const en = {
   directControls: 'Click to select; Shift-click toggles a unit. Drag a box to select, or Shift-drag to add. Right-click exposed terrain to assign distinct nearby destinations using WebRA2 rules. Alt-drag or middle-drag pans. Right-click an enemy to attack with supported infantry, or choose a target below. Move into range and stop first.',
   worldGroupBlocked: 'The group has no complete set of reachable destinations nearby. No orders were queued. Choose another area or fewer units.', worldGroupBudget: 'Planning this group exceeded the work limit. No orders were queued. Try a closer area or fewer units.',
   keyboardSelection: 'This standard multiple-selection list supports keyboard selection. Use Shift with the arrow keys to extend selection. Numeric and inspected-cell destinations apply to the entire selection.',
-  worldSelectionCleared: 'Selection cleared.', worldSelectionChanged: 'Selection updated.', worldSelectionLimit: 'Select at most 64 units. The previous selection was retained.', worldCannotSelect: 'Choose a living unit owned by the control house with supported movement.', worldCannotOrder: 'Select your supported units first.', worldControlsBusy: 'Wait for the current operation before issuing this order.', worldExposedGround: 'Choose exposed terrain. Objects and background are not verified movement destinations.', worldOrdersQueued: 'Orders queued. Press Run to continue.',
+  worldSelectionCleared: 'Selection cleared.', worldSelectionChanged: 'Selection updated.', worldSelectionLimit: 'Select at most 64 units. The previous selection was retained.', worldCannotSelect: 'Choose a living unit owned by the control house with supported movement.', worldCannotOrder: 'Select your supported units first.', worldControlsBusy: 'Order not queued. Wait for the current operation to finish, then retry.', worldExposedGround: 'Choose exposed terrain. Objects and background are not verified movement destinations.', worldOrdersQueued: 'Orders queued.',
 
   cancelReplay:'Cancel verification and return to files',worldVerifying:'Verifying replay; this may take up to three minutes. Cancel closes this preview and keeps selected files and local checkpoints.',
   settledSlot:'Settled infantry slot',reservedSlot:'Reserved infantry slot',
@@ -22,6 +23,7 @@ const en = {
   worldPaused: 'Paused. Issue an order, then press Run.', worldRunning: 'Running. Select units to issue orders.', worldHidden: 'Paused because the page became hidden. Resume explicitly.', worldSaved: 'World checkpoint saved on this browser.', worldLoaded: 'Checkpoint restored. Recording starts from this checkpoint.', worldDeleted: 'Local slot deleted.', worldEmpty: 'This slot is empty.', worldQuota: 'The browser could not allocate storage. Export a checkpoint instead.', worldStorage: 'Local storage is unavailable. Use checkpoint export and import.', worldRejected: 'Operation rejected; the world was not replaced. Open Diagnostics for details.', worldVerified: 'Replay verified against its recorded terminal state.', verifiedHash: 'Verified terminal SHA-256', unavailableArt: 'Artwork may be unavailable; orders still use the authoritative cell.', timing: 'Space toggles run/pause, S stops the selection, Escape clears it, and M moves to the inspected terrain cell when the viewport has focus. At most four ticks are requested at once. Hidden pages pause.', omittedReasons: 'Additional unresolved reasons', source: 'Source row', entity: 'Entity ID', remaining: 'Remaining simulation features'
 };
 const zh: Record<keyof typeof en, string> = {
+  orderTiming: '更新期間無法下達指令。請先暫停執行，等候控制項恢復可用後再試。',
   controlGroupsHelp: '戰場快捷鍵：Ctrl+0–9 編組，0–9 選取編組。Mac 請用 Control 鍵。',
   controlGroupsScope: '還原存檔、更換控制陣營或離開此戰場時，會清除所有編組。以空白選取編組可清除單一編組。',
   ordersPanel:'指令',savesPanel:'存檔與重播',diagnosticsPanel:'診斷',keyboardOrders:'鍵盤指令',controlsHelp:'操作與快捷鍵',returnBattlefield:'返回戰場',checkpointFiles:'存檔檔案',replayFiles:'重播檔案',identities:'內容與狀態識別',selectionHelp:'在地圖上選取您的單位，或開啟鍵盤指令。右鍵點選空地可移動，點選已支援的敵人可攻擊。',runningState:'執行中',pausedState:'已暫停',
@@ -32,7 +34,7 @@ const zh: Record<keyof typeof en, string> = {
   directControls: '點選可選取單位；Shift 點選可切換選取。拖曳方框可選取，Shift 拖曳可加入。對露出的地形按右鍵，依 WebRA2 規則分配附近各自的目的地。Alt 拖曳或中鍵拖曳可平移。以右鍵點選敵方步兵，或在下方選擇目標，使用支援的步兵攻擊。請先移動至射程內並停止。',
   worldGroupBlocked: '附近沒有足夠且可到達的群組目的地，未排入任何指令。請選擇其他區域或減少單位。', worldGroupBudget: '規劃此群組已超過工作上限，未排入任何指令。請選擇較近的區域或減少單位。',
   keyboardSelection: '此標準多選清單支援鍵盤操作。按住 Shift 配合方向鍵可擴大選取。座標與已查看格子的目的地適用於整個選取群組。',
-  worldSelectionCleared: '已清除選取。', worldSelectionChanged: '已更新選取。', worldSelectionLimit: '最多選取 64 個單位，已保留原有選取。', worldCannotSelect: '請選擇控制陣營擁有、仍存活且支援移動的單位。', worldCannotOrder: '請先選取您可控制且支援移動的單位。', worldControlsBusy: '請等候目前作業完成後再下達指令。', worldExposedGround: '請選擇露出的地形。物件與背景不是已驗證的移動目的地。', worldOrdersQueued: '指令已排入佇列，按執行繼續。',
+  worldSelectionCleared: '已清除選取。', worldSelectionChanged: '已更新選取。', worldSelectionLimit: '最多選取 64 個單位，已保留原有選取。', worldCannotSelect: '請選擇控制陣營擁有、仍存活且支援移動的單位。', worldCannotOrder: '請先選取您可控制且支援移動的單位。', worldControlsBusy: '指令未排入佇列。請等候目前作業完成後，再次下達指令。', worldExposedGround: '請選擇露出的地形。物件與背景不是已驗證的移動目的地。', worldOrdersQueued: '指令已排入佇列。',
 
   cancelReplay:'取消驗證並返回檔案',worldVerifying:'正在驗證重播，最多可能需要三分鐘。取消會關閉此預覽，並保留已選檔案與本機存檔。',
   settledSlot:'目前步兵位置',reservedSlot:'預留步兵位置',
