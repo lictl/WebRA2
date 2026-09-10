@@ -118,7 +118,8 @@ export function compileOrdinaryInfantryBridge(input: OrdinaryInfantryBridgeInput
   for (const p of roster.actors) {
     charge(); const type = p.typeId === null ? undefined : types.get(p.typeId), actor = p.typeId === null ? undefined : actors.get(p.typeId), fresh = initial.get(p.rowId);
     const source = worldEntities.get(p.entityId)!;
-    const weaponId = p.typeId === null ? null : known(primary.get(p.typeId)), weapon = weaponId === null ? undefined : weapons.get(weaponId), warhead = weapon ? warheads.get(known(weapon.fields.warhead) ?? '') : undefined;
+    const primaryField = p.typeId === null ? undefined : primary.get(p.typeId);
+    const weaponId = known(primaryField), weapon = weaponId === null ? undefined : weapons.get(weaponId), warhead = weapon ? warheads.get(known(weapon.fields.warhead) ?? '') : undefined;
     const hasRank = fresh?.veterancy !== null && fresh?.veterancy !== undefined && type && ['infantry', 'unit', 'aircraft', 'structure'].includes(type.kind);
     if (hasRank) charge(i.veterancy.types.length);
     const selected = hasRank ? selectCombatVeterancy(i.veterancy, { typeId: type!.id, veterancy: fresh!.veterancy! }) : null;
@@ -144,6 +145,7 @@ export function compileOrdinaryInfantryBridge(input: OrdinaryInfantryBridgeInput
     if (!factors || Object.values(factors).some(v => v === null) || house?.houseIndex !== p.playerId) common.push('numerical-source');
     if (!source.blocksCell || source.navigationClass === null) common.push('walk-occupancy-source');
     const targetReasons = [...common];
+    if (!primaryField || primaryField.status === 'unsupported' || primaryField.status === 'not-applicable') targetReasons.push('current-weapon-source');
     if (deathType?.status !== 'conditional-human' || deathType.corpse?.status !== 'presentation-fields-only') targetReasons.push('ordinary-human-death-source', ...deathType?.reasons ?? []);
     if (weaponId !== null && (!weapon || weapon.status !== 'typed' || known(weapon.fields.suicide) !== false)) targetReasons.push('current-weapon-source');
     const attackReasons = [...targetReasons];
