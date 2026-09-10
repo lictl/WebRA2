@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2026 WebRA2 contributors. Original UI copy.
 import type { Locale } from './i18n.ts';
+import type { ControlGroupFeedback } from './world-control-groups.ts';
 const en = {
+  controlGroupsHelp: 'Battlefield shortcuts: Ctrl+0–9 assigns; 0–9 recalls. Use Control on Mac.',
+  controlGroupsScope: 'Groups clear when you restore a save, change players, or leave this battlefield. Assign an empty selection to clear one group.',
   ordersPanel:'Orders',savesPanel:'Save & replay',diagnosticsPanel:'Diagnostics',keyboardOrders:'Keyboard orders',controlsHelp:'Controls & shortcuts',returnBattlefield:'Return to battlefield',checkpointFiles:'Checkpoint files',replayFiles:'Replay files',identities:'Content and state identities',selectionHelp:'Select your units on the map, or open Keyboard orders. Right-click clear terrain to move or a supported enemy to attack.',runningState:'Running',pausedState:'Paused',
   attackTarget:'Enemy infantry',chooseTarget:'Choose a target',attack:'Attack target',firing:'Preparing shot',attacking:'Attacking',alive:'Alive',dying:'Dying',destroyed:'Destroyed',
   worldAttackUnsupported:'Select supported infantry and an enemy infantry target. Every selected unit must support this attack.',worldAttackRange:'Move into weapon range, stop, then attack.',worldAttackMoving:'Both attacker and target must stop moving before this attack.',worldAttackContext:'This shot requires clear, flat ground and a supported target. Choose another position or target.',
@@ -19,6 +22,8 @@ const en = {
   worldPaused: 'Paused. Issue an order, then press Run.', worldRunning: 'Running. Select units to issue orders.', worldHidden: 'Paused because the page became hidden. Resume explicitly.', worldSaved: 'World checkpoint saved on this browser.', worldLoaded: 'Checkpoint restored. Recording starts from this checkpoint.', worldDeleted: 'Local slot deleted.', worldEmpty: 'This slot is empty.', worldQuota: 'The browser could not allocate storage. Export a checkpoint instead.', worldStorage: 'Local storage is unavailable. Use checkpoint export and import.', worldRejected: 'Operation rejected; the world was not replaced. Open Diagnostics for details.', worldVerified: 'Replay verified against its recorded terminal state.', verifiedHash: 'Verified terminal SHA-256', unavailableArt: 'Artwork may be unavailable; orders still use the authoritative cell.', timing: 'Space toggles run/pause, S stops the selection, Escape clears it, and M moves to the inspected terrain cell when the viewport has focus. At most four ticks are requested at once. Hidden pages pause.', omittedReasons: 'Additional unresolved reasons', source: 'Source row', entity: 'Entity ID', remaining: 'Remaining simulation features'
 };
 const zh: Record<keyof typeof en, string> = {
+  controlGroupsHelp: '戰場快捷鍵：Ctrl+0–9 編組，0–9 選取編組。Mac 請用 Control 鍵。',
+  controlGroupsScope: '還原存檔、更換控制陣營或離開此戰場時，會清除所有編組。以空白選取編組可清除單一編組。',
   ordersPanel:'指令',savesPanel:'存檔與重播',diagnosticsPanel:'診斷',keyboardOrders:'鍵盤指令',controlsHelp:'操作與快捷鍵',returnBattlefield:'返回戰場',checkpointFiles:'存檔檔案',replayFiles:'重播檔案',identities:'內容與狀態識別',selectionHelp:'在地圖上選取您的單位，或開啟鍵盤指令。右鍵點選空地可移動，點選已支援的敵人可攻擊。',runningState:'執行中',pausedState:'已暫停',
   attackTarget:'敵方步兵',chooseTarget:'選擇目標',attack:'攻擊目標',firing:'準備射擊',attacking:'攻擊中',alive:'存活',dying:'死亡過程中',destroyed:'已摧毀',
   worldAttackUnsupported:'請選取支援攻擊的步兵及敵方步兵目標，所有已選單位都必須支援此攻擊。',worldAttackRange:'請先移動至武器射程內並停止，再下達攻擊。',worldAttackMoving:'攻擊者與目標都必須先停止移動。',worldAttackContext:'此射擊需要平坦且無阻擋的地面與支援的目標。請更換位置或目標。',
@@ -42,3 +47,10 @@ const events: Record<string, readonly [string, string]> = {
   'missing-entity': ['Entity no longer exists', '實體已不存在'], 'not-owner': ['House does not own this entity', '此陣營未擁有該實體'], immovable: ['Movement unavailable', '無法移動'], stopped: ['Stopped at the completed cell', '已停在完成移動的格子'], 'move-accepted': ['Move order accepted', '已接受移動指令'], arrived: ['Destination reached', '已到達目的地'], 'path-found': ['Route found', '已找到路徑'], blocked: ['Cell occupied; route will retry', '格子已被占用，將重試路徑'], progress: ['Moving along an edge', '正在格子間移動'], moved: ['Entered the next cell', '已進入下一格'], unreachable: ['No supported route', '沒有支援的路徑'], 'invalid-endpoint': ['Destination is not traversable', '目的地無法通行'], 'expansion-limit': ['Routing budget reached; will retry', '已達尋路預算，將重試'], 'path-limit': ['Route exceeds the path limit', '路徑超過長度上限']
 };
 export function worldEventText(locale: Locale, code: string): string { return Object.hasOwn(events, code) ? events[code]![locale === 'zh-Hant' ? 1 : 0] : locale === 'zh-Hant' ? '尚未支援的事件' : 'Unrecognized event'; }
+
+export function controlGroupText(locale:Locale,feedback:ControlGroupFeedback|null):string {
+  if(!feedback)return '';
+  const {slot,count,kind}=feedback;
+  if(locale==='zh-Hant')return kind==='assigned'?`編組 ${slot}：已編入 ${count} 個單位。`:kind==='recalled'?`編組 ${slot}：已選取 ${count} 個可用單位。`:kind==='cleared'?`已清除編組 ${slot}。`:kind==='empty'?`編組 ${slot} 尚未設定。保留目前選取。`:`編組 ${slot} 沒有可選取的己方單位。保留目前選取。`;
+  return kind==='assigned'?`Group ${slot}: assigned ${count} units.`:kind==='recalled'?`Group ${slot}: selected ${count} available units.`:kind==='cleared'?`Group ${slot} cleared.`:kind==='empty'?`Group ${slot} is empty. Current selection kept.`:`Group ${slot} has no eligible friendly units. Current selection kept.`;
+}
