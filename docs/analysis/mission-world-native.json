@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "method": "Static pinned PE bytes with complete selected x86 instruction boundaries. No retail program executed. Constructor reset and local INI loader establish zeroed initial storage and local defaults; WebRA2 new-campaign selection and compound tick order remain explicit policies, not native continuation or global tick-order proof.",
+  "profiles": [
+    {
+      "profile": "ra2",
+      "image": "game.exe",
+      "imageSha256": "73288c03b58d370be268ca6d156b4e33bfdb2066dc980359467d8852ff3b00df",
+      "imageBytes": 5077312,
+      "ranges": [
+        {
+          "label": "constructor-zero-register",
+          "kind": "selected-code",
+          "start": "0x65b4f0",
+          "endExclusive": "0x65b504",
+          "fileOffset": 2471152,
+          "bytes": 20,
+          "sha256": "1f775654fdb9c277d0d1736b17a59068aeb054bef6249c063c524ba4dc66b193",
+          "instructions": 9
+        },
+        {
+          "label": "constructor-zero-global-local-flags",
+          "kind": "selected-code",
+          "start": "0x65b6f6",
+          "endExclusive": "0x65b750",
+          "fileOffset": 2471670,
+          "bytes": 90,
+          "sha256": "841d1a4e0ca97b139d1c1494eb727ffa474c728e4cb172ad329ec8c025ee0eba",
+          "instructions": 30
+        },
+        {
+          "label": "local-variable-loader",
+          "kind": "selected-code",
+          "start": "0x661770",
+          "endExclusive": "0x6618ab",
+          "fileOffset": 2496368,
+          "bytes": 315,
+          "sha256": "9a44d8bdde2a017df653e38102742bd4a63f3db8400e7270bca02256217c11ee",
+          "instructions": 101
+        },
+        {
+          "label": "scenario-local-variable-load-call",
+          "kind": "selected-code",
+          "start": "0x66210b",
+          "endExclusive": "0x662113",
+          "fileOffset": 2498827,
+          "bytes": 8,
+          "sha256": "c91f962fa9c669be7b98485f741b088bd2c7104e27e143325564f9cd234f5915",
+          "instructions": 3
+        },
+        {
+          "label": "local-readstring-trim-call",
+          "kind": "selected-code",
+          "start": "0x50eb0b",
+          "endExclusive": "0x50eb1e",
+          "fileOffset": 1108747,
+          "bytes": 19,
+          "sha256": "43e6cddea74ed3b7d5083d3535b3cdda0c9128b6f887a87fa5a03a64cb4aabe4",
+          "instructions": 5
+        },
+        {
+          "label": "native-byte-trim",
+          "kind": "selected-code",
+          "start": "0x6eef10",
+          "endExclusive": "0x6eef77",
+          "fileOffset": 3075856,
+          "bytes": 103,
+          "sha256": "f74f2347897d673f5bbc099b5c39a5700ddc02520be3fc5828f03cb7c83c7ebc",
+          "instructions": 52
+        }
+      ]
+    },
+    {
+      "profile": "yr",
+      "image": "gamemd.exe",
+      "imageSha256": "3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600",
+      "imageBytes": 5286208,
+      "ranges": [
+        {
+          "label": "constructor-zero-register",
+          "kind": "selected-code",
+          "start": "0x6832c0",
+          "endExclusive": "0x6832d4",
+          "fileOffset": 2634432,
+          "bytes": 20,
+          "sha256": "119748f6a069a71d52b850b6486cd26345dadc26fce138b7000d24dad43fd35b",
+          "instructions": 9
+        },
+        {
+          "label": "constructor-zero-global-local-flags",
+          "kind": "selected-code",
+          "start": "0x6834d7",
+          "endExclusive": "0x683531",
+          "fileOffset": 2634967,
+          "bytes": 90,
+          "sha256": "6ea1bd9a20cda3ec206843ebbf4b125a60b59334bc2a1596b6c68f6b950842ad",
+          "instructions": 30
+        },
+        {
+          "label": "local-variable-loader",
+          "kind": "selected-code",
+          "start": "0x689b20",
+          "endExclusive": "0x689c5b",
+          "fileOffset": 2661152,
+          "bytes": 315,
+          "sha256": "2662a6de3697b99e89ddef4af6318e39227995365e7a9f914265219cee0ad86e",
+          "instructions": 101
+        },
+        {
+          "label": "scenario-local-variable-load-call",
+          "kind": "selected-code",
+          "start": "0x68a734",
+          "endExclusive": "0x68a73c",
+          "fileOffset": 2664244,
+          "bytes": 8,
+          "sha256": "42eeb0e562d40538d68cad2ccb36120db70e77ab0b203a1637317a51f65b26b7",
+          "instructions": 3
+        },
+        {
+          "label": "local-readstring-trim-call",
+          "kind": "selected-code",
+          "start": "0x528bd0",
+          "endExclusive": "0x528be8",
+          "fileOffset": 1215440,
+          "bytes": 24,
+          "sha256": "e18301a273f449f67b5b0e2e95bee47deabcfe81ff81803ff15dda083b311c68",
+          "instructions": 6
+        },
+        {
+          "label": "native-byte-trim",
+          "kind": "selected-code",
+          "start": "0x727cf0",
+          "endExclusive": "0x727d57",
+          "fileOffset": 3308784,
+          "bytes": 103,
+          "sha256": "f74f2347897d673f5bbc099b5c39a5700ddc02520be3fc5828f03cb7c83c7ebc",
+          "instructions": 52
+        }
+      ]
+    }
+  ],
+  "totalRanges": 12,
+  "totalBytes": 1115
+}
