@@ -181,3 +181,9 @@ GPL-3.0-or-later. Its [provenance notice](../packages/content/INSTANT_WEAPONS_PR
 records the native observations and conservative caller-context requirements, and
 is included in the development distribution. No native payload or retail fixture
 is included; context eligibility does not authorize combat execution.
+
+The source-bound animation-effect compiler and original synthetic tests use
+GPL-3.0-or-later. Its [provenance notice](../packages/content/ANIMATION_EFFECTS_PROVENANCE.md)
+is included in the development distribution. The notice distinguishes covered
+gameplay-effect classifications from excluded native instance/death/splash contexts;
+no animation assets, retail rows or native listings are distributed.
