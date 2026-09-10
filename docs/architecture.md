@@ -1,7 +1,13 @@
 # Proposed architecture
 
-Status: design for implementation, not existing modules. Product constraints are in
+Status: target architecture; implemented components and their limits are recorded
+in the component reports and [current handoff](task.md). Product constraints are in
 [decisions.md](decisions.md); delivery gates are in [plan.md](plan.md).
+The [hybrid-engine ADR](adr/0004-hybrid-engine-and-performance-gates.md) moves
+performance measurement ahead of further broad gameplay expansion. The current
+browser world and CPU renderer share a worker; the independently scheduled engine
+and WebGL presentation below remain targets. Persistent cinematic decode already
+uses WASM, as documented in [the media report](persistent-media.md).
 
 ## Runtime and dependency direction
 
@@ -10,7 +16,7 @@ flowchart LR
     F[Player files or localhost assets] --> V[Virtual filesystem and content profile]
     V --> D[Bounded decoders and content compiler]
     D --> C[Immutable content catalog and scenario]
-    C --> S[Deterministic simulation worker]
+    C --> S[Deterministic worker engine: TS plus measured WASM kernels]
     U[Browser UI and player input] --> Q[Versioned commands]
     Q --> S
     S --> R[Snapshots and presentation events]
@@ -24,6 +30,14 @@ contracts and compiled content types, never browser/UI/network implementations.
 Workers decode assets outside the render loop; simulation never pauses halfway
 through a tick to await a file. Preload required behavior data before starting a
 scenario. Missing decorative/media data follows explicit presentation rules.
+
+Keep UI, file orchestration and browser API calls in TypeScript. A selected WASM
+kernel receives bounded packed tables and command/tick batches, retaining its
+working set and scratch buffers between calls. Stable numeric IDs and explicit
+numeric/RNG rules preserve the save/replay and mod contracts. Measure end-to-end
+benefit including marshaling, allocation, worker scheduling and initialization;
+changing CPU language does not replace GPU rendering. See ADR 0004 for migration
+criteria and the [Chrome component baseline](performance-baseline.md) for evidence.
 
 ## Proposed package boundaries and ownership
 
@@ -156,7 +170,10 @@ campaign-essential opcodes block a “supported mission” claim.
 
 ## Rendering, controls, and audio
 
-Start with WebGL2 terrain/SHP/PAL rendering and verified screen-to-cell picking.
+The implemented terrain/SHP/voxel path uses CPU composition and verified picking.
+Use it as a reference for the planned WebGL2 renderer, comparing ordering, depth,
+palette/remap output and screen-to-cell picking. Profile these stages independently
+of simulation; advance GPU rendering when the frame budget requires it.
 Add VXL/HVA, body/turret/barrel transforms, normals, palette remap, isometric depth,
 elevation/cliffs/bridges, shadows, lighting, water, terrain changes, particles,
 projectiles, fog/shroud, animations, and UI overlays. Render only information allowed

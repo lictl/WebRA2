@@ -10,7 +10,7 @@ This file is the product decision record; `task.md` is the work-state record.
 | D01 | Reimplement the game engine in a browser; players supply a full installation or assets only, and can play locally | The runtime must not require Windows game executables; asset import is a first-class product feature |
 | D02 | First campaign release includes Red Alert 2 **and** Yuri's Revenge campaigns | All four faction/game campaign tracks are release scope; early playable slices are internal milestones |
 | D03 | Preserve original mission behavior, rules, and saves where feasible; prioritize playability | Track deviations explicitly; do not require undocumented binary-exact timing as the default success criterion |
-| D04 | Browser-native TypeScript; WebAssembly where profiling justifies it; vetted open source dependencies | Keep the simulation in TypeScript initially; evaluate native codecs as separate bounded dependencies |
+| D04 | Browser-native TypeScript; WebAssembly where profiling justifies it; vetted open source dependencies | Keep the tested TypeScript simulation as a reference; use an explicit hybrid boundary and evaluate measured kernels and reusable codecs under ADR 0004 |
 | D05 | Original RA2/YR maps, INI rules, and replacement assets at launch; extension mods later | Ares/Phobos and DLL extensions are a separate compatibility tier |
 | D06 | Desktop Chrome, Edge, Firefox, and Safari; keyboard and mouse | Include actual Safari release checks; mobile/touch can follow |
 | D07 | GPL is acceptable if engine/decoder reuse meaningfully speeds development | Do not reject useful GPL components by default; preserve provenance and select a coherent distribution license when adopting them |
@@ -24,6 +24,7 @@ This file is the product decision record; `task.md` is the work-state record.
 | D15 | Agents must use GitHub integration or `gh` CLI to create issues, PRs, reviews and merges so work is traceable | Every substantive slice follows the linked issue → branch/PR → review → validated merge workflow; record URLs and merge SHA in the handoff |
 | D17 | During development, focus browser testing on Chrome for speed; defer full Firefox/Edge/Safari end-to-end tests until the remaining implementation is finished (owner update 2026-09-10) | Chrome is the active development acceptance target; all four desktop families remain final release scope |
 | D16 | Commit changes during implementation; record blockers as GitHub issues; involve humans only when necessary; proceed with the accepted plan | Agents resolve routine issues autonomously, commit coherent work and preserve blocker evidence; execution starts with planning bootstrap followed by M0 |
+| D18 | Owner raised possible TypeScript performance issues and the need for WebAssembly (2026-09-11) | Bring the performance/TS-WASM gate forward before more broad gameplay expansion. This does not select a native language or authorize a blanket rewrite by assumption |
 
 ## Completed question round
 
@@ -40,6 +41,10 @@ session. The remaining unknowns below need evidence or a later milestone decisio
 
 ## Proposed technical decisions, subject to milestone evidence
 
+- [ADR 0004](adr/0004-hybrid-engine-and-performance-gates.md) adopts a hybrid engine
+  boundary and early Chrome performance gate. Individual WASM migrations and their
+  toolchains still require measured benefit or justified codec reuse. WebGL2 GPU
+  rendering is separate from a CPU-language change; the current renderer is CPU-based.
 - WebGL2 renderer and Web Audio; DOM-based accessible application shell; optional
   higher-end rendering paths later. Verify feature support in the target browsers.
 - Worker-owned deterministic simulation; asynchronous file/codecs workers with
