@@ -29,22 +29,29 @@ its minimal proved Flash50 dependency, in an isolated worktree.
 [Sleep PR171](https://github.com/lictl/WebRA2/pull/171) merged as
 `1025eb2b06908372b562d6f6e66aec6e990bef03` after923 checks and its
 [independent review](https://github.com/lictl/WebRA2/pull/171#pullrequestreview-5163583521).
-[Firing core PR173](https://github.com/lictl/WebRA2/pull/173) now integrates that
-reviewed main at `1bd0f653505b829a20e875f1d437e6315910f919`:930 checks pass;
-only the licensing-paragraph merge conflicted, resolved by retaining both notices.
-Its prior core [review](https://github.com/lictl/WebRA2/pull/173#pullrequestreview-5163678519)
-covers unchanged source at a82ca1f; final merge-delta review is pending.
-[GitHub blocker176](https://github.com/lictl/WebRA2/issues/176) records the earlier
-server errors. Verify173's actual merge before closing it; no bypass is authorized.
+[Firing core PR173](https://github.com/lictl/WebRA2/pull/173) merged as
+`b9aa45a0228dd9733c9ba182652c5246ffeaf3f6` after930 checks and its
+[final independent review](https://github.com/lictl/WebRA2/pull/173#pullrequestreview-5163968992).
+[Source bridge PR174](https://github.com/lictl/WebRA2/pull/174) merged as
+`512e4776ea32b25937806819d88a2a1937f52507` after942 checks and its
+[final independent review](https://github.com/lictl/WebRA2/pull/174#pullrequestreview-5164053349).
+Both reviewed trees are integrated into177, preserving its genuine source binding.
+[GitHub blocker176](https://github.com/lictl/WebRA2/issues/176) is closed after
+normal merges recovered; no review or branch-protection bypass was used.
 
-[Source/UI PR177](https://github.com/lictl/WebRA2/pull/177) passed939 original
-checks at9130616 before the target-selector regression fix (one additional test)
-and current171 integration. The independent source174
-[review](https://github.com/lictl/WebRA2/pull/174#pullrequestreview-5163859467)
-covers adcdeb1; mix_reader reviews the coordinator's complete binding/UI delta.
-Actual Chrome4179 acceptance uses immutable9130616 and manifest
-`73805254a1641b09c53a6bdb5ab7721ad6be99ef149b56dba0a20fef00dc266c`.
-A final updated build must verify the selector fix and accurate limitation text.
+[Source/UI PR177](https://github.com/lictl/WebRA2/pull/177) passes957 original
+tests, type checks,147 documents/752 links,506 publication paths and60 code/license
+outputs from130 inputs at `26d1b3a829450ab40f9188fe9eefed258690f51f`.
+The independent review found a target-selector reset;2e6f025 corrects it with an
+actual mounted-view fixture. Chrome4179 at9130616 then found that completed deaths
+and an initially zero-health YR placement invalidate the unchanged initial artwork
+count.34f4f86 adds explicit bounded retired object IDs joined to validated dead
+actors, preserves pending death artwork, and filters unused palettes. Original
+sprite/bridge and multipart voxel regressions pass; mix_reader reviews this delta.
+Chrome acceptance now uses immutable4181 at26d1b3a, manifest
+`5775c5d17141972f47e1daf6bbdbbe07a3bfd0c93a8c33f0093afe279850582f`.
+Browser completion/save/replay on the corrected build remains pending. Failed9130616
+browser evidence is retained privately and must not be described as acceptance.
 The default RA2 attacker's route gap is tracked separately in
 [traversal issue178](https://github.com/lictl/WebRA2/issues/178): private exhaustive
 reachability finds90 current cells and none of24 currently supported firing cells.

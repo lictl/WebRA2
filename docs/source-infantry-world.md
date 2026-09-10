@@ -56,13 +56,24 @@ retain standing artwork until completion; completed actors stop rendering and
 picking. Native firing/death sequences and corpse artwork remain subsequent
 presentation work. Save, restore and replay retain the full simulation state.
 
+Frame allocation counts describe the current rendered objects. The initial
+artwork preparation report remains unchanged: a bounded, sorted list identifies
+which prepared objects were retired and joins each to a completed dead actor in
+the validated snapshot. Pending deaths retain their object; initially dead
+placements can retire immediately. Unavailable artwork contributes no retirement,
+multipart voxels count once per object, and only palettes used by the remaining
+objects enter the renderer. This also supports restoring an earlier living frame.
+
 ## Validation and remaining acceptance
 
 Original source fixtures exercise model tampering, both-profile windup/death,
 current terrain/occupancy rejection, moving-target cancellation on the due tick,
 resource rollback and every-tick save/replay equivalence. Worker/controller tests
 exercise identity-only orders, ownership, stale revisions, target-only refusal,
-combat snapshots and bilingual feedback. Existing movement policies retain their
+combat snapshots and bilingual feedback. Actual original sprite frames cross the
+bridge through pending death, completion and restore, with malformed retirement
+lists rejected; multipart voxel fixtures cover logical object counts and retained
+frame picks. Existing movement policies retain their
 save schema and behavior.
 
 Separate private source probes run real opening worlds through movement into
