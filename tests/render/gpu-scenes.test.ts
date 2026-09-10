@@ -123,6 +123,26 @@ test('overlapping TMP patches and sprite rectangles share the exact aggregate GP
   assert.throws(() => prepareGpuFrame(compileGpuScene(cpu, batch, { viewportDimension: 59 }), view), /gpu-viewport/);
 });
 
+test('reduced coordinate limits cover retained terrain bounds and source slot extras before frame preparation', () => {
+  const cpu = createTerrainScene(makeOriginalTerrain());
+  assert.equal(compileGpuScene(cpu, undefined, { coordinate: 60 }).allocations.terrainPieces, 1);
+  assert.throws(() => compileGpuScene(cpu, undefined, { coordinate: 59 }), /gpu-coordinate/);
+  const sparse = createTerrainScene(cases.find(c => c.id === 'sparse-far-extra')!.terrainInput);
+  assert.equal(compileGpuScene(sparse, undefined, { coordinate: 1048575 }).allocations.rasterPixels, 1801);
+  assert.throws(() => compileGpuScene(sparse, undefined, { coordinate: 1048574 }), /gpu-coordinate/);
+});
+
+test('GPU background snapshots use validated data descriptors without rereading Proxy components', () => {
+  const cpu = createTerrainScene(makeOriginalTerrain()), gpu = compileGpuScene(cpu);
+  let reads = 0;
+  const background = new Proxy([1, 2, 3, 4], { get(target, key, receiver) {
+    if (key === '0') { reads++; return 300; } return Reflect.get(target, key, receiver);
+  } });
+  const frame = prepareGpuFrame(gpu, { ...originalViewport(), backgroundRgba: background as unknown as readonly [number, number, number, number] });
+  assert.deepEqual(frame.viewport.backgroundRgba, [1, 2, 3, 4]); assert.equal(reads, 0);
+  background[0] = 9; assert.deepEqual(frame.viewport.backgroundRgba, [1, 2, 3, 4]);
+});
+
 test('owned source and detached packets cannot mutate a prepared frame, future upload or CPU pick', () => {
   const input = makeOriginalTerrain(), cpu = createTerrainScene(input), sprite = makeOriginalSprites(), gpu = compileGpuScene(cpu, sprite.batch);
   const viewport = originalViewport(), frame = prepareGpuFrame(gpu, viewport), original = interpret(copyGpuSceneData(gpu), copyGpuFrameData(frame));
@@ -187,5 +207,5 @@ test('fixture corpus has deterministic source and complete output fingerprints',
         originalHash(new TextEncoder().encode(JSON.stringify(Array.from({ length: v.width * v.height }, (_, i) => cpuPick(f, i % v.width, Math.floor(i / v.width))))))]; })];
   }))));
   assert.equal(projection(cases), projection(gpuOracleCases()));
-  assert.equal(cases.length, 15); assert.equal(cases.reduce((n, c) => n + c.probes.length, 0), 34);
+  assert.equal(cases.length, 17); assert.equal(cases.reduce((n, c) => n + c.probes.length, 0), 39);
 });

@@ -151,8 +151,8 @@ export function makeOriginalSprites(options: OriginalSpriteOptions = {}): { atla
     return Uint8Array.from(pixels.map(byte));
   });
   const table = 8 + frames.length * 24, bytes = new Uint8Array(table + payloads.reduce((n, p) => n + p.length, 0)), view = new DataView(bytes.buffer);
-  view.setUint16(2, options.canvasWidth ?? Math.max(16, ...frames.map(f => (f.x ?? 0) + f.width)), true);
-  view.setUint16(4, options.canvasHeight ?? Math.max(16, ...frames.map(f => (f.y ?? 0) + f.height)), true); view.setUint16(6, frames.length, true);
+  view.setUint16(2, check(options.canvasWidth ?? Math.max(16, ...frames.map(f => (f.x ?? 0) + f.width)), 1, 65535), true);
+  view.setUint16(4, check(options.canvasHeight ?? Math.max(16, ...frames.map(f => (f.y ?? 0) + f.height)), 1, 65535), true); view.setUint16(6, frames.length, true);
   let offset = table;
   frames.forEach((f, i) => {
     const at = 8 + i * 24; view.setUint16(at, check(f.x ?? 0, 0, 65535), true); view.setUint16(at + 2, check(f.y ?? 0, 0, 65535), true);
@@ -226,6 +226,21 @@ export function gpuOracleCases(): GpuOracleCase[] {
     objects: [originalObject({ x: 30, y: 10, anchorX: 5, anchorY: 5, depth: { base: 9, rowStep: 1, terrainTie: 'front' } })] }).batch,
     viewports: [originalViewport()], probes: [0, 1, 2].map(row => ({ view: 0, x: 28, y: 9 + row,
       expected: { kind: 'object' as const, depth: 9 + row, canvasX: 3, canvasY: 4 + row } })) });
+  cases.push({ id: 'transparent-sprite-keeps-farther-object', terrainInput: makeOriginalTerrain(), batch: makeOriginalSprites({ frames: [
+    { id: 'near', width: 3, height: 1, pixels: [0, 3, 4] }, { id: 'far', width: 3, height: 1, pixels: [2, 2, 2] }],
+    palettes: [{ ...p, remap }], objects: [originalObject({ id: 'A', frameId: 'near' }),
+      originalObject({ id: 'z', frameId: 'far', depth: { base: 50, rowStep: 0, terrainTie: 'behind' } })] }).batch,
+    viewports: [originalViewport()], probes: [
+      { view: 0, x: 28, y: 10, expected: { kind: 'object', id: 'z', depth: 50, rgba: rgba(8) } },
+      { view: 0, x: 29, y: 10, expected: { kind: 'object', id: 'z', depth: 50, rgba: rgba(8) } },
+      { view: 0, x: 30, y: 10, expected: { kind: 'object', id: 'A', depth: 100, rgba: rgba(0) } }] });
+  cases.push({ id: 'signed-sprite-depth-extremes', terrainInput: makeOriginalTerrain(), batch: makeOriginalSprites({
+    frames: [{ id: 'frame', width: 1, height: 1, pixels: [2] }], objects: [
+      originalObject({ id: 'minimum', x: 100, y: 0, depth: { base: -1048576, rowStep: 0, terrainTie: 'front' } }),
+      originalObject({ id: 'maximum', x: 101, y: 0, depth: { base: 1048576, rowStep: 0, terrainTie: 'behind' } })] }).batch,
+    viewports: [originalViewport({ cameraX: 100, width: 2, height: 1 })], probes: [
+      { view: 0, x: 0, y: 0, expected: { kind: 'object', id: 'minimum', depth: -1048576, rgba: rgba(2) } },
+      { view: 0, x: 1, y: 0, expected: { kind: 'object', id: 'maximum', depth: 1048576, rgba: rgba(2) } }] });
   cases.push({ id: 'zoom-negative-fractional', terrainInput: makeOriginalTerrain(), batch: makeOriginalSprites({
     frames: [{ id: 'frame', width: 4, height: 3, pixels: [2, 0, 3, 4, 0, 4, 5, 6, 7, 8, 0, 9] }], objects: [originalObject({ x: -2, y: -1 })] }).batch,
     viewports: ([0.5, 1, 2, 4] as const).flatMap(zoom => [[-4.25, -3.5], [12.25, -9.5]].map(([cameraX, cameraY]) =>
