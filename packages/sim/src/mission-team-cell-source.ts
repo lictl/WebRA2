@@ -43,9 +43,13 @@ export function compileMissionTeamCellSource(input: MissionTeamCellSourceInput, 
   if (ms.id !== definitions.source.id || ms.profile !== definitions.profile || ms.sha256 !== definitions.source.sha256 ||
     actions.source.id !== ms.id || actions.source.sha256 !== ms.sha256) fail('mission-identity');
   const mission = { source: { ...definitions.source }, bytes: missionTeamCellBytes(mr.bytes, cap.missionBytes) }, rules = r.rules as RuntimeIni;
-  // Each nested compiler has its own bounded work counter. Eight disjoint shares reserve
-  // its source-view passes, reconstruction and our final indexing; no full cap per pass.
-  const passWork = Math.floor(cap.sourceWork / 8), nested = { stages: cap.stages, occurrences: cap.occurrences,
+  // The existing actor compiler's construction dependency has two fixed 4Mi work
+  // ceilings which it does not forward. Reserve both before allocating seven
+  // configurable counters: actor views(2)+actor fields(1), veterancy view/fields(2),
+  // and our view/indexing(2). Byte parsing/hash caps remain separate resource units.
+  const constructionWork = 2 * 4_194_304;
+  if (cap.sourceWork <= constructionWork) fail('source-work-limit');
+  const passWork = Math.floor((cap.sourceWork - constructionWork) / 7), nested = { stages: cap.stages, occurrences: cap.occurrences,
     nodes: Math.min(cap.nodes, passWork), characters: cap.characters, work: passWork };
   const actorSource = compileCombatActors({ definitions, rules, mission }, { ...nested, types: cap.types, placements: cap.actors,
     fields: cap.fields, rawFields: cap.fields, history: cap.history, tokens: Math.min(32768, cap.tokens), missionBytes: cap.missionBytes, serializedBytes: cap.serializedBytes });

@@ -25,13 +25,21 @@ They are locator/layout references, with no established license grant for that
 pin and no code copied from them. This component's GPL license is WebRA2's own
 license choice, not a claim about YRpp's license.
 
-The supplemental paired-image audit is being finalized for issue212. Already
-inspected complete Unit constructor ranges are RA2 `6FA400..6FA7B4` and YR
+The supplemental [paired-image ledger](../../docs/analysis/mission-team-cell-native.json)
+records 56 ranges/19,425 bytes: 48 complete instruction spans and 8 data spans.
+The private PE/Capstone audit verifies both whole image hashes, range mappings,
+actual Put vtable targets, source keys and 77 scalar/boundary assertions.
+Inspected complete Unit constructor ranges are RA2 `6FA400..6FA7B4` and YR
 `7353C0..735780` (end exclusive). They clear follower fields and copy type
 Cloakable. Unit Put ranges `6FC940..6FCA28` and `737BA0..737C88` show why a zero
-constructor cloak state alone is insufficient: a cloakable unit can enter state2
+constructor cloak state alone is insufficient: a cloakable unit can enter state 2
 during placement. Walk/Drive bridge updates, rank CLOAK ability consumers and the
-cell provider mask are additional context boundaries. No executable was run.
+cell provider mask are additional context boundaries. RA2 Put slots use +D4 while
+YR uses +D8; the ledger verifies each actual table value. The paired event1 Foot
+callers differ: RA2 contains a local cloak-state 2 exclusion, while the inspected
+YR branch retains the bridge condition without that same local cloak check.
+The component's uncloaked invariant is an explicit narrower shared policy, not a
+claim of identical native branches. No executable was run.
 
 `webra2-independent-ground-team-cell-1` is an explicit limited world invariant,
 not a proof that native autonomous behavior never changes those fields. It requires
@@ -43,6 +51,9 @@ capability. Initial placement and future constructor checks remain separate.
 
 The [focused report](../../docs/mission-team-cell-context.md) describes factory
 identity, bounds and the distinction between validated save history and actual
-transaction events. The supplemental native ledger and independent private source
-comparison are pending at this implementation checkpoint; source integration must
-not treat the checkpoint as completed native evidence or campaign acceptance.
+transaction events. The independent raw-field oracle checks 19,756 assertions
+against eight verified members in five rehashed roots. Existing reviewed constructor
+visit selection and world geometry are inputs to that oracle, not newly rederived
+native behavior. Both complete opening capabilities remain false. Neither static
+evidence nor deterministic WebRA2 component replay establishes native execution or
+campaign acceptance.
