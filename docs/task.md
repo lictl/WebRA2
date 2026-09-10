@@ -14,48 +14,61 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
-Current root [team transaction210](https://github.com/lictl/WebRA2/issues/210) /
-[PR211](https://github.com/lictl/WebRA2/pull/211) is in
-local/worktrees/mission-team-actions, branch codex/210-mission-team-actions.
-Source catalog, common runtime and root VM/world transaction are implemented and
-committed; merged main209 is included. Full1,197 tests,185 documents,657 publication
-paths, M0 and75 outputs/145 inputs pass. Both independent component/composition
-reviews are clear at fdba15a; final docs-only exact-head COMMENT reviews and hosted
-checks precede ordinary merge. Actual Chrome4195 ran both16-file openings through
-group movement/Stop and queued/moving restore/replay; all75 served hashes match.
-Four unassigned console messages and two unadmitted locator clicks remain recorded,
-with the running keyboard move successful. No human input is needed. See the
-[dispatch report](mission-team-dispatch.md) for the bounded evidence and limits.
+Current root work is [dynamic team cell context212](https://github.com/lictl/WebRA2/issues/212)
+in local/worktrees/mission-team-cell-context, branch codex/212-team-cell-context,
+from merged main19b3ec7. The root checkout is also clean main19b3ec7; the earlier
+codex/132-source-attack-world branch remains preserved. Node24.20.0 npm ci passed
+in the new root and author worktrees. No human input is needed.
+
+[Team transaction PR211](https://github.com/lictl/WebRA2/pull/211) merged as
+19b3ec78cf108dff65b39c4a695e954d4c0bcecb after final18aa5006614b4f8c7399047989d548ae283e8924
+[VM/source review](https://github.com/lictl/WebRA2/pull/211#pullrequestreview-5167909089)
+and [runtime/helper review](https://github.com/lictl/WebRA2/pull/211#pullrequestreview-5167867803).
+Both are independent role reviews recorded as same-account COMMENTs, with authorship
+exclusions. Hosted34484373757 passed: 1,197 public tests,185 documents/937 links,
+657 publication paths, M0 and75 build outputs/145 inputs. Issue210 is closed.
+Actual Chrome4195 at frozen fdba15a ran both16-file openings through group
+movement/Stop and queued/moving restore/replay; all75 served hashes match. Four
+unattributed console messages and two unadmitted locator clicks remain recorded;
+later running keyboard movement succeeded. See the [dispatch report](mission-team-dispatch.md).
 
 Source preparation retains every4/7/80 action and complete declarations. The VM
 creates ordered receipts from private effects, due at the next common world tick.
 Claims, retries, movement, Flash/release and saved continuation share one world.
-Original tests cover mixed requests, force/delete ordering, cue interleaving,
-competing commands, every boundary/replay, resource rollback and explicit dynamic
-context gates. The fresh438-file complete source check reports null authorities
-with254/461 required diagnostics;12/9 team actions are individually supported.
-These are component results, not playable original campaigns.
+The fresh438-file complete source check still reports null authorities with254/461
+required diagnostics;12/9 team actions are individually supported. These are
+component results, not playable original campaigns. The genuine bounded source
+comparison handles large YR declarations without increasing save serializer limits.
 
-mix_reader authored the five source paths through bdb04ed; bootstrap_review
-independently reviewed those and root VM/world. browser_feasibility authored the
-four new common runtime modules and tests/report through d143166; mix_reader
-independently reviewed that component plus root union/roster/planning helpers.
-Shared-authorship exclusions and exact reviewed SHAs belong in final GitHub COMMENT
-reviews. Root owns distribution, full checks and ordinary merge. Private source,
-native and200/128-tick runtime evidence remain in ignored local/ trees.
+The active wave has exclusive ownership:
 
-The combined source test exposed a YR declaration array exceeding the smaller
-save serializer budget. d0b846c compares against the genuine catalog's bounded
-source shape with an original large-script regression; save limits stay unchanged.
-Next: finish exact composition reviews/checks and merge211, then branch from its
-merged main for [dynamic team cell context212](https://github.com/lictl/WebRA2/issues/212).
-mix_reader is investigating constructor/placement evidence and proposes a two-stage
-source eligibility + genuine context API. Root owns existing VM/world contracts.
-bootstrap_review independently investigates [native allocation closure213](https://github.com/lictl/WebRA2/issues/213):
-Name is a lookup alias and missing default houses do not prove inactive AI roots.
-Its private assessment is local/reviews/mission-team-compound-211/local/native213.
-Worker source modules follow agreed APIs; no211 implementation changes remain.
-Do not stop for routine approval.
+- Root owns212 existing VM/world/contracts, distribution, handoff and merges.
+  Add an explicit genuine team-cell capability, derive actors from common runtime
+  history after its one world step, and deliver successful cell movement before
+  scenario polling. Preserve no-team saves/hashes and reject unsupported object
+  or combat composition. Rebuild dynamic context during restore/replay.
+- mix_reader owns212 new source/context modules, tests and native evidence in
+  local/worktrees/team-cell-source, codex/212-team-cell-source. Its two-stage API
+  first checks every future spawn archetype and the supported world invariant,
+  then constructs a genuine context from the common team history. Constructor
+  defaults alone do not prove future cloak/bridge/transport eligibility. Both
+  coverage gates are required; initial and released actors retain provenance.
+  Worker commits join the combined root212 PR, with no duplicate PR.
+- bootstrap_review owns [native allocation closure213](https://github.com/lictl/WebRA2/issues/213)
+  in local/worktrees/team-allocation-source, codex/213-team-allocation-source.
+  New source-only catalog and evidence retain Name lookup aliases, ordered table
+  loads and explicit/AI/replacement roots. Missing default houses and initial AI
+  gates do not prove lifetime inactivity. This does not add an AI scheduler or
+  silently relax the existing source policy.
+- browser_feasibility owns [running-order feedback214](https://github.com/lictl/WebRA2/issues/214)
+  and the actual Chrome surface. Busy-order feedback is overwritten by automatic
+  step responses; disabled mouse/Enter behavior is being distinguished from the
+  canvas shortcut path. Keep command admission unchanged and make acknowledgments
+  durable. Use a fresh branch from main211 and preserve frozen servers through4195.
+
+Worker213/214 open linked PRs after coherent commits. Reviewers must inspect exact
+heads outside their authored paths. Continue implementation and routine GitHub
+review/merge work autonomously; Chrome is the development browser per D17.
 
 [Object combat PR207](https://github.com/lictl/WebRA2/pull/207) merged as
 3543b567d6c652ea0648a3f5832fbcee18156ddc, reviewed at
