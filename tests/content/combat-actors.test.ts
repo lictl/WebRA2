@@ -38,6 +38,7 @@ test('both profiles retain all six families and fresh placement/type/owner/healt
     assert.equal(p.sourcePlacement.row.origin.rawValue, 'Player,TANK,128,2,2,0,Guard,None');
     assert.equal(def(r).startingAmmo.value, -1); assert.equal(def(r).fields.immune.value, false);
     assert.equal(def(r).fields.typeImmune.value, false); assert.equal(def(r).fields.weaponCount.status, 'unsupported');
+    assert.equal(def(r, 'smudge').fields.immune.value, true); assert.equal(def(r, 'smudge').fields.immune.rule, 'native-smudge-constructor');
     assert.equal(def(r).normalSlots.mode, 'ordinary'); assert.equal(def(r, 'terrain').startingAmmo.status, 'not-applicable');
     assert.equal(r.coverage.initialAlliancesComplete, true); assert.deepEqual(r.directedAllies, []); assert.equal(r.canStartCampaign, false);
   }
@@ -133,4 +134,21 @@ test('lowered budgets fail before expansions and hostile accessors are never inv
   assert.throws(() => compileCombatActors(bad), /input/); assert.equal(calls, 0);
   const badBytes = new Uint8Array(input.mission.bytes); Object.defineProperty(badBytes,'byteLength',{get(){calls++;return 0;}});
   assert.throws(() => compileCombatActors({ ...input, mission: { ...input.mission, bytes: badBytes } }), /mission-bytes/); assert.equal(calls, 0);
+});
+
+test('smudge subtype immunity can be explicitly reloaded and ambiguous consumed sections are rejected', () => {
+  const r = compileCombatActors(actorInput({ map: mapText + '[MARK]\nImmune=no\n' }));
+  assert.equal(def(r, 'smudge').fields.immune.value, false); assert.equal(def(r, 'smudge').fields.immune.history.length, 1);
+  for (const text of ['[TANK]\nAmmo=1\n[TANK]\nImmune=no\n', '[TANK]\nAmmo=1\nAmmo=2\n', '[Player]\nAllies=Other\n'])
+    assert.throws(() => compileCombatActors(actorInput({ map: mapText + text })));
+});
+
+test('fallback houses and imported prototype spellings preserve unsupported scope and literal lookup', () => {
+  const withoutList = mapText.replace('[Houses]\n0=Player\n1=Other\n[Other]\nCountry=Blue\n', '').replaceAll('Player,', 'Blue,');
+  const fallback = compileCombatActors(actorInput({ map: withoutList }));
+  assert.equal(fallback.coverage.initialAlliancesComplete, false); assert.equal(fallback.houses[0]!.status, 'unsupported');
+  const hostile = mapText.replaceAll('Other', 'constructor').replace('[Player]\nCountry=Blue', '[Player]\nCountry=Blue\nAllies=constructor') + '[TANK]\n__proto__=opaque\nconstructor=opaque\n';
+  const r = compileCombatActors(actorInput({ map: hostile }));
+  assert.equal(r.coverage.initialAlliancesComplete, true); assert.equal(r.directedAllies[0]!.allyHouseId, 'houses:1');
+  assert.equal(def(r).normalSlots.mode, 'ordinary'); assert(def(r).rawFields.some(o => o.keySpelling === '__proto__'));
 });

@@ -142,6 +142,7 @@ export function compileCombatActors(input: { readonly definitions: EntityDefinit
     for (const spec of specs) f[spec.name] = spec.techno && !techno ? initial<number | boolean>(null, 'type-family', 'not-applicable') :
       spec.yr && profile === 'ra2' ? initial(false, 'not-in-ra2', 'not-applicable') :
       spec.value === null ? initial<number | boolean>(null, 'weapon-count-default-unverified', 'unsupported') : initial(spec.value);
+    if (type.kind === 'smudge') f.immune = initial(true, 'native-smudge-constructor');
     const origins: IniOrigin[] = [];
     for (const stage of type.definitionStages) {
       const s = section(stage.layerId, type.name); if (!s) return fail('definition-stage'); retain(s, origins);

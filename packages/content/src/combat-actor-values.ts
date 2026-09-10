@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Original bounded canonical encoding; see ../COMBAT_ACTORS_PROVENANCE.md.
+// Internal use with validated JSON-shaped compiler data; not an untrusted JSON loader.
 import { sha256 } from '@noble/hashes/sha2.js';
 export function combatActorFingerprint(value: unknown, cap: number): string {
   const digest = sha256.create(), encoder = new TextEncoder(); let remaining = cap;

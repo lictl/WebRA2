@@ -1,0 +1,472 @@
+{
+  "schemaVersion": 1,
+  "scope": "Initial native actor fields and fresh campaign alliance source paths only; no programs executed or full combat/diplomacy behavior claim.",
+  "images": [
+    {
+      "profile": "ra2",
+      "filename": "game.exe",
+      "size": 5077312,
+      "sha256": "73288c03b58d370be268ca6d156b4e33bfdb2066dc980359467d8852ff3b00df",
+      "ranges": [
+        {
+          "id": "object-constructor",
+          "vaStart": "0x5d57f0",
+          "vaEndExclusive": "0x5d59d7",
+          "offset": 1923056,
+          "size": 487,
+          "sha256": "a8664353d80a13fd27f4e2d93cf2e80c8e1ae95393e9087899b124ed50ba9303",
+          "interpretation": "ObjectType Immune starts false; subtype overrides remain separate.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "techno-constructor",
+          "vaStart": "0x6d9b40",
+          "vaEndExclusive": "0x6da5da",
+          "offset": 2988864,
+          "size": 2714,
+          "sha256": "648a8a96a9c8f111afaa2ef6d191188da15f43ccfd1c82b6075a545d46d1e2cf",
+          "interpretation": "InitialAmmo/Ammo -1, TypeImmune/slot-control defaults and weapon arrays; WeaponCount constructor value remains unverified.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "smudge-constructor",
+          "vaStart": "0x687da0",
+          "vaEndExclusive": "0x687e21",
+          "offset": 2653600,
+          "size": 129,
+          "sha256": "c88fd5c736c8558e6b6a31b172f9948740ba92ff7e516d2c5a0bb6e915f5181a",
+          "interpretation": "SmudgeType explicitly overrides ObjectType Immune to true.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "ammo-fields",
+          "vaStart": "0x6dccae",
+          "vaEndExclusive": "0x6dcce2",
+          "offset": 3001518,
+          "size": 52,
+          "sha256": "74b198ef8f4d8bdb7ec6062f534d36569d1725300fe9e68a3cdd3fcc9f40a459",
+          "interpretation": "InitialAmmo then Ammo exact source keys use native ReadInteger with current field defaults.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "immune-field",
+          "vaStart": "0x5d7a1b",
+          "vaEndExclusive": "0x5d7a4a",
+          "offset": 1931803,
+          "size": 47,
+          "sha256": "9b24a8ebe5606530cdf0a24395189b807f7702767aace47666c863fb3430f751",
+          "interpretation": "ObjectType Immune exact boolean read uses current value and stores it separately from adjacent flags.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "type-immune-field",
+          "vaStart": "0x6dafd2",
+          "vaEndExclusive": "0x6dafec",
+          "offset": 2994130,
+          "size": 26,
+          "sha256": "462d7b71fbf8a2a75606275e7804fd23d0d695ab91df0ba6fd180980acd86d2d",
+          "interpretation": "Techno TypeImmune exact boolean current-default read; damage effect not interpreted here.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "normal-numbered-clear-weapons",
+          "vaStart": "0x6db614",
+          "vaEndExclusive": "0x6db87d",
+          "offset": 2995732,
+          "size": 617,
+          "sha256": "f7d4b8b322f6f8af331354b882465468e706dc91f1aea1f8ee8167d07db98908",
+          "interpretation": "TurretCount/WeaponCount select numbered versus normal source keys; ClearAllWeapons clears first two normal/elite links.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "gunner-field",
+          "vaStart": "0x6dcef5",
+          "vaEndExclusive": "0x6dcf0f",
+          "offset": 3002101,
+          "size": 26,
+          "sha256": "1d24a9daf61124feab433dc2819c8f506fd31829aef2087b06c0ebd8d5005f17",
+          "interpretation": "Gunner exact boolean field is retained as a conditional actor control.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "aircraft-initial-ammo",
+          "vaStart": "0x413d5a",
+          "vaEndExclusive": "0x413d71",
+          "offset": 81242,
+          "size": 23,
+          "sha256": "eace3cd1d05d5d363d797fb9c5ff647f9879dd31f10d9db433602e15a74066e0",
+          "interpretation": "Actor initial ammo directly selects InitialAmmo unless -1, otherwise Ammo; no clamp at this assignment.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "building-initial-ammo",
+          "vaStart": "0x43f87d",
+          "vaEndExclusive": "0x43f894",
+          "offset": 260221,
+          "size": 23,
+          "sha256": "eace3cd1d05d5d363d797fb9c5ff647f9879dd31f10d9db433602e15a74066e0",
+          "interpretation": "Building actor same initial-ammo selection and direct assignment.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "infantry-initial-ammo",
+          "vaStart": "0x4ff959",
+          "vaEndExclusive": "0x4ff970",
+          "offset": 1046873,
+          "size": 23,
+          "sha256": "eace3cd1d05d5d363d797fb9c5ff647f9879dd31f10d9db433602e15a74066e0",
+          "interpretation": "Infantry actor same initial-ammo selection and direct assignment.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "unit-constructor-minus-one",
+          "vaStart": "0x6fa400",
+          "vaEndExclusive": "0x6fa42c",
+          "offset": 3122176,
+          "size": 44,
+          "sha256": "2cc641d8b476efc9834004cf3e0cae5562563d5ead2df5afa6f50a5893d001b1",
+          "interpretation": "Unit constructor establishes EDI=-1 used by its initial-ammo fallback branch.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "unit-initial-ammo",
+          "vaStart": "0x6fa5c6",
+          "vaEndExclusive": "0x6fa5e2",
+          "offset": 3122630,
+          "size": 28,
+          "sha256": "1b4b575b14e4079ffee351e3171427a74307cdc8b2c691d7e174e288a8be5bff",
+          "interpretation": "Unit actor compares InitialAmmo to EDI=-1 and assigns selected value to actor Ammo.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "fresh-house-alliance-state",
+          "vaStart": "0x4e18c0",
+          "vaEndExclusive": "0x4e27d4",
+          "offset": 923840,
+          "size": 3860,
+          "sha256": "60ffbac8cf1383876c9f157e405a0754f881f8bebba79ce9346d11103d17fa35",
+          "interpretation": "Fresh House constructor clears the current Allies mask; its separate starting/alternate mask includes self.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "exact-house-lookup",
+          "vaStart": "0x4f5b40",
+          "vaEndExclusive": "0x4f5bde",
+          "offset": 1006400,
+          "size": 158,
+          "sha256": "6ac259b465eb3ce723148f9eadf3c821c6a6961131137de345b2b3ec36928b2b",
+          "interpretation": "First literal case-sensitive house name match; no country alias fallback.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "alliance-parser",
+          "vaStart": "0x46a720",
+          "vaEndExclusive": "0x46a79c",
+          "offset": 436000,
+          "size": 124,
+          "sha256": "2941ad35e4539872d60439065eb3bdb214d6c925b3618d743d3853834f9376be",
+          "interpretation": "128-byte ReadString, comma strtok and House FindIndexByName feed a 32-bit shift mask. Unknown and aliased indices are unsupported by this compiler.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "house-alliance-load",
+          "vaStart": "0x4ec0b7",
+          "vaEndExclusive": "0x4ec117",
+          "offset": 966839,
+          "size": 96,
+          "sha256": "26bd76cba9b42cd266bb9cd4a701df5b85c1c746e6ea331ce0f49d371006659e",
+          "interpretation": "Fresh house property pass reads its mission Allies with zero default and visits house indices in physical order.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "make-ally-bit",
+          "vaStart": "0x4e5660",
+          "vaEndExclusive": "0x4e5727",
+          "offset": 939616,
+          "size": 199,
+          "sha256": "75a0cec1936be2663afdf891a1c3ca4c59875314dfe6e0fce91fa06b92b765a1",
+          "interpretation": "CanAlly guard then OR target bit into source house only; directed relation.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "make-ally-initial-return",
+          "vaStart": "0x4e5a33",
+          "vaEndExclusive": "0x4e5a4e",
+          "offset": 940595,
+          "size": 27,
+          "sha256": "d9dbc43227530052ac6dfc4aba4831dd11c5f6cefb7a0173e51fec3c267bbe6c",
+          "interpretation": "Initialization branch reaches this epilogue rather than the live-diplomacy path.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "can-ally-initialization-gate",
+          "vaStart": "0x4ec4e0",
+          "vaEndExclusive": "0x4ec551",
+          "offset": 967904,
+          "size": 113,
+          "sha256": "d6a76b55e2f14a2fa1bb57ef5644334932dbfe0c9a3b569d6e729fb0802bab47",
+          "interpretation": "Self/already-allied rejection, Civilian-side restriction only outside mode zero, then initialization counter admits relation. Live path not modeled.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "scenario-init-counter",
+          "vaStart": "0x65eb40",
+          "vaEndExclusive": "0x65eb66",
+          "offset": 2485056,
+          "size": 38,
+          "sha256": "1c82d2ab098648bbc7b61fb61b288954c29dc0acbf89e59cf0114586fbdb6f91",
+          "interpretation": "Scenario reader increments the initialization counter before source/house loading.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "campaign-house-list-call",
+          "vaStart": "0x65f3f6",
+          "vaEndExclusive": "0x65f475",
+          "offset": 2487286,
+          "size": 127,
+          "sha256": "0cc830f0eeec41db63d7a33aed3adc7a36d00c37425589ab42433ff0aea9dcf9",
+          "interpretation": "Campaign mode branch passes the owned scenario INI to house-list loading.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        }
+      ]
+    },
+    {
+      "profile": "yr",
+      "filename": "gamemd.exe",
+      "size": 5286208,
+      "sha256": "3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600",
+      "ranges": [
+        {
+          "id": "object-constructor",
+          "vaStart": "0x5f7090",
+          "vaEndExclusive": "0x5f7277",
+          "offset": 2060432,
+          "size": 487,
+          "sha256": "2784f80070eb3b38f75b0f92ca65d12a5353f51eb393802919a64147de5f49a6",
+          "interpretation": "ObjectType Immune starts false; subtype overrides remain separate.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "techno-constructor",
+          "vaStart": "0x710af0",
+          "vaEndExclusive": "0x711711",
+          "offset": 3214064,
+          "size": 3105,
+          "sha256": "542f59f1fd84ffc9e24da1cdc441c8168444436abeecf7726ee924a5b976a12e",
+          "interpretation": "InitialAmmo/Ammo -1, TypeImmune/slot-control defaults and weapon arrays; WeaponCount constructor value remains unverified.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "smudge-constructor",
+          "vaStart": "0x6b5260",
+          "vaEndExclusive": "0x6b52e1",
+          "offset": 2839136,
+          "size": 129,
+          "sha256": "6d61c6198bea625b480dac1facffd1459f7f55e0ca105bd0c39d3de5b40b8e16",
+          "interpretation": "SmudgeType explicitly overrides ObjectType Immune to true.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "ammo-fields",
+          "vaStart": "0x71474c",
+          "vaEndExclusive": "0x714780",
+          "offset": 3229516,
+          "size": 52,
+          "sha256": "6a96cd11676ae137a81bf9f52a088ccfd0cc01ddc206de316eddc98d51de96b9",
+          "interpretation": "InitialAmmo then Ammo exact source keys use native ReadInteger with current field defaults.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "immune-field",
+          "vaStart": "0x5f94e7",
+          "vaEndExclusive": "0x5f9516",
+          "offset": 2069735,
+          "size": 47,
+          "sha256": "3218862ac7874b02ff3b1736ac099cd6587f535666a0ed9a7faa2454725fd63e",
+          "interpretation": "ObjectType Immune exact boolean read uses current value and stores it separately from adjacent flags.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "type-immune-field",
+          "vaStart": "0x712208",
+          "vaEndExclusive": "0x712222",
+          "offset": 3219976,
+          "size": 26,
+          "sha256": "ca6511a0414e27ae46c420666b97d229d28f13cbab0bc6885f9afa6ea697f852",
+          "interpretation": "Techno TypeImmune exact boolean current-default read; damage effect not interpreted here.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "normal-numbered-clear-weapons",
+          "vaStart": "0x71284a",
+          "vaEndExclusive": "0x712ab3",
+          "offset": 3221578,
+          "size": 617,
+          "sha256": "aa1659ebaa7b717709f490da826980f881d758380ce8fab68579b5855507db4c",
+          "interpretation": "TurretCount/WeaponCount select numbered versus normal source keys; ClearAllWeapons clears first two normal/elite links.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "gunner-field",
+          "vaStart": "0x714a49",
+          "vaEndExclusive": "0x714a63",
+          "offset": 3230281,
+          "size": 26,
+          "sha256": "7cdb42b4aa0ec283aacf176b2331862ee13cdef0506a912685bde0b17f8b77f3",
+          "interpretation": "Gunner exact boolean field is retained as a conditional actor control.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "aircraft-initial-ammo",
+          "vaStart": "0x41403a",
+          "vaEndExclusive": "0x414051",
+          "offset": 81978,
+          "size": 23,
+          "sha256": "01ec2f4219f1f7870ba6f8f8f90372c69d67dd2bf79a953aa7903ffe5a18507d",
+          "interpretation": "Actor initial ammo directly selects InitialAmmo unless -1, otherwise Ammo; no clamp at this assignment.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "building-initial-ammo",
+          "vaStart": "0x442c81",
+          "vaEndExclusive": "0x442c98",
+          "offset": 273537,
+          "size": 23,
+          "sha256": "01ec2f4219f1f7870ba6f8f8f90372c69d67dd2bf79a953aa7903ffe5a18507d",
+          "interpretation": "Building actor same initial-ammo selection and direct assignment.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "infantry-initial-ammo",
+          "vaStart": "0x517d69",
+          "vaEndExclusive": "0x517d80",
+          "offset": 1146217,
+          "size": 23,
+          "sha256": "01ec2f4219f1f7870ba6f8f8f90372c69d67dd2bf79a953aa7903ffe5a18507d",
+          "interpretation": "Infantry actor same initial-ammo selection and direct assignment.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "unit-constructor-minus-one",
+          "vaStart": "0x7353c0",
+          "vaEndExclusive": "0x7353ec",
+          "offset": 3363776,
+          "size": 44,
+          "sha256": "cda74a8d0deb5f630daa6ba97468859524dbae85d55242f7b47f79bfcf967b90",
+          "interpretation": "Unit constructor establishes EDI=-1 used by its initial-ammo fallback branch.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "unit-initial-ammo",
+          "vaStart": "0x735592",
+          "vaEndExclusive": "0x7355ae",
+          "offset": 3364242,
+          "size": 28,
+          "sha256": "8ae352985c69b401ddc235852989c6ff6916a3e75be3b681f99216c5834a3598",
+          "interpretation": "Unit actor compares InitialAmmo to EDI=-1 and assigns selected value to actor Ammo.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "fresh-house-alliance-state",
+          "vaStart": "0x4f54a0",
+          "vaEndExclusive": "0x4f653a",
+          "offset": 1004704,
+          "size": 4250,
+          "sha256": "0fb62b2c310040b36b20334c1d87da5e7b0206ec76fdddc18b5743add40ec3f2",
+          "interpretation": "Fresh House constructor clears the current Allies mask; its separate starting/alternate mask includes self.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "exact-house-lookup",
+          "vaStart": "0x50c170",
+          "vaEndExclusive": "0x50c20e",
+          "offset": 1098096,
+          "size": 158,
+          "sha256": "83f1f999d0253b376fd5123d0e2ed255586c2be250a37f93d46140536831adcc",
+          "interpretation": "First literal case-sensitive house name match; no country alias fallback.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "alliance-parser",
+          "vaStart": "0x475260",
+          "vaEndExclusive": "0x4752dc",
+          "offset": 479840,
+          "size": 124,
+          "sha256": "58678bd5271b8cbeb29a13759d7fda5c5cfa4f4b1969c9ab19b222586bbbd602",
+          "interpretation": "128-byte ReadString, comma strtok and House FindIndexByName feed a 32-bit shift mask. Unknown and aliased indices are unsupported by this compiler.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "house-alliance-load",
+          "vaStart": "0x501091",
+          "vaEndExclusive": "0x5010f1",
+          "offset": 1052817,
+          "size": 96,
+          "sha256": "df6de47828c25f6e6ac5cf01899430df1ccd154e7f1e912ebcdb3098249469ae",
+          "interpretation": "Fresh house property pass reads its mission Allies with zero default and visits house indices in physical order.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "make-ally-bit",
+          "vaStart": "0x4f9b70",
+          "vaEndExclusive": "0x4f9c37",
+          "offset": 1022832,
+          "size": 199,
+          "sha256": "5ef5a1d7d5d249b2a096ec0e1664dc25b166a8dc1c2ed9615f261827b1c06b23",
+          "interpretation": "CanAlly guard then OR target bit into source house only; directed relation.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "make-ally-initial-return",
+          "vaStart": "0x4f9f46",
+          "vaEndExclusive": "0x4f9f61",
+          "offset": 1023814,
+          "size": 27,
+          "sha256": "039f107c2ce11b18b79d9de822868ec52161df8feafcfc0e1172c7fbbebdff9d",
+          "interpretation": "Initialization branch reaches this epilogue rather than the live-diplomacy path.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "can-ally-initialization-gate",
+          "vaStart": "0x501540",
+          "vaEndExclusive": "0x5015b1",
+          "offset": 1054016,
+          "size": 113,
+          "sha256": "3032881d8662f180a77bb085be67010acdfac48eaee6633b34fdbb5056050f79",
+          "interpretation": "Self/already-allied rejection, Civilian-side restriction only outside mode zero, then initialization counter admits relation. Live path not modeled.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "scenario-init-counter",
+          "vaStart": "0x686b20",
+          "vaEndExclusive": "0x686b55",
+          "offset": 2648864,
+          "size": 53,
+          "sha256": "624d30980329522c70bd0147c1d052d1cc6d36ed4bf4d1d31fda723fd49c2a57",
+          "interpretation": "Scenario reader increments the initialization counter before source/house loading.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "campaign-house-list-call",
+          "vaStart": "0x687744",
+          "vaEndExclusive": "0x6877c2",
+          "offset": 2651972,
+          "size": 126,
+          "sha256": "a8059f489b05c2effb0f31597cf5c596a4ba848db816bec5236c8b2aa4e7431d",
+          "interpretation": "Campaign mode branch passes the owned scenario INI to house-list loading.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        },
+        {
+          "id": "gattling-field",
+          "vaStart": "0x714016",
+          "vaEndExclusive": "0x714030",
+          "offset": 3227670,
+          "size": 26,
+          "sha256": "4598d6bb4a9777de74e843d56a1b0ed7eb0c282887947b462851b9f37cb4a45d",
+          "interpretation": "YR IsGattling boolean current-default read; dynamic stage/slot selection is not executed.",
+          "evidence": "static-byte-range-and-inspected-native-path"
+        }
+      ]
+    }
+  ]
+}
