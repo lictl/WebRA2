@@ -14,34 +14,51 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
-Current201/PR202 checkpoint includes the source adapter and compound runtime.
-Root's seven original runtime fixtures and bootstrap's 11 source fixtures pass.
-Fresh private 438-file preparation accepts all 18/9 event1 references with source
-hashes `f6c2ee31f04fe4e74f63d382e483d8250060d1199222866e4560cc7788cde6c1` and
+Current [cell-entry PR202](https://github.com/lictl/WebRA2/pull/202) is being
+composed with merged main203 in `local/worktrees/mission-cell-entry`, branch
+`codex/201-mission-cell-entry`. Source/runtime head
+`6537b8113d2d5716da3b240cf84990de2cc8976f` passes 1,102 public tests and its
+[independent source review](https://github.com/lictl/WebRA2/pull/202#pullrequestreview-5166612300). All 18/9 opening event1 references and 180/278 cell
+bindings resolve. The separate raw oracle passes 55,976 assertions; all 64 source
+ranges/15,878 bytes and 16 runtime ranges/2,014 bytes verify. All initially alive
+movable source actors meet the supported context. Source hashes are
+`f6c2ee31f04fe4e74f63d382e483d8250060d1199222866e4560cc7788cde6c1` and
 `6d0d7d0be05b3de9fd3b818f1ea7f78bf3818727a05a59c3a98a3913115f7193`.
-Both full authorities remain null (274/491 required diagnostics). A private
-pre-change VM comparison passes 32 programs/768 ticks/1,632 assertions with exact
-legacy identities, states, effects and work. mix_reader reviews the combined
-source/runtime; bootstrap finishes the source raw oracle. Final checks/merge remain pending.
+Both full authorities remain null (274/491 required diagnostics). The no-cell legacy
+comparison passes 32 programs/768 ticks/1,632 assertions. Final composition checks
+and exact-head independent review remain required before merge.
 
-Audio203 source review passed; root's distribution composition is independently
-reviewed by browser_feasibility. UI199 merged as
-`58841e3d05d96a91562ce245ccd13e3637163bb0`, issue197 closed after source/browser and
-final composition reviews. Continue the authorized engine work; no human input is needed.
+[Audio PR203](https://github.com/lictl/WebRA2/pull/203) merged as
+`538a7f655bce84fc4674db57f1d35c556959ef21`, reviewed at
+`c13a52236508f186657550b8190b70c22d2cb090`. The
+[source review](https://github.com/lictl/WebRA2/pull/203#pullrequestreview-5166459642)
+and [composition review](https://github.com/lictl/WebRA2/pull/203#pullrequestreview-5166575096)
+pass: full 1,099 tests, exact hosted34472218078, 6,143 private raw comparisons over
+seven roots and 85 native ranges/15,015 bytes. The exact GPL notice is distributed;
+all 12 JavaScript/CSS/HTML outputs match UI199. Issue196 is closed within resource
+reference preparation; audio decoding, dispatch and playback remain pending.
 
-Current root slice: [source cell-entry events201](https://github.com/lictl/WebRA2/issues/201)
-in `local/worktrees/mission-cell-entry`, branch `codex/201-mission-cell-entry`.
-Root owns shared VM/compound event delivery and RegisterEvent/TagRaiseEvent evidence;
-bootstrap_review owns separate source binding, event1/movement call-site research
-and original source fixtures. Audio196 and battlefield UI197 continue independently.
-No original event is admitted until source and runtime semantics are joined.
+UI199 merged as `58841e3d05d96a91562ce245ccd13e3637163bb0`, reviewed at
+`2573ae1843955a32e666ba8f81ad080a76715da8`. Its
+[source/browser review](https://github.com/lictl/WebRA2/pull/199#pullrequestreview-5166383543)
+and [composition review](https://github.com/lictl/WebRA2/pull/199#pullrequestreview-5166425812)
+pass with hosted34470673681 and 1,086 tests. Issue197 is closed. Actual Chrome
+checkpoints and the fresh private 16-file YR replay remain separately documented
+in the [battlefield report](battlefield-ui.md). No full mission becomes playable.
+
+Next: bootstrap_review owns the separate source adapter/native evidence for
+[object combat events204](https://github.com/lictl/WebRA2/issues/204); root owns
+existing VM/world dispatch. mix_reader independently reviews202, then owns
+[PCM/IMA decoder205](https://github.com/lictl/WebRA2/issues/205). Shared distribution,
+contracts and merges remain coordinator-owned. No human input is needed.
 
 Waypoint198 merged as `06d61025b6c7a0a811dedb9a6ea2e8702d4b25bc`, reviewed at
-`c1e3c7f0ea4c142751e6b0fe06c125072fe81c13`. The
+`c1e3c7f0ea4c142751e6b0fe06c125072fe81c13`. Its
 [final composition review](https://github.com/lictl/WebRA2/pull/198#pullrequestreview-5166178817)
 confirms 1,084 tests, 168 documents/846 links, 592 paths and 69 outputs/142 inputs,
 with all ten source files unchanged and the exact waypoint GPL notice packaged.
-Hosted run34468297892 passed; issue193 closes within this initial-source scope.
+Hosted34468297892 passed; issue193 is closed within the initial-source scope.
+
 
 Coordinator integrates corrected [waypoint PR198](https://github.com/lictl/WebRA2/pull/198)
 in `local/worktrees/waypoint-integration`, branch `codex/193-waypoint-integration`.

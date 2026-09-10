@@ -87,7 +87,10 @@ save/replay. Type checking passes. An independent private comparison against the
 VM passes 1,632 comparisons over 32 original programs and 768 ticks, with and
 without cue catalogs: program identities, saves, effects and work counts match.
 The source actor audit requires complete 14-field rows, OnBridge0 and independent
-unit follower -1. Exact-head independent review remains required before merge. No original campaign execution or browser acceptance is
+unit follower -1. The [independent source/runtime review](https://github.com/lictl/WebRA2/pull/202#pullrequestreview-5166612300)
+covers `6537b8113d2d5716da3b240cf84990de2cc8976f`: 1,102 public tests,
+55,976 raw source assertions, all 80 native code/data records and 28 additional
+reviewer cases/4,556 assertions pass. Final main-composition review remains required. No original campaign execution or browser acceptance is
 claimed by this component.
 
 A [fresh source census](analysis/mission-cell-dispatch-census.json) reads all 438
