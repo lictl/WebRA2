@@ -18,15 +18,25 @@ Current wave: coordinator [actor modifiers and firing/death #147](https://github
 continuing [authoritative combat #132](https://github.com/lictl/WebRA2/issues/132) after the
 reviewed [core/source-preparation checkpoint PR137](https://github.com/lictl/WebRA2/pull/137);
 browser agent [RTS selection and group orders #149](https://github.com/lictl/WebRA2/issues/149);
-format agent [invisible weapon context #145](https://github.com/lictl/WebRA2/issues/145);
-simulation agent [animation effect closure #146](https://github.com/lictl/WebRA2/issues/146).
-No essential human input is needed. Finish reviewed slices and continue through
+format agent [actor death prerequisites #155](https://github.com/lictl/WebRA2/issues/155),
+after independent review of the shared team destination helper;
+simulation agent [team movement runtime #152](https://github.com/lictl/WebRA2/issues/152).
+The owner unlocked the Mac and the browser tool confirms access. Per the new D17
+priority, use Chrome for development acceptance and defer full Firefox/Edge/Safari
+end-to-end checks until the remaining implementation is finished. No essential
+human input is currently needed. Finish reviewed slices and continue through
 the accepted milestones; do not stop merely because a worker wave merges.
 
 Recent reviewed merges:
 
 | Component | PR / merge SHA | Exact-head evidence |
 | --- | --- | --- |
+| Native combat arithmetic | [157](https://github.com/lictl/WebRA2/pull/157), `48bb1908116166e30c01c537923977ba90a77e0c` | 772 tests; independent source and final integration COMMENT reviews on PR; numerical stages only |
+| Shared group destinations | [156](https://github.com/lictl/WebRA2/pull/156), `f7ece4216bc520d889a8350407c5dabcb383e055` | 765 tests; independent source and final distribution COMMENT reviews on PR; explicit WebRA2 policy |
+| Native random primitive | [154](https://github.com/lictl/WebRA2/pull/154), `a35c989b4d35f3b635de54d7c3c20dc6ef6d9130` | 759 tests; independent source and [integration review](https://github.com/lictl/WebRA2/pull/154#pullrequestreview-5162531908); explicit state only, global sequencing remains open |
+| Invisible impact context | [148](https://github.com/lictl/WebRA2/pull/148), `fae39c705cdbe3d20fa78768eb4c225d18bbe962` | 733 tests; source review and [integration review](https://github.com/lictl/WebRA2/pull/148#pullrequestreview-5162400221); context only, no weapon execution |
+| Animation effect closure | [150](https://github.com/lictl/WebRA2/pull/150), `7a8c5e66dde9068cd4c21ac088dcb4e496b6ff08` | 747 tests; source review and [integration review](https://github.com/lictl/WebRA2/pull/150#pullrequestreview-5162434183); ordinary effect classification only |
+| Combat core/source preparation | [137](https://github.com/lictl/WebRA2/pull/137), `ebc23ead7a8553d008c017b375a5a0e6df51e93e` | 723 tests; core/capability/placement/roster and final integration COMMENT reviews on PR;132 remains open |
 | Authoritative movement | [123](https://github.com/lictl/WebRA2/pull/123), `7bc2167d88a2ad6ef74ea4a41f53f3dd8b460050` | 623 tests; [review](https://github.com/lictl/WebRA2/pull/123#pullrequestreview-5160666607) |
 | Native foundation masks | [129](https://github.com/lictl/WebRA2/pull/129), `a97f7b08f05afa943c1bb043713466b1e9a9cb32` | 585 tests; [review](https://github.com/lictl/WebRA2/pull/129#pullrequestreview-5160598887) |
 | Typed weapon graph | [130](https://github.com/lictl/WebRA2/pull/130), `55c20f89ac2c36521bfdcd3bead4d708f5f4d4b3` | 597 tests; [review](https://github.com/lictl/WebRA2/pull/130#pullrequestreview-5160648304) |
@@ -38,7 +48,7 @@ Recent reviewed merges:
 | Initial weapon spelling proof | [142](https://github.com/lictl/WebRA2/pull/142), `c9ab75a280eaed4956de0b986ac2258210527f05` | 644 tests; [review](https://github.com/lictl/WebRA2/pull/142#pullrequestreview-5162066332) |
 | Combat actor initialization | [143](https://github.com/lictl/WebRA2/pull/143), `21588d19fa5d870163a6aaad38cdc40c017c9ba6` | 678 tests; source review on PR, [integration review](https://github.com/lictl/WebRA2/pull/143#pullrequestreview-5162128139) |
 
-Issues131,133,134,139,140,141 are closed. #127 and parent120 remain open for the Safari
+Issues131,133,134,139,140,141,145,146,151 are closed within their component scope. #127 and parent120 remain open for the Safari
 automatic-running acceptance row shared with115; GitHub unexpectedly closed127
 during squash, so the coordinator reopened it with the exact remaining criterion.
 Both opening worlds have matching model/moving-save/replay identities in actual
@@ -123,10 +133,10 @@ the coordinator after independent exact-head COMMENT review and successful check
 
 | Role | Current work and exclusive paths | Branch / private worktree |
 | --- | --- | --- |
-| Coordinator | #132 combat checkpoint, then #147 actor modifiers/firing/death; shared configuration/handoff and reviews | `codex/132-world-combat` at root; next `codex/147-combat-modifiers` |
+| Coordinator | #147 actor modifiers/firing/death; shared configuration/handoff and reviews | `codex/147-house-modifiers` at root |
 | browser_feasibility | #149 RTS selection/group orders/HUD; apps/web/**, tests/browser/**, tests/web-ui/** and focused docs; sole native UI owner | `codex/149-world-controls`, `local/worktrees/world-controls` |
-| mix_reader | #145 invisible-weapon impact/obstruction context; new content source/tests/provenance | `codex/145-instant-weapons`, `local/worktrees/instant-weapons` |
-| bootstrap_review | #146 animation gameplay-effect closure; new content source/tests/provenance | `codex/146-animation-effects`, `local/worktrees/animation-effects` |
+| mix_reader | Shared group planner review, then #155 actor death prerequisites; new content source/tests/provenance | `codex/155-combat-death`, `local/worktrees/combat-death` (creating); preserved `local/worktrees/native-random` |
+| bootstrap_review | #152 source-bound team movement transactions and reusable group destination policy; new sim source/tests/provenance | `codex/152-team-runtime`, `local/worktrees/team-runtime` |
 
 Voxel UI [PR144](https://github.com/lictl/WebRA2/pull/144) merged after exact-head
 source and final browser-evidence review. All four actual browser families passed
@@ -138,12 +148,26 @@ were captured inputs. See [the precise report](voxel-world-ui.md); no new Run,
 file export/import, reload, timing or campaign acceptance is implied. Preserve4177.
 Preview metadata and app-private terrain protocol v4 never enter gameplay identity.
 
-Invisible impact context [PR148](https://github.com/lictl/WebRA2/pull/148) is under
-coordinator review. Animation closure146 is in progress, including profile-specific
-source/load order. Root147 private analysis establishes difficulty/country modifier
-paths and native reload jitter; the format agent independently investigates the
-native RNG/scheduling subtask while the coordinator owns modifier/type/death work.
-All source execution gates remain explicit; no essential human input is needed.
+Invisible impact context [PR148](https://github.com/lictl/WebRA2/pull/148) and
+animation closure [PR150](https://github.com/lictl/WebRA2/pull/150) are merged.
+The coordinator independently reproduced their complete native range ledgers,
+source projections and extra adversarial cases. Current main passes747 public
+tests,116 docs/607 links and46 build outputs/105 inputs. These components do not
+authorize attacks by themselves. Root147 now implements source-bound country and explicit per-house difficulty
+modifiers. Reviewed157 supplies bounded numerical stages;151 supplies the native
+random primitive. Neither is attached to original combat yet.155 investigates
+ordinary actor death prerequisites, including rules DeathAnims references versus
+global-art animation definitions.
+
+Team152 implements existing bound members and source-admitted script movement/jumps,
+with atomic world/team checkpoints. Its distinct per-member destination assignment
+is an explicit deterministic WebRA2 formation policy; native Stray/RelaxedStray,
+regrouping, spawning and Guard/acquisition remain separate. Browser149 will reuse
+that helper for selected group orders, preserving atomic admission and saved exact
+commands. The direct RTS controls are [draft PR153](https://github.com/lictl/WebRA2/pull/153);
+native Chrome interaction acceptance resumes after the shared planner is reviewed
+and integrated. The earlier locked-Mac blocker is resolved. No browser security or
+visibility settings were changed. All source execution gates remain explicit.
 The accepted preview server4174 remains immutable, alongside prior4173/media8767. The coordinator
 owns navigation/world motion; the simulation worker owns typed-definition policy. New world
 integration must join those policies deliberately before exposing native orders.

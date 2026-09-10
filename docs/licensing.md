@@ -194,3 +194,26 @@ Electronic Arts Random2/Random3 under GPL-3.0-or-later. Its
 copyright and modifications. Distributions containing it must retain those notices,
 the GPL license and applicable corresponding source. It is not attached to the
 browser world yet; the build includes its notice for subsequent integration.
+
+The original native combat numerical stages are GPL-3.0-or-later WebRA2 code.
+Their [provenance notice](../packages/sim/NATIVE_COMBAT_NUMBERS_PROVENANCE.md)
+records selected native observations and synthetic arithmetic evidence. Preserve
+that notice, GPL text and applicable corresponding source when distributing them.
+No additional third-party implementation is adopted.
+
+The shared group destination planner is original GPL-3.0-or-later WebRA2 code.
+Its [provenance notice](../packages/sim/TEAM_DESTINATIONS_PROVENANCE.md), GPL text
+and applicable corresponding source accompany distributions containing it. It
+composes existing MIT navigation/world modules and adopts no new dependency.
+
+The country/campaign house modifier compiler is original GPL-3.0-or-later WebRA2
+code. Its [provenance notice](../packages/content/COMBAT_MODIFIERS_PROVENANCE.md)
+identifies composed upstream modules, selected native observations and the source
+verification boundary. Distributions retain the notice, GPL text and applicable
+corresponding source; no new external implementation or dependency is adopted.
+
+The source-bound existing-member team runtime is original GPL-3.0-or-later code.
+Its [provenance notice](../packages/sim/TEAM_RUNTIME_PROVENANCE.md), GPL text and
+corresponding source accompany distribution; the web build includes the notice.
+The move/jump controller and compound world transactions retain their own notice
+separately from the shared destination planner and MIT world simulation.

@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2026 WebRA2 contributors. App-private metadata, never source assets.
-export const WORLD_UI = Object.freeze({ policy: 'webra2-world-ui-1', entities: 2048, players: 256, trace: 64, characters: 512 * 1024, documentBytes: 2 * 1024 ** 2, catchup: 4, hz: 15 });
+export const WORLD_UI = Object.freeze({ policy: 'webra2-world-ui-1', entities: 2048, group: 64, players: 256, trace: 64, characters: 512 * 1024, documentBytes: 2 * 1024 ** 2, catchup: 4, hz: 15 });
 export type WorldPlayer = { id: number; houseId: string; name: string };
 export type WorldActorInfo = { id: number; rowId: string; objectId: string; typeId: string; owner: number | null; kind: string; movable: boolean; maximumHealth: number | null; reasons: string[]; omittedReasons: number };
 export type WorldSummary = { policy: 'webra2-world-ui-1'; modelHash: string; motionPolicy: string; defaultPlayerId: number | null; players: WorldPlayer[]; actors: WorldActorInfo[]; limitations: string[]; omittedLimitations: number; truncatedFields: number };
 export type WorldActor = { id: number; x: number; y: number; health: number | null; goalX: number | null; goalY: number | null; nextX: number | null; nextY: number | null; routeLength: number; progress: number; edgeCost: number | null; waitTicks: number };
 export type WorldEvent = { tick: number; phase: 'command' | 'navigation' | 'movement'; kind: string; entityId: number; cell: number | null; value: number | null };
 export type WorldSnapshot = { modelHash: string; revision: number; nextTick: number; stateHash: string; queuedCommands: number; actors: WorldActor[]; events: WorldEvent[]; omittedEvents: number };
-export type WorldAction = { type: 'world-step'; ticks: number } | { type: 'world-order'; playerId: number; entityId: number; order: 'move'; x: number; y: number } | { type: 'world-order'; playerId: number; entityId: number; order: 'stop' } | { type: 'world-save' | 'world-replay-export' } | { type: 'world-restore' | 'world-replay-validate'; text: string };
+export type WorldGroupOrder = { type: 'world-orders'; playerId: number; entityIds: number[]; expectedRevision: number; order: 'move'; x: number; y: number } | { type: 'world-orders'; playerId: number; entityIds: number[]; expectedRevision: number; order: 'stop' };
+export type WorldAction = WorldGroupOrder | { type: 'world-step'; ticks: number } | { type: 'world-order'; playerId: number; entityId: number; order: 'move'; x: number; y: number } | { type: 'world-order'; playerId: number; entityId: number; order: 'stop' } | { type: 'world-save' | 'world-replay-export' } | { type: 'world-restore' | 'world-replay-validate'; text: string };
 export type WorldDocument = { type: 'world-document'; kind: 'save' | 'replay' | 'validated'; modelHash: string; revision: number; stateHash: string; text: string | null };
 export type WorldRejection = { type: 'world-rejection'; code: string; modelHash: string; revision: number };
 export function worldRecord(v: unknown, keys: readonly string[]): v is Record<string, unknown> {
@@ -25,6 +26,12 @@ const nullableInt = (v: unknown, max: number) => v === null || worldInt(v, 0, ma
 const pair = (x: unknown, y: unknown) => x === null ? y === null : worldInt(x, 0, 511) && worldInt(y, 0, 511);
 export function worldDocumentText(v: unknown): v is string { return typeof v === 'string' && v.length > 0 && v.length <= WORLD_UI.documentBytes && new TextEncoder().encode(v).byteLength <= WORLD_UI.documentBytes; }
 export function validWorldAction(v: unknown): v is WorldAction {
+  const groupStop = worldRecord(v, ['type', 'playerId', 'entityIds', 'expectedRevision', 'order']) && v.order === 'stop';
+  const groupMove = worldRecord(v, ['type', 'playerId', 'entityIds', 'expectedRevision', 'order', 'x', 'y']) && v.order === 'move' && worldInt(v.x, 0, 511) && worldInt(v.y, 0, 511);
+  if ((groupStop || groupMove) && v.type === 'world-orders') {
+    if (!worldInt(v.playerId, 0, 65535) || !worldInt(v.expectedRevision) || !worldRows(v.entityIds, WORLD_UI.group) || v.entityIds.length === 0) return false;
+    let prior = 0; for (const id of v.entityIds) { if (!worldInt(id, prior + 1)) return false; prior = id; } return true;
+  }
   if (worldRecord(v, ['type', 'ticks']) && v.type === 'world-step') return worldInt(v.ticks, 1, WORLD_UI.catchup);
   if (worldRecord(v, ['type']) && (v.type === 'world-save' || v.type === 'world-replay-export')) return true;
   if (worldRecord(v, ['type', 'text']) && (v.type === 'world-restore' || v.type === 'world-replay-validate')) return worldDocumentText(v.text);
