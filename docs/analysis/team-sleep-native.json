@@ -1,0 +1,303 @@
+{
+  "schemaVersion": 1,
+  "method": "static-pinned-PE-ranges; code endpoints checked with Capstone 5.0.6; no executable run",
+  "scope": "source script11 mission assignment, persistent completion and ordinary Sleep0; native surrounding AI/regroup timing remain unverified",
+  "images": [
+    {
+      "profile": "ra2",
+      "executable": "game.exe",
+      "size": 5077312,
+      "sha256": "73288c03b58d370be268ca6d156b4e33bfdb2066dc980359467d8852ff3b00df",
+      "ranges": [
+        {
+          "label": "dispatch-read",
+          "kind": "code",
+          "start": "0x6b7d9f",
+          "endExclusive": "0x6b7dcb",
+          "offset": 2850207,
+          "size": 44,
+          "sha256": "dc724e3aec31b58694510dc9d33a8f931b00910bd3bd5fea2024e738a5c2056d"
+        },
+        {
+          "label": "first-step-advance",
+          "kind": "code",
+          "start": "0x6b7cf4",
+          "endExclusive": "0x6b7d1c",
+          "offset": 2850036,
+          "size": 40,
+          "sha256": "04e9f4a8af333d7d07b5b8bd7c6a48828c3040948ed44a131c33cf7c6453b111"
+        },
+        {
+          "label": "mission-dispatch",
+          "kind": "code",
+          "start": "0x6b8179",
+          "endExclusive": "0x6b8192",
+          "offset": 2851193,
+          "size": 25,
+          "sha256": "62f5a90999a5dc845abf553c8648fb4c23348ef1543ce485cce4d1958ae0ae2e"
+        },
+        {
+          "label": "mission-handler",
+          "kind": "code",
+          "start": "0x6bbbb0",
+          "endExclusive": "0x6bbe53",
+          "offset": 2866096,
+          "size": 675,
+          "sha256": "45fcd727a2a94f05e63241d617e70ae0bf265591f06b75230a2c724d33abdea9"
+        },
+        {
+          "label": "queue-mission",
+          "kind": "code",
+          "start": "0x594cb0",
+          "endExclusive": "0x594d15",
+          "offset": 1658032,
+          "size": 101,
+          "sha256": "d53c103b933f939339bb0ce217b701529a9075294ada882f95ceb6013517a821"
+        },
+        {
+          "label": "next-mission",
+          "kind": "code",
+          "start": "0x594c50",
+          "endExclusive": "0x594cac",
+          "offset": 1657936,
+          "size": 92,
+          "sha256": "c2c6d647d7e9a13a8609a404ce06b328bdd46c15c3ea161ff5c9b41a48a62c1a"
+        },
+        {
+          "label": "sleep-mission",
+          "kind": "code",
+          "start": "0x594570",
+          "endExclusive": "0x594576",
+          "offset": 1656176,
+          "size": 6,
+          "sha256": "772c52c7ca2794698239764b386055b2d9655d51c4ea25fee637a2c0a8ec4374"
+        },
+        {
+          "label": "clear-focus",
+          "kind": "code",
+          "start": "0x6d6e50",
+          "endExclusive": "0x6d6e5d",
+          "offset": 2977360,
+          "size": 13,
+          "sha256": "decdf36c73911376e8c547fc804276491f0af30fe07b2b509cf37669a92c404e"
+        },
+        {
+          "label": "unit-vtable",
+          "kind": "code",
+          "start": "0x6fa46e",
+          "endExclusive": "0x6fa474",
+          "offset": 3122286,
+          "size": 6,
+          "sha256": "be385b2a4b238d74d4367ad86009a3fac0a6d68a4ce1fe6c725eceda60c26c3a"
+        },
+        {
+          "label": "infantry-vtable",
+          "kind": "code",
+          "start": "0x4ff6bc",
+          "endExclusive": "0x4ff6c2",
+          "offset": 1046204,
+          "size": 6,
+          "sha256": "e94a21f0da7a0e257475bcf2c5139f7a4072dc09d3ce825e69d913d43be5be7d"
+        },
+        {
+          "label": "opcode11-slot",
+          "kind": "data",
+          "start": "0x6b8794",
+          "endExclusive": "0x6b8798",
+          "offset": 2852756,
+          "size": 4,
+          "sha256": "0b6d2643f41f07f5a75f572df9454f7e79499f324db062f9570948ccde54a1e2",
+          "uint32Value": "0x6b8179"
+        },
+        {
+          "label": "infantry-queue-slot",
+          "kind": "data",
+          "start": "0x7a3710",
+          "endExclusive": "0x7a3714",
+          "offset": 3815184,
+          "size": 4,
+          "sha256": "5600ee95856e36879700a3691ca8e76b8111c86616756ff405b6da32ce6c8f59",
+          "uint32Value": "0x594cb0"
+        },
+        {
+          "label": "infantry-sleep-slot",
+          "kind": "data",
+          "start": "0x7a372c",
+          "endExclusive": "0x7a3730",
+          "offset": 3815212,
+          "size": 4,
+          "sha256": "43e390806cfde688c79e8de338b5f2635e4db27f599fcedce39acfb9bbf36064",
+          "uint32Value": "0x594570"
+        },
+        {
+          "label": "unit-queue-slot",
+          "kind": "data",
+          "start": "0x7adfc8",
+          "endExclusive": "0x7adfcc",
+          "offset": 3858376,
+          "size": 4,
+          "sha256": "5600ee95856e36879700a3691ca8e76b8111c86616756ff405b6da32ce6c8f59",
+          "uint32Value": "0x594cb0"
+        },
+        {
+          "label": "unit-sleep-slot",
+          "kind": "data",
+          "start": "0x7adfe4",
+          "endExclusive": "0x7adfe8",
+          "offset": 3858404,
+          "size": 4,
+          "sha256": "43e390806cfde688c79e8de338b5f2635e4db27f599fcedce39acfb9bbf36064",
+          "uint32Value": "0x594570"
+        }
+      ]
+    },
+    {
+      "profile": "yr",
+      "executable": "gamemd.exe",
+      "size": 5286208,
+      "sha256": "3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600",
+      "ranges": [
+        {
+          "label": "dispatch-read",
+          "kind": "code",
+          "start": "0x6e9436",
+          "endExclusive": "0x6e9462",
+          "offset": 3052598,
+          "size": 44,
+          "sha256": "e35da7e8d67872ec2a32eb9301703785a0b3da1e244048c0fe83d0df268f371e"
+        },
+        {
+          "label": "first-step-advance",
+          "kind": "code",
+          "start": "0x6e9364",
+          "endExclusive": "0x6e938c",
+          "offset": 3052388,
+          "size": 40,
+          "sha256": "ae2ce0de999b23aa06c04167455aba6864742cd1aa21322950327a55e6798838"
+        },
+        {
+          "label": "mission-dispatch",
+          "kind": "code",
+          "start": "0x6e9812",
+          "endExclusive": "0x6e982b",
+          "offset": 3053586,
+          "size": 25,
+          "sha256": "f60b9197906e775ebc70a83d9866ca8fc406c466ab4d2750403c4f37d50f72b1"
+        },
+        {
+          "label": "mission-handler",
+          "kind": "code",
+          "start": "0x6ed7e0",
+          "endExclusive": "0x6eda8f",
+          "offset": 3069920,
+          "size": 687,
+          "sha256": "8fecf3b0f4dfed3e7daf8c216c486d9c55a3e8b061910eb783b4b7309b56bc80"
+        },
+        {
+          "label": "queue-mission",
+          "kind": "code",
+          "start": "0x5b35e0",
+          "endExclusive": "0x5b3645",
+          "offset": 1783264,
+          "size": 101,
+          "sha256": "83872e5ce87f870c60cf72a6743f0e65e1b122b65ef779b044d37bfe235e7830"
+        },
+        {
+          "label": "next-mission",
+          "kind": "code",
+          "start": "0x5b3570",
+          "endExclusive": "0x5b35d2",
+          "offset": 1783152,
+          "size": 98,
+          "sha256": "eff8186106ac5ec051ed1a911c18aa89d1e797f5e3210b92484c91fb5d0760b9"
+        },
+        {
+          "label": "sleep-mission",
+          "kind": "code",
+          "start": "0x5b2e10",
+          "endExclusive": "0x5b2e16",
+          "offset": 1781264,
+          "size": 6,
+          "sha256": "772c52c7ca2794698239764b386055b2d9655d51c4ea25fee637a2c0a8ec4374"
+        },
+        {
+          "label": "clear-focus",
+          "kind": "code",
+          "start": "0x70c610",
+          "endExclusive": "0x70c61d",
+          "offset": 3196432,
+          "size": 13,
+          "sha256": "2911b6b4871cb2baa7666764129a6aababa6ba1b14041c2fde7fb65393315c1c"
+        },
+        {
+          "label": "unit-vtable",
+          "kind": "code",
+          "start": "0x73543a",
+          "endExclusive": "0x735440",
+          "offset": 3363898,
+          "size": 6,
+          "sha256": "f4251794afd6d111099996a1fb2a9b2aef54382270b44eb603241605bafde24d"
+        },
+        {
+          "label": "infantry-vtable",
+          "kind": "code",
+          "start": "0x517acc",
+          "endExclusive": "0x517ad2",
+          "offset": 1145548,
+          "size": 6,
+          "sha256": "e0c6930016c67f30e27912c342e4af938bd21b32ea093e9081ee2eb74a1952e1"
+        },
+        {
+          "label": "opcode11-slot",
+          "kind": "data",
+          "start": "0x6e9fa0",
+          "endExclusive": "0x6e9fa4",
+          "offset": 3055520,
+          "size": 4,
+          "sha256": "6d107eb34e5ec604df86daa696ee9577c77d450fdcb5515a9bbea2bef74dcd25",
+          "uint32Value": "0x6e9812"
+        },
+        {
+          "label": "infantry-queue-slot",
+          "kind": "data",
+          "start": "0x7eb240",
+          "endExclusive": "0x7eb244",
+          "offset": 4108864,
+          "size": 4,
+          "sha256": "701546e72e523d32d8483f644dd0a80343b1728e1870ca8ee2cecc45ba5bf51b",
+          "uint32Value": "0x5b35e0"
+        },
+        {
+          "label": "infantry-sleep-slot",
+          "kind": "data",
+          "start": "0x7eb25c",
+          "endExclusive": "0x7eb260",
+          "offset": 4108892,
+          "size": 4,
+          "sha256": "241929d30c6969231268576392d12b0ef0091b706b54351d63696729ea849aec",
+          "uint32Value": "0x5b2e10"
+        },
+        {
+          "label": "unit-queue-slot",
+          "kind": "data",
+          "start": "0x7f5e58",
+          "endExclusive": "0x7f5e5c",
+          "offset": 4152920,
+          "size": 4,
+          "sha256": "701546e72e523d32d8483f644dd0a80343b1728e1870ca8ee2cecc45ba5bf51b",
+          "uint32Value": "0x5b35e0"
+        },
+        {
+          "label": "unit-sleep-slot",
+          "kind": "data",
+          "start": "0x7f5e74",
+          "endExclusive": "0x7f5e78",
+          "offset": 4152948,
+          "size": 4,
+          "sha256": "241929d30c6969231268576392d12b0ef0091b706b54351d63696729ea849aec",
+          "uint32Value": "0x5b2e10"
+        }
+      ]
+    }
+  ]
+}
