@@ -80,9 +80,10 @@ function viewportCopy(request: TerrainViewport, cap: Readonly<GpuPrepareLimits>)
   integer(width, 1, cap.viewportDimension, 'gpu-viewport'); integer(height, 1, cap.viewportDimension, 'gpu-viewport');
   if (width * height > cap.viewportPixels) fail('gpu-viewport');
   const bg = request.backgroundRgba;
-  if (!Array.isArray(bg) || Object.getPrototypeOf(bg) !== Array.prototype || bg.length !== 4 || Reflect.ownKeys(bg).length !== 5) fail('gpu-background');
-  for (let i = 0; i < 4; i++) { const d = Object.getOwnPropertyDescriptor(bg, String(i)); if (!d || !('value' in d)) fail('gpu-background'); integer(d.value, 0, 255, 'gpu-background'); }
-  return Object.freeze({ cameraX, cameraY, zoom, width, height, backgroundRgba: Object.freeze([...bg]) as unknown as TerrainViewport['backgroundRgba'] });
+  if (!Array.isArray(bg) || Object.getPrototypeOf(bg) !== Array.prototype || Object.getOwnPropertyDescriptor(bg, 'length')?.value !== 4 || Reflect.ownKeys(bg).length !== 5) fail('gpu-background');
+  const background: number[] = [];
+  for (let i = 0; i < 4; i++) { const d = Object.getOwnPropertyDescriptor(bg, String(i)); if (!d || !('value' in d)) fail('gpu-background'); integer(d.value, 0, 255, 'gpu-background'); background.push(d.value); }
+  return Object.freeze({ cameraX, cameraY, zoom, width, height, backgroundRgba: Object.freeze(background) as unknown as TerrainViewport['backgroundRgba'] });
 }
 
 /** Camera sampling is evaluated in JS binary64 once per output axis, never rounded to a GPU float camera. */
