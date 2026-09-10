@@ -5,11 +5,14 @@ export function mountBattlefieldPanels(host: HTMLElement, canvas: HTMLCanvasElem
   const panes: BattlefieldPane[] = ['orders', 'saves', 'diagnostics'];
   const button = (pane: BattlefieldPane) => host.querySelector<HTMLButtonElement>('#world-open-' + pane)!;
   const region = (pane: BattlefieldPane) => host.querySelector<HTMLElement>('#world-' + pane + '-panel')!;
+  const body = host.querySelector<HTMLElement>('.world-panel-body')!;
   let current: BattlefieldPane = 'orders';
   const show = (next: BattlefieldPane) => {
     if (next !== 'orders') pause();
+    const changed = next !== current;
     current = next;
     for (const pane of panes) { region(pane).hidden = pane !== next; button(pane).setAttribute('aria-expanded', String(pane === next)); }
+    if (changed) body.scrollTop = 0;
   };
   const back = () => { show('orders'); canvas.focus({ preventScroll: true }); };
   const handlers = panes.map(pane => { const fn = () => show(pane); button(pane).addEventListener('click', fn); return [button(pane), fn] as const; });
