@@ -4,7 +4,8 @@ import type { Locale } from './i18n.ts';
 const en = {
   clearSelection: 'Clear selection', development: 'Development controls and details', selectionCount: 'Selected units', additionalSelected: 'Additional selected units', moving: 'Moving', waiting: 'Waiting',
   'kind-infantry': 'Infantry', 'kind-unit': 'Vehicle', 'kind-aircraft': 'Aircraft', 'kind-structure': 'Building', 'kind-terrain': 'Scenery', 'kind-smudge': 'Ground mark',
-  directControls: 'Click to select; Shift-click toggles a unit. Drag a box to select, or Shift-drag to add. Right-click exposed terrain to move the selection to one shared cell. Alt-drag or middle-drag pans. No formation or attack behavior is implied.',
+  directControls: 'Click to select; Shift-click toggles a unit. Drag a box to select, or Shift-drag to add. Right-click exposed terrain to assign distinct nearby destinations using WebRA2 rules. Alt-drag or middle-drag pans. Attacks are not available.',
+  worldGroupBlocked: 'The group has no complete set of reachable destinations nearby. No orders were queued. Choose another area or fewer units.', worldGroupBudget: 'Planning this group exceeded the work limit. No orders were queued. Try a closer area or fewer units.',
   keyboardSelection: 'This standard multiple-selection list supports keyboard selection. Use Shift with the arrow keys to extend selection. Numeric and inspected-cell destinations apply to the entire selection.',
   worldSelectionCleared: 'Selection cleared.', worldSelectionChanged: 'Selection updated.', worldSelectionLimit: 'Select at most 64 units. The previous selection was retained.', worldCannotSelect: 'Choose a living unit owned by the control house with supported movement.', worldCannotOrder: 'Select your supported units first.', worldControlsBusy: 'Wait for the current operation before issuing this order.', worldExposedGround: 'Choose exposed terrain. Objects and background are not verified movement destinations.', worldOrdersQueued: 'Orders queued. Step or run to apply them.',
 
@@ -15,7 +16,8 @@ const en = {
 const zh: Record<keyof typeof en, string> = {
   clearSelection: '清除單位選取', development: '開發用控制與詳細資訊', selectionCount: '已選單位', additionalSelected: '其他已選單位', moving: '移動中', waiting: '等待中',
   'kind-infantry': '步兵', 'kind-unit': '車輛', 'kind-aircraft': '飛機', 'kind-structure': '建築', 'kind-terrain': '景物', 'kind-smudge': '地面痕跡',
-  directControls: '點選可選取單位；Shift 點選可切換選取。拖曳方框可選取，Shift 拖曳可加入。對露出的地形按右鍵，讓已選單位移向同一格。Alt 拖曳或中鍵拖曳可平移。尚未提供隊形或攻擊行為。',
+  directControls: '點選可選取單位；Shift 點選可切換選取。拖曳方框可選取，Shift 拖曳可加入。對露出的地形按右鍵，依 WebRA2 規則分配附近各自的目的地。Alt 拖曳或中鍵拖曳可平移。尚未提供攻擊功能。',
+  worldGroupBlocked: '附近沒有足夠且可到達的群組目的地，未排入任何指令。請選擇其他區域或減少單位。', worldGroupBudget: '規劃此群組已超過工作上限，未排入任何指令。請選擇較近的區域或減少單位。',
   keyboardSelection: '此標準多選清單支援鍵盤操作。按住 Shift 配合方向鍵可擴大選取。座標與已查看格子的目的地適用於整個選取群組。',
   worldSelectionCleared: '已清除選取。', worldSelectionChanged: '已更新選取。', worldSelectionLimit: '最多選取 64 個單位，已保留原有選取。', worldCannotSelect: '請選擇控制陣營擁有、仍存活且支援移動的單位。', worldCannotOrder: '請先選取您可控制且支援移動的單位。', worldControlsBusy: '請等候目前作業完成後再下達指令。', worldExposedGround: '請選擇露出的地形。物件與背景不是已驗證的移動目的地。', worldOrdersQueued: '指令已排入佇列，逐刻前進或執行即可套用。',
 

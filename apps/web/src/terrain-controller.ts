@@ -110,7 +110,7 @@ export class TerrainController{
     const live=()=>generation===this.#generation&&!active.signal.aborted;
     const request=async(action:WorldAction):Promise<WorldDocument|null>=>{
       let result;try{result=await port.request(action,active.signal);}catch(error){transportFailed=true;throw error;}if(!live())return null;
-      if(result.type==='world-rejection'){this.#update({running:false,worldNotice:'worldRejected',error:result.code});return null;}
+      if(result.type==='world-rejection'){this.#update({running:false,worldNotice:result.code==='world-ui-group-blocked'?'worldGroupBlocked':result.code==='world-ui-group-budget-exhausted'?'worldGroupBudget':'worldRejected',error:result.code});return null;}
       if(result.type==='world-document')return result;
       if(result.type!=='frame'||!result.world)throw new Error('invalid');
       if(action.type==='world-restore')this.#update({selectedEntities:[],selectedEntity:null,interacting:false,interactionEpoch:this.state.interactionEpoch+1});
@@ -124,7 +124,7 @@ export class TerrainController{
   async order(x?:number,y?:number):Promise<void>{
     if(!this.canOrder()){this.#update({worldNotice:this.state.busy?'worldControlsBusy':'worldCannotOrder'});return;}
     const playerId=this.state.playerId!,entityIds=this.state.selectedEntities.slice(),expectedRevision=this.state.frame!.world!.revision;
-    await this.#worldOperation(async(signal,request)=>{await request(x===undefined?{type:'world-orders',order:'stop',playerId,entityIds,expectedRevision}:{type:'world-orders',order:'move',playerId,entityIds,expectedRevision,x,y:y!});if(!signal.aborted&&this.state.worldNotice!=='worldRejected')this.#update({worldNotice:'worldOrdersQueued'});return null;});
+    await this.#worldOperation(async(signal,request)=>{await request(x===undefined?{type:'world-orders',order:'stop',playerId,entityIds,expectedRevision}:{type:'world-orders',order:'move',playerId,entityIds,expectedRevision,x,y:y!});if(!signal.aborted&&this.state.error===null)this.#update({worldNotice:'worldOrdersQueued'});return null;});
   }
   async saveWorld():Promise<void>{this.setRunning(false);const slot=this.state.slot;await this.#worldOperation(async(signal,request)=>{const result=await request({type:'world-save'});if(!result?.text||signal.aborted)return null;await this.storage.write(slot,result.text,signal);if(!signal.aborted)this.#update({worldNotice:'worldSaved'});return null;});}
   async loadWorld():Promise<void>{this.setRunning(false);const slot=this.state.slot;await this.#worldOperation(async(signal,request)=>{const text=await this.storage.read(slot,signal);if(signal.aborted)return null;if(!text)throw new Error('empty');return request({type:'world-restore',text});});}

@@ -2,6 +2,7 @@
 // Copyright 2026 WebRA2 contributors. Worker-owned state and bounded wire projections.
 import { canonicalText, parseJson } from '../../../packages/sim/src/canonical.ts';
 import { WorldReplayRecorder, replayWorld } from '../../../packages/sim/src/world-replay.ts';
+import { planTeamDestinations } from '../../../packages/sim/src/team-runtime-destinations.ts';
 import { assertWorldModel, worldEdgeCost, worldHash, worldPosition, type WorldModel } from '../../../packages/sim/src/world-model.ts';
 import type { WorldTrace } from '../../../packages/sim/src/world.ts';
 import { WORLD_UI, validWorldAction, validWorldSummary, validWorldSnapshot, worldDocumentText, type WorldAction, type WorldSummary, type WorldSnapshot, type WorldDocument, type WorldPlayer } from './world-protocol.ts';
@@ -65,10 +66,18 @@ export class WorldSession {
         if (!info || info.owner !== action.playerId) throw new Error('world-ui-not-owner');
         if (!info.movable || actor?.health === null || actor?.health === undefined || actor.health <= 0) throw new Error('world-ui-immovable');
       }
+      const destinations = new Map<number, { entityId: number; x: number; y: number }>();
+      if (action.order === 'move') {
+        if (action.type === 'world-orders') {
+          const plan = planTeamDestinations({ model: this.model, checkpoint: save, actorIds: ids, target: { x: action.x, y: action.y } });
+          if (plan.status !== 'ready') throw new Error(`world-ui-group-${plan.status}`);
+          for (const destination of plan.assignments) destinations.set(destination.entityId, destination);
+        } else destinations.set(action.entityId, { entityId: action.entityId, x: action.x, y: action.y });
+      }
       // The recorder validates the aggregate queue, sequences and replay on a detached candidate before committing.
       this.#recorder.admitCommands(ids.map((entityId, index) => ({ schemaVersion: 1, tick: save.nextTick, playerId: action.playerId,
         sequence: (cursor ? cursor.sequence + 1 : 0) + index, kind: action.order,
-        payload: action.order === 'move' ? { entityId, x: action.x, y: action.y } : { entityId } })));
+        payload: action.order === 'move' ? { ...destinations.get(entityId)! } : { entityId } })));
       this.#events = []; this.#omittedEvents = 0;
     } else if (action.type === 'world-step') {
       const result = this.#recorder.step(action.ticks); this.#events = result.events.slice(-WORLD_UI.trace); this.#omittedEvents = Math.max(0, result.events.length - WORLD_UI.trace);

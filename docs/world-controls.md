@@ -11,11 +11,11 @@ Click selects a supported living unit owned by the current control house;
 Shift-click toggles it. A left drag selects a rectangle, and Shift-drag adds its
 units. Alt-left-drag and middle-drag pan instead. Right-click moves the selection
 only when the retained displayed-frame pick identifies exposed terrain; objects
-and background produce explicit feedback. All group members share that cell.
-The existing movement engine determines path availability and occupancy results.
-This checkpoint's shared-cell behavior is being replaced by the coordinator-approved
-distinct destination planner in [#152](https://github.com/lictl/WebRA2/issues/152)
-before final acceptance; a first arrival can otherwise block the remaining group.
+and background produce explicit feedback. The reviewed
+[shared destination planner](team-destinations.md) assigns distinct nearby cells
+under the named `webra2-nearest-distinct-cells-1` policy. This replaces the early
+checkpoint's shared-cell orders, which could leave later units blocked behind
+the first arrival. The existing movement engine owns actual movement and contention.
 
 The selection is a sorted set of at most 64 authoritative entity IDs and never
 enters simulation state. Exceeding the limit retains the prior selection and
@@ -59,16 +59,27 @@ request/frame/model/revision checks reject obsolete envelopes and responses.
 An app-private `world-orders` action contains a sorted unique nonempty list of at
 most 64 entity IDs, the player, move/stop kind, optional move cell, and expected
 world revision. The worker checks every actor's ownership, movement support and
-current health before generating unchanged command envelopes at one `nextTick`,
+current health before planning from its genuine model and validated current save.
+Move candidates are ordered by squared distance to the requested cell, then y/x,
+and actors by ID. The shared bounded policy checks current occupancy, in-flight
+reservations, static footprints, reachability and prior assigned path/corner cells.
+It does not reserve queued or other groups' future destinations, and it does not
+promise global congestion freedom or native formations. A blocked or exhausted
+plan returns no assignments; translated recovery text recommends another area
+or a smaller selection, and no member is admitted.
+
+Complete assignments become unchanged command envelopes at one `nextTick`,
 with consecutive existing admission sequences in entity-ID order. One atomic
 `WorldReplayRecorder.admitCommands` call validates aggregate queue, sequence and
 replay limits before committing. Failure admits no member; success increments the
 private revision once and renders once. Legacy single-order messages remain valid.
 
-Group and equivalent single commands have the same canonical checkpoint and
+Group and equivalent exact individual-destination commands have the same canonical checkpoint and
 terminal semantics. Their replay admission grouping and private UI revision can
 differ. Neither grouping, selection nor projected control points changes durable
 model identity. All prior source/codec/privacy and browser-local save bounds remain.
+Stop skips destination planning. The legacy single-order diagnostic message
+retains its exact requested cell; it does not silently acquire the group policy.
 
 ## Validation checkpoint
 
@@ -97,7 +108,11 @@ group/save/replay comparisons remain pending. The owner unlocked the Mac after
 native control reported failed automatic unlock; normal Chrome access is restored.
 The owner's updated testing priority is Chrome during development, with full
 Firefox/Edge/Safari end-to-end checks deferred until later completion. The shared
-planner dependency remains open.
+planner was independently reviewed and merged in
+[PR #156](https://github.com/lictl/WebRA2/pull/156); final app integration tests
+add real planner-budget/blockage recovery and explicit distinct-cell expectations.
+The integrated app currently passes all 777 public tests, TypeScript, 121 document
+files / 623 local links, 428 publication paths and the 48-output / 108-input build.
 The preserved accepted viewport on port 4177 is unchanged. Safari's separate
 automatic-running gate remains [#115](https://github.com/lictl/WebRA2/issues/115);
 explicit-step checks must not be reported as automatic Run acceptance.

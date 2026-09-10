@@ -2,10 +2,11 @@
 // Entirely original actor layouts; no retail behavior claim.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { WorldSession } from '../../apps/web/src/world-session.ts';
+import { WorldSession, type WorldPreparation } from '../../apps/web/src/world-session.ts';
 import { validWorldAction, WORLD_UI } from '../../apps/web/src/world-protocol.ts';
 import { actorsInBox, controllable, projectControlPoints, selectWorldActors, validControlPoints } from '../../apps/web/src/world-selection.ts';
 import { createWorldModel } from '../../packages/sim/src/world-model.ts';
+import { createNavigationGrid } from '../../packages/sim/src/navigation.ts';
 import { originalWorld } from './world-ui.fixture.ts';
 import { beginWorldGesture, finishWorldGesture, updateWorldGesture, worldShortcut } from '../../apps/web/src/terrain-gestures.ts';
 import { TerrainController } from '../../apps/web/src/terrain-controller.ts';
@@ -47,11 +48,15 @@ test('atomic group envelopes preserve stable single-command save and replay sema
   const grouped = new WorldSession(groupWorld()), singles = new WorldSession(groupWorld());
   const action = { ...stop([1, 2, 3], 0), order: 'move' as const, x: 6, y: 3 };
   assert(validWorldAction(action)); grouped.act(action);
-  for (const entityId of action.entityIds) singles.act({ type: 'world-order', order: 'move', playerId: 0, entityId, x: 6, y: 3 });
+  // Independent expected cells for this original open grid and the named stable destination policy.
+  const destinations = [{ entityId: 1, x: 6, y: 3 }, { entityId: 2, x: 6, y: 2 }, { entityId: 3, x: 7, y: 3 }];
+  assert.deepEqual(JSON.parse(grouped.act({ type: 'world-save' })!.text!).queuedCommands.map((c: { payload: unknown }) => c.payload), destinations);
+  for (const target of destinations) singles.act({ type: 'world-order', order: 'move', playerId: 0, ...target });
   assert.equal(grouped.snapshot().stateHash, singles.snapshot().stateHash);
   assert.deepEqual(JSON.parse(grouped.act({ type: 'world-save' })!.text!).queuedCommands.map((c: { sequence: number }) => c.sequence), [0, 1, 2]);
   for (const session of [grouped, singles]) for (let i = 0; i < 5; i++) session.act({ type: 'world-step', ticks: 4 });
   assert.equal(grouped.snapshot().stateHash, singles.snapshot().stateHash);
+  for (const target of destinations) { const actor = grouped.snapshot().actors.find(a => a.id === target.entityId)!; assert.deepEqual([actor.x, actor.y, actor.goalX], [target.x, target.y, null]); }
   for (const session of [grouped, singles]) {
     const replay = session.act({ type: 'world-replay-export' })!;
     assert.equal(session.act({ type: 'world-replay-validate', text: replay.text! })!.stateHash, grouped.snapshot().stateHash);
@@ -108,17 +113,17 @@ test('viewport shortcuts preserve form and modified-key behavior and provide bil
     assert.equal(worldShortcut(key, false, none), null);
     for (const flag of ['ctrlKey', 'altKey', 'metaKey']) assert.equal(worldShortcut(key, true, { ...none, [flag]: true }), null);
   }
-  for (const key of ['worldSelectionChanged', 'worldSelectionCleared', 'worldSelectionLimit', 'worldCannotSelect', 'worldCannotOrder', 'worldControlsBusy', 'worldExposedGround', 'worldOrdersQueued', 'directControls', 'development', 'keyboardSelection', 'kind-unit']) {
+  for (const key of ['worldSelectionChanged', 'worldSelectionCleared', 'worldSelectionLimit', 'worldCannotSelect', 'worldCannotOrder', 'worldControlsBusy', 'worldExposedGround', 'worldOrdersQueued', 'worldGroupBlocked', 'worldGroupBudget', 'directControls', 'development', 'keyboardSelection', 'kind-unit']) {
     assert.notEqual(worldText('en', key), worldText('en', 'unknown')); assert.match(worldText('zh-Hant', key), /[\u3400-\u9fff]/);
   }
 });
 
-function controllerHarness() {
+function controllerHarness(prepared: WorldPreparation = groupWorld()) {
   class Worker extends EventTarget {
     terminated = false; scope: TerrainScope;
     constructor() {
       super(); this.scope = { onmessage: null, postMessage: (message, transfer) => { const data = structuredClone(message, { transfer: transfer ?? [] }); queueMicrotask(() => { if (!this.terminated) this.dispatchEvent(new MessageEvent('message', { data })); }); } };
-      attachTerrainWorker(this.scope, async () => ({ world: groupWorld(), summary: { profile: 'ra2', mission: 'all01t.map', contentHash: 'a'.repeat(64), mapHash: 'c'.repeat(64), paletteHash: 'e'.repeat(64), cells: 35, objects: 4, assets: 1, verifiedBytes: 1, sourceBytes: 1, decodedBytes: 1, decodedSlots: 1, bounds: { x: 0, y: 0, width: 100, height: 100 }, diagnostics: [], artwork: { policy: 'webra2-object-still-2', presentation: 'webra2-placed-still-1', voxel: null, types: 0, rendered: 0, unavailable: 4, assets: 0, palettes: 0, sourceBytes: 0, decodedBytes: 0, indexedFrames: 0, rows: [], omittedTypes: 0, omittedPlacements: 4, omittedRendered: 0, truncatedFields: 0, unplaced: 0 } }, scene: {
+      attachTerrainWorker(this.scope, async () => ({ world: prepared, summary: { profile: 'ra2', mission: 'all01t.map', contentHash: 'a'.repeat(64), mapHash: 'c'.repeat(64), paletteHash: 'e'.repeat(64), cells: 35, objects: 4, assets: 1, verifiedBytes: 1, sourceBytes: 1, decodedBytes: 1, decodedSlots: 1, bounds: { x: 0, y: 0, width: 100, height: 100 }, diagnostics: [], artwork: { policy: 'webra2-object-still-2', presentation: 'webra2-placed-still-1', voxel: null, types: 0, rendered: 0, unavailable: 4, assets: 0, palettes: 0, sourceBytes: 0, decodedBytes: 0, indexedFrames: 0, rows: [], omittedTypes: 0, omittedPlacements: 4, omittedRendered: 0, truncatedFields: 0, unplaced: 0 } }, scene: {
         locate(x, y) { return { x: x * 20, y: y * 10 }; },
         render(viewport) {
           const bytes = viewport.width * viewport.height * 4;
@@ -146,9 +151,23 @@ test('controller click, toggle, box, verified ground group order and clear use t
   assert(!controller.selectBox(frameId + 1, { left: 0, top: 0, right: 239, bottom: 159 }));
   await controller.moveAt(10, 10); assert.equal(controller.state.worldNotice, 'worldExposedGround'); assert.equal(controller.state.frame!.world!.queuedCommands, 0);
   await controller.moveAt(30, 10); assert.equal(controller.state.frame!.world!.queuedCommands, 3); assert.equal(controller.state.worldNotice, 'worldOrdersQueued');
-  await controller.step(); assert(controller.state.frame!.world!.actors.slice(1).every(a => a.goalX === 6));
+  await controller.step(); assert.deepEqual(controller.state.frame!.world!.actors.slice(1).map(a => [a.goalX, a.goalY]), [[6, 3], [6, 2], [7, 3]]);
   controller.clearSelection(); assert.deepEqual(controller.state.selectedEntities, []); assert(!controller.canOrder());
   controller.dispose();
+});
+
+test('group destination blockage and real planner exhaustion preserve the world and actionable feedback', async () => {
+  const base = groupWorld(1), contentIdentity = base.model.contentIdentity;
+  const grid = createNavigationGrid({ contentIdentity, movementClass: 'foot', cells: [{ x: 0, y: 0, cost: 1, exits: 0 }, ...Array.from({ length: 1089 }, (_, i) => ({ x: 10 + i % 33, y: 10 + Math.floor(i / 33), cost: 1, exits: 0 }))] });
+  const model = createWorldModel({ contentIdentity, sourceSha256: base.model.sourceSha256, definitionsSha256: base.model.definitionsSha256, entities: [{ ...base.model.entities[0]!, x: 0, y: 0 }], navigation: [{ grid, costScale: 1 }], blocked: [] });
+  for (const [prepared, x, y, notice, code] of [[groupWorld(), 511, 511, 'worldGroupBlocked', 'world-ui-group-blocked'], [{ ...base, model }, 26, 26, 'worldGroupBudget', 'world-ui-group-budget-exhausted']] as const) {
+    const { controller } = controllerHarness(prepared); await controller.load(); const before = structuredClone(controller.state.frame!.world!);
+    await controller.order(x, y); assert.equal(controller.state.worldNotice, notice); assert.equal(controller.state.error, code);
+    assert.deepEqual(controller.state.frame!.world, before); assert(!controller.state.busy);
+    assert.match(worldText('en', notice), /No orders were queued/);
+    await controller.order(); assert.equal(controller.state.worldNotice, 'worldOrdersQueued'); assert.equal(controller.state.error, null); assert.equal(controller.state.frame!.world!.queuedCommands, 1);
+    controller.dispose();
+  }
 });
 
 test('interaction holds and obsolete asynchronous picks cannot restore a cleared or replaced selection', async () => {
