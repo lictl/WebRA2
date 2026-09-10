@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "scope": "Fresh private 438-file preparation of the selected initial opening maps using the existing flat source world. Static event1/cell/owner metadata only; no retail execution, runtime delivery or whole-mission authority.",
+  "filesSelected": 438,
+  "nativeLedgerSha256": "41fbef8719dfe3b6fd8afb825a244ef19355f4931da8611c3ac360507c54c285",
+  "nativeRanges": 64,
+  "nativeBytes": 15878,
+  "independentRawSourceAssertions": 55976,
+  "profiles": [
+    {
+      "profile": "ra2",
+      "sourceSha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+      "catalogSha256": "5e602be74dbff27ae16a2bbb618df3244e2bc80a10cfe658039168016c2f6a60",
+      "cellSourceSha256": "f6c2ee31f04fe4e74f63d382e483d8250060d1199222866e4560cc7788cde6c1",
+      "coverage": {
+        "events": 18,
+        "supportedEvents": 18,
+        "cellReferences": 180,
+        "resolvedCells": 180,
+        "actors": 811,
+        "supportedActors": 58,
+        "scenarioPollBindings": 86
+      },
+      "diagnostics": {},
+      "baselineVmDiagnostics": 367,
+      "originalAuthority": false,
+      "initialWorldMovableActors": 58,
+      "unsupportedInitialWorldMovableActors": 0,
+      "selectorKinds": {
+        "any": 0,
+        "first-country-house": 18,
+        "unsupported": 0
+      },
+      "actorReasons": {
+        "not-source-mobile": 753,
+        "unsupported-actor-family": 752,
+        "missing-initial-house": 562
+      }
+    },
+    {
+      "profile": "yr",
+      "sourceSha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+      "catalogSha256": "e839e63e8b14b22e051188127bc4514ef421537804878797f321b576bd5111af",
+      "cellSourceSha256": "6d0d7d0be05b3de9fd3b818f1ea7f78bf3818727a05a59c3a98a3913115f7193",
+      "coverage": {
+        "events": 9,
+        "supportedEvents": 9,
+        "cellReferences": 278,
+        "resolvedCells": 278,
+        "actors": 570,
+        "supportedActors": 70,
+        "scenarioPollBindings": 127
+      },
+      "diagnostics": {},
+      "baselineVmDiagnostics": 531,
+      "originalAuthority": false,
+      "initialWorldMovableActors": 70,
+      "unsupportedInitialWorldMovableActors": 0,
+      "selectorKinds": {
+        "any": 0,
+        "first-country-house": 9,
+        "unsupported": 0
+      },
+      "actorReasons": {
+        "not-source-mobile": 500,
+        "unsupported-actor-family": 496,
+        "missing-initial-house": 307
+      }
+    }
+  ],
+  "limits": [
+    "Initial actors/tags/cells only; dynamic tags, spawned actors, transport, bridge, cloak and owner changes need additional authority.",
+    "World mobility is the genuine current flat traversal projection; this census does not independently reproduce the previously reviewed terrain/stat compilers.",
+    "Baseline VM diagnostics exclude optional cell-entry and cue adapters. Unknown complete-source operations remain blocked."
+  ]
+}

@@ -33,8 +33,9 @@ rehashes 64 ranges/15,878 bytes, including 48 complete instruction spans and
 16 data spans. Selected spans are not necessarily whole functions.
 Placement framing, bridge and follower operands also reuse and reverify the
 [existing placement evidence](../../docs/analysis/combat-placement-native.json).
-The private independent source comparison is being finalized before this draft
-becomes merge-ready.
+The [source census](../../docs/analysis/mission-cell-entry-source-census.json)
+records the fresh 438-file preparation and 55,976 separate Python comparisons.
+Complete original VM authority remains null.
 
 Primary layout leads are pinned YRpp
 [TEventClass](https://github.com/Ares-Developers/YRpp/blob/61d0887eb6040cfb36af16d592e9770ceae4dfb2/TEventClass.h),
