@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "policy": "webra2-fresh-campaign-team-allocation-source-1",
+  "scope": "Private fresh438-file source census only, not active team counts or original campaign execution.",
+  "nativeLedgerSha256": "3d505026ea29c7d020ab3cfb00c334082a1c8dd51ff8742c95e33d06c658d82f",
+  "native": {
+    "assertions": 102,
+    "ranges": 44,
+    "codeRanges": 38,
+    "bytes": 12515,
+    "sha256": "3d505026ea29c7d020ab3cfb00c334082a1c8dd51ff8742c95e33d06c658d82f"
+  },
+  "rawOracle": {
+    "assertions": 49788,
+    "fullRoots": 5,
+    "profiles": [
+      {
+        "profile": "ra2",
+        "assertions": 18075,
+        "names": 352,
+        "aiTriggers": 113,
+        "references": 226,
+        "allocationSha256": "e18e1391488d5d0f4b8d4c14a5fabfe46f57d4a29c0e07e9e996e6d5e46e32b1"
+      },
+      {
+        "profile": "yr",
+        "assertions": 31713,
+        "names": 670,
+        "aiTriggers": 165,
+        "references": 330,
+        "allocationSha256": "c0f54fcf27be605e68dc88d27f4fbb07dfb63e00bf439ad413b6e92b7d311d6c"
+      }
+    ],
+    "scope": "Independent raw Name allocation/load order, exact aliases, AI rows/enables/initial campaign gates and source fingerprints; existing typed house/program/world machinery not independently reconstructed."
+  },
+  "profiles": [
+    {
+      "profile": "ra2",
+      "missionSha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+      "sourceSha256": "0435c10a981b90bab1567aa3ef131f61febd80f6af910005461495b30c73beaa",
+      "allocationSha256": "e18e1391488d5d0f4b8d4c14a5fabfe46f57d4a29c0e07e9e996e6d5e46e32b1",
+      "names": 352,
+      "supportedNames": 352,
+      "aiTriggers": 113,
+      "aiLoads": 113,
+      "initialConditionCounts": {
+        "conditional": 2,
+        "proven-excluded": 111
+      },
+      "referenceCounts": {
+        "none": 81,
+        "resolved": 145
+      },
+      "rootCounts": {
+        "ai-trigger": 113,
+        "automatic-template": 77,
+        "explicit-action": 75,
+        "native-unmodeled": 3
+      },
+      "missingDefaultHouses": 103,
+      "resolvedNameDiagnostics": 352,
+      "unchangedSourceDiagnostics": 1575,
+      "wholeSourceReady": false,
+      "runtimeAuthority": false,
+      "canStartCampaign": false
+    },
+    {
+      "profile": "yr",
+      "missionSha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+      "sourceSha256": "046835223dd53145501f3a91850c2d3fddecdda1ef208c27e78c08273ad9bd62",
+      "allocationSha256": "c0f54fcf27be605e68dc88d27f4fbb07dfb63e00bf439ad413b6e92b7d311d6c",
+      "names": 670,
+      "supportedNames": 670,
+      "aiTriggers": 165,
+      "aiLoads": 165,
+      "initialConditionCounts": {
+        "conditional": 97,
+        "proven-excluded": 68
+      },
+      "referenceCounts": {
+        "none": 116,
+        "resolved": 214
+      },
+      "rootCounts": {
+        "ai-trigger": 165,
+        "automatic-template": 163,
+        "explicit-action": 104,
+        "native-unmodeled": 3
+      },
+      "missingDefaultHouses": 163,
+      "resolvedNameDiagnostics": 670,
+      "unchangedSourceDiagnostics": 3096,
+      "wholeSourceReady": false,
+      "runtimeAuthority": false,
+      "canStartCampaign": false
+    }
+  ]
+}
