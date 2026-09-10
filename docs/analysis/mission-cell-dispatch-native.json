@@ -1,0 +1,178 @@
+{
+  "schemaVersion": 1,
+  "scope": "Paired selected RegisterEvent, Tag RaiseEvent and transient event1 latch evidence; no retail executable run. Global movement/VM phase order is an explicit WebRA2 policy.",
+  "ranges": [
+    {
+      "profile": "ra2",
+      "label": "register-event",
+      "kind": "code",
+      "vaStart": "0x6ed740",
+      "vaEndExclusive": "0x6ed822",
+      "offset": 3069760,
+      "size": 226,
+      "sha256": "f29895904f3f98aefe19dc1e384faf9f183042879cff369c5b944c2873f8a048",
+      "completeInstructions": true
+    },
+    {
+      "profile": "ra2",
+      "label": "tag-raise-event",
+      "kind": "code",
+      "vaStart": "0x6b3df0",
+      "vaEndExclusive": "0x6b3f82",
+      "offset": 2833904,
+      "size": 402,
+      "sha256": "8ef3bdbcf82c36c5faa41276b1f32c3730bbb0e9062751ad211364d586932120",
+      "completeInstructions": true
+    },
+    {
+      "profile": "ra2",
+      "label": "reset-timers",
+      "kind": "code",
+      "vaStart": "0x6ed680",
+      "vaEndExclusive": "0x6ed73e",
+      "offset": 3069568,
+      "size": 190,
+      "sha256": "6bba9a6b2fcbdb7317f2ec88b262e2776f6255f006f911ff1b8886819387b107",
+      "completeInstructions": true
+    },
+    {
+      "profile": "ra2",
+      "label": "latch-state-a",
+      "kind": "code",
+      "vaStart": "0x6e6cf0",
+      "vaEndExclusive": "0x6e6d10",
+      "offset": 3042544,
+      "size": 32,
+      "sha256": "d1960097bcf0174859a505b255407f1de185111fb224fc82d2bb83120c5b1e2f",
+      "completeInstructions": true
+    },
+    {
+      "profile": "ra2",
+      "label": "latch-state-a-targets",
+      "kind": "data",
+      "vaStart": "0x6e6d10",
+      "vaEndExclusive": "0x6e6d18",
+      "offset": 3042576,
+      "size": 8,
+      "sha256": "bf1afd576fef010f09ded7256d48618f35cf5d41731beee8e040c9ad6866d1b5"
+    },
+    {
+      "profile": "ra2",
+      "label": "latch-state-a-switch",
+      "kind": "data",
+      "vaStart": "0x6e6d18",
+      "vaEndExclusive": "0x6e6d4e",
+      "offset": 3042584,
+      "size": 54,
+      "sha256": "348780b94fa18899d65c2d79a6920ad1073eea0b02ec0e19631ff9ebf784a3f5"
+    },
+    {
+      "profile": "ra2",
+      "label": "latch-state-b",
+      "kind": "code",
+      "vaStart": "0x6e6d50",
+      "vaEndExclusive": "0x6e6d66",
+      "offset": 3042640,
+      "size": 22,
+      "sha256": "220b11a322b277ab30ab1d2a8dd3df2aff54c9bfd7f184bec88876320f50f7b6",
+      "completeInstructions": true
+    },
+    {
+      "profile": "yr",
+      "label": "register-event",
+      "kind": "code",
+      "vaStart": "0x7264c0",
+      "vaEndExclusive": "0x7265bb",
+      "offset": 3302592,
+      "size": 251,
+      "sha256": "3269457973bf7d6a0fc70856578f47a77820e777a21a3ae61f58858fda407138",
+      "completeInstructions": true
+    },
+    {
+      "profile": "yr",
+      "label": "tag-raise-event",
+      "kind": "code",
+      "vaStart": "0x6e53a0",
+      "vaEndExclusive": "0x6e5559",
+      "offset": 3036064,
+      "size": 441,
+      "sha256": "e4297d75e8466e92da585e9f35e9530e1ff5c9b5bf61a6cf8b339ac24a0e6e5d",
+      "completeInstructions": true
+    },
+    {
+      "profile": "yr",
+      "label": "reset-timers",
+      "kind": "code",
+      "vaStart": "0x726400",
+      "vaEndExclusive": "0x7264be",
+      "offset": 3302400,
+      "size": 190,
+      "sha256": "1ec180d2f024e85bd0dda0230fb48361ce176008858fc492c7deff2cbc95d1d9",
+      "completeInstructions": true
+    },
+    {
+      "profile": "yr",
+      "label": "latch-state-a",
+      "kind": "code",
+      "vaStart": "0x71f950",
+      "vaEndExclusive": "0x71f970",
+      "offset": 3275088,
+      "size": 32,
+      "sha256": "dd68710d34132bae708c99303638ebc2a15d3060d5df6fd324cfd0e6c05d2c56",
+      "completeInstructions": true
+    },
+    {
+      "profile": "yr",
+      "label": "latch-state-a-targets",
+      "kind": "data",
+      "vaStart": "0x71f970",
+      "vaEndExclusive": "0x71f978",
+      "offset": 3275120,
+      "size": 8,
+      "sha256": "10b033753e7f76c1467cb573a221212fbe2acc453e92e8cc11cf91379df3d5f3"
+    },
+    {
+      "profile": "yr",
+      "label": "latch-state-a-switch",
+      "kind": "data",
+      "vaStart": "0x71f978",
+      "vaEndExclusive": "0x71f9b3",
+      "offset": 3275128,
+      "size": 59,
+      "sha256": "c3d4290153a7689727d4a3bdedb783f29932805b5a886869f2d11f9625996d57"
+    },
+    {
+      "profile": "yr",
+      "label": "latch-state-b",
+      "kind": "code",
+      "vaStart": "0x71f9c0",
+      "vaEndExclusive": "0x71f9e0",
+      "offset": 3275200,
+      "size": 32,
+      "sha256": "c0afb547d19a9e831d12a7abcf9752cd7587f2c5483caf3b3a3975900ab98d5a",
+      "completeInstructions": true
+    },
+    {
+      "profile": "yr",
+      "label": "latch-state-b-targets",
+      "kind": "data",
+      "vaStart": "0x71f9e0",
+      "vaEndExclusive": "0x71f9e8",
+      "offset": 3275232,
+      "size": 8,
+      "sha256": "d5928e95e9f7e5d563ec565a147cc742a88a084f48728c7a5be955524818ba05"
+    },
+    {
+      "profile": "yr",
+      "label": "latch-state-b-switch",
+      "kind": "data",
+      "vaStart": "0x71f9e8",
+      "vaEndExclusive": "0x71fa23",
+      "offset": 3275240,
+      "size": 59,
+      "sha256": "7fca9c8bb34d4de81a0c8291c3ecf6512067fc77ed351105bcf9ff9a61e7f7b7"
+    }
+  ],
+  "totalRanges": 16,
+  "totalBytes": 2014
+}

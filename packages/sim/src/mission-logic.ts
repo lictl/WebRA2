@@ -3,16 +3,18 @@
 import type { ContentIdentity } from '../../contracts/src/index.ts';
 import type { ScenarioLogic } from '../../content/src/scenario-logic.ts';
 import { isMissionCueCatalog, missionCueInstruction, missionCueSourceParameters, type MissionCueCatalog } from '../../content/src/mission-cues.ts';
+import { isMissionCellEntrySource, missionCellEntrySourceBindings, type MissionCellEntrySource } from './mission-cell-entry-source.ts';
 import { canonicalHash, canonicalText, parseJson } from './canonical.ts';
 import { identity as contentIdentity } from './validation.ts';
 import type { Digest } from './types.ts';
 
 export const MISSION_LOGIC_POLICY = 'webra2-mission-poll-2' as const;
 export const MISSION_CUE_DISPATCH_POLICY = 'webra2-source-cue-dispatch-1' as const;
+export const MISSION_CELL_ENTRY_DISPATCH_POLICY = 'webra2-source-cell-entry-dispatch-1' as const;
 export const MISSION_TIMING_POLICY = 'yr-static-15-frame-1' as const;
 export const MISSION_LOGIC_LIMITS = Object.freeze({ triggers: 1024, tags: 1024, instructions: 8192,
   eventsPerTrigger: 32, actionsPerTrigger: 128, bindings: 256, instances: 2048, attachments: 1024,
-  inputs: 1024, futureTicks: 10000, stepTicks: 1024, work: 131072, effects: 32768, actionFrames: 256,
+  inputs: 1024, cellEntries: 8192, futureTicks: 10000, stepTicks: 1024, work: 131072, effects: 32768, actionFrames: 256,
   replayTicks: 10000, replayWork: 1048576, admissions: 1024, checkpoints: 1024, tick: 1000000000 });
 const C = MISSION_LOGIC_LIMITS;
 type Predicate = { id: string; opcode: number; argument: number };
@@ -33,7 +35,7 @@ export interface MissionProgram {
   readonly schemaVersion: 1; readonly policy: typeof MISSION_LOGIC_POLICY;
   readonly timingPolicy: typeof MISSION_TIMING_POLICY; readonly difficulty: number;
   readonly contentIdentity: ContentIdentity; readonly source: { readonly id: string; readonly profile: string; readonly sha256: string };
-  readonly cueCatalogSha256?: string;
+  readonly cueCatalogSha256?: string; readonly cellEntrySourceSha256?: string;
   readonly sha256: string; readonly triggers: readonly Trigger[]; readonly tags: readonly Tag[];
   readonly canStartCampaign: false; readonly nativeBehaviorVerified: false;
 }
@@ -83,6 +85,8 @@ function freeze<T>(value: T): T {
 function digestString(v: unknown): string { if (typeof v !== 'string' || !/^[a-f0-9]{64}$/.test(v)) fail('mission-hash'); return v; }
 const programs = new WeakSet<object>();
 const programCues = new WeakMap<MissionProgram, MissionCueCatalog>();
+const programCells = new WeakMap<MissionProgram, MissionCellEntrySource>();
+export function missionProgramCellEntry(value: MissionProgram): MissionCellEntrySource | null { program(value); return programCells.get(value) ?? null; }
 export function missionProgramCues(value: MissionProgram): MissionCueCatalog | null { program(value); return programCues.get(value) ?? null; }
 const cueCodes = new Set([11, 48, 55]);
 function program(value: MissionProgram): void { if (!programs.has(value)) fail('mission-program'); }
@@ -94,7 +98,7 @@ function numberToken(value: string, min: number, max: number): number | null {
 }
 
 /** Accepts compiler data, not retail execution closure. Caller authenticates its source/content identities. */
-export async function compileMissionProgram(logic: ScenarioLogic, options: MissionProgramOptions, digest: Digest, cues?: MissionCueCatalog): Promise<MissionCompilation> {
+export async function compileMissionProgram(logic: ScenarioLogic, options: MissionProgramOptions, digest: Digest, cues?: MissionCueCatalog, cells?: MissionCellEntrySource): Promise<MissionCompilation> {
   // Select data through descriptors before any await. Do not clone the compiler's full retained INI/raw payload.
   const config = exact(clone(options), ['contentIdentity', 'difficulty', 'timingPolicy']);
   const content = contentIdentity(config.contentIdentity), difficulty = integer(config.difficulty, 0, 2);
@@ -104,6 +108,10 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
   const source = { id: text(field(inputSource, 'id')), profile: text(field(inputSource, 'profile')), sha256: digestString(field(inputSource, 'sha256')) };
   if (source.profile !== content.profile) fail('mission-profile');
   if (cues !== undefined && (!isMissionCueCatalog(cues) || cues.profile !== source.profile || cues.source.sha256 !== source.sha256)) fail('mission-cue-source');
+  if (cells !== undefined && (!isMissionCellEntrySource(cells) || cells.profile !== source.profile ||
+    missionCellEntrySourceBindings(cells).source.sha256 !== source.sha256)) fail('mission-cell-source');
+  const cellEvents = new Map(cells?.events.map(e => [e.instructionId, e]));
+  const selectedCells = new Set<string>();
   const selectedCues = new Set<string>();
   const diagnostics: MissionDiagnostic[] = [], coverage = new Map<string, { namespace: 'event' | 'action'; opcode: number; occurrences: number; supported: number; effectOnly: boolean }>();
   function diagnostic(code: string, id: string) { if (diagnostics.length >= C.instructions + C.triggers * 8) fail('mission-diagnostic-limit'); diagnostics.push({ code, id }); }
@@ -143,6 +151,15 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
     const predicates: Predicate[] = [];
     for (const e of eventRow?.values ?? []) {
       const p = e.parameters;
+      if (cells && e.opcode === 1) {
+        selectedCells.add(e.id); const reference = cellEvents.get(e.id);
+        if (!reference || reference.triggerId !== id || reference.status !== 'supported' || canonicalText(reference.parameters) !== canonicalText(p)) {
+          diagnostic('unsupported-cell-entry-source', e.id); continue;
+        }
+        const n = p.length === 2 && p[0] === '0' ? numberToken(p[1]!, -1, 0x7fffffff) : null;
+        if (n === null) { diagnostic('unsupported-event-operands', e.id); continue; }
+        predicates.push({ id: e.id, opcode: e.opcode, argument: n }); accepted('event', e.opcode); continue;
+      }
       if (!eventCodes.has(e.opcode)) { diagnostic('unsupported-event-opcode', e.id); continue; }
       let max = 0x7fffffff, min = -0x80000000;
       if ([13, 47].includes(e.opcode)) { min = 0; max = Math.floor(C.tick / 15); }
@@ -219,6 +236,10 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
   if (list(field(logic, 'triggerAttachmentCycles'), C.triggers).length) diagnostic('attachment-cycle', '');
   for (const name of ['teams', 'taskForces', 'scripts', 'orphanSections']) if (list(field(logic, name), C.instructions).length) diagnostic(`unsupported-${name}`, '');
   if (list(field(logic, 'diagnostics'), C.instructions * 2).length) diagnostic('compiler-diagnostics', '');
+  if (cells) {
+    for (const event of cells.events) if (!selectedCells.has(event.instructionId)) diagnostic('unhandled-source-cell-entry', event.instructionId);
+    if (cells.diagnostics.length) diagnostic('unsupported-cell-entry-catalog', '');
+  }
   if (cues) for (const cue of cues.instructions) if (!selectedCues.has(cue.id)) diagnostic('unhandled-source-cue', cue.id);
   const report = { policy: MISSION_LOGIC_POLICY, timingPolicy: MISSION_TIMING_POLICY, source, contentIdentity: content, difficulty,
     canStartCampaign: false as const, nativeBehaviorVerified: false as const,
@@ -229,14 +250,17 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
   const payload = freeze({ schemaVersion: 1 as const, policy: MISSION_LOGIC_POLICY, timingPolicy: MISSION_TIMING_POLICY,
     difficulty, contentIdentity: content, source, triggers, tags, compilerPolicy: 'webra2-logic-1', iniPolicy: 'webra2-ini-1',
     operandRows: { events: eventRows, actions: actionRows },
-    ...(cues ? { cueCatalogSha256: cues.sha256, cueDispatchPolicy: MISSION_CUE_DISPATCH_POLICY } : {}) });
+    ...(cues ? { cueCatalogSha256: cues.sha256, cueDispatchPolicy: MISSION_CUE_DISPATCH_POLICY } : {}),
+    ...(cells ? { cellEntrySourceSha256: cells.sha256, cellEntryDispatchPolicy: MISSION_CELL_ENTRY_DISPATCH_POLICY } : {}) });
   const sha256 = await canonicalHash(payload, digest);
   const result: MissionProgram = freeze({ schemaVersion: 1, policy: MISSION_LOGIC_POLICY, timingPolicy: MISSION_TIMING_POLICY,
     difficulty, contentIdentity: content, source, sha256, triggers, tags, canStartCampaign: false, nativeBehaviorVerified: false,
-    ...(cues ? { cueCatalogSha256: cues.sha256 } : {}) });
-  programs.add(result); if (cues) programCues.set(result, cues); return freeze({ ...report, program: result, canExecuteTriggerSubset: true });
+    ...(cues ? { cueCatalogSha256: cues.sha256 } : {}), ...(cells ? { cellEntrySourceSha256: cells.sha256 } : {}) });
+  programs.add(result); if (cells) programCells.set(result, cells); if (cues) programCues.set(result, cues); return freeze({ ...report, program: result, canExecuteTriggerSubset: true });
 }
 
+/** Generic VM observation data. Only the compound adapter derives it from authoritative movement. */
+export interface MissionCellEntryObservation { readonly cellId: string; readonly entityId: number }
 export interface MissionBinding { readonly id: string; readonly tagId: string; readonly attachmentIds: readonly string[] }
 export interface MissionInitialState {
   readonly bindings: readonly MissionBinding[];
@@ -313,7 +337,7 @@ function validateSave(p: MissionProgram, value: unknown): MissionSave {
       const t = exact(v, ['id', 'enabled', 'destroyed', 'deleted', 'fired', 'forced', 'elapsedDue', 'observations']), base = model.triggers[i]!;
       if (t.id !== base.id) fail('mission-trigger-state-order');
       const definition = triggers.get(base.id)!;
-      const enabled = bool(t.enabled), destroyed = bool(t.destroyed), deleted = bool(t.deleted), fired = integer(t.fired, 0, nextTick);
+      const enabled = bool(t.enabled), destroyed = bool(t.destroyed), deleted = bool(t.deleted), fired = integer(t.fired, 0, programCells.has(p) ? C.tick : nextTick);
       const forced = integer(t.forced, 0, Math.min(C.tick, nextEffectOrder - 1));
       if ((enabled && !definition.difficulty[p.difficulty]) || (deleted && (!destroyed || !deletionTargets.has(base.id))) ||
         (forced > 0 && !forcedTargets.has(base.id)) || (destroyed && !deleted && fired === 0)) fail('mission-trigger-state');
@@ -371,12 +395,29 @@ export class MissionLogic {
     const candidate = { ...this.#state, pending: [...this.#state.pending, ...values].sort((a, b) => a.tick - b.tick || a.sequence - b.sequence), lastInputSequence: maximum };
     canonicalText(candidate); this.#state = candidate;
   }
-  step(ticks = 1): { nextTick: number; effects: MissionEffect[]; work: number } {
+  step(ticks = 1): { nextTick: number; effects: MissionEffect[]; work: number } { return this.#step(ticks); }
+  /** One source-enabled VM tick with explicit data observations, not proof of world movement. */
+  stepCellEntries(entries: readonly MissionCellEntryObservation[]): { nextTick: number; effects: MissionEffect[]; work: number } {
+    if (!programCells.has(this.#program)) fail('mission-cell-source'); return this.#step(1, entries);
+  }
+  #step(ticks = 1, cellObservations?: readonly MissionCellEntryObservation[]): { nextTick: number; effects: MissionEffect[]; work: number } {
     integer(ticks, 1, C.stepTicks); if (ticks > C.tick - this.#state.nextTick) fail('mission-tick-limit');
     const state = clone(this.#state), p = this.#program, effects: MissionEffect[] = [];
     const definitions = new Map(p.triggers.map(t => [t.id, t])), tags = new Map(p.tags.map(t => [t.id, t]));
     let work = 0;
+    const cellSource = programCells.get(p);
     const visit = () => { if (++work > C.work) fail('mission-work-limit'); };
+    const cellRows = new Map(cellSource?.cells.map(c => { visit(); return [c.cellId, c] as const; }));
+    const actorRows = new Map(cellSource?.actors.map(a => { visit(); return [a.entityId, a] as const; }));
+    const cellEvents = new Map(cellSource?.events.map(e => { visit(); return [e.instructionId, e] as const; }));
+    const pollBindings = cellSource ? new Set(cellSource.scenarioPollBindingIds) : null;
+    const bound = new Map(state.bindings.map(b => [b.id, b]));
+    const entries = cellObservations === undefined ? [] : list(clone(cellObservations), C.cellEntries).map(value => {
+      visit(); const r = exact(value, ['cellId', 'entityId']), cell = cellRows.get(text(r.cellId)), actor = actorRows.get(integer(r.entityId, 1, 0x7fffffff));
+      if (!cell || !actor || actor.status !== 'supported' || !bound.has(cell.bindingId)) fail('mission-cell-observation');
+      return { cell, actor };
+    });
+    type Entry = typeof entries[number];
     function emit(value: Omit<MissionEffect, 'order' | 'tick'>): number {
       if (effects.length >= C.effects || state.nextEffectOrder >= Number.MAX_SAFE_INTEGER) fail('mission-effect-limit');
       const order = state.nextEffectOrder++; effects.push({ order, tick: state.nextTick, ...value }); return order;
@@ -390,10 +431,14 @@ export class MissionLogic {
         visit(); if (definitions.get(t.id)!.events.some(e => { visit(); return ops.includes(e.opcode) && e.argument === index; })) reset(t);
       }
     }
-    function evaluate(e: Predicate, t: TriggerState): boolean {
+    function evaluate(e: Predicate, t: TriggerState, entry: Entry | null): boolean {
       visit();
       switch (e.opcode) {
         case 0: return false;
+        case 1: {
+          const reference = cellEvents.get(e.id); if (!reference) return fail('mission-cell-source');
+          return !!entry && (reference.selector.kind === 'any' || reference.selector.kind === 'first-country-house' && reference.selector.playerId === entry.actor.playerId);
+        }
         case 8: return true;
         case 13: return state.nextTick >= t.elapsedDue!;
         case 14: return state.timer.startedAt !== null && timerRemaining(state.timer, state.nextTick) === 0;
@@ -465,12 +510,12 @@ export class MissionLogic {
         emit({ bindingId: '', triggerId: '', instructionId: '', opcode: -1, kind: 'input', value: i.value, target: `${i.kind}:${i.index}` }); consumed++;
       }
       state.pending = state.pending.slice(consumed);
-      for (const b of state.bindings) {
-        visit(); if (!b.active) continue; const tag = tags.get(b.tagId)!; let removeTag = false;
+      const dispatch = (b: BindingState, entry: Entry | null) => {
+        visit(); if (!b.active) return; const tag = tags.get(b.tagId)!; let removeTag = false;
         for (const t of b.triggers) {
           visit(); if (!t.enabled || t.destroyed) continue; const definition = definitions.get(t.id)!;
-          // Native linked event order is reverse source order; these poll predicates do not set persistent event bits.
-          for (let i = definition.events.length - 1; i >= 0; i--) t.observations[i] = evaluate(definition.events[i]!, t);
+          // Event1, like existing poll predicates, fails the native persistent latch gate.
+          for (let i = definition.events.length - 1; i >= 0; i--) t.observations[i] = evaluate(definition.events[i]!, t, entry);
           if (!t.observations.every(Boolean)) continue;
           if (tag.mode === 2) reset(t);
           t.fired++; integer(t.fired);
@@ -478,7 +523,9 @@ export class MissionLogic {
           if (tag.mode === 0) { t.destroyed = true; removeTag = true; }
         }
         if (removeTag) b.active = false;
-      }
+      };
+      for (const entry of entries) dispatch(bound.get(entry.cell.bindingId)!, entry);
+      for (const b of state.bindings) if (!pollBindings || pollBindings.has(b.id)) dispatch(b, null);
       for (const binding of state.bindings) if (binding.triggers.every(t => t.deleted)) binding.active = false;
       state.nextTick++;
     }
@@ -495,7 +542,7 @@ export interface MissionReplay {
 }
 /** Replays admission boundaries, including the initial checkpoint's already queued inputs exactly once. */
 export async function replayMission(p: MissionProgram, input: MissionReplay | string | Uint8Array, digest: Digest): Promise<{ simulation: MissionLogic; effects: MissionEffect[]; verifiedCheckpoints: number }> {
-  program(p);
+  program(p); if (programCells.has(p)) fail('mission-cell-replay-requires-world');
   const r = exact(clone(typeof input === 'string' || input instanceof Uint8Array ? parseJson(input) : input), ['schemaVersion', 'initialCheckpoint', 'admissions', 'finalNextTick', 'checkpoints']);
   if (r.schemaVersion !== 1) fail('mission-replay-version');
   const simulation = MissionLogic.restore(p, r.initialCheckpoint), start = simulation.save().nextTick;
