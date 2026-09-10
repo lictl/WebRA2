@@ -18,13 +18,16 @@ Current wave: [source combat PR177](https://github.com/lictl/WebRA2/pull/177) me
 as `cfdba372c16eeee945e9972b9f4a45cc11f16391` after957 tests, both bounded actual
 Chrome scenarios, hosted checks and [final independent review](https://github.com/lictl/WebRA2/pull/177#pullrequestreview-5164526784)
 at `3100d49138263ec72965f3398b432b73f9d3c702`.
-Coordinator merged [recruitment PR181](https://github.com/lictl/WebRA2/pull/181)
-for [issue175](https://github.com/lictl/WebRA2/issues/175), while browser_feasibility
-implements the [campaign chooser179](https://github.com/lictl/WebRA2/issues/179),
-mix_reader implements [ground traversal178](https://github.com/lictl/WebRA2/issues/178),
-and bootstrap_review investigates [allied infantry passage180](https://github.com/lictl/WebRA2/issues/180).
-Coordinator integrates ground world navigation and source infantry occupancy;
-[trigger lifecycle182](https://github.com/lictl/WebRA2/issues/182) has a reviewed VM extension.
+Recruitment181, ground traversal183, trigger lifecycle184 and campaign chooser185
+are merged. Coordinator finishes the composed infantry core186 with mix_reader
+reviewing its final merge and distribution delta. browser_feasibility owns the next
+browser adoption for [ground traversal178](https://github.com/lictl/WebRA2/issues/178)
+and [allied infantry passage180](https://github.com/lictl/WebRA2/issues/180), including
+settled slot presentation and the original default-player Chrome route.
+bootstrap_review implements the source attachment catalog for
+[mission bindings187](https://github.com/lictl/WebRA2/issues/187); coordinator retains
+existing VM/world/contracts ownership. [Lifecycle182](https://github.com/lictl/WebRA2/issues/182)
+still requires source attachment integration beyond its merged VM extension.
 
 Recruitment integrates the complete source TaskForce selector, append-only claim and
 release history, persistent Flash50 and compound save/replay. Source and shared-runtime
@@ -73,24 +76,40 @@ composition proof, optional saved slots and engine7, navigation/reservations,
 Stop/retarget/death/rollback, nine integration tests and distribution notice.
 Core5a85829 passes1013 tests/types; independent review found a revived initially
 absent hard-anchor overlap. Root restores the existing rejection and adds both-profile
-regressions. Group preflight now follows source-bound slot occupancy; final composed
-checks and exact-head independent review follow. The [core report](world-infantry-passage.md)
+regressions. Group preflight now follows source-bound slot occupancy. Corrected
+`a04c18666b2e370b74c8e67a28ead1589981ead2` passes1015 tests and hosted checks;
+the [independent final core review](https://github.com/lictl/WebRA2/pull/186#pullrequestreview-5165201048)
+adds18044 motion assertions and312 group assertions with no remaining findings.
+Merge3ba213a composes campaign185 without changing the reviewed core. Full composed
+validation passes1026 tests/types,158 documents/795 links,554 publication paths and
+65 code/license outputs from140 approved inputs; final exact-head merge/distribution
+review and hosted checks follow. The [core report](world-infantry-passage.md)
 records D03 dual occupancy, dying-edge cancellation and work accounting. The old
 world policies retain their exact behavior; source combat keeps flat shot restrictions.
 Private fresh default RA2 movement now reaches a supported shot through allied
 slots and completes death/save/replay, retaining all811 actors/1108 footprint cells.
 This is a headless source result; source artifacts stay under ignored
-`local/worktrees/infantry-integration/local/bridge/`. YR also completes its default-player route and death at tick518 with full replay.
+`local/worktrees/infantry-integration/local/bridge/`. RA2 reaches tick1766 with11
+checkpoints sharing an actual blocking ally. YR completes its default-player route
+and death at tick518 with full replay but zero blocking shared checkpoints; it is
+a route regression, not evidence of allied passage. Earlier private coordinate
+overlap counts included nonblocking smudges and are not passage evidence.
 Actual original-player Chrome passage and changed-slot presentation remain next.
 
-Campaign [PR185](https://github.com/lictl/WebRA2/pull/185) is independently reviewed
-by bootstrap_review while browser_feasibility owns actual Chrome acceptance.
-Corrected b72388f fixes a reentrant duplicate field-orders mount; frozen4183 retains
-its manifest and private evidence. Legacy4182 remains pre-fix evidence. Both RA2
-factions reach ready scenes; YR/lifecycle acceptance is ongoing. Root has not changed
-its exclusive loader/UI paths. No original mission is playable and no essential
-human input is required. Continue the authorized campaign implementation after this
-wave; do not stop at these component merges.
+Campaign [PR185](https://github.com/lictl/WebRA2/pull/185) merged as
+`af5e45af857bd4ceecaacffe1b7169369a02e6b4`, final head
+`83efeada4befc31bfbd7205dad7d1dbbcdf00f62`, after1007 tests, hosted checks,
+[independent source review](https://github.com/lictl/WebRA2/pull/185#pullrequestreview-5165076889)
+and [final composition/evidence review](https://github.com/lictl/WebRA2/pull/185#pullrequestreview-5165217521).
+Issue179 is closed within chooser scope. Corrected b72388f fixes a reentrant duplicate
+field-orders mount. Frozen4183 validates all four faction openings, retained files,
+assets-only selection, cancellation, localization and save/replay restoration.
+Frozen4184/d8e8e8c composes ground183 and separately validates the YR Allied continuation
+using16 archives. Both manifests and every served output were independently rehashed.
+Legacy4182 remains pre-fix evidence. See the [chooser report](campaign-chooser.md)
+for exact scenario and console/network limits. No original mission is playable and
+no essential human input is required. Continue the authorized campaign implementation
+after this wave; do not stop at these component merges.
 
 [Sleep PR171](https://github.com/lictl/WebRA2/pull/171) merged as
 `1025eb2b06908372b562d6f6e66aec6e990bef03` after923 checks and its
