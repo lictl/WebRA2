@@ -3,6 +3,7 @@
 import { shape,int,code,validAction,validProgress,validResult,type TerrainAction,type TerrainResult,type TerrainProgress } from './terrain-protocol.ts';
 import type { CampaignLaunchPlan } from './campaign-protocol.ts';
 import { validWorldAction } from './world-protocol.ts';
+export const TERRAIN_DEADLINES=Object.freeze({load:15*60_000,operation:30_000,replay:180_000});
 export interface TerrainPort { request(action:TerrainAction,signal:AbortSignal,progress?:(p:TerrainProgress)=>void):Promise<TerrainResult>; dispose():void }
 export type TerrainWorkerPort=Pick<Worker,'postMessage'|'terminate'|'addEventListener'|'removeEventListener'>;
 export class TerrainBridge implements TerrainPort {
@@ -21,11 +22,11 @@ export class TerrainBridge implements TerrainPort {
       const message=(event:Event)=>{
         const v:unknown=(event as MessageEvent).data;
         if(!v || typeof v!=='object' || !Object.hasOwn(v,'id') || (v as {id:unknown}).id!==id)return;
-        if(shape(v,['version','id','type','sequence','progress']) && v.version===6 && v.type==='progress' && ['load','campaign-scan','campaign-launch'].includes(action.type) && int(v.sequence,1) && v.sequence>lastProgress && validProgress(v.progress)){
-          lastProgress=v.sequence;try{progress?.(v.progress);if(!settled)this.worker.postMessage({version:6,id,type:'ack',sequence:v.sequence});}catch{failed();}return;
+        if(shape(v,['version','id','type','sequence','progress']) && v.version===7 && v.type==='progress' && ['load','campaign-scan','campaign-launch'].includes(action.type) && int(v.sequence,1) && v.sequence>lastProgress && validProgress(v.progress)){
+          lastProgress=v.sequence;try{progress?.(v.progress);if(!settled)this.worker.postMessage({version:7,id,type:'ack',sequence:v.sequence});}catch{failed();}return;
         }
-        if(shape(v,['version','id','type','code']) && v.version===6 && v.type==='error' && code(v.code)){finish(new Error(v.code));return;}
-        if(!shape(v,['version','id','type','result']) || v.version!==6 || v.type!=='result' || !validResult(v.result)){finish(new Error('invalid'));return;}
+        if(shape(v,['version','id','type','code']) && v.version===7 && v.type==='error' && code(v.code)){finish(new Error(v.code));return;}
+        if(!shape(v,['version','id','type','result']) || v.version!==7 || v.type!=='result' || !validResult(v.result)){finish(new Error('invalid'));return;}
         const result=v.result;
         if(result.type==='campaign-plan'){
           if(action.type==='campaign-scan'?result.plan.profile!==action.profile:action.type==='campaign-back'?result.plan.fingerprint!==action.fingerprint:true){finish(new Error('invalid'));return;}
@@ -59,10 +60,11 @@ export class TerrainBridge implements TerrainPort {
         }
         finish(undefined,result);
       };
-      // Full root hashing can be slow in Safari. Neither timeout promises background execution.
-      const timer=setTimeout(()=>finish(new Error('timeout')),['load','campaign-scan','campaign-launch'].includes(action.type)?15*60_000:30_000);
+      // Source replay is independently bounded; a measured 2,379-tick case takes over 30s.
+      // Abort terminates the worker. No deadline promises background browser execution.
+      const timer=setTimeout(()=>finish(new Error('timeout')),['load','campaign-scan','campaign-launch'].includes(action.type)?TERRAIN_DEADLINES.load:action.type==='world-replay-validate'?TERRAIN_DEADLINES.replay:TERRAIN_DEADLINES.operation);
       this.#pending=e=>finish(e);signal.addEventListener('abort',abort,{once:true});this.worker.addEventListener('message',message);this.worker.addEventListener('error',failed);this.worker.addEventListener('messageerror',failed);
-      try{this.worker.postMessage({version:6,id,action});}catch{failed();}
+      try{this.worker.postMessage({version:7,id,action});}catch{failed();}
     });
   }
   dispose():void{if(this.#dead)return;this.#dead=true;this.#pending?.(new DOMException('Cancelled','AbortError'));this.worker.terminate();}

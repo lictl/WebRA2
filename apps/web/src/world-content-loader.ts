@@ -4,6 +4,9 @@ import type { BrowserCatalog } from '../../../packages/vfs/src/browser-catalog.t
 import type { BrowserMemberIdentity } from '../../../packages/vfs/src/browser-verified.ts';
 import type { TerrainPreview } from '../../../packages/content/src/terrain-preview.ts';
 import { compileEntityDefinitions } from '../../../packages/content/src/entity-definitions.ts';
+import { compileTerrainTraversalGround } from '../../../packages/content/src/terrain-traversal-ground.ts';
+import { compileInfantryPassageCatalog } from '../../../packages/sim/src/infantry-passage-catalog.ts';
+import { bindInfantryPassageWorld } from '../../../packages/sim/src/world-infantry-passage.ts';
 import { compileTerrainTraversal } from '../../../packages/content/src/terrain-traversal.ts';
 import { compileFoundationOccupancy } from '../../../packages/content/src/foundation-occupancy.ts';
 import { compileWorldContent, WORLD_CONTENT_LIMITS, WorldContentError } from '../../../packages/sim/src/world-content.ts';
@@ -37,7 +40,7 @@ export async function prepareMissionWorld(catalog: BrowserCatalog, preview: Terr
   if (mission.length !== 1) throw new Error('world-map-source');
   const mapBytes = await readWorldMission(catalog, mission[0]!);
   const definitions = compileEntityDefinitions({ objects: preview.objects, rules: content.rules, art: content.tables.art });
-  const traversal = compileTerrainTraversal({ contentIdentity: content.contentIdentity, terrain: preview.terrain, mapBytes, rules: content.sourceViews.rules, assets: preview.assets, choices: preview.choices, movementClasses: Array.from({ length: 8 }, (_, speedType) => ({ id: `speed-${speedType}`, speedType })) });
+  const traversal = compileTerrainTraversalGround({ base: compileTerrainTraversal({ contentIdentity: content.contentIdentity, terrain: preview.terrain, mapBytes, rules: content.sourceViews.rules, assets: preview.assets, choices: preview.choices, movementClasses: Array.from({ length: 8 }, (_, speedType) => ({ id: `speed-${speedType}`, speedType })) }) });
   try {
     const world=compileWorldContent({ mapBytes, rules: content.rules, definitions, traversal, footprints: compileFoundationOccupancy({ definitions }) });
     const rules=content.rules,art=content.tables.art,mission={source:definitions.source,bytes:mapBytes};
@@ -49,8 +52,8 @@ export async function prepareMissionWorld(catalog: BrowserCatalog, preview: Terr
     const death=compileCombatDeath({actors,definitions,weapons,effects,rules,art});
     const ordinaryDeath=compileOrdinaryDeath({actors,definitions,weapons,effects,rules,art,death,veterancy});
     const bridge=compileOrdinaryInfantryBridge({world,definitions,actors,weapons,instant,effects,modifiers,veterancy,initial,death,ordinaryDeath,traversal,seed:0,sequence11Ticks:15,sequence12Ticks:15});
-    return {model:bindOrdinaryInfantryWorld(bridge,world.model),players:world.players,defaultPlayerId:world.defaultPlayerId,placements:world.placements,
-      limitations:[...world.limitations.filter(s=>!bridge.combat||s!=='no-combat-or-runtime-spawns'),...(bridge.combat?['no-runtime-spawns']:[]),'source-combat:standing-human-primary-only','source-combat:explicit-seed-0-normal-house-indices-death-15-ticks']};
+    return {model:bindInfantryPassageWorld(compileInfantryPassageCatalog({world,definitions,actors,rules,mission}),bindOrdinaryInfantryWorld(bridge,world.model)),players:world.players,defaultPlayerId:world.defaultPlayerId,placements:world.placements,
+      limitations:[...world.limitations.filter(s=>s!=='no-infantry-subcells' && (!bridge.combat||s!=='no-combat-or-runtime-spawns')),...(bridge.combat?['no-runtime-spawns']:[]),'infantry:directed-allied-settled-slots-no-native-interpolation','source-combat:standing-human-primary-only','source-combat:explicit-seed-0-normal-house-indices-death-15-ticks']};
   }
   catch (error) {
     // An unsupported required native mask prevents movement, while the already
