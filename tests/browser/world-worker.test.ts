@@ -10,7 +10,7 @@ import { WorldTickSchedule } from '../../apps/web/src/world-scheduler.ts';
 import { LocalWorldStorage, type WorldStorage } from '../../apps/web/src/world-storage.ts';
 import { worldText, worldEventText } from '../../apps/web/src/world-i18n.ts';
 import { originalWorld } from './world-ui.fixture.ts';
-const artwork = { policy: 'webra2-object-still-2' as const, presentation: 'webra2-placed-still-1' as const, types: 0, rendered: 0, unavailable: 3, assets: 0, palettes: 0, sourceBytes: 0, decodedBytes: 0, indexedFrames: 0, rows: [], omittedTypes: 0, omittedPlacements: 3, omittedRendered: 0, truncatedFields: 0, unplaced: 0 };
+const artwork = { policy: 'webra2-object-still-2' as const, presentation: 'webra2-placed-still-1' as const, voxel: null, types: 0, rendered: 0, unavailable: 3, assets: 0, palettes: 0, sourceBytes: 0, decodedBytes: 0, indexedFrames: 0, rows: [], omittedTypes: 0, omittedPlacements: 3, omittedRendered: 0, truncatedFields: 0, unplaced: 0 };
 const loader: SceneLoader = async () => ({ world: originalWorld(), summary: { profile: 'ra2', mission: 'all01t.map', contentHash: 'a'.repeat(64), mapHash: 'c'.repeat(64), paletteHash: 'e'.repeat(64), artwork, cells: 35, objects: 3, assets: 1, verifiedBytes: 100, sourceBytes: 100, decodedBytes: 100, decodedSlots: 1, bounds: { x: 0, y: 0, width: 100, height: 100 }, diagnostics: [] }, scene: {
   locate(x, y) { return { x: x * 20, y: y * 10 }; },
   render(viewport) { const bytes = viewport.width * viewport.height * 4; return { viewport, rgba: new Uint8Array(bytes), allocations: { rgbaBytes: bytes, depthBytes: bytes, ownerBytes: bytes, objectOwnerBytes: bytes, totalPixelBytes: bytes * 4, samples: 0, spriteSamples: 0, paletteBytes: 0, objects: 0 }, pick() { return null; } }; }
@@ -23,7 +23,7 @@ class LocalWorker extends EventTarget {
 }
 const files = () => [new File(['original-fixture'], 'original.mix')];
 const load: TerrainAction = { type: 'load', files: files().map(file => ({ file, relativePath: '' })), profile: 'ra2', width: 120, height: 80 };
-test('v3 bridge and worker bind frame revisions, bounded commands, documents and recoverable rejection', async () => {
+test('v4 bridge and worker bind frame revisions, bounded commands, documents and recoverable rejection', async () => {
   const worker = new LocalWorker(), bridge = new TerrainBridge(worker), signal = new AbortController().signal;
   const first = await bridge.request(load, signal) as FrameResult; assert.equal(first.world!.revision, 0);
   const admitted = await bridge.request({ type: 'world-order', order: 'move', playerId: 0, entityId: 1, x: 6, y: 3 }, signal) as FrameResult;
