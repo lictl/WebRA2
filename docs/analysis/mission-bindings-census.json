@@ -1,0 +1,737 @@
+{
+  "schemaVersion": 1,
+  "policy": "webra2-initial-tag-bindings-1",
+  "scope": "private-source-metadata-no-game-execution",
+  "profiles": [
+    {
+      "profile": "ra2",
+      "missionSha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+      "catalogSha256": "5e602be74dbff27ae16a2bbb618df3244e2bc80a10cfe658039168016c2f6a60",
+      "coverage": {
+        "triggers": 130,
+        "tags": 128,
+        "allocatedTags": 115,
+        "objectAttachments": 50,
+        "cellAttachments": 180,
+        "scenarioTags": 86,
+        "mapTags": 0,
+        "houseTags": 12,
+        "nativeReferences": 230
+      },
+      "diagnostics": {},
+      "vmDiagnostics": 367,
+      "authority": false,
+      "difficulty": 1,
+      "vmDiagnosticKinds": {
+        "unsupported-action-opcode": 318,
+        "unsupported-event-opcode": 46,
+        "unsupported-scripts": 1,
+        "unsupported-taskForces": 1,
+        "unsupported-teams": 1
+      },
+      "unsupportedOpcodes": [
+        {
+          "namespace": "action",
+          "opcode": 3,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 4,
+          "occurrences": 29,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 5,
+          "occurrences": 2,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 7,
+          "occurrences": 25,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 11,
+          "occurrences": 33,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 14,
+          "occurrences": 7,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 17,
+          "occurrences": 27,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 19,
+          "occurrences": 39,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 21,
+          "occurrences": 18,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 36,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 41,
+          "occurrences": 2,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 46,
+          "occurrences": 2,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 47,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 48,
+          "occurrences": 2,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 55,
+          "occurrences": 40,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 63,
+          "occurrences": 10,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 74,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 80,
+          "occurrences": 21,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 99,
+          "occurrences": 26,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 100,
+          "occurrences": 3,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 101,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 104,
+          "occurrences": 8,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 108,
+          "occurrences": 9,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 113,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 114,
+          "occurrences": 4,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 115,
+          "occurrences": 4,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 116,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 1,
+          "occurrences": 18,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 4,
+          "occurrences": 2,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 6,
+          "occurrences": 2,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 9,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 10,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 11,
+          "occurrences": 2,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 20,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 21,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 32,
+          "occurrences": 4,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 33,
+          "occurrences": 7,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 48,
+          "occurrences": 4,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 57,
+          "occurrences": 3,
+          "supported": 0,
+          "effectOnly": false
+        }
+      ]
+    },
+    {
+      "profile": "yr",
+      "missionSha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+      "catalogSha256": "e839e63e8b14b22e051188127bc4514ef421537804878797f321b576bd5111af",
+      "coverage": {
+        "triggers": 334,
+        "tags": 132,
+        "allocatedTags": 132,
+        "objectAttachments": 130,
+        "cellAttachments": 278,
+        "scenarioTags": 127,
+        "mapTags": 0,
+        "houseTags": 17,
+        "nativeReferences": 408
+      },
+      "diagnostics": {},
+      "vmDiagnostics": 531,
+      "authority": false,
+      "difficulty": 1,
+      "vmDiagnosticKinds": {
+        "unsupported-action-opcode": 410,
+        "unsupported-event-opcode": 118,
+        "unsupported-scripts": 1,
+        "unsupported-taskForces": 1,
+        "unsupported-teams": 1
+      },
+      "unsupportedOpcodes": [
+        {
+          "namespace": "action",
+          "opcode": 3,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 4,
+          "occurrences": 21,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 5,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 7,
+          "occurrences": 47,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 10,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 11,
+          "occurrences": 11,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 14,
+          "occurrences": 26,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 16,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 17,
+          "occurrences": 11,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 18,
+          "occurrences": 2,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 19,
+          "occurrences": 10,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 21,
+          "occurrences": 14,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 32,
+          "occurrences": 3,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 41,
+          "occurrences": 5,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 46,
+          "occurrences": 3,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 47,
+          "occurrences": 3,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 48,
+          "occurrences": 9,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 51,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 55,
+          "occurrences": 11,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 60,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 63,
+          "occurrences": 31,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 68,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 80,
+          "occurrences": 36,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 99,
+          "occurrences": 97,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 100,
+          "occurrences": 2,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 104,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 111,
+          "occurrences": 4,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 112,
+          "occurrences": 2,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 113,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 116,
+          "occurrences": 19,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 117,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 118,
+          "occurrences": 2,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 119,
+          "occurrences": 2,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 120,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 121,
+          "occurrences": 6,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 122,
+          "occurrences": 3,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 125,
+          "occurrences": 7,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 127,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 129,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 130,
+          "occurrences": 4,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 131,
+          "occurrences": 4,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 137,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "action",
+          "opcode": 139,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 1,
+          "occurrences": 9,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 6,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 9,
+          "occurrences": 4,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 11,
+          "occurrences": 8,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 26,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 30,
+          "occurrences": 2,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 32,
+          "occurrences": 25,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 33,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 44,
+          "occurrences": 8,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 48,
+          "occurrences": 10,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 57,
+          "occurrences": 17,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 58,
+          "occurrences": 1,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 59,
+          "occurrences": 4,
+          "supported": 0,
+          "effectOnly": false
+        },
+        {
+          "namespace": "event",
+          "opcode": 61,
+          "occurrences": 27,
+          "supported": 0,
+          "effectOnly": false
+        }
+      ]
+    }
+  ]
+}

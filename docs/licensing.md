@@ -298,3 +298,9 @@ GPL-3.0-or-later code. [Infantry passage provenance](../packages/sim/INFANTRY_PA
 records paired native scope and explicit WebRA2 reservation choices; the bundle
 ships that notice. Original world/save changes retain their existing MIT notices.
 No retail slot rows, geometry or saves accompany the distribution.
+
+Initial source mission bindings and their original fixtures are GPL-3.0-or-later.
+The [binding provenance](../packages/sim/MISSION_BINDINGS_PROVENANCE.md) records paired
+static initialization/lookup evidence, source identity boundaries and explicit VM
+limits. Its notice accompanies the distribution. This component does not execute
+original missions, physical event callbacks or campaign continuation.
