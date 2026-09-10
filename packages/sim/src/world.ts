@@ -3,26 +3,30 @@
 import { orderCommands, type CommandEnvelope, type SaveEnvelope } from '../../contracts/src/index.ts';
 import { canonicalText } from './canonical.ts';
 import { findNavigationPath } from './navigation.ts';
+import { COMBAT_ENGINE_VERSION, COMBAT_POLICY } from './combat-model.ts';
+import { attackCombat, createCombatState, stepCombat, stopCombat, validateCombatState, type CombatState } from './combat.ts';
 import { assertWorldModel, worldAddress, worldClone, worldContent, worldEdgeCost, worldFail, worldInteger, worldList, worldPosition,
   worldRecord, WORLD_ENGINE_VERSION, WORLD_LIMITS as C, WORLD_MOTION_POLICY, type WorldModel, type WorldEntityDefinition } from './world-model.ts';
 
 export type WorldEntity = { id: number; x: number; y: number; health: number | null;
   goal: number | null; route: number[]; progress: number; waitTicks: number };
 export type WorldState = { modelSha256: string; entities: WorldEntity[]; planningCursor: number;
-  admissionCursors: { playerId: number; sequence: number }[] };
+  admissionCursors: { playerId: number; sequence: number }[]; combat?: CombatState };
 export type WorldSave = SaveEnvelope<WorldState>;
-export type WorldTrace = { tick: number; phase: 'command' | 'navigation' | 'movement'; kind: string; entityId: number; cell: number | null; value: number | null };
+export type WorldTrace = { tick: number; phase: 'command' | 'navigation' | 'movement' | 'combat'; kind: string; entityId: number; cell: number | null; value: number | null };
 export type WorldStep = { nextTick: number; events: WorldTrace[]; work: { entityVisits: number; navigationExpansions: number; transitions: number } };
 type LiveSave = { -readonly [K in keyof WorldSave]: WorldSave[K] } & { queuedCommands: CommandEnvelope[]; scheduledWork: []; rngStates: Record<string, never> };
 
-function command(value: unknown): CommandEnvelope {
+const engineVersion = (model: WorldModel) => model.combat ? COMBAT_ENGINE_VERSION : WORLD_ENGINE_VERSION;
+const rulesVersion = (model: WorldModel) => model.combat ? COMBAT_POLICY : WORLD_MOTION_POLICY;
+function command(value: unknown, combat: boolean): CommandEnvelope {
   const r = worldRecord(value, ['schemaVersion', 'tick', 'playerId', 'sequence', 'kind', 'payload']);
-  if (r.schemaVersion !== 1 || (r.kind !== 'move' && r.kind !== 'stop')) worldFail('world-command-kind');
-  const payload = worldRecord(r.payload, r.kind === 'move' ? ['entityId', 'x', 'y'] : ['entityId']);
+  if (r.schemaVersion !== 1 || (r.kind !== 'move' && r.kind !== 'stop' && !(combat && r.kind === 'attack'))) worldFail('world-command-kind');
+  const payload = worldRecord(r.payload, r.kind === 'move' ? ['entityId', 'x', 'y'] : r.kind === 'attack' ? ['entityId', 'targetId'] : ['entityId']);
   const entityId = worldInteger(payload.entityId, 1, 2147483647);
   const common = { schemaVersion: 1 as const, tick: worldInteger(r.tick, 0, C.tick - 1), playerId: worldInteger(r.playerId, 0, C.players - 1),
     sequence: worldInteger(r.sequence, 0, Number.MAX_SAFE_INTEGER), kind: r.kind };
-  return { ...common, payload: r.kind === 'move' ? { entityId, ...worldPosition(worldAddress(payload.x, payload.y)) } : { entityId } };
+  return { ...common, payload: r.kind === 'move' ? { entityId, ...worldPosition(worldAddress(payload.x, payload.y)) } : r.kind === 'attack' ? { entityId, targetId: worldInteger(payload.targetId, 1, 2147483647) } : { entityId } };
 }
 function occupancy(model: WorldModel, state: WorldState): Map<number, number> {
   const counts = new Map(model.blocked.map(at => [at, 1]));
@@ -43,10 +47,10 @@ function staticOccupancy(model: WorldModel, state: { entities: readonly Pick<Wor
 function validateSave(model: WorldModel, input: unknown): LiveSave {
   assertWorldModel(model);
   const r = worldRecord(worldClone(input), ['schemaVersion', 'engineVersion', 'simulationRulesVersion', 'contentIdentity', 'nextTick', 'state', 'queuedCommands', 'scheduledWork', 'rngStates']);
-  if (r.schemaVersion !== 1 || r.engineVersion !== WORLD_ENGINE_VERSION || r.simulationRulesVersion !== WORLD_MOTION_POLICY) worldFail('world-save-version');
+  if (r.schemaVersion !== 1 || r.engineVersion !== engineVersion(model) || r.simulationRulesVersion !== rulesVersion(model)) worldFail('world-save-version');
   const contentIdentity = worldContent(r.contentIdentity);
   if (canonicalText(contentIdentity) !== canonicalText(model.contentIdentity)) worldFail('world-save-content');
-  const nextTick = worldInteger(r.nextTick, 0, C.tick), s = worldRecord(r.state, ['modelSha256', 'entities', 'planningCursor', 'admissionCursors']);
+  const nextTick = worldInteger(r.nextTick, 0, C.tick), s = worldRecord(r.state, ['modelSha256', 'entities', 'planningCursor', 'admissionCursors', ...(model.combat ? ['combat'] : [])]);
   if (s.modelSha256 !== model.sha256) worldFail('world-save-model');
   if (worldList(r.scheduledWork, 0).length || Reflect.ownKeys(worldRecord(r.rngStates, [])).length) worldFail('world-save-work');
   const inputs = worldList(s.entities, C.entities); if (inputs.length !== model.entities.length) worldFail('world-save-entities');
@@ -88,13 +92,14 @@ function validateSave(model: WorldModel, input: unknown): LiveSave {
     const row = worldRecord(item, ['playerId', 'sequence']), playerId = worldInteger(row.playerId, 0, C.players - 1), sequence = worldInteger(row.sequence, 0, Number.MAX_SAFE_INTEGER);
     if (playerId <= priorPlayer) worldFail('world-save-cursors'); priorPlayer = playerId; cursors.set(playerId, sequence); admissionCursors.push({ playerId, sequence });
   }
-  const originalCommands = worldList(r.queuedCommands, C.commands).map(command); let queuedCommands: CommandEnvelope[];
+  const originalCommands = worldList(r.queuedCommands, C.commands).map(c => command(c, !!model.combat)); let queuedCommands: CommandEnvelope[];
   try { queuedCommands = orderCommands(originalCommands); } catch { return worldFail('world-command-duplicate'); }
   if (canonicalText(originalCommands) !== canonicalText(queuedCommands)) worldFail('world-save-command-order');
   for (const c of queuedCommands) {
     if (c.tick < nextTick || c.tick > Math.min(C.tick - 1, nextTick + C.futureTicks) || c.sequence > (cursors.get(c.playerId) ?? -1)) worldFail('world-save-command');
   }
-  const state = { modelSha256: model.sha256, entities, planningCursor, admissionCursors }, counts = occupancy(model, state);
+  const state: WorldState = { modelSha256: model.sha256, entities, planningCursor, admissionCursors,
+    ...(model.combat ? { combat: validateCombatState(model, s.combat, entities, nextTick) } : {}) }, counts = occupancy(model, state);
   // Only original shared anchors may overlap. A legal edit cannot introduce a new
   // occupant at a blocked cell or move immutable static footprints away from their actor.
   for (let i = 0; i < entities.length; i++) {
@@ -110,7 +115,7 @@ function validateSave(model: WorldModel, input: unknown): LiveSave {
     stateById.get(p.entityId)!.health !== 0 && p.cells.some(at => (counts.get(at) ?? 0) > 1)) worldFail('world-save-footprint-overlap');
   // Shared initial anchor cells are allowed, but an active edge must own its destination reservation.
   for (let i = 0; i < entities.length; i++) if (entities[i]!.progress && model.entities[i]!.blocksCell && counts.get(entities[i]!.route[1]!) !== 1) worldFail('world-save-reservation');
-  const save: LiveSave = { schemaVersion: 1, engineVersion: WORLD_ENGINE_VERSION, simulationRulesVersion: WORLD_MOTION_POLICY,
+  const save: LiveSave = { schemaVersion: 1, engineVersion: engineVersion(model), simulationRulesVersion: rulesVersion(model),
     contentIdentity, nextTick, state, queuedCommands, scheduledWork: [], rngStates: {} };
   // Applies the existing canonical JSON byte/node guard to all combined state resources.
   worldClone(save); return save;
@@ -123,8 +128,9 @@ export class WorldSimulation {
   private constructor(model: WorldModel, save: LiveSave) { this.#model = model; this.#value = save; }
   static create(model: WorldModel): WorldSimulation {
     assertWorldModel(model);
-    return WorldSimulation.restore(model, { schemaVersion: 1, engineVersion: WORLD_ENGINE_VERSION, simulationRulesVersion: WORLD_MOTION_POLICY,
+    return WorldSimulation.restore(model, { schemaVersion: 1, engineVersion: engineVersion(model), simulationRulesVersion: rulesVersion(model),
       contentIdentity: model.contentIdentity, nextTick: 0, state: { modelSha256: model.sha256, planningCursor: 0, admissionCursors: [],
+        ...(model.combat ? { combat: createCombatState(model) } : {}),
         entities: model.entities.map(e => ({ id: e.id, x: e.x, y: e.y, health: e.initialHealth, goal: null, route: [], progress: 0, waitTicks: 0 })) },
       queuedCommands: [], scheduledWork: [], rngStates: {} });
   }
@@ -136,7 +142,7 @@ export class WorldSimulation {
   admitCommands(input: readonly unknown[]): CommandEnvelope[] {
     const inputs = worldList(worldClone(input), C.commands); if (inputs.length > C.commands - this.#value.queuedCommands.length) worldFail('world-command-queue');
     let commands: CommandEnvelope[];
-    try { commands = orderCommands(inputs.map(command)); } catch (error) { if (error instanceof TypeError) return worldFail('world-command-duplicate'); throw error; }
+    try { commands = orderCommands(inputs.map(c => command(c, !!this.#model.combat))); } catch (error) { if (error instanceof TypeError) return worldFail('world-command-duplicate'); throw error; }
     const cursors = new Map(this.#value.state.admissionCursors.map(c => [c.playerId, c.sequence]));
     for (const c of [...commands].sort((a, b) => a.playerId - b.playerId || a.sequence - b.sequence)) {
       if (c.tick < this.nextTick || c.tick > Math.min(C.tick - 1, this.nextTick + C.futureTicks)) worldFail('world-command-horizon');
@@ -151,19 +157,33 @@ export class WorldSimulation {
     worldInteger(ticks, 1, C.stepTicks); if (ticks > C.tick - this.nextTick) worldFail('world-tick-overflow');
     worldInteger(workLimit, 0, C.replayWork);
     const save = worldClone(this.#value), events: WorldTrace[] = [], definitions = new Map(this.#model.entities.map(e => [e.id, e]));
-    const bindings = new Map(this.#model.navigation.map(b => [b.grid.movementClass, b])), staticBlocked = staticOccupancy(this.#model, save.state);
+    const bindings = new Map(this.#model.navigation.map(b => [b.grid.movementClass, b]));
     const work = { entityVisits: 0, navigationExpansions: 0, transitions: 0 };
     const emit = (phase: WorldTrace['phase'], kind: string, entityId: number, cell: number | null = null, value: number | null = null) => {
       if (events.length >= C.trace) worldFail('world-trace-limit'); events.push({ tick: save.nextTick, phase, kind, entityId, cell, value });
     };
     for (let tick = 0; tick < ticks; tick++) {
       const state = save.state, byId = new Map(state.entities.map(e => [e.id, e]));
+      const staticBlocked = staticOccupancy(this.#model, state);
       // Phase 1: all due orders use the shared command order. Mid-edge move replacement finishes that edge.
       for (const c of save.queuedCommands.filter(c => c.tick === save.nextTick)) {
         const p = c.payload as Record<string, number>, e = byId.get(p.entityId!), d = definitions.get(p.entityId!);
         if (!e || !d) { emit('command', 'missing-entity', p.entityId!); continue; }
         if (d.owner !== c.playerId) { emit('command', 'not-owner', e.id); continue; }
+        if (c.kind === 'attack') {
+          if (e.health === 0 || e.health === null) { emit('command', 'inactive', e.id); continue; }
+          if (attackCombat(this.#model, state.combat!, state.entities, e.id, p.targetId!,
+            (kind, id, cell, value) => emit('command', kind, id, cell, value))) {
+            e.goal = null; e.route = []; e.progress = 0; e.waitTicks = 0;
+          }
+          continue;
+        }
+        if (c.kind === 'stop' && state.combat && e.health !== null && e.health > 0) {
+          stopCombat(state.combat, e.id); e.goal = null; e.route = []; e.progress = 0; e.waitTicks = 0;
+          emit('command', 'stopped', e.id, worldAddress(e.x, e.y)); continue;
+        }
         if (e.health === 0 || e.health === null || !d.movementPerTick || d.navigationClass === null) { emit('command', 'immovable', e.id); continue; }
+        if (state.combat) stopCombat(state.combat, e.id);
         e.waitTicks = 0;
         if (c.kind === 'stop') { e.goal = null; e.route = []; e.progress = 0; emit('command', 'stopped', e.id, worldAddress(e.x, e.y)); }
         else {
@@ -223,6 +243,9 @@ export class WorldSimulation {
           else if (e.route.length === 1) { e.route = []; break; }
         }
       }
+      // Phase 4: due impacts, then stable-ID firing. Destruction releases occupancy for the next tick.
+      if (state.combat) work.transitions += stepCombat(this.#model, state.combat, state.entities, save.nextTick,
+        (kind, id, cell, value) => emit('combat', kind, id, cell, value));
       // Logical work accounting; not CPU timings or exhaustive validation/allocation operations.
       work.entityVisits += 3 * state.entities.length;
       if (work.entityVisits + work.navigationExpansions + work.transitions > workLimit) worldFail('world-work-limit');
