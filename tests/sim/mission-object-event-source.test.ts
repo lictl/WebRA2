@@ -86,6 +86,7 @@ test('unit fatal sequence precedes base attacked callback while stationary struc
 test('unknown event closure, object references and source case remain visible rather than fabricated authority',()=>{
   const s=compileMissionObjectEventSource({bindings:fixture({events:'Start=2,6,0,0,999,0,0'})});
   assert.equal(s.events.length,1);assert.equal(s.canStartCampaign,false);assert.equal(s.nativeBehaviorVerified,false);
+  assert.deepEqual(s.omittedCallbackKinds,[4,29,38,39,40,41,42,43]);
   const broken=compileMissionObjectEventSource({bindings:fixture({infantryRows:'0=Commander,Walker,256,2,2,0,Guard,0,Absent,0,-1,0,1,1'})});
   assert.equal(broken.actors.length,1);assert.equal(broken.actors[0]!.status,'unsupported');assert.equal(broken.actors[0]!.bindingId,null);
   assert.ok(broken.diagnostics.some(d=>d.code==='unsupported-object-reference'));

@@ -133,6 +133,6 @@ export function compileMissionObjectEventSource(input:Readonly<{bindings:Mission
     scenarioPollBindingIds,diagnostics,coverage:{events:events.length,supportedEvents:events.filter(e=>e.status==='supported').length,actors:actors.length,
       supportedActors:actors.filter(a=>a.status==='supported').length,objectAttachments:actors.filter(a=>a.bindingId!==null).length,sharedObjectBindings,scenarioPollBindings:scenarioPollBindingIds.length},
     context:'initial-ordinary-positive-health-loss-fixed-owner-and-tag-no-hijacking' as const,destructionBoundary:'health-zero-before-death-animation-completion' as const,
-    omittedCallbackKinds:[4,29,39,40,41,42,43],canStartCampaign:false as const,nativeBehaviorVerified:false as const};
+    omittedCallbackKinds:[4,29,38,39,40,41,42,43],canStartCampaign:false as const,nativeBehaviorVerified:false as const};
   const result=freeze({...payload,sha256:combatActorFingerprint(payload,cap.serializedBytes)});sources.set(result,bindings);return result;
 }
