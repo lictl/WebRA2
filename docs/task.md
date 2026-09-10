@@ -26,7 +26,7 @@ Source reference readiness does not authorize audio dispatch or playback.
 UI199 merged as `58841e3d05d96a91562ce245ccd13e3637163bb0`, reviewed at
 `2573ae1843955a32e666ba8f81ad080a76715da8`. Its
 [final composition review](https://github.com/lictl/WebRA2/pull/199#pullrequestreview-5166425812)
-and hosted34470673681 pass with 1,086 tests and all 14 runtime files unchanged from
+and hosted34470673681 pass with 1,086 tests and all 12 JavaScript/CSS/HTML outputs unchanged from
 actual Chrome source654. Issue197 is closed. Root201/PR202 and bootstrap source
 cell-entry work continue, independently reviewed by mix_reader; no human input is needed.
 
