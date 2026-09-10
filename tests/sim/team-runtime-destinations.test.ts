@@ -5,11 +5,17 @@ import { planTeamDestinations, TEAM_DESTINATION_POLICY, TEAM_DESTINATION_LIMITS 
 import { WorldSimulation } from '../../packages/sim/src/world.ts';
 import { createWorldModel } from '../../packages/sim/src/world-model.ts';
 import { createNavigationGrid } from '../../packages/sim/src/navigation.ts';
-import { teamFixture } from './team-runtime-fixture.ts';
-const fixture=()=>{const {world}=teamFixture();const simulation=WorldSimulation.create(world.model);return {model:world.model,simulation,checkpoint:simulation.save()};};
+function fixture(profile:'ra2'|'yr'='ra2') {
+ const contentIdentity={profile,manifestSha256:'a'.repeat(64),rulesSha256:'b'.repeat(64),orderedModHashes:[]};
+ const xy=[[1,3],[2,2],[3,1],[2,3],[3,2],[2,4],[3,3],[4,2],[3,4],[4,3]];
+ const grid=createNavigationGrid({contentIdentity,movementClass:'walk',cells:xy.map(([x,y])=>({x:x!,y:y!,cost:1,exits:255}))});
+ const model=createWorldModel({contentIdentity,sourceSha256:'c'.repeat(64),definitionsSha256:'d'.repeat(64),navigation:[{grid,costScale:1}],blocked:[],
+ entities:[[1,0,2,2],[2,0,2,3],[3,1,4,2]].map(([id,owner,x,y])=>({id:id!,rowId:`original:${id}`,typeId:'walker',owner:owner!,kind:'infantry',x:x!,y:y!,initialHealth:100,maximumHealth:100,movementPerTick:128,navigationClass:'walk',blocksCell:true}))});
+ const simulation=WorldSimulation.create(model);return {model,simulation,checkpoint:simulation.save()};
+}
 test('both profiles assign distinct reachable cells in stable actor/candidate order, preserving input',()=>{
- for(const profile of ['ra2','yr'] as const){const {world}=teamFixture({profile}),simulation=WorldSimulation.create(world.model),checkpoint=simulation.save();
- const a=planTeamDestinations({model:world.model,checkpoint,actorIds:[2,1],target:{x:4,y:3}}),b=planTeamDestinations({model:world.model,checkpoint,actorIds:[1,2],target:{x:4,y:3}});
+ for(const profile of ['ra2','yr'] as const){const {model,simulation,checkpoint}=fixture(profile);
+ const a=planTeamDestinations({model,checkpoint,actorIds:[2,1],target:{x:4,y:3}}),b=planTeamDestinations({model,checkpoint,actorIds:[1,2],target:{x:4,y:3}});
  assert.deepEqual(a,b);assert.equal(a.status,'ready');assert.equal(a.policy,TEAM_DESTINATION_POLICY);
  assert.deepEqual(a.assignments,[{entityId:1,x:4,y:3},{entityId:2,x:3,y:4}]);assert.deepEqual(checkpoint,simulation.save());
  simulation.admitCommands(a.assignments.map((v,i)=>({schemaVersion:1,tick:0,playerId:0,sequence:i,kind:'move',payload:{entityId:v.entityId,x:v.x,y:v.y}})));

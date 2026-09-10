@@ -16,7 +16,9 @@ The first campaign release, **R1**, supports all four original RA2/YR faction ca
 tracks, their required mechanics and AI, cinematics/audio/objectives, WebRA2 saves,
 and all playable languages present in the supplied Steam installation. Traditional
 Chinese is a primary acceptance locale. Desktop Chrome, Edge, Firefox, and Safari
-are release targets. Internal single-mission builds are milestones, not R1.
+are release targets. The owner now prioritizes Chrome during development; full
+end-to-end tests on the other families follow the remaining implementation (D17).
+Internal single-mission builds are milestones, not R1.
 
 Vanilla maps, INI rules, and replacement assets are R1 mod scope. Original Windows
 save import is best effort, separately reported. Full vanilla engine coverage
