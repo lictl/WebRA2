@@ -61,7 +61,11 @@ The typed weapon compiler, numeric helper and original fixtures are GPL-3.0-or-l
 records their native/reference scope and accompanies the development bundle.
 Quantized square-root mantissas are generated mathematically; no retail lookup
 tables are shipped.
-That notice is distributed with the development bundle.
+The voxel plan and verified resource preparation compiler and original fixtures
+are GPL-3.0-or-later. [Voxel resource provenance](../packages/content/VOXEL_RESOURCES_PROVENANCE.md)
+records native naming/mount evidence and the explicit unlit still limits; its notice
+accompanies the development bundle. No retail models, matrices, palettes or pixels
+are distributed.
 
 The CPU terrain scene and composing browser viewport are GPL-3.0-or-later;
 [render provenance](../packages/render/PROVENANCE.md) records pinned OpenRA placement
