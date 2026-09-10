@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "scope": "Private438-file source preparation and independent raw source/field comparison; no retail execution, event dispatch or campaign acceptance. No retail identifiers, rows, coordinates or payloads included.",
+  "filesSelected": 438,
+  "verifiedRootCount": 5,
+  "verifiedMemberCount": 8,
+  "rawAssertions": 19756,
+  "nativeRanges": 56,
+  "nativeBytes": 19425,
+  "nativeAssertions": 77,
+  "nativeLedgerSha256": "8d2d4f92d3416ac6efe661c35b6416cd5ae05a59a04f80a531f309cd89556e01",
+  "profiles": [
+    {
+      "profile": "ra2",
+      "missionSha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+      "cellSourceSha256": "f6c2ee31f04fe4e74f63d382e483d8250060d1199222866e4560cc7788cde6c1",
+      "teamActionSourceSha256": "0435c10a981b90bab1567aa3ef131f61febd80f6af910005461495b30c73beaa",
+      "teamCellSourceSha256": "fd37716f96f725b1b6b978838e5f59dc672fde29b775b652e102227ca21f55e7",
+      "initialContextSha256": "55fb792d99be68e9765f227acba379c81ee075320fc0a5a7ce2a6047ff8c130a",
+      "actions": 75,
+      "individuallySupportedTeamActions": 12,
+      "spawnArchetypes": 1,
+      "supportedSpawnArchetypes": 1,
+      "initialActors": 811,
+      "initialMovablePrerequisites": 58,
+      "unsupportedInitialPrerequisites": 4,
+      "initialProviders": 190,
+      "unsupportedInitialProviders": 0,
+      "allRequiredConstructorsReady": false,
+      "supportedWorldInvariantReady": false,
+      "wholeTeamSourceReady": false,
+      "nativeExecutionVerified": false,
+      "canStartCampaign": false
+    },
+    {
+      "profile": "yr",
+      "missionSha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+      "cellSourceSha256": "6d0d7d0be05b3de9fd3b818f1ea7f78bf3818727a05a59c3a98a3913115f7193",
+      "teamActionSourceSha256": "046835223dd53145501f3a91850c2d3fddecdda1ef208c27e78c08273ad9bd62",
+      "teamCellSourceSha256": "3e2f26e3d6997dcde1e11e41481730c97af8a5cfd791fd25236c6ca1415f789a",
+      "initialContextSha256": "f43dddeef15ca8ffcff546c742ccc479536501e735e7ea0638144cc024a8e668",
+      "actions": 104,
+      "individuallySupportedTeamActions": 9,
+      "spawnArchetypes": 4,
+      "supportedSpawnArchetypes": 2,
+      "initialActors": 570,
+      "initialMovablePrerequisites": 70,
+      "unsupportedInitialPrerequisites": 1,
+      "initialProviders": 189,
+      "unsupportedInitialProviders": 0,
+      "allRequiredConstructorsReady": false,
+      "supportedWorldInvariantReady": false,
+      "wholeTeamSourceReady": false,
+      "nativeExecutionVerified": false,
+      "canStartCampaign": false
+    }
+  ],
+  "limitations": [
+    "Reviewed constructor visit selection and world geometry are raw-oracle inputs, not independently reconstructed here.",
+    "Constructor prerequisites and explicit world invariants remain separate.",
+    "Native autonomous transport, followers, dynamic owners, crates, providers and unsupported locomotors remain outside this capability."
+  ],
+  "runtimeContextOracleAssertions": 7913,
+  "runtimeContextCases": [
+    {
+      "profile": "ra2",
+      "assertions": 4669,
+      "frames": 200,
+      "actors": 812,
+      "constructedActors": 1,
+      "framesSha256": "b4fef9e677ac9defa0979990f8adb0ff38222523c2cf3cfd8e8f0cccaf1175fd",
+      "finalContextSha256": "fdba05f1602d4bbb1423bebc898a170de4fbf065390626ed94bcb144fb92b18b"
+    },
+    {
+      "profile": "yr",
+      "assertions": 3244,
+      "frames": 128,
+      "actors": 570,
+      "constructedActors": 0,
+      "framesSha256": "55f7d371f5c0c05ba0e3d663a983c1e56bce4f43a88f9f09174c0310e5f2132a",
+      "finalContextSha256": "2979061683f6484b6cb349313bfa3ec0b207a38fb5a307ab4fb623781b22af1c"
+    }
+  ],
+  "runtimeContextScope": "Explicit component receipts, saved reconstruction and common-world replay; whole mission authority remains false and no native event1 execution is claimed."
+}

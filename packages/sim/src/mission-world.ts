@@ -12,7 +12,10 @@ import { appendMissionCues, createMissionCueState, restoreMissionCueState, type 
 import { missionCellEntrySourceBindings, type MissionCellEntrySource } from './mission-cell-entry-source.ts';
 import { missionObjectEventSourceBindings, type MissionObjectEventSource, type MissionObjectEventActor } from './mission-object-event-source.ts';
 import { missionTeamActionSourceContext } from './mission-team-action-source.ts';
-import { compileMissionTeamRuntime, type MissionTeamRuntime } from './mission-team-context.ts';
+import { compileMissionTeamRuntime, restoreMissionTeamContext, type MissionTeamRuntime } from './mission-team-context.ts';
+import { isMissionTeamCellSource, missionTeamCellSourceContext } from './mission-team-cell-source.ts';
+import { compileMissionTeamCellContext, missionTeamCellContextData } from './mission-team-cell-context.ts';
+import type { MissionTeamCellSource } from './mission-team-cell-types.ts';
 import { createMissionTeamCheckpoint, restoreMissionTeamCheckpoint, admitMissionTeamInput, stepMissionTeamWorld, missionTeamWorldStep,
   type MissionTeamCheckpoint, type MissionTeamReceipt, type MissionTeamEvent } from './mission-team-runtime.ts';
 import type { TeamOrder, TeamEvent } from './team-runtime.ts';
@@ -23,10 +26,12 @@ export const MISSION_WORLD_POLICY = 'webra2-mission-world-poll-1' as const;
 export const MISSION_WORLD_CELL_PHASE_POLICY = 'webra2-world-cell-events-before-scenario-poll-1' as const;
 export const MISSION_WORLD_OBJECT_PHASE_POLICY = 'webra2-world-health-callbacks-before-scenario-poll-1' as const;
 export const MISSION_WORLD_TEAM_PHASE_POLICY = 'webra2-world-team-actions-next-tick-1' as const;
+export const MISSION_WORLD_TEAM_CELL_PHASE_POLICY = 'webra2-world-team-cell-events-before-scenario-poll-1' as const;
 export const MISSION_WORLD_LIMITS = Object.freeze({ ticks: 128, work: 16_777_216, trace: 32768, replayTicks: 10000, admissions: 1024, presentationUnits: 1_048_576 });
 export interface MissionWorldModel {
   readonly policy: typeof MISSION_WORLD_POLICY; readonly sha256: string; readonly worldSha256: string;
   readonly teamActionSourceSha256?: string; readonly teamRuntimeSha256?: string; readonly teamPhasePolicy?: typeof MISSION_WORLD_TEAM_PHASE_POLICY;
+  readonly teamCellSourceSha256?: string; readonly teamCellPhasePolicy?: typeof MISSION_WORLD_TEAM_CELL_PHASE_POLICY;
   readonly cellEntrySourceSha256?: string; readonly cellEntryPhasePolicy?: typeof MISSION_WORLD_CELL_PHASE_POLICY;
   readonly objectEventSourceSha256?: string; readonly objectEventPhasePolicy?: typeof MISSION_WORLD_OBJECT_PHASE_POLICY;
   readonly cueCatalogSha256?: string; readonly cueDispatchPolicy?: typeof MISSION_CUE_DISPATCH_POLICY;
@@ -77,7 +82,7 @@ function freeze<T>(v: T): T {
   if (v && typeof v === 'object' && !Object.isFrozen(v)) { for (const c of Object.values(v)) freeze(c); Object.freeze(v); } return v;
 }
 type Source = { world: WorldModel; bindings: MissionBindingAuthority; flags: MissionInitialFlags; initial: MissionSave; cues: MissionCueCatalog | null;
-  teams: MissionTeamRuntime | null; cells: MissionCellEntrySource | null; cellByAddress: ReadonlyMap<number, string>;
+  teams: MissionTeamRuntime | null; teamCells: MissionTeamCellSource | null; cells: MissionCellEntrySource | null; cellByAddress: ReadonlyMap<number, string>;
   objects: MissionObjectEventSource | null; objectActors: ReadonlyMap<number, MissionObjectEventActor> };
 const sources = new WeakMap<MissionWorldModel, Source>();
 function source(model: MissionWorldModel): Source { const s = sources.get(model); if (!s) fail('model'); return s; }
@@ -86,8 +91,10 @@ const actions = new Set([0, 1, 2, 12, 22, 23, 24, 25, 26, 27, 28, 29, 53, 54, 56
 /** Complete source/program authority is mandatory. This adapter implements poll controls and authenticated presentation requests. */
 export function compileMissionWorld(input: {
   readonly world: WorldModel; readonly bindings: MissionBindingAuthority; readonly flags: MissionInitialFlags;
+  readonly teamCells?: MissionTeamCellSource;
 }): MissionWorldModel {
-  const r = worldRecord(input, ['world', 'bindings', 'flags']);
+  const hasTeamCells = input !== null && typeof input === 'object' && Object.hasOwn(input, 'teamCells');
+  const r = worldRecord(input, ['world', 'bindings', 'flags', ...(hasTeamCells ? ['teamCells'] : [])]);
   if (!isMissionBindingAuthority(r.bindings) || !isMissionInitialFlags(r.flags)) fail('authority');
   const bindings = r.bindings, flags = r.flags, world = r.world as WorldModel; assertWorldModel(world);
   if (!flags.canInitialize || flags.catalogSha256 !== bindings.catalogSha256 || flags.worldSha256 !== bindings.worldSha256 ||
@@ -126,21 +133,30 @@ export function compileMissionWorld(input: {
     for (const actor of bridge?.actors ?? []) if (actor.role !== 'movement-only' && objectActors.get(actor.entityId)?.status !== 'supported') fail('object-combat-context');
   }
   const teams = teamSource ? compileMissionTeamRuntime(teamSource) : null;
+  let teamCells: MissionTeamCellSource | null = null;
+  if (hasTeamCells) {
+    if (!teams || !cells || !isMissionTeamCellSource(r.teamCells)) fail('team-cell-source');
+    const context = missionTeamCellSourceContext(r.teamCells);
+    if (context.cells !== cells || context.actions !== teamSource || r.teamCells.baseModelSha256 !== world.sha256 ||
+      !r.teamCells.coverage.allRequiredConstructorsReady || !r.teamCells.coverage.supportedWorldInvariantReady) fail('team-cell-context');
+    teamCells = r.teamCells;
+  }
   if (teams) {
     if (!teamSource!.wholeSourceReady || missionTeamActionSourceContext(teamSource!).bindings.fingerprint !== bindings.catalogSha256 ||
       teams.baseModelSha256 !== world.sha256) fail('team-source');
-    // Initial actor catalogs cannot authorize newly constructed callbacks. Keep
-    // the complete source gate until dynamic cell/object/combat context is proven.
-    if (cells || objects) fail('team-dynamic-event-context');
+    // Only the explicit complete team-cell source extends initial actor context.
+    // Object callbacks and combat still require their own dynamic actor proof.
+    if ((cells && !teamCells) || objects) fail('team-dynamic-event-context');
   }
   const initial = MissionLogic.create(bindings.program, { bindings: bindings.bindings, globals: flags.globals, locals: flags.locals }).save();
   const data = { policy: MISSION_WORLD_POLICY, worldSha256: world.sha256, bindingsSha256: bindings.catalogSha256,
     programSha256: bindings.program.sha256, flagsSha256: flags.sha256, canStartCampaign: false as const, nativeBehaviorVerified: false as const,
     ...(teams ? { teamActionSourceSha256: teamSource!.sha256, teamRuntimeSha256: teams.sha256, teamPhasePolicy: MISSION_WORLD_TEAM_PHASE_POLICY } : {}),
+    ...(teamCells ? { teamCellSourceSha256: teamCells.sha256, teamCellPhasePolicy: MISSION_WORLD_TEAM_CELL_PHASE_POLICY } : {}),
     ...(cues ? { cueCatalogSha256: cues.sha256, cueDispatchPolicy: MISSION_CUE_DISPATCH_POLICY } : {}),
     ...(cells ? { cellEntrySourceSha256: cells.sha256, cellEntryPhasePolicy: MISSION_WORLD_CELL_PHASE_POLICY } : {}),
     ...(objects ? { objectEventSourceSha256: objects.sha256, objectEventPhasePolicy: MISSION_WORLD_OBJECT_PHASE_POLICY } : {}) };
-  const model = freeze({ ...data, sha256: worldHash(data) }); sources.set(model, { world, bindings, flags, initial, cues, teams, cells, cellByAddress, objects, objectActors }); return model;
+  const model = freeze({ ...data, sha256: worldHash(data) }); sources.set(model, { world, bindings, flags, initial, cues, teams, teamCells, cells, cellByAddress, objects, objectActors }); return model;
 }
 function checkFlags(s: Source, mission: MissionSave): void {
   if (mission.locals.slice(s.flags.localCapacity).some(Boolean) || mission.pending.some(i => i.kind === 'local' && i.index >= s.flags.localCapacity)) fail('local-capacity');
@@ -155,6 +171,10 @@ export function restoreMissionWorld(model: MissionWorldModel, value: unknown): M
   if (s.teams && (r.teams as MissionTeamCheckpoint | null)?.pending !== null) fail('team-world');
   const teams = s.teams ? restoreMissionTeamCheckpoint(s.teams, r.teams) : null;
   if (teams && (teams.pending || canonicalText(r.world) !== canonicalText(teams.team.world))) fail('team-world');
+  if (s.teamCells && teams) {
+    const context = compileMissionTeamCellContext({ source: s.teamCells, teams: restoreMissionTeamContext(s.teams!, teams.history) });
+    if (context.modelSha256 !== teams.team.world.state.modelSha256) fail('team-cell-world');
+  }
   const world = teams ? teams.team.world : WorldSimulation.restore(s.world, r.world).save(), mission = MissionLogic.restore(s.bindings.program, r.mission).save();
   if (teams && teams.requests.some(q => q.effectOrder < 1 || q.effectOrder >= mission.nextEffectOrder || q.emittedAtTick >= mission.nextTick)) fail('team-vm-cursor');
   if (world.nextTick !== mission.nextTick) fail('clock'); checkFlags(s, mission);
@@ -253,7 +273,7 @@ export function stepMissionWorld(model: MissionWorldModel, value: unknown, ticks
   return freeze({ checkpoint: next, effects, worldEvents, work,
     ...(s.cues ? { presentation: presentation(model, checkpoint.world.nextTick, next, requests) } : {}) });
 }
-/** D03: due requests and controllers advance one world tick, then VM poll emits next-tick requests. */
+/** D03: one world tick, optional genuine team-cell entries, then poll and next-tick requests. */
 function stepMissionTeams(model: MissionWorldModel, checkpoint: MissionWorldCheckpoint, ticks: number, workLimit: number): MissionWorldResult {
   const s = source(model), runtime = s.teams!, mission = MissionLogic.restore(s.bindings.program, checkpoint.mission);
   let teams = checkpoint.teams!, cursor = checkpoint.presentation, work = 0, units = 0;
@@ -262,7 +282,25 @@ function stepMissionTeams(model: MissionWorldModel, checkpoint: MissionWorldChec
   const charge = (n: number) => { if (n > workLimit - work) fail('work-limit'); work += n; };
   for (let at = 0; at < ticks; at++) {
     const advanced = stepMissionTeamWorld(runtime, teams, Math.min(runtime.limits.tickWork, workLimit - work)); charge(advanced.work);
-    const receipt = missionTeamWorldStep(advanced), polled = mission.step(); charge(polled.work);
+    const receipt = missionTeamWorldStep(advanced);
+    let polled: ReturnType<MissionLogic['step']>;
+    if (s.teamCells) {
+      const context = compileMissionTeamCellContext({ source: s.teamCells, teams: restoreMissionTeamContext(runtime, advanced.checkpoint.history) },
+        { contextWork: Math.min(s.teamCells.limits.contextWork, workLimit - work) });
+      const data = missionTeamCellContextData(context); charge(data.contextWork);
+      if (data.runtime !== runtime || context.modelSha256 !== receipt.model.sha256 || context.modelSha256 !== advanced.checkpoint.team.world.state.modelSha256) fail('team-cell-world');
+      const entries: { cellId: string; entityId: number }[] = [];
+      for (const event of receipt.step.events) {
+        charge(1); if (event.phase !== 'movement' || event.kind !== 'moved' || event.cell === null) continue;
+        const cellId = s.cellByAddress.get(event.cell); if (!cellId) continue;
+        if (entries.length >= MISSION_LOGIC_LIMITS.cellEntries) fail('cell-event-limit');
+        entries.push({ cellId, entityId: event.entityId });
+      }
+      // The observations are derived only from this private single-step receipt.
+      // Births, reservations and arrivals without movement cannot deliver an event.
+      polled = mission.stepTeamCellEntries(entries, context);
+    } else polled = mission.step();
+    charge(polled.work);
     if (receipt.step.nextTick !== polled.nextTick || advanced.checkpoint.team.world.nextTick !== polled.nextTick) fail('team-clock');
     teams = advanced.checkpoint;
     const incoming: MissionTeamReceipt[] = [];
