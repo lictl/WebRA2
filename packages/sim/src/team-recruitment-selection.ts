@@ -27,7 +27,7 @@ export function prepareTeamRecruitmentSelection(catalog: TeamRecruitmentCatalog,
     return freeze({ ...value, sha256: worldHash(value) });
   };
   if (t.status !== 'supported-source') { t.reasons.forEach(r => reasons.add(r)); return result('unsupported-source'); }
-  if (data.instances.length >= program.limits.teams || t.memberTypeIds.length > program.limits.members - data.actors.length || data.records.length >= cap.history) {
+  if (data.instances.length >= program.limits.teams || t.memberTypeIds.length > program.limits.members - data.actors.length || data.records.length + data.instances.length + 2 > cap.history) {
     reasons.add('context-capacity'); return result('unavailable');
   }
   const current = new Map(save.state.entities.map(e => [e.id, e])), eligibility = new Map(data.eligibility.map(e => [e.entityId, e]));
@@ -45,8 +45,8 @@ export function prepareTeamRecruitmentSelection(catalog: TeamRecruitmentCatalog,
       if (state.health === 0) { reasons.add('dead-member'); continue; }
       if (state.health === null || state.goal !== null || state.progress || state.route.length || queued.has(source.entityId)) { reasons.add('busy-member'); continue; }
       if (!(source.recruitableA || t.autocreate) || (!member.recruitableB && t.autocreate)) { reasons.add('recruitment-flags'); continue; }
-      const sameGroup = t.group === -2 || member.group === t.group;
-      if (!sameGroup && !t.recruiter) { reasons.add('group-mismatch'); continue; }
+      const sameGroup = member.group === t.group;
+      if (t.group !== -2 && !sameGroup && !t.recruiter) { reasons.add('group-mismatch'); continue; }
       // Safe exact JS integer squared cell-center lepton distance; unlike native signed32, it never wraps.
       const dx = state.x - t.anchor!.x, dy = state.y - t.anchor!.y, score = 65536 * (dx * dx + dy * dy) + (sameGroup ? 0 : 12800);
       if (score < bestScore || score === bestScore && (best === null || source.entityId < best)) { best = source.entityId; bestScore = score; }

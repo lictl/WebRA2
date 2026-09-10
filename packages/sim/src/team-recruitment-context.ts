@@ -59,6 +59,7 @@ export function restoreTeamRecruitmentContext(catalog: TeamRecruitmentCatalog, i
       const bornAtTick = worldInteger(r.bornAtTick, tick, cap.tick); tick = bornAtTick;
       const ids = worldList(r.actorIds, cap.members).map(v => worldInteger(v, 1, 2147483647));
       if (ids.length !== t.memberTypeIds.length || ids.length > program.limits.members - memberCount || active.size >= program.limits.teams) fail('record-members');
+      if (ordinal + 1 + active.size + 1 > cap.history) fail('record-release-capacity');
       const seen = new Set<number>(); charge(ids.length);
       for (let i = 0; i < ids.length; i++) {
         const id = ids[i]!, a = sourceActors.get(id), state = eligibility.get(id);
