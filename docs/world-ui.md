@@ -67,12 +67,13 @@ continuations, storage namespace and scheduler bounds. These tests use original
 fixtures; they are not browser observations or native mission comparisons.
 
 The integrated private application loader, using all 438 selected files, reproduces
-both independently reviewed [world adapter](world-movement.md) model hashes:
+both [world adapter](world-movement.md) model hashes with the
+[durable traversal fingerprint correction](selection-identity.md):
 
 | Profile | World model SHA-256 | Mobile / total actors | Occupancy cells |
 | --- | --- | --- | --- |
-| RA2 | `57bb08af8cdafefc5afb18d8d5f2019725f1fd45e31dbda994ea44218d70cda4` | 58 / 811 | 1,108 |
-| YR | `fd4126992c8c896f50766a8240aa69dd48e9d4a8e2ff444fb9f9cd5a020c3dff` | 70 / 570 | 1,478 |
+| RA2 | `fc6d08a841b9460777ec7f6eb46a924cfb45879e38cf9bcf70e31869a892033e` | 58 / 811 | 1,108 |
+| YR | `eade1c1a47973815741a3a966947b225b5cc1baed963093b726498b6e844ab92` | 70 / 570 | 1,478 |
 
 The worker re-reads the exact verified mission locator and compares all root/member
 identity fields before compiling definitions, all eight traversal classes and native
@@ -87,3 +88,8 @@ Final acceptance must record the actual
 four-browser input/movement/persistence/lifecycle outcomes and immutable code-only
 bundle identity. Retail files, decoded frames, exported saves/replays and private
 observations remain in ignored `local/` and are never published with this report.
+
+The preliminary Chrome run at `7ed6c52` exposed [#134](https://github.com/lictl/WebRA2/issues/134):
+a session file index affected the durable world fingerprint. The corrected policy
+retains verification handles separately and does not weaken old-save identity checks.
+Pre-fix observations and exports remain private and are not the final portability gate.
