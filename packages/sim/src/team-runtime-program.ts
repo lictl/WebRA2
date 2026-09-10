@@ -1,19 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Original source-bound script admission; see ../TEAM_RUNTIME_PROVENANCE.md.
 import { TEAM_SLEEP_POLICY, teamSleepInstruction, type TeamSleepInstruction } from './team-sleep-policy.ts';
+import { TEAM_FLASH_POLICY, teamFlashInstruction, type TeamFlashInstruction } from './team-recruitment-flash.ts';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { isTeamDefinitions, type TeamDefinitions } from '../../content/src/team-definitions.ts';
 import { compileScenarioObjects, type ScenarioObjects } from '../../content/src/scenario-objects.ts';
 import { isWorldContent, type WorldContent } from './world-content.ts';
 import { worldHash, worldInteger, worldList, worldRecord, worldSymbol, worldSourceHash } from './world-values.ts';
 
-export const TEAM_RUNTIME_POLICY = 'webra2-existing-team-cells-2' as const;
+export const TEAM_RUNTIME_POLICY = 'webra2-existing-team-cells-3' as const;
 export const TEAM_RUNTIME_LIMITS = Object.freeze({ missionBytes: 16 * 1024 ** 2, teams: 64, members: 256,
   steps: 3200, orders: 256, candidateCells: 1089, work: 262144, ticks: 128, replayTicks: 10000,
   replayAdmissions: 1024, replayWork: 16_777_216, trace: 32768, tick: 1_000_000_000 });
 export type TeamRuntimeLimits = { -readonly [K in keyof typeof TEAM_RUNTIME_LIMITS]: number };
 export type TeamInstruction = Readonly<{ opcode: 3; sourceSlot: number; waypoint: number; rowId: string; x: number; y: number }> |
-  Readonly<{ opcode: 6; sourceSlot: number; target: number }> | TeamSleepInstruction;
+  Readonly<{ opcode: 6; sourceSlot: number; target: number }> | TeamSleepInstruction | TeamFlashInstruction;
 export interface TeamTemplate {
   readonly id: string; readonly taskForceId: string; readonly scriptId: string;
   readonly houseId: string; readonly playerId: number;
@@ -21,7 +22,7 @@ export interface TeamTemplate {
   readonly steps: readonly TeamInstruction[];
 }
 export interface TeamProgram {
-  readonly schemaVersion: 1; readonly policy: typeof TEAM_RUNTIME_POLICY; readonly sleepPolicy: typeof TEAM_SLEEP_POLICY;
+  readonly schemaVersion: 1; readonly policy: typeof TEAM_RUNTIME_POLICY; readonly sleepPolicy: typeof TEAM_SLEEP_POLICY; readonly flashPolicy: typeof TEAM_FLASH_POLICY;
   readonly profile: 'ra2' | 'yr'; readonly teamsSha256: string; readonly worldSha256: string;
   readonly modelSha256: string; readonly missionSha256: string; readonly entitiesSha256: string;
   readonly templates: readonly TeamTemplate[]; readonly limits: Readonly<TeamRuntimeLimits>;
@@ -113,6 +114,8 @@ export function compileTeamProgram(input: { readonly teams: TeamDefinitions; rea
       charge();
       const sleep = teamSleepInstruction(s.opcode, s.argument, s.sourceSlot);
       if (sleep) { steps.push(sleep); continue; }
+      const flash = teamFlashInstruction(s.opcode, s.argument, s.sourceSlot);
+      if (flash) { steps.push(flash); continue; }
       if (s.status !== 'typed') { add(`unsupported-operand:${s.sourceSlot}`); continue; }
       if (s.opcode === 3) {
         const wp = s.waypointRowId ? waypoints.get(s.waypointRowId) : undefined;
@@ -129,7 +132,7 @@ export function compileTeamProgram(input: { readonly teams: TeamDefinitions; rea
       members: [...types].sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0).map(([typeId, quantity]) => ({ typeId, quantity })), steps });
   }
   if (diagnostics.length) return teamRuntimeFreeze({ program: null, coverage, diagnostics, nativeExecutionVerified: false, canStartCampaign: false });
-  const data = { schemaVersion: 1 as const, policy: TEAM_RUNTIME_POLICY, sleepPolicy: TEAM_SLEEP_POLICY, profile: teams.profile, teamsSha256: teams.fingerprint,
+  const data = { schemaVersion: 1 as const, policy: TEAM_RUNTIME_POLICY, sleepPolicy: TEAM_SLEEP_POLICY, flashPolicy: TEAM_FLASH_POLICY, profile: teams.profile, teamsSha256: teams.fingerprint,
     worldSha256: world.sha256, modelSha256: world.model.sha256, missionSha256: teams.source.sha256, entitiesSha256: teams.entityFingerprint,
     templates, limits: cap, nativeExecutionVerified: false as const, canStartCampaign: false as const };
   const program: TeamProgram = teamRuntimeFreeze({ ...data, sha256: worldHash(data) }); worlds.set(program, world);

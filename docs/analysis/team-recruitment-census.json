@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "scope": "Source CreateTeam4 existing-actor recruitment and Flash-only opening probes; original game execution, retail movement, native activation cadence and browser presentation not verified",
+  "runtimePolicy": "webra2-existing-team-cells-3",
+  "recruitmentPolicy": "webra2-existing-force-recruitment-1",
+  "transactionPolicy": "webra2-team-recruitment-transaction-1",
+  "nativeLedgerSha256": "b125a64a8c4d50b67e0c8e1a441940a262de20e84a7e409d5224d61c21305d81",
+  "nativeRows": 56,
+  "nativeBytes": 10148,
+  "profiles": [
+    {
+      "profile": "ra2",
+      "worldSha256": "ab12455599ad530bf0c59758302fa0158b57f73cc710f648914158c4abe16a5b",
+      "modelSha256": "fc6d08a841b9460777ec7f6eb46a924cfb45879e38cf9bcf70e31869a892033e",
+      "entitiesSha256": "8bd4958889dab7ef34219a6320819de7862acc34bf804d76749705dd69faecef",
+      "teamsSha256": "a4cb866b8dbada4b728481a0668a66ac1527896600737007454518d990258361",
+      "missionSha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+      "action4Occurrences": 29,
+      "completeScriptOccurrences": 13,
+      "completeTemplates": 3,
+      "allNewlyCompleteScriptsFlashOnly": true,
+      "unsupportedSourceOccurrences": 2,
+      "unavailableOccurrences": 11,
+      "recruitedOccurrences": 0,
+      "recruitedExistingActors": 0,
+      "actorCount": 811,
+      "isolatedTicksPerRunnableOccurrence": 16,
+      "sourceSha256": [
+        {
+          "role": "rules",
+          "sha256": "fd1e95cea0306ea78049dc81c8cd816e18c28c496872a1ff02edd50bd082062f"
+        },
+        {
+          "role": "art",
+          "sha256": "b477f861063a9509e87b7836b78190204c73bea5ea5595a842c456f5920ea223"
+        },
+        {
+          "role": "ai",
+          "sha256": "1feac6ddea6886b177ddf7e5f8580b7a99a63f12684f2cbb42831671bb7a8a79"
+        },
+        {
+          "role": "mission",
+          "sha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c"
+        }
+      ],
+      "traceSha256s": [
+        "09b770fcbfdd1e4a558cee376ff725532b2cfd5275ae30b4d1371a690e3a95a5",
+        "d0e4e291a1dc415a3e507f1b01d8aba786bb37fab8ed0d065f7c3e8ed40ec1be",
+        "e92c46c7e7a343c40a11afe6d9aefeae7d63580737da65e9b9e328b3882ad162",
+        "e5db746d11fe37bf7b7d1db431fb6f50e5c1edbf84dbbce0c0d3c4049b1bf494",
+        "7d1e1c610e9107719783b1e87ce5ff8c193141e825fba99ed99e2c79cfcdf501",
+        "4d90d6f0b37a317c98dd3748ac62d360e328eed523b32a442af53cfe28cfd7a6",
+        "bc36041df29a078623286debeb003757031ba989b0c73afaae644619c08b2453",
+        "fca5644750566c078cf283aac2b440b58cfef0850d74e43ed0c19df5b6e8a972",
+        "340099d6a3e73263c3c3c58b1bf72b98aced34ffd24b7cb5bb7a6727e808e474",
+        "08b60ea07b905395e13c395a142f779973fce89a64ffa36481cdedec1db9ae3c",
+        "ae6c933684c86f395963677cb0b33f8058ebd332341c368cc57e68bfb00cf214"
+      ]
+    },
+    {
+      "profile": "yr",
+      "worldSha256": "b732c8aeadf9abd0651276ee1ce63e76fed214bea7e6be193b2fcc1ef4779e09",
+      "modelSha256": "eade1c1a47973815741a3a966947b225b5cc1baed963093b726498b6e844ab92",
+      "entitiesSha256": "466aee504dc6e46482b9b54b810f45b5e885b9debd8abc2df784203d622b717f",
+      "teamsSha256": "1350dd4b29e197c56e51e6a0fd48f57983e137c3c23e999a64f0411baccc245b",
+      "missionSha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+      "action4Occurrences": 21,
+      "completeScriptOccurrences": 1,
+      "completeTemplates": 1,
+      "allNewlyCompleteScriptsFlashOnly": true,
+      "unsupportedSourceOccurrences": 0,
+      "unavailableOccurrences": 0,
+      "recruitedOccurrences": 1,
+      "recruitedExistingActors": 5,
+      "actorCount": 570,
+      "isolatedTicksPerRunnableOccurrence": 128,
+      "sourceSha256": [
+        {
+          "role": "rules",
+          "sha256": "3d341ef8a13a4b5ab24af2eef48ac94931ac2bb87d950fe3330a07e2d25672ef"
+        },
+        {
+          "role": "art",
+          "sha256": "e1f0378394313c04ebbd5073f47785ee3e46f1b3c62d65724e8f3c310ee7ba31"
+        },
+        {
+          "role": "ai",
+          "sha256": "5df41eaec00a78d0760ef5eecdf27d65ae1cd537309c7eac973318266986f89d"
+        },
+        {
+          "role": "mission",
+          "sha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0"
+        }
+      ],
+      "traceSha256s": [
+        "cd99ec92bccb48c34646ea00c76fe3a80e45667b29b8c296e5defe7c4aca303f"
+      ]
+    }
+  ],
+  "independentOracle": {
+    "method": "separate Python raw-INI rows and source origins, typed source joins, D03 nearest selection and Flash/release trace; no native execution",
+    "assertions": 164465,
+    "profiles": [
+      {
+        "profile": "ra2",
+        "cases": 11,
+        "actorRows": 8921,
+        "frames": 176,
+        "recruitedExistingActors": 0,
+        "permanentSourceFailures": 2
+      },
+      {
+        "profile": "yr",
+        "cases": 1,
+        "actorRows": 570,
+        "frames": 128,
+        "recruitedExistingActors": 5,
+        "permanentSourceFailures": 0
+      }
+    ]
+  },
+  "canStartCampaign": false
+}

@@ -6,11 +6,11 @@ import { canonicalHash, canonicalText, parseJson } from './canonical.ts';
 import { identity as contentIdentity } from './validation.ts';
 import type { Digest } from './types.ts';
 
-export const MISSION_LOGIC_POLICY = 'webra2-mission-poll-1' as const;
+export const MISSION_LOGIC_POLICY = 'webra2-mission-poll-2' as const;
 export const MISSION_TIMING_POLICY = 'yr-static-15-frame-1' as const;
 export const MISSION_LOGIC_LIMITS = Object.freeze({ triggers: 1024, tags: 1024, instructions: 8192,
   eventsPerTrigger: 32, actionsPerTrigger: 128, bindings: 256, instances: 2048, attachments: 1024,
-  inputs: 1024, futureTicks: 10000, stepTicks: 1024, work: 131072, effects: 32768,
+  inputs: 1024, futureTicks: 10000, stepTicks: 1024, work: 131072, effects: 32768, actionFrames: 256,
   replayTicks: 10000, replayWork: 1048576, admissions: 1024, checkpoints: 1024, tick: 1000000000 });
 const C = MISSION_LOGIC_LIMITS;
 type Predicate = { id: string; opcode: number; argument: number };
@@ -81,7 +81,7 @@ function digestString(v: unknown): string { if (typeof v !== 'string' || !/^[a-f
 const programs = new WeakSet<object>();
 function program(value: MissionProgram): void { if (!programs.has(value)) fail('mission-program'); }
 const eventCodes = new Set([0, 8, 13, 14, 27, 28, 36, 37, 47]);
-const actionCodes = new Set([0, 1, 2, 23, 24, 25, 26, 27, 28, 29, 53, 54, 56, 57]);
+const actionCodes = new Set([0, 1, 2, 12, 22, 23, 24, 25, 26, 27, 28, 29, 53, 54, 56, 57]);
 function numberToken(value: string, min: number, max: number): number | null {
   if (!/^-?(?:0|[1-9][0-9]{0,9})$/.test(value)) return null;
   const n = Number(value); return Number.isSafeInteger(n) && !Object.is(n, -0) && n >= min && n <= max ? n : null;
@@ -147,7 +147,7 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
     for (const a of actionRow?.values ?? []) {
       const p = a.parameters;
       if (!actionCodes.has(a.opcode)) { diagnostic('unsupported-action-opcode', a.id); continue; }
-      const targetAction = a.opcode === 53 || a.opcode === 54;
+      const targetAction = [12, 22, 53, 54].includes(a.opcode);
       if (p.length !== 7 || p[0] !== (targetAction ? '2' : '0') || p.slice(2, 6).some(v => numberToken(v, -0x80000000, 0x7fffffff) === null)) { diagnostic('unsupported-action-operands', a.id); continue; }
       let min = -0x80000000, max = 0x7fffffff;
       if ([25, 26, 27].includes(a.opcode)) { min = 0; max = Math.floor(C.tick / 15); }
@@ -218,7 +218,7 @@ export interface MissionInitialState {
 }
 export interface MissionInput { readonly tick: number; readonly sequence: number; readonly kind: 'global' | 'local'; readonly index: number; readonly value: boolean }
 type Timer = { startedAt: number | null; frames: number };
-type TriggerState = { id: string; enabled: boolean; destroyed: boolean; fired: number; elapsedDue: number | null; observations: boolean[] };
+type TriggerState = { id: string; enabled: boolean; destroyed: boolean; deleted: boolean; fired: number; forced: number; elapsedDue: number | null; observations: boolean[] };
 type BindingState = { id: string; tagId: string; attachmentIds: string[]; active: boolean; triggers: TriggerState[] };
 export interface MissionEffect {
   readonly order: number; readonly tick: number; readonly bindingId: string; readonly triggerId: string;
@@ -249,7 +249,7 @@ function initialBindings(p: MissionProgram, value: unknown): BindingState[] {
     const attachmentIds = rawOwners.map(v => { const s = text(v); if (owners.has(s)) fail('mission-attachment-duplicate'); owners.add(s); return s; }).sort(compare);
     return { id, tagId, attachmentIds, active: true, triggers: tag.chain.map(id => {
       const t = triggerMap.get(id)!;
-      return { id, enabled: t.enabled && t.difficulty[p.difficulty]!, destroyed: false, fired: 0,
+      return { id, enabled: t.enabled && t.difficulty[p.difficulty]!, destroyed: false, deleted: false, fired: 0, forced: 0,
         elapsedDue: due(0, t.elapsedFrames), observations: t.events.map(() => false) };
     }) };
   }).sort((a, b) => compare(a.id, b.id));
@@ -276,25 +276,31 @@ function validateSave(p: MissionProgram, value: unknown): MissionSave {
   const blueprint = initialBindings(p, bindingsRaw.map(item => { const b = record(item); return { id: b.id, tagId: b.tagId, attachmentIds: b.attachmentIds }; }));
   const triggers = new Map(p.triggers.map(t => [t.id, t]));
   const nextEffectOrder = integer(r.nextEffectOrder, 1, Number.MAX_SAFE_INTEGER), lastInputSequence = integer(r.lastInputSequence, -1, Number.MAX_SAFE_INTEGER);
+  const targeted = (opcode: number) => new Set(p.triggers.flatMap(d => d.actions.filter(a => a.opcode === opcode).map(a => a.target)));
+  const deletionTargets = targeted(12), forcedTargets = targeted(22);
   const bindings = bindingsRaw.map((item, index) => {
     const b = exact(item, ['id', 'tagId', 'attachmentIds', 'active', 'triggers']), model = blueprint[index]!;
     if (b.id !== model.id || b.tagId !== model.tagId || canonicalText(b.attachmentIds) !== canonicalText(model.attachmentIds)) fail('mission-binding-order');
     const active = bool(b.active), states = list(b.triggers, C.instances);
     if (states.length !== model.triggers.length) fail('mission-trigger-state-count');
     const state = states.map((v, i) => {
-      const t = exact(v, ['id', 'enabled', 'destroyed', 'fired', 'elapsedDue', 'observations']), base = model.triggers[i]!;
+      const t = exact(v, ['id', 'enabled', 'destroyed', 'deleted', 'fired', 'forced', 'elapsedDue', 'observations']), base = model.triggers[i]!;
       if (t.id !== base.id) fail('mission-trigger-state-order');
       const definition = triggers.get(base.id)!;
-      const enabled = bool(t.enabled), destroyed = bool(t.destroyed), fired = integer(t.fired, 0, nextTick);
-      if ((enabled && !definition.difficulty[p.difficulty]) || (destroyed && fired === 0)) fail('mission-trigger-state');
+      const enabled = bool(t.enabled), destroyed = bool(t.destroyed), deleted = bool(t.deleted), fired = integer(t.fired, 0, nextTick);
+      const forced = integer(t.forced, 0, Math.min(C.tick, nextEffectOrder - 1));
+      if ((enabled && !definition.difficulty[p.difficulty]) || (deleted && (!destroyed || !deletionTargets.has(base.id))) ||
+        (forced > 0 && !forcedTargets.has(base.id)) || (destroyed && !deleted && fired === 0)) fail('mission-trigger-state');
       const elapsedDue = t.elapsedDue === null ? null : integer(t.elapsedDue);
       if ((definition.elapsedFrames === null) !== (elapsedDue === null) || (elapsedDue !== null && (elapsedDue < definition.elapsedFrames! || elapsedDue > Math.min(C.tick, Math.max(0, nextTick - 1) + definition.elapsedFrames!)))) fail('mission-elapsed-state');
       const observations = booleanArray(t.observations, definition.events.length);
-      return { id: base.id, enabled, destroyed, fired, elapsedDue, observations };
+      return { id: base.id, enabled, destroyed, deleted, fired, forced, elapsedDue, observations };
     });
     const tag = p.tags.find(t => t.id === model.tagId)!;
-    if (tag.mode === 2 && (!active || state.some(t => t.destroyed))) fail('mission-repeating-state');
-    if (tag.mode === 0 && (active === state.some(t => t.destroyed) || state.some(t => t.fired > 1 || (t.fired > 0) !== t.destroyed))) fail('mission-once-state');
+    const allDeleted = state.every(t => t.deleted);
+    if (tag.mode === 2 && (active === allDeleted || state.some(t => t.destroyed !== t.deleted))) fail('mission-repeating-state');
+    if (tag.mode === 0 && (active === (allDeleted || state.some(t => t.fired > 0)) ||
+      state.some(t => t.fired > 1 || t.destroyed !== (t.deleted || t.fired > 0)))) fail('mission-once-state');
     const result = { ...model, active, triggers: state };
     if (nextTick === 0 && canonicalText(result) !== canonicalText(model)) fail('mission-initial-state');
     return result;
@@ -373,6 +379,59 @@ export class MissionLogic {
         default: return fail('mission-unimplemented-event');
       }
     }
+    type Invocation = { binding: BindingState; instance: TriggerState };
+    const targets = new Map<string, Invocation[]>();
+    for (const binding of state.bindings) for (const instance of binding.triggers) {
+      const values = targets.get(instance.id) ?? []; values.push({ binding, instance }); targets.set(instance.id, values);
+    }
+    function fireActions(binding: BindingState, instance: TriggerState) {
+      type Frame = { kind: 'actions'; invocation: Invocation; at: number } | { kind: 'force'; targets: readonly Invocation[]; at: number };
+      const frames: Frame[] = [{ kind: 'actions', invocation: { binding, instance }, at: 0 }];
+      const push = (frame: Frame) => { if (frames.length >= C.actionFrames) fail('mission-action-stack-limit'); frames.push(frame); };
+      while (frames.length) {
+        const frame = frames.at(-1)!; visit();
+        if (frame.kind === 'force') {
+          if (frame.at === frame.targets.length) { frames.pop(); continue; }
+          const target = frame.targets[frame.at++]!, t = target.instance;
+          if (!target.binding.active || !t.enabled || t.destroyed) continue;
+          integer(++t.forced); push({ kind: 'actions', invocation: target, at: 0 }); continue;
+        }
+        const b = frame.invocation.binding, t = frame.invocation.instance, definition = definitions.get(t.id)!;
+        if (frame.at === definition.actions.length) { frames.pop(); continue; }
+        // Eligibility is checked at entry only. Disable/delete inside an action list does not truncate this retained list.
+        const a = definition.actions[frame.at++]!;
+        visit(); let value: MissionEffect['value'] = a.argument, target = a.target;
+        if (a.opcode === 28 || a.opcode === 29 || a.opcode === 56 || a.opcode === 57) {
+          const kind = a.opcode < 56 ? 'global' : 'local'; value = a.opcode === 28 || a.opcode === 56;
+          setFlag(kind, a.argument, value); target = `${kind}:${a.argument}`;
+        } else if (a.opcode === 12) {
+          // Saved logical tombstones; native RA2 deletes immediately while YR queues destruction.
+          // Host pointer expiration/tag attachment callbacks remain outside this explicit-binding VM.
+          for (const binding of state.bindings) if (binding.active) for (const instance of binding.triggers) {
+            visit(); if (instance.id === a.target) { instance.deleted = true; instance.destroyed = true; }
+          }
+        } else if (a.opcode === 53 || a.opcode === 54) {
+          value = a.opcode === 53;
+          for (const binding of state.bindings) if (binding.active) for (const instance of binding.triggers) {
+            visit(); if (instance.id !== a.target || instance.destroyed) continue;
+            if (a.opcode === 54) instance.enabled = false;
+            else if (definitions.get(instance.id)!.difficulty[p.difficulty]) { instance.enabled = true; reset(instance); }
+          }
+        } else if (a.opcode >= 23 && a.opcode <= 27) {
+          if (a.opcode === 23) { if (state.timer.startedAt === null) state.timer.startedAt = state.nextTick; }
+          else if (a.opcode === 24) { state.timer.frames = timerRemaining(state.timer, state.nextTick); state.timer.startedAt = null; }
+          else {
+            const frames = a.opcode === 27 ? a.argument * 15 : Math.max(0, timerRemaining(state.timer, state.nextTick) + (a.opcode === 25 ? 1 : -1) * a.argument * 15);
+            integer(frames); state.timer = { startedAt: state.nextTick, frames };
+          }
+          value = timerRemaining(state.timer, state.nextTick);
+        }
+        const kind = a.opcode === 1 || a.opcode === 2 ? 'outcome-request' : 'action';
+        const order = emit({ bindingId: b.id, triggerId: t.id, instructionId: a.id, opcode: a.opcode, kind, value, target });
+        if (a.opcode === 1 || a.opcode === 2) state.lastOutcomeRequest = { order, tick: state.nextTick, opcode: a.opcode, countryIndex: a.argument };
+        if (a.opcode === 22) push({ kind: 'force', targets: targets.get(a.target!) ?? [], at: 0 });
+      }
+    }
     for (let remaining = ticks; remaining; remaining--) {
       const tick = state.nextTick;
       let consumed = 0;
@@ -389,36 +448,12 @@ export class MissionLogic {
           if (!t.observations.every(Boolean)) continue;
           if (tag.mode === 2) reset(t);
           t.fired++; integer(t.fired);
-          // Once FireActions begins, self-disable does not truncate later actions in this same source-ordered list.
-          for (const a of definition.actions) {
-            visit(); let value: MissionEffect['value'] = a.argument, target = a.target;
-            if (a.opcode === 28 || a.opcode === 29 || a.opcode === 56 || a.opcode === 57) {
-              const kind = a.opcode < 56 ? 'global' : 'local'; value = a.opcode === 28 || a.opcode === 56;
-              setFlag(kind, a.argument, value); target = `${kind}:${a.argument}`;
-            } else if (a.opcode === 53 || a.opcode === 54) {
-              value = a.opcode === 53;
-              for (const binding of state.bindings) if (binding.active) for (const instance of binding.triggers) {
-                visit(); if (instance.id !== a.target) continue;
-                if (a.opcode === 54) instance.enabled = false;
-                else if (definitions.get(instance.id)!.difficulty[p.difficulty]) { instance.enabled = true; reset(instance); }
-              }
-            } else if (a.opcode >= 23 && a.opcode <= 27) {
-              if (a.opcode === 23) { if (state.timer.startedAt === null) state.timer.startedAt = tick; }
-              else if (a.opcode === 24) { state.timer.frames = timerRemaining(state.timer, tick); state.timer.startedAt = null; }
-              else {
-                const frames = a.opcode === 27 ? a.argument * 15 : Math.max(0, timerRemaining(state.timer, tick) + (a.opcode === 25 ? 1 : -1) * a.argument * 15);
-                integer(frames); state.timer = { startedAt: tick, frames };
-              }
-              value = timerRemaining(state.timer, tick);
-            }
-            const kind = a.opcode === 1 || a.opcode === 2 ? 'outcome-request' : 'action';
-            const order = emit({ bindingId: b.id, triggerId: t.id, instructionId: a.id, opcode: a.opcode, kind, value, target });
-            if (a.opcode === 1 || a.opcode === 2) state.lastOutcomeRequest = { order, tick, opcode: a.opcode, countryIndex: a.argument };
-          }
+          fireActions(b, t);
           if (tag.mode === 0) { t.destroyed = true; removeTag = true; }
         }
         if (removeTag) b.active = false;
       }
+      for (const binding of state.bindings) if (binding.triggers.every(t => t.deleted)) binding.active = false;
       state.nextTick++;
     }
     // The entire multi-tick transaction, including counters, pending inputs and output, either commits or fails unchanged.

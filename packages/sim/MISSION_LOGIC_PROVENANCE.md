@@ -122,3 +122,16 @@ only the research Python process. Copy scripts into an isolated reviewer checkou
 and keep all raw outputs under ignored `local/`. A missing executable is a skipped
 private evidence gate. Owner observations can later distinguish native poll order,
 attachment lifecycle and occurrence-event latch behavior.
+
+## Trigger lifecycle extension
+
+[Issue182](https://github.com/lictl/WebRA2/issues/182) adds original GPL-3.0-or-later
+forcing/deletion VM code and original tests, with no dependency or license change.
+The [lifecycle report](../../docs/mission-trigger-lifecycle.md) and
+[paired ledger](../../docs/analysis/mission-lifecycle-native.json) distinguish common
+FireActions entry/ordering from RA2 immediate destructor and YR deferred destruction.
+The34 selected ranges/3796 bytes have complete instruction endpoints; the YR
+constructor now includes the complete return through726133. That ledger supersedes
+the older truncated726131 constructor endpoint for this investigation. Source
+attachment/host cleanup is not claimed by the logical D03 tombstone policy.
+All raw bytes, listings and private source projections remain ignored.

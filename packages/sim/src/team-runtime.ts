@@ -1,26 +1,28 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Original pure team state and source/actor binding. The transaction bridge owns cloned-world execution.
 import { TEAM_SLEEP_POLICY, planTeamSleep, teamSleepFlow } from './team-sleep-policy.ts';
+import { snapshotTeamFlashes, assignTeamFlashes, advanceTeamFlashes, type TeamFlashState } from './team-recruitment-flash.ts';
 import { canonicalText, parseJson } from './canonical.ts';
 import { WorldSimulation, type WorldSave, type WorldEntity } from './world.ts';
 import type { WorldModel } from './world-model.ts';
 import { teamSpawnContextData, type TeamSpawnContext } from './team-spawn-context.ts';
+import { teamRecruitmentContextData, type TeamRecruitmentContext } from './team-recruitment-context.ts';
 import { worldAddress, worldClone, worldHash, worldInteger, worldList, worldRecord, worldSymbol } from './world-values.ts';
 import { navigationCell } from './navigation.ts';
 import { planTeamDestinations, TEAM_DESTINATION_LIMITS, TEAM_DESTINATION_POLICY, type TeamDestinationAssignment } from './team-runtime-destinations.ts';
 import { teamProgramWorld, teamRuntimeFail as fail, teamRuntimeFreeze as freeze, type TeamProgram, type TeamTemplate } from './team-runtime-program.ts';
 
 export interface TeamActorBinding { readonly id: string; readonly teamId: string; readonly actorIds: readonly number[]; readonly bornAtTick?: number }
-export interface TeamRoster { readonly policy: 'webra2-team-roster-1' | 'webra2-spawn-team-roster-1'; readonly contextSha256?: string; readonly programSha256: string; readonly worldModelSha256: string;
+export interface TeamRoster { readonly policy: 'webra2-team-roster-1' | 'webra2-spawn-team-roster-1' | 'webra2-recruited-team-roster-1'; readonly contextSha256?: string; readonly programSha256: string; readonly worldModelSha256: string;
   readonly bindings: readonly TeamActorBinding[]; readonly sha256: string }
 export type TeamPhase = 'advance' | 'moving' | 'retry' | 'sleep' | 'finished' | 'lost';
 export interface TeamInstanceState {
   id: string; activeMembers: number[]; cursor: number; lastStep: number | null; phase: TeamPhase;
   assignments: TeamDestinationAssignment[]; issuedAt: number | null; retryAt: number | null;
 }
-export interface TeamState { nextTick: number; startedTick: number; nextOrderId: number; instances: TeamInstanceState[] }
+export interface TeamState { nextTick: number; startedTick: number; nextOrderId: number; instances: TeamInstanceState[]; flashes: TeamFlashState[] }
 export interface TeamOrder { orderId: number; instanceId: string; entityId: number; kind: 'move' | 'stop'; x: number | null; y: number | null }
-export interface TeamEvent { instanceId: string; step: number | null; kind: 'move' | 'arrived' | 'jump' | 'blocked' | 'sleep' | 'lost' | 'finished' }
+export interface TeamEvent { instanceId: string; step: number | null; kind: 'move' | 'arrived' | 'jump' | 'blocked' | 'sleep' | 'flash' | 'lost' | 'finished' }
 export interface TeamPendingTick {
   policy: 'webra2-team-transaction-1'; rosterSha256: string; baseWorldSha256: string; baseTeamSha256: string; tick: number;
   orders: TeamOrder[]; events: TeamEvent[]; nextTeam: TeamState; work: number; sha256: string;
@@ -31,6 +33,7 @@ export interface TeamCheckpoint {
 }
 const rosters = new WeakMap<object, TeamProgram>();
 const spawnContexts = new WeakMap<object, TeamSpawnContext>();
+const recruitmentContexts = new WeakMap<object, TeamRecruitmentContext>();
 export const isTeamRoster = (v: unknown): v is TeamRoster => !!v && typeof v === 'object' && rosters.has(v);
 export function teamRosterProgram(roster: TeamRoster): TeamProgram { const p=rosters.get(roster);if(!p)fail('roster-brand');return p; }
 
@@ -38,6 +41,50 @@ export function teamRosterProgram(roster: TeamRoster): TeamProgram { const p=ros
 export function teamRosterModel(roster: TeamRoster): WorldModel {
   const program=teamRosterProgram(roster),context=spawnContexts.get(roster);
   return context ? teamSpawnContextData(context).model : teamProgramWorld(program).model;
+}
+/** Only the genuine source catalog can provide empty, partial-template or recruited actor bindings. */
+export function bindRecruitedTeamActors(context: TeamRecruitmentContext): TeamRoster {
+  const data=teamRecruitmentContextData(context),program=data.program,world=teamProgramWorld(program);
+  if(data.model!==world.model)fail('recruitment-binding-model');
+  const templates=new Map(program.templates.map(t=>[t.id,t])),actors=new Map(data.actors.map(a=>[a.entityId,a]));
+  const definitions=new Map(data.model.entities.map(e=>[e.id,e])),seen=new Set<number>();
+  const bindings:TeamActorBinding[]=data.instances.map(b=>{
+    const t=templates.get(b.teamId),quantities=new Map<string,number>();if(!t||!b.actorIds.length||b.actorIds.length>64)fail('recruitment-binding-team');
+    for(const id of b.actorIds){const a=actors.get(id),d=definitions.get(id);
+      if(!a||!d||seen.has(id)||a.rowId!==d.rowId||a.typeId!==d.typeId||a.houseId!==t.houseId||a.playerId!==t.playerId||d.owner!==t.playerId||
+        a.bornAtTick!==b.bornAtTick||!['infantry','unit'].includes(d.kind))fail('recruitment-binding-actor');
+      seen.add(id);quantities.set(d.typeId,(quantities.get(d.typeId)??0)+1);
+    }
+    if(quantities.size!==t.members.length||t.members.some(m=>quantities.get(m.typeId)!==m.quantity))fail('recruitment-binding-taskforce');
+    return {id:b.id,teamId:b.teamId,actorIds:[...b.actorIds],bornAtTick:b.bornAtTick};
+  });
+  if(bindings.length>program.limits.teams||seen.size!==actors.size||seen.size>program.limits.members)fail('recruitment-binding-coverage');
+  const value={policy:'webra2-recruited-team-roster-1' as const,contextSha256:context.sha256,programSha256:program.sha256,
+    worldModelSha256:data.model.sha256,bindings};
+  const roster:TeamRoster=freeze({...value,sha256:worldHash(value)});rosters.set(roster,program);recruitmentContexts.set(roster,context);return roster;
+}
+/** Apply exactly one current-tick claim/release, preserving the entire committed world and surviving controller state. */
+export function migrateRecruitedTeamCheckpoint(priorContext:TeamRecruitmentContext,priorInput:unknown,nextContext:TeamRecruitmentContext):TeamCheckpoint {
+  const before=teamRecruitmentContextData(priorContext),after=teamRecruitmentContextData(nextContext),same=(a:unknown,b:unknown)=>canonicalText(a)===canonicalText(b);
+  if(before.catalog!==after.catalog||before.program!==after.program||before.model!==after.model||after.records.length!==before.records.length+1||
+    !same(before.records,after.records.slice(0,before.records.length)))fail('recruitment-migration-prefix');
+  const prior=restoreTeamCheckpoint(bindRecruitedTeamActors(priorContext),priorInput);if(prior.pending)fail('recruitment-migration-pending');
+  const event=after.records.at(-1)!,tick=prior.world.nextTick,current=new Map(prior.world.state.entities.map(e=>[e.id,e]));
+  const old=new Map(prior.team.instances.map(s=>[s.id,s]));
+  if(event.kind==='recruited'){
+    if(event.bornAtTick!==tick)fail('recruitment-migration-birth');
+    const claimed=new Set(event.actorIds),queued=new Set(prior.world.queuedCommands.map(c=>(c.payload as {entityId:number}).entityId));
+    for(const id of claimed){const e=current.get(id);if(!e||e.health===null||e.health===0||e.goal!==null||e.progress||e.route.length||queued.has(id))fail('recruitment-migration-busy');}
+  }else{
+    const terminal=old.get(event.instanceId);
+    if(event.atTick!==tick||!terminal||terminal.phase!==event.reason||!['finished','lost'].includes(terminal.phase))fail('recruitment-migration-release');
+    if(event.reason==='finished'&&terminal.activeMembers.some(id=>{const e=current.get(id)!;return e.health!==0&&(e.goal!==null||e.progress!==0||e.route.length!==0);}))fail('recruitment-release-moving');
+    old.delete(event.instanceId);
+  }
+  const roster=bindRecruitedTeamActors(nextContext),fresh=new Map(initial(roster,tick).instances.map(s=>[s.id,s]));
+  const next=roster.bindings.map(b=>old.get(b.id)??fresh.get(b.id)!);
+  if(old.size!==before.instances.length-(event.kind==='released'?1:0)||[...old.keys()].some(id=>!next.some(s=>s.id===id)))fail('recruitment-migration-state');
+  return restoreTeamCheckpoint(roster,{...prior,rosterSha256:roster.sha256,team:{...prior.team,instances:next}});
 }
 /** Each active instance is a complete task force; inactive selected templates need no binding. */
 export function bindSpawnTeamActors(context: TeamSpawnContext): TeamRoster {
@@ -120,7 +167,7 @@ export function bindTeamActors(program: TeamProgram, input: readonly TeamActorBi
   const data={policy:'webra2-team-roster-1' as const,programSha256:program.sha256,worldModelSha256:world.model.sha256,bindings};
   const roster:TeamRoster=freeze({...data,sha256:worldHash(data)});rosters.set(roster,program);return roster;
 }
-function initial(roster:TeamRoster,tick:number):TeamState{return{nextTick:tick,startedTick:tick,nextOrderId:0,instances:roster.bindings.map(b=>({
+function initial(roster:TeamRoster,tick:number):TeamState{return{nextTick:tick,startedTick:tick,nextOrderId:0,flashes:[],instances:roster.bindings.map(b=>({
   id:b.id,activeMembers:[...b.actorIds],cursor:-1,lastStep:null,phase:'advance',assignments:[],issuedAt:null,retryAt:null}))};}
 export function createTeamCheckpoint(roster:TeamRoster,worldInput?:WorldSave):TeamCheckpoint{
   const model=teamRosterModel(roster),world=worldInput===undefined?WorldSimulation.create(model).save():WorldSimulation.restore(model,worldInput).save();
@@ -129,7 +176,7 @@ export function createTeamCheckpoint(roster:TeamRoster,worldInput?:WorldSave):Te
 const sleepMembers=(ids:readonly number[],actors:ReadonlyMap<number,WorldEntity>)=>ids.map(entityId=>{const e=actors.get(entityId)!;return{entityId,health:e.health,goal:e.goal,progress:e.progress,routeLength:e.route.length};});
 const nullable=(n:unknown,min:number,max:number)=>n===null?null:worldInteger(n,min,max);
 function teamState(roster:TeamRoster,input:unknown,world:WorldSave):TeamState{
-  const p=teamRosterProgram(roster),r=worldRecord(input,['nextTick','startedTick','nextOrderId','instances']);
+  const p=teamRosterProgram(roster),r=worldRecord(input,['nextTick','startedTick','nextOrderId','instances','flashes']);
   const nextTick=worldInteger(r.nextTick,0,p.limits.tick),startedTick=worldInteger(r.startedTick,0,nextTick),nextOrderId=worldInteger(r.nextOrderId,0,Number.MAX_SAFE_INTEGER);
   if(nextTick!==world.nextTick)fail('checkpoint-tick');const rows=worldList(r.instances,p.limits.teams);if(rows.length!==roster.bindings.length)fail('checkpoint-bindings');
   const model=teamRosterModel(roster),grids=new Map(model.navigation.map(b=>[b.grid.movementClass,b.grid]));
@@ -168,7 +215,7 @@ function teamState(roster:TeamRoster,input:unknown,world:WorldSave):TeamState{
     }else if(retryAt!==null)fail('checkpoint-idle-timer');
     if(phase==='advance'){
       if(lastStep===null){if(cursor!==-1||nextTick!==bornAtTick)fail('checkpoint-initial-cursor');}
-      else{const step=t.steps[lastStep]!;if(step.opcode===11)fail('checkpoint-sleep-completion');if(step.opcode===3?cursor!==lastStep:cursor!==step.target-1)fail('checkpoint-completed-cursor');}
+      else{const step=t.steps[lastStep]!;if(step.opcode===11)fail('checkpoint-sleep-completion');if(step.opcode===6?cursor!==step.target-1:cursor!==lastStep)fail('checkpoint-completed-cursor');}
     }
     if(phase==='finished'&&(!flow.canFinish||cursor!==t.steps.length||lastStep!==t.steps.length-1))fail('checkpoint-finished');
     if(phase==='lost'&&(activeMembers.length||b.actorIds.some(n=>current.get(n)!.health!==0)))fail('checkpoint-lost');
@@ -177,7 +224,15 @@ function teamState(roster:TeamRoster,input:unknown,world:WorldSave):TeamState{
     if(b.bornAtTick!==undefined&&nextTick===bornAtTick&&canonicalText(result)!==canonicalText({id:b.id,activeMembers:[...b.actorIds],cursor:-1,lastStep:null,phase:'advance',assignments:[],issuedAt:null,retryAt:null}))fail('spawn-checkpoint-initial-state');
     return result;
   });
-  const result={nextTick,startedTick,nextOrderId,instances};
+  const durations=new Map<string,number>(),maxFlash=new Map<number,number>();
+  for(const t of p.templates){let duration=-1;for(const s of t.steps)if(s.opcode===50)duration=Math.max(duration,s.duration);durations.set(t.id,duration);}
+  const recruitment=recruitmentContexts.get(roster),flashBindings=recruitment?
+    teamRecruitmentContextData(recruitment).records.filter(r=>r.kind==='recruited'):roster.bindings;
+  for(const binding of flashBindings){const duration=durations.get(binding.teamId)!;
+    if(duration>=0)for(const id of binding.actorIds)maxFlash.set(id,Math.max(duration,maxFlash.get(id)??-1));}
+  const flashes=snapshotTeamFlashes(r.flashes).map(f=>{const maximum=maxFlash.get(f.entityId);
+    if(maximum===undefined||f.remaining>maximum||(f.flashingNow&&maximum<2))fail('checkpoint-flash-source');return{...f};});
+  const result={nextTick,startedTick,nextOrderId,instances,flashes};
   if(nextTick===startedTick&&canonicalText(result)!==canonicalText(initial(roster,startedTick)))fail('checkpoint-initial-state');
   if(nextOrderId>(nextTick-startedTick)*p.limits.orders)fail('checkpoint-order-counter');
   return result;
@@ -197,6 +252,7 @@ function computePlan(roster:TeamRoster,checkpoint:TeamCheckpoint):TeamPendingTic
   const nextTeam=worldClone(checkpoint.team),world=checkpoint.world,current=new Map(world.state.entities.map(e=>[e.id,e]));
   const templates=new Map(p.templates.map(t=>[t.id,t])),orders:TeamOrder[]=[],events:TeamEvent[]=[];let work=0;
   const charge=(n=1)=>{if(n>cap.work-work)fail('step-work-limit');work+=n;};
+  charge(nextTeam.flashes.length);nextTeam.flashes=advanceTeamFlashes(nextTeam.flashes).map(f=>({...f}));
   const event=(s:TeamInstanceState,kind:TeamEvent['kind'])=>{if(events.length>=cap.trace)fail('step-trace-limit');events.push({instanceId:s.id,step:s.lastStep,kind});};
   for(let i=0;i<nextTeam.instances.length;i++){
     charge();const s=nextTeam.instances[i]!,b=roster.bindings[i]!,t:TeamTemplate=templates.get(b.teamId)!;
@@ -218,6 +274,10 @@ function computePlan(roster:TeamRoster,checkpoint:TeamCheckpoint):TeamPendingTic
       s.lastStep=s.cursor;
     }
     const instruction=t.steps[s.cursor]!;
+    if(instruction.opcode===50){
+      charge(s.activeMembers.length);nextTeam.flashes=assignTeamFlashes(nextTeam.flashes,s.activeMembers,instruction.duration).map(f=>({...f}));
+      s.phase='advance';s.retryAt=null;event(s,'flash');continue;
+    }
     if(instruction.opcode===11){
       const sleep=planTeamSleep({tick,enteredAt:null,members:sleepMembers(s.activeMembers,current)},
         {members:Math.min(64,cap.members),orders:Math.min(64,cap.orders-orders.length)});charge(sleep.work);
