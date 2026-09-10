@@ -67,9 +67,10 @@ test('phase ordering uses global art and does not retrospectively load newly all
 
 test('next/spawn/bounce/expiry/trailer closure retains origins, late allocation and bounded cycles', () => {
   for (const key of ['Next', 'Spawns', 'BounceAnim', 'ExpireAnim', 'TrailerAnim']) {
-    const r = compileAnimationEffects(fixture({ art: `[Flash]\n${key}=Impact\n[Impact]\nDamage=2\n` }));
+    const r = compileAnimationEffects(fixture({ art: `[Flash]\n${key}=Impact\n${key === 'Spawns' ? 'SpawnCount=2\n' : ''}[Impact]\nDamage=2\n` }));
     assert.equal(firing(r).status, 'gameplay-active'); assert.deepEqual(firing(r).reachableIds, ['animation:flash', 'animation:impact']);
     assert.equal(r.animations[0]!.edges[0]!.origin!.keySpelling, key);
+    if (key === 'Spawns') { assert.equal(r.animations[0]!.fields.SpawnCount!.value, 2); assert.ok(firing(r).reasons.some(s => s.endsWith('conditional-effect-parameter:SpawnCount'))); }
   }
   const cycle = compileAnimationEffects(fixture({ art: '[Flash]\nNext=Impact\n[Impact]\nNext=Flash\n' }));
   assert.equal(firing(cycle).status, 'unknown'); assert.ok(firing(cycle).reasons.includes('animation-cycle'));
