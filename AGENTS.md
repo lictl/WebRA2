@@ -12,7 +12,9 @@
 Build a browser-native TypeScript engine for **both RA2 and Yuri's Revenge**.
 Prioritize original campaign behavior and playability. Campaign release includes
 cinematics and WebRA2 saves. Original Windows save import is best effort. Support
-desktop Chrome, Edge, Firefox, and Safari with mouse/keyboard. Vanilla maps, INI
+desktop Chrome, Edge, Firefox, and Safari with mouse/keyboard. During development,
+focus browser tests on Chrome; defer full other-browser end-to-end checks until the
+remaining implementation is finished, per the owner update in D17. Vanilla maps, INI
 mods, and replacement assets precede Ares/Phobos extension compatibility.
 WebAssembly is justified by measurements or a documented codec reuse decision.
 The source installation is Steam, Traditional Chinese, build unverified. Support
