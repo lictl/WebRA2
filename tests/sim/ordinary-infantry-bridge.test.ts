@@ -66,6 +66,29 @@ test('authored rank selects reviewed factors and rejects active unsupported cons
   assert.equal(compileOrdinaryInfantryBridge(ordinaryFixture({ sourceFields: 'Ammo=3\nInitialAmmo=2' })).actors[0]!.role, 'target-only');
 });
 
+test('unproven elite slot selection cannot grant normal-primary attacks or victim current-weapon death admission', () => {
+  for (const profile of ['ra2', 'yr'] as const) {
+    for (const sourceFields of ['ElitePrimary=Complex', 'ElitePrimary=Pulse', '']) {
+      const f = ordinaryFixture({ profile, rank: '200', sourceFields }), b = compileOrdinaryInfantryBridge(f), m = ordinaryWorld(f, b);
+      assert.equal(b.actors[0]!.role, 'movement-only'); assert.equal(b.actors[0]!.currentWeaponId, null);
+      assert(b.actors[0]!.attackReasons.includes('elite-current-weapon-selection'));
+      assert.equal(evaluateOrdinaryInfantryAttack(b, m, WorldSimulation.create(m).save(), { sourceId: 1, targetId: 2 }).status, 'unsupported');
+    }
+    const f = ordinaryFixture({ profile, targetRank: '200', targetFields: 'ElitePrimary=Pulse' }), b = compileOrdinaryInfantryBridge(f), m = ordinaryWorld(f, b);
+    assert.equal(b.actors[1]!.currentWeaponId, null); assert(b.actors[1]!.targetReasons.includes('elite-current-weapon-selection'));
+    assert(evaluateOrdinaryInfantryAttack(b, m, WorldSimulation.create(m).save(), { sourceId: 1, targetId: 2 }).reasons.includes('target-not-damageable'));
+  }
+});
+
+test('zero native ROF stays zero and source-valid windups beyond the world cap stay target-only', () => {
+  const f = ordinaryFixture({ rof: 0, fireUp: 0 }), b = compileOrdinaryInfantryBridge(f), m = ordinaryWorld(f, b), s = WorldSimulation.create(m);
+  assert.equal(b.combat!.weapons[0]!.reloadTicks, 0);
+  s.admitCommands([{ schemaVersion: 1, tick: 0, playerId: 0, sequence: 0, kind: 'attack', payload: { entityId: 1, targetId: 2 } }]);
+  const shots = s.step(8).events.filter(e => e.kind === 'fired'); assert(shots.length > 1); assert.equal(new Set(shots.map(s => s.tick)).size, shots.length);
+  const long = compileOrdinaryInfantryBridge(ordinaryFixture({ fireUp: 10001 }));
+  assert.equal(long.actors[0]!.role, 'target-only'); assert(long.actors[0]!.attackReasons.includes('world-fire-up-limit'));
+});
+
 test('genuine-but-mismatched components and source proxies fail before publication or ordinary getter execution', () => {
   const a = ordinaryFixture(), changed = ordinaryFixture({ extraRules: '[Unused]\nValue=1\n' });
   const fields = ['world', 'definitions', 'actors', 'weapons', 'instant', 'effects', 'modifiers', 'veterancy', 'initial', 'death', 'ordinaryDeath', 'traversal'] as const;
