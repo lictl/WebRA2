@@ -23,3 +23,12 @@ GPL text and corresponding source/build materials described in
 [licensing](../../docs/licensing.md). Public tests contain original synthetic
 rules and actors. No retail rules, geometry, assets, native bytes or saved state
 are distributed.
+
+The original GPL [placement admission helper](src/combat-placement.ts) and
+[its fixtures](../../tests/sim/combat-placement.test.ts) consume the upstream
+[scenario object contract](../content/src/scenario-objects.ts). Its new static
+field/buffer/decimal/rank observations are pinned in the
+[metadata-only ledger](../../docs/analysis/combat-placement-native.json) and
+explained in [the placement policy](../../docs/world-combat.md#initial-placement-admission).
+This helper reconstructs only the documented ordinary initial-state subset;
+no assembly, retail placement data or external implementation is copied.

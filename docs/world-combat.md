@@ -128,3 +128,44 @@ a playable-combat claim nor evidence of complete native weapon compatibility.
 The source data and full projections remain ignored in
 `local/combat-capabilities/`. Actor admission and a full source/world comparison
 are the next dependency before browser attack controls.
+
+## Initial placement admission
+
+The internal `inspectCombatPlacement` composition helper retains source row rank,
+AI group, bridge/follower state and independent recruitment flags for infantry and
+units. Its caller must pass a freshly source-authenticated placement, such as the
+combat-actor compiler's reconstructed `sourcePlacement`. It does not authenticate
+arbitrary caller-created rows or execute their missions or AI flags.
+
+Both native row readers use a 128-byte string buffer and comma tokenization. This
+first policy therefore requires exactly 14 nonempty semantic tokens and at most
+127 printable ASCII characters before the comment. It accepts only complete signed
+decimal int32 tail values; ambiguous/truncated rows and native `atoi` prefix or
+overflow cases remain unsupported. In particular, the INI reader's dollar/hex
+syntax is not used by these placement-tail readers.
+
+Only rank zero, ground/bridge flag zero and a unit follower index of `-1` enter the
+ordinary-ground subset. Rank, group and recruitment values remain visible even
+when they prevent admission. The two native rank setters multiply the integer by
+0.01, then store binary64 in RA2 and binary32 in YR. Admitting only zero does not
+claim to implement either profile's nonzero rank rounding or veterancy effects.
+Structures, aircraft and passive objects require separate admission policies.
+
+Three original fixture tests cover both profiles, independent flags, veterancy,
+bridge/follower exclusion, decimal syntax, missing/empty/oversized tails and
+comments. The [static range ledger](analysis/combat-placement-native.json) pins
+14 complete code/data ranges totaling 3,660 bytes in both full-hash-verified images.
+No native program was executed. Private reproduction uses
+`local/combat-placement/ledger.py`, the source-verified
+`local/combat-capabilities/probe.ts` and the separate raw-INI projection in
+`local/combat-placement/oracle.py`.
+
+The independent private source comparison checks all 1,381 placement rows and
+9,681 projected scalar leaves. Of the 59 RA2 infantry/unit rows, 45 meet this
+placement subset and 14 have initial veterancy; all 74 YR rows meet this subset.
+The remaining 1,248 rows are not applicable to this helper. These are placement
+counts, not counts of executable combat actors. Other actor, weapon and world
+requirements still apply. Canonical private projections have hashes
+`25b306a521658cb0f6679225ca577c22f17063fec17d0c93b58bb4d7c261e2c5`
+(RA2) and `1c4d36f8dbb8f61ba47786f92d21c40fc884cfb55370adc94bafc605db49deb7`
+(YR); source rows and projections are not distributed.
