@@ -16,6 +16,9 @@ numeric key in exact `Waypoints`, a nonzero coordinate and the existing supporte
 map diamond. Duplicate keys/numeric aliases reject in the existing parser; repeated
 exact sections and normalized header suffixes cannot grant execution. Retained
 wrong-case/noncanonical rows remain metadata with unsupported status.
+Only the byte-preserving ASCII-compatible source mode grants initial execution.
+The general parsers still retain decoded UTF-16LE/UTF-8 BOM metadata, but these
+encodings produce `source-encoding` diagnostics and cannot supply execution cells.
 
 This helper does not create Scenario state or expose a dynamic fallback. A future
 dynamic waypoint writer or imported native Scenario state needs separate
@@ -56,11 +59,17 @@ source row, section, token, character and diagnostic limits; the join work count
 is not a bound on all parser work or total RSS. Wrong profile/hash, forged factory
 results, accessors, resizable/shared buffers and invalid counters cannot grant a
 source location. Failure publishes no partial authority.
+Input, source and limit fields are captured once from data-property descriptors;
+later Proxy `get` traps cannot substitute a source pin or enlarge a validated cap.
+Byte ownership uses intrinsic typed-array/ArrayBuffer accessors and rejects typed-array
+proxies rather than reading replaceable buffer/length properties.
 
-Seven original tests include all 702 numeric keys in each profile, explicit
+Nine original tests include all 702 numeric keys in each profile, explicit
 0/100/101/701 execution boundaries, zero/missing values, aliases, repeated/exact-case
 headers, malformed identity/shape/resource limits, complete-script rejection and
-all three genuine adapters. They preserve the old metadata result while rejecting
+all three genuine adapters. Both profiles cover switching Proxy identities/limits,
+intrinsic buffer ownership and retained BOM-decoded metadata without execution.
+They preserve the old metadata result while rejecting
 unsafe execution. Existing team/spawn/recruitment save/replay tests also pass.
 
 A separate private comparison freshly prepares the source-selected Allied opening

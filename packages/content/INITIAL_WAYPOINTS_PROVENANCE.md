@@ -46,4 +46,6 @@ bounded unsigned decimal coordinates in its supported map diamond; this change
 does not add wrapping, signed-coordinate, alternate integer syntax or full native
 parser compatibility. Exact-case and retained-origin handling inherits the
 [source view evidence](INI_SOURCE_PROVENANCE.md), while duplicate/suffix ambiguity
-is conservatively rejected for execution.
+is conservatively rejected for execution. Initial execution requires that view's
+byte-preserving ASCII-compatible source mode; general UTF BOM decoding remains
+metadata only and is not inferred to match the inspected native byte reader.

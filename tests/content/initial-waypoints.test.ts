@@ -48,3 +48,46 @@ test('source bytes and identities are owned; forged brands, mismatched hashes an
  let getters=0;const hostile={...valid};Object.defineProperty(hostile,'bytes',{get(){getters++;return valid.bytes;},enumerable:true});assert.throws(()=>compile(hostile));assert.equal(getters,0);
  for(const n of [-0,-1,NaN,Infinity,0.5])assert.equal(resolve(c,n).status,'unsupported');
 });
+test('descriptor snapshots preserve authenticated identities and limits without invoking switching Proxy reads',()=>{
+ for(const profile of ['ra2','yr'] as const){
+  const valid=input(profile,'0=3003'), expected=compile(valid); let gets=0;
+  const reads=new Map<string,number>();
+  const identity=new Proxy(valid.source,{
+   get(target,key){gets++;return key==='sha256'?'f'.repeat(64):Reflect.get(target,key);},
+   getOwnPropertyDescriptor(target,key){reads.set(String(key),(reads.get(String(key))??0)+1);return Reflect.getOwnPropertyDescriptor(target,key);}
+  });
+  const source=new Proxy({...valid,source:identity},{get(){gets++;throw new Error('unexpected property read');}});
+  const options=new Proxy({rows:1},{get(){gets++;return 4096;}});
+  const result=compile(source,options);
+  assert.equal(gets,0);assert.deepEqual(Object.fromEntries(reads),{id:1,profile:1,sha256:1});
+  assert.equal(result.source.sha256,valid.source.sha256);assert.equal(result.sha256,expected.sha256);
+  assert.equal(resolve(result,0).status,'supported-source');
+  const tooSmall=new Proxy({bytes:1},{get(){gets++;return valid.bytes.length;}});
+  assert.throws(()=>compile(source,tooSmall),/bytes/);assert.equal(gets,0);
+  const forged=new Proxy({...valid.source,sha256:'f'.repeat(64)},{get(){gets++;return valid.source.sha256;}});
+  assert.throws(()=>compile({...valid,source:forged}),/source-hash/);assert.equal(gets,0);
+  const proxyBytes=new Proxy(valid.bytes,{get(){gets++;throw new Error('unexpected typed-array property read');}});
+  assert.throws(()=>compile({...valid,bytes:proxyBytes}),/bytes/);assert.equal(gets,0);
+  const shadowed=valid.bytes.slice();Object.defineProperty(shadowed,'buffer',{get(){gets++;return valid.bytes.buffer;}});
+  assert.throws(()=>compile({...valid,bytes:shadowed}),/bytes/);assert.equal(gets,0);
+  const resizable=Reflect.construct(ArrayBuffer,[valid.bytes.length,{maxByteLength:valid.bytes.length+1}]) as ArrayBuffer;
+  for(const bytes of [new Uint8Array(new SharedArrayBuffer(valid.bytes.length)),new Uint8Array(resizable)]){
+   bytes.set(valid.bytes);assert.throws(()=>compile({...valid,bytes}),/bytes/);
+  }
+  const padded=new Uint8Array(valid.bytes.length+6);padded.set(valid.bytes,3);
+  assert.equal(compile({...valid,bytes:padded.subarray(3,-3)}).sha256,expected.sha256);
+ }
+});
+test('decoded UTF BOM metadata never grants byte-native initial waypoint execution in either profile',()=>{
+ for(const profile of ['ra2','yr'] as const){
+  const plain=input(profile,'0=3003\n1=2002'),text=new TextDecoder().decode(plain.bytes);
+  for(const encoded of [Buffer.concat([Buffer.from([255,254]),Buffer.from(text,'utf16le')]),Buffer.concat([Buffer.from([239,187,191]),Buffer.from(text,'utf8')])]){
+   const bytes=new Uint8Array(encoded),source={...plain.source,sha256:createHash('sha256').update(bytes).digest('hex')},value={profile,source,bytes};
+   const metadata=compileScenarioObjects(value),catalog=compile(value);
+   assert.equal(metadata.waypoints.length,2);assert.deepEqual(catalog.rows.map(r=>r.waypoint),metadata.waypoints);
+   for(const n of [0,1]){const resolution=resolve(catalog,n);assert.equal(resolution.status,'unsupported');if(resolution.status==='unsupported')assert(resolution.reasons.includes('source-encoding'));}
+   assert.equal(catalog.source.sha256,source.sha256);
+  }
+  assert.equal(resolve(compile(plain),0).status,'supported-source');
+ }
+});
