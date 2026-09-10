@@ -20,9 +20,14 @@ export function worldRecord(value: unknown, keys: readonly string[]): Record<str
   return out;
 }
 export function worldList(value: unknown, max: number): unknown[] {
-  if (!Array.isArray(value) || Object.getPrototypeOf(value) !== Array.prototype || value.length > max || Reflect.ownKeys(value).length !== value.length + 1) worldFail('world-array-limit');
+  if (!Array.isArray(value) || Object.getPrototypeOf(value) !== Array.prototype) worldFail('world-array-limit');
+  // Own the length once, just like each element. Proxy reads cannot change a bound after validation.
+  const descriptor = Object.getOwnPropertyDescriptor(value, 'length');
+  const length: unknown = descriptor && 'value' in descriptor ? descriptor.value : undefined;
+  if (typeof length !== 'number' || !Number.isSafeInteger(length) || length < 0 || length > max ||
+    Reflect.ownKeys(value).length !== length + 1) worldFail('world-array-limit');
   const out: unknown[] = [];
-  for (let i = 0; i < value.length; i++) {
+  for (let i = 0; i < length; i++) {
     const d = Object.getOwnPropertyDescriptor(value, String(i)); if (!d || !('value' in d) || !d.enumerable) worldFail('world-array'); out.push(d.value);
   }
   return out;

@@ -132,3 +132,16 @@ test('death horizon and aggregate model limits fail atomically',()=>{
  for(const actors of [[deathActor(2,{corpseAnimationIds:Array(65).fill('original:corpse')})],Array.from({length:65},(_,i)=>deathActor(i+1,{corpseAnimationIds:Array(64).fill('original:corpse')}))])
   assert.throws(()=>createOrdinaryDeathRules({actors,weapons:[{weaponId:'original:gun',infDeath:1}]}));
 });
+
+test('owned array lengths enforce candidate and actor caps without evaluating Proxy length reads',()=>{
+ let calls=0;
+ const shrinking=(values:unknown[])=>new Proxy(values,{get(target,key,receiver){if(key==='length')return ++calls===1?target.length-1:target.length;return Reflect.get(target,key,receiver);}});
+ const candidates=shrinking(Array(65).fill('original:corpse')) as string[];
+ assert.throws(()=>createOrdinaryDeathRules({actors:[deathActor(2,{corpseAnimationIds:candidates})],weapons:[{weaponId:'original:gun',infDeath:1}]}),/world-array-limit/);
+ const actors=shrinking(Array.from({length:2049},(_,i)=>deathActor(i+1,{corpseAnimationIds:['original:corpse']}))) as OrdinaryDeathActor[];
+ assert.throws(()=>createOrdinaryDeathRules({actors,weapons:[{weaponId:'original:gun',infDeath:1}]}),/world-array-limit/);
+ assert.equal(calls,0);
+ const valid=new Proxy(['original:corpse'],{get(target,key,receiver){if(key==='length')throw Error('length getter ran');return Reflect.get(target,key,receiver);}});
+ const admitted=createOrdinaryDeathRules({actors:[deathActor(2,{corpseAnimationIds:valid})],weapons:[{weaponId:'original:gun',infDeath:1}]});
+ assert.deepEqual(admitted.actors[0]!.corpseAnimationIds,['original:corpse']);
+});
