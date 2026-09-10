@@ -13,6 +13,9 @@ units. Alt-left-drag and middle-drag pan instead. Right-click moves the selectio
 only when the retained displayed-frame pick identifies exposed terrain; objects
 and background produce explicit feedback. All group members share that cell.
 The existing movement engine determines path availability and occupancy results.
+This checkpoint's shared-cell behavior is being replaced by the coordinator-approved
+distinct destination planner in [#152](https://github.com/lictl/WebRA2/issues/152)
+before final acceptance; a first arrival can otherwise block the remaining group.
 
 The selection is a sorted set of at most 64 authoritative entity IDs and never
 enters simulation state. Exceeding the limit retains the prior selection and
@@ -69,15 +72,30 @@ model identity. All prior source/codec/privacy and browser-local save bounds rem
 
 ## Validation checkpoint
 
-The checkpoint passes TypeScript and all 703 public tests; its build emits 43
-code/license files from 104 approved inputs. Eleven new original synthetic cases cover selection transitions and limits, live ownership,
+The initial `c12d3cef4d79392de8ed35c58520c8012bb7cd5a` checkpoint passes TypeScript
+and all 703 public tests. Its [independent source review](https://github.com/lictl/WebRA2/pull/153#pullrequestreview-5162521482)
+has no actionable finding and explicitly excludes the pending planner/browser gates.
+After reviewed-main integration at `8f91686407af6c7942cd31c6d1e0d77c3c198cbc`,
+all 758 tests pass; the build emits 46 code/license files from 107 approved inputs.
+Document checks cover 117 files and 608 local links; publication checks cover 420
+tracked paths. Eleven new original synthetic cases cover selection transitions and limits, live ownership,
 projection and forged point metadata, stale wire/revision joins, exact group/single
 save and replay equivalence, real aggregate queue and sequence overflow rollback,
 gesture modes, keyboard focus/modifiers, localization and asynchronous disposal.
 They use original fixtures and do not establish native gameplay compatibility.
 
-Actual four-browser direct-pointer workflows and fresh private opening-world
-group/save/replay comparisons are pending at this implementation checkpoint.
+Fresh private Node File-backed loads of all 438 selected files reproduce both
+openings' prior model, initial image, single-order moving checkpoint and terminal
+replay hashes. Strict version-5 frames pass, and retained object picks join two
+visible owned actors to their verified whole-cell control points and selection
+rectangle. These checks are private component evidence, not native browser tests.
+The reproducible probe and factual output remain in ignored
+`local/world-controls/preflight.mjs` and `preplanner-facts.json`.
+
+Actual four-browser direct-pointer workflows and final private opening-world
+group/save/replay comparisons remain pending. Native control reported a locked
+Mac and failed automatic unlock; the coordinator requested manual unlock while
+independent implementation continues. The shared planner dependency remains open.
 The preserved accepted viewport on port 4177 is unchanged. Safari's separate
 automatic-running gate remains [#115](https://github.com/lictl/WebRA2/issues/115);
 explicit-step checks must not be reported as automatic Run acceptance.
