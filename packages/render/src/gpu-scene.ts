@@ -142,16 +142,19 @@ export function pickGpuFrame(frame: GpuFrame, sample: Readonly<{ kind: number; o
   const data = frameData(frame), scene = sceneData(frame.scene), v = frame.viewport;
   if (!Number.isFinite(viewX) || !Number.isFinite(viewY) || viewX < 0 || viewY < 0 || viewX >= v.width || viewY >= v.height) return null;
   fields(sample, ['kind', 'owner', 'depth']);
-  integer(sample.kind, 0, 2, 'gpu-pick-kind'); integer(sample.owner, -1, GPU_PREPARE_LIMITS.draws, 'gpu-pick-owner');
-  integer(sample.depth, -2147483648, GPU_DEPTH_MAX, 'gpu-pick-depth');
-  if (sample.kind === 0) { if (sample.owner !== -1 || sample.depth !== -2147483648) fail('gpu-pick-empty'); return null; }
-  const worldX = data.packet.sampleX[Math.floor(viewX)]!, worldY = data.packet.sampleY[Math.floor(viewY)]!, depth = sample.depth;
+  const kind: unknown = Object.getOwnPropertyDescriptor(sample, 'kind')!.value;
+  const owner: unknown = Object.getOwnPropertyDescriptor(sample, 'owner')!.value;
+  const depth: unknown = Object.getOwnPropertyDescriptor(sample, 'depth')!.value;
+  integer(kind, 0, 2, 'gpu-pick-kind'); integer(owner, -1, GPU_PREPARE_LIMITS.draws, 'gpu-pick-owner');
+  integer(depth, -2147483648, GPU_DEPTH_MAX, 'gpu-pick-depth');
+  if (kind === 0) { if (owner !== -1 || depth !== -2147483648) fail('gpu-pick-empty'); return null; }
+  const worldX = data.packet.sampleX[Math.floor(viewX)]!, worldY = data.packet.sampleY[Math.floor(viewY)]!;
   if (depth < GPU_DEPTH_MIN) fail('gpu-pick-depth');
-  if (sample.kind === 1) {
-    const p = scene.terrain.placements[sample.owner]; if (!p) fail('gpu-pick-owner');
+  if (kind === 1) {
+    const p = scene.terrain.placements[owner]; if (!p) fail('gpu-pick-owner');
     return Object.freeze({ kind: 'terrain', sourceRecord: p.sourceRecord, x: p.x, y: p.y, assetId: p.assetId, subtile: p.subtile, worldX, worldY, depth });
   }
-  const p = data.objects[sample.owner]; if (!p) fail('gpu-pick-owner');
+  const p = data.objects[owner]; if (!p) fail('gpu-pick-owner');
   const o = p.object;
   return Object.freeze({ kind: 'object', id: o.id, frameId: o.frameId, assetId: p.metadata.assetId, frame: p.metadata.frame, paletteId: o.paletteId,
     canvasX: worldX - o.x + o.anchorX, canvasY: worldY - o.y + o.anchorY, worldX, worldY, depth });
