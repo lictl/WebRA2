@@ -1,17 +1,15 @@
 // SPDX-License-Identifier: MIT
 // Original content-bound world model. Native interpretation belongs to the content adapter.
-import { sha256 } from '@noble/hashes/sha2.js';
 import type { ContentIdentity } from '../../contracts/src/index.ts';
 import { canonicalText } from './canonical.ts';
+import { assertCombatModel, type CombatModel } from './combat-model.ts';
+import { worldFail, worldRecord, worldList, worldInteger, worldSymbol as symbol, worldSourceHash as hash, worldContent, worldAddress, worldPosition, worldHash, WORLD_LIMITS } from './world-values.ts';
+export * from './world-values.ts';
 import { navigationCell, NAVIGATION_POLICY, type NavigationGrid } from './navigation.ts';
 
 export const WORLD_MODEL_POLICY = 'webra2-world-model-1' as const;
 export const WORLD_MOTION_POLICY = 'webra2-cell-motion-1' as const;
 export const WORLD_ENGINE_VERSION = 'webra2-world-1' as const;
-export const WORLD_LIMITS = Object.freeze({ entities: 2048, players: 256, grids: 8, blocked: 16384,
-  paths: 16384, commands: 256, futureTicks: 10000, stepTicks: 128, tick: 1_000_000_000,
-  routeExpansionsPerTick: 8192, routeQueriesPerTick: 8, transitionsPerTick: 8192, trace: 32768,
-  retryTicks: 15, health: 1_000_000, replayTicks: 10000, replayAdmissions: 1024, replayWork: 16_777_216 });
 export interface WorldEntityDefinition {
   readonly id: number; readonly rowId: string; readonly typeId: string; readonly owner: number | null;
   readonly kind: 'infantry' | 'unit' | 'aircraft' | 'structure' | 'terrain' | 'smudge';
@@ -28,6 +26,7 @@ export interface WorldModelInput {
   readonly blocked: readonly Readonly<{ x: number; y: number }>[];
   /** Extra absolute occupied cells belonging to stationary entities; omit each anchor handled by blocksCell. */
   readonly footprints?: readonly WorldFootprint[];
+  readonly combat?: CombatModel;
 }
 export interface WorldModel {
   readonly policy: typeof WORLD_MODEL_POLICY; readonly motionPolicy: typeof WORLD_MOTION_POLICY;
@@ -36,55 +35,16 @@ export interface WorldModel {
   readonly navigation: readonly WorldNavigationBinding[]; readonly blocked: readonly number[];
   readonly footprints: readonly Readonly<{ entityId: number; cells: readonly number[] }>[];
   readonly initialSharedCells: number; readonly nativeBehaviorVerified: false;
-}
-export class WorldError extends Error { constructor(readonly code: string) { super(code); this.name = 'WorldError'; } }
-export function worldFail(code: string): never { throw new WorldError(code); }
-export function worldRecord(value: unknown, keys: readonly string[]): Record<string, unknown> {
-  if (!value || typeof value !== 'object' || ![Object.prototype, null].includes(Object.getPrototypeOf(value)) || Reflect.ownKeys(value).length !== keys.length) worldFail('world-record');
-  const out: Record<string, unknown> = Object.create(null) as Record<string, unknown>;
-  for (const key of keys) {
-    const d = Object.getOwnPropertyDescriptor(value, key);
-    if (!d || !('value' in d) || !d.enumerable) worldFail('world-fields'); out[key] = d.value;
-  }
-  return out;
-}
-export function worldList(value: unknown, max: number): unknown[] {
-  if (!Array.isArray(value) || Object.getPrototypeOf(value) !== Array.prototype || value.length > max || Reflect.ownKeys(value).length !== value.length + 1) worldFail('world-array-limit');
-  const out: unknown[] = [];
-  for (let i = 0; i < value.length; i++) {
-    const d = Object.getOwnPropertyDescriptor(value, String(i)); if (!d || !('value' in d) || !d.enumerable) worldFail('world-array'); out.push(d.value);
-  }
-  return out;
-}
-export function worldInteger(value: unknown, min: number = 0, max: number = WORLD_LIMITS.tick): number {
-  if (!Number.isSafeInteger(value) || Object.is(value, -0) || (value as number) < min || (value as number) > max) worldFail('world-integer'); return value as number;
-}
-function symbol(value: unknown): string {
-  if (typeof value !== 'string' || !value.length || value.length > 255 || /[\x00-\x1f\x7f]/.test(value)) worldFail('world-symbol'); return value;
-}
-function hash(value: unknown): string { if (typeof value !== 'string' || !/^[a-f0-9]{64}$/.test(value)) worldFail('world-source-hash'); return value; }
-export function worldClone<T>(value: T): T {
-  try { return JSON.parse(canonicalText(value)) as T; } catch { return worldFail('world-json-limit'); }
-}
-export function worldContent(value: unknown): ContentIdentity {
-  const r = worldRecord(value, ['profile', 'manifestSha256', 'rulesSha256', 'orderedModHashes']);
-  if (r.profile !== 'ra2' && r.profile !== 'yr') worldFail('world-profile');
-  return Object.freeze({ profile: r.profile, manifestSha256: hash(r.manifestSha256), rulesSha256: hash(r.rulesSha256),
-    orderedModHashes: Object.freeze(worldList(r.orderedModHashes, 256).map(hash)) });
-}
-export function worldAddress(x: unknown, y: unknown): number { return worldInteger(x, 0, 511) + 512 * worldInteger(y, 0, 511); }
-export const worldPosition = (address: number) => ({ x: address % 512, y: Math.floor(address / 512) });
-export function worldHash(value: unknown): string {
-  const bytes = new TextEncoder().encode(canonicalText(value)); return Array.from(sha256(bytes), b => b.toString(16).padStart(2, '0')).join('');
+  readonly combat?: CombatModel;
 }
 const models = new WeakSet<WorldModel>();
 export function assertWorldModel(model: WorldModel): void { if (!models.has(model)) worldFail('world-model'); }
 
 /** Content adapters supply interpreted health, occupancy and traversal. No art/pixel inference occurs here. */
 export function createWorldModel(input: WorldModelInput): WorldModel {
-  const hasFootprints = !!input && Object.hasOwn(input, 'footprints');
+  const hasFootprints = !!input && Object.hasOwn(input, 'footprints'), hasCombat = !!input && Object.hasOwn(input, 'combat');
   const r = worldRecord(input, ['contentIdentity', 'sourceSha256', 'definitionsSha256', 'entities', 'navigation', 'blocked',
-    ...(hasFootprints ? ['footprints'] : [])]);
+    ...(hasFootprints ? ['footprints'] : []), ...(hasCombat ? ['combat'] : [])]);
   const contentIdentity = worldContent(r.contentIdentity), sourceSha256 = hash(r.sourceSha256), definitionsSha256 = hash(r.definitionsSha256);
   const classes = new Set<string>(), navigation: WorldNavigationBinding[] = [];
   for (const item of worldList(r.navigation, WORLD_LIMITS.grids)) {
@@ -135,10 +95,18 @@ export function createWorldModel(input: WorldModelInput): WorldModel {
   for (const e of entities) if (e.blocksCell && e.initialHealth !== 0) { const at = worldAddress(e.x, e.y); occupied.set(at, (occupied.get(at) ?? 0) + 1); }
   for (const p of footprints) if (byId.get(p.entityId)!.initialHealth !== 0) for (const at of p.cells) occupied.set(at, (occupied.get(at) ?? 0) + 1);
   const initialSharedCells = [...occupied.values()].filter(n => n > 1).length;
+  const combat = r.combat as CombatModel | undefined;
+  if (hasCombat) {
+    assertCombatModel(combat!);
+    for (const a of combat!.actors) {
+      const d = byId.get(a.entityId);
+      if (!d || d.maximumHealth === null || a.weapons.length > 0 && d.owner === null) worldFail('world-combat-actor');
+    }
+  }
   const common = { policy: WORLD_MODEL_POLICY, motionPolicy: WORLD_MOTION_POLICY, contentIdentity, sourceSha256, definitionsSha256,
     entities: Object.freeze(entities), blocked: Object.freeze(blocked), footprints: Object.freeze(footprints), initialSharedCells, nativeBehaviorVerified: false as const };
-  const sha256 = worldHash({ ...common, navigation: navigation.map(b => ({ gridSha256: b.grid.sha256, costScale: b.costScale })) });
-  const model = Object.freeze({ ...common, navigation: Object.freeze(navigation), sha256 }); models.add(model); return model;
+  const sha256 = worldHash({ ...common, ...(combat ? { combatSha256: combat.sha256 } : {}), navigation: navigation.map(b => ({ gridSha256: b.grid.sha256, costScale: b.costScale })) });
+  const model = Object.freeze({ ...common, ...(combat ? { combat } : {}), navigation: Object.freeze(navigation), sha256 }); models.add(model); return model;
 }
 
 /** Local adjacency/cost check used to validate persisted routes against the immutable grid policy. */

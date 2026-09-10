@@ -14,8 +14,7 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
-Current wave: coordinator [selection-independent save identity #134](https://github.com/lictl/WebRA2/issues/134),
-then [authoritative combat #132](https://github.com/lictl/WebRA2/issues/132);
+Current wave: coordinator [authoritative combat #132](https://github.com/lictl/WebRA2/issues/132);
 browser agent [world orders/save UI #127 / PR #128](https://github.com/lictl/WebRA2/pull/128);
 format agent [voxel resource preparation #133](https://github.com/lictl/WebRA2/issues/133);
 simulation agent [typed teams/task forces/scripts #131](https://github.com/lictl/WebRA2/issues/131).
@@ -46,10 +45,16 @@ Actual Chrome then exposed #134: traversal hashing included a catalog session ha
 so equivalent file selections produced different model/save identities. The narrow
 policy-2 correction passes 625 tests and full private normal/reversed-selection
 world, checkpoint and replay equality for both openings; see
-[the correction report](selection-identity.md). Independent review/CI precede merge.
-Preserve immutable pre-fix server4175 and its Chrome evidence. The browser agent
-will freeze corrected bytes and complete actual Chrome/Edge/Firefox/Safari world
-acceptance. No original mission is playable; combat and mission execution remain.
+[the correction report](selection-identity.md). The fix merged in [PR #135](https://github.com/lictl/WebRA2/pull/135) as
+`e3eb619ad97a9edff2b1469dd0e17e7e6cd50d51` after
+[independent exact-head review](https://github.com/lictl/WebRA2/pull/135#pullrequestreview-5161693533)
+of `0ccd7d6d736e9a9dd77d44f9f55f54294f928dab` and CI run34425063937. #134 is closed.
+Preserve immutable pre-fix server4175 and its Chrome evidence. The browser agent froze corrected server4176 at UI head `fed54cd`, with
+640 passing tests and matching private application-loader identities; actual
+Chrome/Edge/Firefox/Safari world acceptance is in progress. The original [combat core](world-combat.md) now has 13 passing focused tests
+(638 integrated) for attacks, cooldowns/bursts, exact factors, impacts/death and
+moving/firing checkpoints/replay. Native capability admission and private comparisons
+remain before combat review/merge. No original mission is playable.
 The media component has complete long-clip playback in Chrome, Edge and Firefox;
 Safari's hidden-page scheduling gap remains [#115](https://github.com/lictl/WebRA2/issues/115),
 and campaign cinematic acceptance remains #12. #103 retains exact-source consumer migrations.
@@ -83,7 +88,7 @@ the coordinator after independent exact-head COMMENT review and successful check
 
 | Role | Current work and exclusive paths | Branch / private worktree |
 | --- | --- | --- |
-| Coordinator | #134 durable identity, then #132 combat/model/save/replay; shared configuration/handoff and reviews | `codex/134-selection-identity`, then `codex/132-world-combat` at root |
+| Coordinator | #132 combat/model/save/replay and native capability adapter; shared configuration/handoff and reviews | `codex/132-world-combat` at root |
 | browser_feasibility | #127 world orders/save UI; apps/web/**, tests/browser/**, tests/web-ui/terrain.test.ts and focused docs; sole native UI owner | `codex/127-world-ui`, `local/worktrees/world-ui` |
 | mix_reader | #133 voxel resource plan/preparation; new content files/tests/provenance | `codex/133-voxel-resources`, `local/worktrees/voxel-resources` |
 | bootstrap_review | #131 typed teams/task forces/scripts; new content files/tests/provenance | `codex/131-team-definitions`, `local/worktrees/team-definitions` |
