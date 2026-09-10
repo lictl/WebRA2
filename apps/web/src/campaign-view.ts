@@ -8,7 +8,7 @@ const node=<K extends keyof HTMLElementTagNameMap>(tag:K,text?:string)=>{const n
 export function mountCampaign(root:HTMLElement,controller:TerrainController):()=>void{
   root.innerHTML=template;const get=<T extends HTMLElement=HTMLElement>(id:string)=>root.querySelector<T>('#campaign-'+id)!;
   const folder=get<HTMLInputElement>('folder-input'),files=get<HTMLInputElement>('file-input'),chooser=get('chooser'),viewport=get('viewport');
-  let terrain:ReturnType<typeof mountTerrain>|null=null,lastPlan='',lastLocale='',disposed=false;
+  let terrain:ReturnType<typeof mountTerrain>|null=null,lastPlan='',lastLocale='',disposed=false,mounting=false;
   const canFolder='webkitdirectory' in folder;get('folder').hidden=!canFolder;get('fallback').hidden=canFolder;
   get('folder').addEventListener('click',()=>folder.click());get('files').addEventListener('click',()=>files.click());
   for(const input of [folder,files])input.addEventListener('change',()=>{if(input.files?.length)controller.select(input.files);input.value='';});
@@ -16,10 +16,10 @@ export function mountCampaign(root:HTMLElement,controller:TerrainController):()=
   get<HTMLSelectElement>('profile').addEventListener('change',()=>controller.setProfile(get<HTMLSelectElement>('profile').value as 'ra2'|'yr'));
   get<HTMLSelectElement>('locale').addEventListener('change',()=>controller.setLocale(get<HTMLSelectElement>('locale').value as Locale));
   const unsubscribe=controller.subscribe(state=>{
-    if(disposed)return;const t=(key:string)=>campaignText(state.locale,key),playing=state.phase==='ready'&&state.campaign!==null;
+    if(disposed||mounting)return;const t=(key:string)=>campaignText(state.locale,key),playing=state.phase==='ready'&&state.campaign!==null;
     chooser.hidden=playing;viewport.hidden=!playing;
-    if(playing){if(!terrain){terrain=mountTerrain(viewport,controller,{campaign:true});queueMicrotask(()=>{if(!disposed&&controller.state.phase==='ready')viewport.querySelector<HTMLCanvasElement>('canvas')?.focus();});}return;}
-    if(terrain){terrain();terrain=null;viewport.replaceChildren();queueMicrotask(()=>{if(!disposed)get('entries').querySelector<HTMLButtonElement>('button:not(:disabled)')?.focus();});}
+    if(playing){if(!terrain){mounting=true;try{terrain=mountTerrain(viewport,controller,{campaign:true});}finally{mounting=false;}queueMicrotask(()=>{if(!disposed&&controller.state.phase==='ready')viewport.querySelector<HTMLCanvasElement>('canvas')?.focus();});}return;}
+    if(terrain){const release=terrain;terrain=null;release();viewport.replaceChildren();queueMicrotask(()=>{if(!disposed)get('entries').querySelector<HTMLButtonElement>('button:not(:disabled)')?.focus();});}
     const localeChanged=lastLocale!==state.locale;
     if(localeChanged){lastLocale=state.locale;document.documentElement.lang=state.locale;for(const el of chooser.querySelectorAll<HTMLElement>('[data-campaign]'))el.textContent=t(el.dataset.campaign!);chooser.querySelector('nav')!.setAttribute('aria-label',t('workspace'));}
     get<HTMLSelectElement>('locale').value=state.locale;get<HTMLSelectElement>('profile').value=state.profile;
