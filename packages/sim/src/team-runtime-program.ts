@@ -2,9 +2,10 @@
 // Original source-bound script admission; see ../TEAM_RUNTIME_PROVENANCE.md.
 import { TEAM_SLEEP_POLICY, teamSleepInstruction, type TeamSleepInstruction } from './team-sleep-policy.ts';
 import { TEAM_FLASH_POLICY, teamFlashInstruction, type TeamFlashInstruction } from './team-recruitment-flash.ts';
+import { INITIAL_WAYPOINT_LIMITS, compileInitialWaypointSource, resolveInitialWaypoint } from '../../content/src/initial-waypoints.ts';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { isTeamDefinitions, type TeamDefinitions } from '../../content/src/team-definitions.ts';
-import { compileScenarioObjects, type ScenarioObjects } from '../../content/src/scenario-objects.ts';
+import { type ScenarioObjects } from '../../content/src/scenario-objects.ts';
 import { isWorldContent, type WorldContent } from './world-content.ts';
 import { worldHash, worldInteger, worldList, worldRecord, worldSymbol, worldSourceHash } from './world-values.ts';
 
@@ -24,7 +25,7 @@ export interface TeamTemplate {
 export interface TeamProgram {
   readonly schemaVersion: 1; readonly policy: typeof TEAM_RUNTIME_POLICY; readonly sleepPolicy: typeof TEAM_SLEEP_POLICY; readonly flashPolicy: typeof TEAM_FLASH_POLICY;
   readonly profile: 'ra2' | 'yr'; readonly teamsSha256: string; readonly worldSha256: string;
-  readonly modelSha256: string; readonly missionSha256: string; readonly entitiesSha256: string;
+  readonly initialWaypointsSha256: string; readonly modelSha256: string; readonly missionSha256: string; readonly entitiesSha256: string;
   readonly templates: readonly TeamTemplate[]; readonly limits: Readonly<TeamRuntimeLimits>;
   readonly sha256: string; readonly nativeExecutionVerified: false; readonly canStartCampaign: false;
 }
@@ -77,8 +78,7 @@ export function compileTeamProgram(input: { readonly teams: TeamDefinitions; rea
   if (!selected.length || new Set(selected).size !== selected.length) teamRuntimeFail('team-selection');
   const bytes = ownedBytes(mission.bytes as Uint8Array, cap.missionBytes);
   if (Array.from(sha256(bytes), n => n.toString(16).padStart(2, '0')).join('') !== source.sha256) teamRuntimeFail('mission-hash');
-  const objects = compileScenarioObjects({ profile: teams.profile, source: teams.source, bytes });
-  const waypoints = new Map(objects.waypoints.map(w => [w.row.id, w]));
+  const initialWaypoints = compileInitialWaypointSource({ profile: teams.profile, source: teams.source, bytes }, { bytes: cap.missionBytes, work: Math.min(cap.work, INITIAL_WAYPOINT_LIMITS.work) });
   const allTeams = new Map(teams.teams.map(t => [t.id, t])), scripts = new Map(teams.scripts.map(s => [s.id, s]));
   const forces = new Map(teams.taskForces.map(f => [f.id, f])), players = new Map(world.players.map(p => [p.houseId, p.playerId]));
   const templates: TeamTemplate[] = [], coverage: { teamId: string; steps: number; supportedSteps: number; reasons: string[] }[] = [];
@@ -118,8 +118,10 @@ export function compileTeamProgram(input: { readonly teams: TeamDefinitions; rea
       if (flash) { steps.push(flash); continue; }
       if (s.status !== 'typed') { add(`unsupported-operand:${s.sourceSlot}`); continue; }
       if (s.opcode === 3) {
-        const wp = s.waypointRowId ? waypoints.get(s.waypointRowId) : undefined;
-        if (!wp || wp.number !== s.argument || !wp.insideDiamond || wp.row.origin.sectionSpelling !== 'Waypoints') { add(`waypoint-source:${s.sourceSlot}`); continue; }
+        const resolved = resolveInitialWaypoint(initialWaypoints, s.argument!);
+        if (resolved.status !== 'supported-source') { add(`waypoint-source:${s.sourceSlot}`); for (const reason of resolved.reasons) add(`waypoint:${reason}:${s.sourceSlot}`); continue; }
+        const wp = resolved.waypoint;
+        if (wp.row.id !== s.waypointRowId) { add(`waypoint-source:${s.sourceSlot}`); continue; }
         steps.push({ opcode: 3, sourceSlot: s.sourceSlot, waypoint: wp.number, rowId: wp.row.id, x: wp.x, y: wp.y });
       } else if (s.opcode === 6 && s.operand.targetRuntimeIndex !== null && s.operand.targetRuntimeIndex >= 0 && s.operand.targetRuntimeIndex < script!.steps.length) {
         steps.push({ opcode: 6, sourceSlot: s.sourceSlot, target: s.operand.targetRuntimeIndex });
@@ -133,7 +135,7 @@ export function compileTeamProgram(input: { readonly teams: TeamDefinitions; rea
   }
   if (diagnostics.length) return teamRuntimeFreeze({ program: null, coverage, diagnostics, nativeExecutionVerified: false, canStartCampaign: false });
   const data = { schemaVersion: 1 as const, policy: TEAM_RUNTIME_POLICY, sleepPolicy: TEAM_SLEEP_POLICY, flashPolicy: TEAM_FLASH_POLICY, profile: teams.profile, teamsSha256: teams.fingerprint,
-    worldSha256: world.sha256, modelSha256: world.model.sha256, missionSha256: teams.source.sha256, entitiesSha256: teams.entityFingerprint,
+    worldSha256: world.sha256, initialWaypointsSha256: initialWaypoints.sha256, modelSha256: world.model.sha256, missionSha256: teams.source.sha256, entitiesSha256: teams.entityFingerprint,
     templates, limits: cap, nativeExecutionVerified: false as const, canStartCampaign: false as const };
   const program: TeamProgram = teamRuntimeFreeze({ ...data, sha256: worldHash(data) }); worlds.set(program, world);
   return teamRuntimeFreeze({ program, coverage, diagnostics, nativeExecutionVerified: false, canStartCampaign: false });

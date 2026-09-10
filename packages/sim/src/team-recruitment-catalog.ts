@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Original source-bound existing-actor eligibility; native scope is documented in TEAM_RECRUITMENT_PROVENANCE.md.
+import { INITIAL_WAYPOINT_LIMITS, compileInitialWaypointSource, resolveInitialWaypoint } from '../../content/src/initial-waypoints.ts';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { compileScenarioObjects, type ScenarioObjects, type ScenarioPlacement } from '../../content/src/scenario-objects.ts';
 import { createIniSourceView, findIniSourceSections, findIniSourceEntries } from '../../content/src/ini-source-view.ts';
@@ -31,7 +32,7 @@ export interface TeamRecruitmentTemplate {
 }
 export interface TeamRecruitmentCatalog {
   readonly policy: typeof TEAM_RECRUITMENT_POLICY; readonly programSha256: string; readonly activationSha256: string;
-  readonly worldSha256: string; readonly modelSha256: string; readonly missionSha256: string; readonly rulesSources: RuntimeIni['layers'];
+  readonly initialWaypointsSha256: string; readonly worldSha256: string; readonly modelSha256: string; readonly missionSha256: string; readonly rulesSources: RuntimeIni['layers'];
   readonly actions: readonly TeamActivationPlan[]; readonly templates: readonly TeamRecruitmentTemplate[]; readonly actors: readonly TeamRecruitmentActor[];
   readonly missionControl: readonly Readonly<{ mission: 'Guard' | 'Sleep'; recruitable: boolean | null; history: readonly IniOrigin[]; reasons: readonly string[] }>[];
   readonly limits: Readonly<TeamRecruitmentLimits>; readonly sha256: string; readonly nativeExecutionVerified: false; readonly canStartCampaign: false;
@@ -140,7 +141,8 @@ export function compileTeamRecruitmentCatalog(input: { readonly program: TeamPro
   });
   if (selectedTeams.size !== program.templates.length || program.templates.some(t => !selectedTeams.has(t.id))) teamRecruitmentFail('program-selection');
   const allTeams = new Map(teams.teams.map(t => [t.id, t])), allForces = new Map(teams.taskForces.map(f => [f.id, f]));
-  const waypoints = new Map(objects.waypoints.map(w => [w.number, w]));
+  const initialWaypoints = compileInitialWaypointSource({ profile: program.profile, source: teams.source, bytes }, { bytes: cap.missionBytes, work: Math.min(cap.work, INITIAL_WAYPOINT_LIMITS.work) });
+  if (initialWaypoints.sha256 !== program.initialWaypointsSha256 || initialWaypoints.sha256 !== activation.initialWaypointsSha256) teamRecruitmentFail('waypoint-source-identity');
   const templates = program.templates.map(t => {
     charge(); const s = allTeams.get(t.id)!, force = allForces.get(s.taskForce.targetId!)!, reasons: string[] = [];
     const field = (key: string) => known(s.fields[key]);
@@ -148,8 +150,9 @@ export function compileTeamRecruitmentCatalog(input: { readonly program: TeamPro
     if (typeof group !== 'number' || !Number.isSafeInteger(group)) teamRecruitmentFail('group-field');
     const recruiter = field('recruiter'), autocreate = field('autocreate'), areTeamMembersRecruitable = field('areTeamMembersRecruitable');
     if ([recruiter, autocreate, areTeamMembersRecruitable].some(v => typeof v !== 'boolean')) teamRecruitmentFail('flag-field');
-    const wp = field('waypoint'), anchor = typeof wp === 'number' ? waypoints.get(wp) : undefined;
-    if (!anchor || !anchor.insideDiamond || anchor.row.origin.sectionSpelling !== 'Waypoints') reasons.push('recruitment-anchor');
+    const wp = field('waypoint'), resolved = resolveInitialWaypoint(initialWaypoints, typeof wp === 'number' ? wp : -1);
+    const anchor = resolved.status === 'supported-source' ? resolved.waypoint : undefined;
+    if (resolved.status !== 'supported-source') reasons.push('recruitment-anchor', ...resolved.reasons.map(reason => `waypoint:${reason}`));
     const memberTypeIds: string[] = [], seen = new Set<string>();
     for (const m of force.members) {
       charge(); if (!m.typeId || m.quantity === null || m.quantity < 1 || m.status !== 'typed') teamRecruitmentFail('taskforce-member');
@@ -166,7 +169,7 @@ export function compileTeamRecruitmentCatalog(input: { readonly program: TeamPro
       status: reasons.length ? 'unsupported' as const : 'supported-source' as const, reasons: [...new Set(reasons)].sort() };
   });
   const data = { policy: TEAM_RECRUITMENT_POLICY, programSha256: program.sha256, activationSha256: activation.sha256, worldSha256: world.sha256,
-    modelSha256: world.model.sha256, missionSha256: program.missionSha256, rulesSources: rules.layers, actions, templates, actors, missionControl, limits: cap,
+    initialWaypointsSha256: initialWaypoints.sha256, modelSha256: world.model.sha256, missionSha256: program.missionSha256, rulesSources: rules.layers, actions, templates, actors, missionControl, limits: cap,
     nativeExecutionVerified: false as const, canStartCampaign: false as const };
   const catalog: TeamRecruitmentCatalog = freeze({ ...data, sha256: worldHash(data) }); catalogs.set(catalog, freeze({ program, world })); return catalog;
 }

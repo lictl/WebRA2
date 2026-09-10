@@ -1,0 +1,294 @@
+{
+  "schemaVersion": 1,
+  "method": "Pinned retail PE bytes; static inspection only. Code spans end on complete decoded instructions and are selected evidence, not exhaustive function behavior.",
+  "tool": {
+    "name": "Capstone",
+    "version": "5.0.6"
+  },
+  "profiles": [
+    {
+      "profile": "ra2",
+      "image": "game.exe",
+      "imageSha256": "73288c03b58d370be268ca6d156b4e33bfdb2066dc980359467d8852ff3b00df",
+      "imageBytes": 5077312,
+      "ranges": [
+        {
+          "label": "initial-waypoint-reader",
+          "kind": "selected-code",
+          "start": "0x663280",
+          "endExclusive": "0x663349",
+          "fileOffset": 2503296,
+          "bytes": 201,
+          "instructions": 67,
+          "sha256": "49d45f8618415e2b79e0d1050d635bc0c6181f801c9fbe68f6bcda96f5199c6c"
+        },
+        {
+          "label": "scenario-accessor",
+          "kind": "selected-code",
+          "start": "0x663180",
+          "endExclusive": "0x663194",
+          "fileOffset": 2503040,
+          "bytes": 20,
+          "instructions": 5,
+          "sha256": "0cd956f4deab1db719470213f5851ec65b780ba5331ba00f3e9cba0683886fda"
+        },
+        {
+          "label": "alpha-decoder",
+          "kind": "selected-code",
+          "start": "0x724a70",
+          "endExclusive": "0x724ac5",
+          "fileOffset": 3295856,
+          "bytes": 85,
+          "instructions": 35,
+          "sha256": "bb7619e6807063deb536b2364aa0c0af4b75cf5b1085e9eca2665b0bcc526637"
+        },
+        {
+          "label": "script3-dispatch",
+          "kind": "selected-code",
+          "start": "0x6b7f55",
+          "endExclusive": "0x6b7f6e",
+          "fileOffset": 2850645,
+          "bytes": 25,
+          "instructions": 12,
+          "sha256": "caba29a0d0ac91a751a298f9fe8c494b58b614b6284c4be08d8d5448696f1575"
+        },
+        {
+          "label": "script3-waypoint-use",
+          "kind": "selected-code",
+          "start": "0x6baee3",
+          "endExclusive": "0x6baf18",
+          "fileOffset": 2862819,
+          "bytes": 53,
+          "instructions": 16,
+          "sha256": "b612aaff925f54dab0b3d6e0439c285254916fac8873840de042253da326cccb"
+        },
+        {
+          "label": "team-waypoint-getter",
+          "kind": "selected-code",
+          "start": "0x6bfa90",
+          "endExclusive": "0x6bfac9",
+          "fileOffset": 2882192,
+          "bytes": 57,
+          "instructions": 19,
+          "sha256": "f4cace3c60ab22f96bb41cace43034ea8a73bda9bfd3d250cfc344e1eb4c4fdc"
+        },
+        {
+          "label": "transport-waypoint-getter",
+          "kind": "selected-code",
+          "start": "0x6bfad0",
+          "endExclusive": "0x6bfb09",
+          "fileOffset": 2882256,
+          "bytes": 57,
+          "instructions": 19,
+          "sha256": "1a94cc29ab8fabde7ad9daf6c4a1f5dcf8f3a77b93fa2e76d82a3028beed543c"
+        },
+        {
+          "label": "team-constructor-waypoint",
+          "kind": "selected-code",
+          "start": "0x6b76b6",
+          "endExclusive": "0x6b76f7",
+          "fileOffset": 2848438,
+          "bytes": 65,
+          "instructions": 18,
+          "sha256": "d5354dcf26d945401a209aac437aa999d916ac21a289f2564dc1068807caebc3"
+        },
+        {
+          "label": "recruitment-waypoint-focus",
+          "kind": "selected-code",
+          "start": "0x6b91c0",
+          "endExclusive": "0x6b9254",
+          "fileOffset": 2855360,
+          "bytes": 148,
+          "instructions": 47,
+          "sha256": "107da8fe520f118b4b3359b96a3f63d008f21116f4709c7a5f77c1898ea179bf"
+        },
+        {
+          "label": "reinforcement-actions",
+          "kind": "selected-code",
+          "start": "0x6aecd4",
+          "endExclusive": "0x6aed1f",
+          "fileOffset": 2813140,
+          "bytes": 75,
+          "instructions": 25,
+          "sha256": "2e15480ee0c62a0e97d8d716760e11bc06335170f6d14d9e03026e9edb46498a"
+        },
+        {
+          "label": "reinforcement-waypoint-selection",
+          "kind": "selected-code",
+          "start": "0x639a35",
+          "endExclusive": "0x639a76",
+          "fileOffset": 2333237,
+          "bytes": 65,
+          "instructions": 21,
+          "sha256": "1c064482cedaa720ade432614970a5449f07e122a85f45faeb0cb88bba297f1c"
+        },
+        {
+          "label": "map-initial-load-call",
+          "kind": "selected-code",
+          "start": "0x49d1eb",
+          "endExclusive": "0x49d1f7",
+          "fileOffset": 643563,
+          "bytes": 12,
+          "instructions": 3,
+          "sha256": "26b2e68aeea1ad603c805d13fa2661519791437f4f2cca808ca7fae0f44ace22"
+        },
+        {
+          "label": "waypoints-section",
+          "kind": "selected-data",
+          "start": "0x7e33dc",
+          "endExclusive": "0x7e33e6",
+          "fileOffset": 4076508,
+          "bytes": 10,
+          "sha256": "68d85b32641c0a5747a092e959466f14b8c1e71610a0d4da5731ccbfaaaa6e4d"
+        },
+        {
+          "label": "canonical-key-format",
+          "kind": "selected-data",
+          "start": "0x7ce9bc",
+          "endExclusive": "0x7ce9bf",
+          "fileOffset": 3991996,
+          "bytes": 3,
+          "sha256": "0b782fc3030dbdf3756f17e7adf2ce5808dfc513ca7589adeb679c7d25eaef6f"
+        }
+      ]
+    },
+    {
+      "profile": "yr",
+      "image": "gamemd.exe",
+      "imageSha256": "3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600",
+      "imageBytes": 5286208,
+      "ranges": [
+        {
+          "label": "initial-waypoint-reader",
+          "kind": "selected-code",
+          "start": "0x68bdc0",
+          "endExclusive": "0x68be8f",
+          "fileOffset": 2670016,
+          "bytes": 207,
+          "instructions": 67,
+          "sha256": "c6ff27427b052e3c4f2d55c573497028aa3d7d87a7f38e82ecf883481bfe973f"
+        },
+        {
+          "label": "scenario-accessor",
+          "kind": "selected-code",
+          "start": "0x68bcc0",
+          "endExclusive": "0x68bcd4",
+          "fileOffset": 2669760,
+          "bytes": 20,
+          "instructions": 5,
+          "sha256": "0cd956f4deab1db719470213f5851ec65b780ba5331ba00f3e9cba0683886fda"
+        },
+        {
+          "label": "alpha-decoder",
+          "kind": "selected-code",
+          "start": "0x763690",
+          "endExclusive": "0x7636e5",
+          "fileOffset": 3552912,
+          "bytes": 85,
+          "instructions": 35,
+          "sha256": "fbcd89973711f2b468d63dfa85cc24bc37bf69f32c11795a56075a7ba66274a9"
+        },
+        {
+          "label": "script3-dispatch",
+          "kind": "selected-code",
+          "start": "0x6e95ec",
+          "endExclusive": "0x6e9605",
+          "fileOffset": 3053036,
+          "bytes": 25,
+          "instructions": 12,
+          "sha256": "7c8e90426d76ad86fb23443f73a4da5e449adc167f36506016bda3a35495f06c"
+        },
+        {
+          "label": "script3-waypoint-use",
+          "kind": "selected-code",
+          "start": "0x6ec859",
+          "endExclusive": "0x6ec88e",
+          "fileOffset": 3065945,
+          "bytes": 53,
+          "instructions": 16,
+          "sha256": "2b0f19d546434bd2d888a0375f42730259641aaa73b380ea7446f00130509ba9"
+        },
+        {
+          "label": "team-waypoint-getter",
+          "kind": "selected-code",
+          "start": "0x6f18a0",
+          "endExclusive": "0x6f18d9",
+          "fileOffset": 3086496,
+          "bytes": 57,
+          "instructions": 19,
+          "sha256": "9ea5b3f383369bdf5108ddf1d681c563db497c3b9b6013964e579c02956e7b9d"
+        },
+        {
+          "label": "transport-waypoint-getter",
+          "kind": "selected-code",
+          "start": "0x6f18e0",
+          "endExclusive": "0x6f1919",
+          "fileOffset": 3086560,
+          "bytes": 57,
+          "instructions": 19,
+          "sha256": "b085c352ebf9eb85863702c708623e1c2c9c52406cd1bc516b75adb0b9bedef1"
+        },
+        {
+          "label": "team-constructor-waypoint",
+          "kind": "selected-code",
+          "start": "0x6e8d1a",
+          "endExclusive": "0x6e8d5b",
+          "fileOffset": 3050778,
+          "bytes": 65,
+          "instructions": 18,
+          "sha256": "4a0f94de62a05c3b942ec614691b58b1dbb86800ab7fa769a203cde00ef3ff14"
+        },
+        {
+          "label": "recruitment-waypoint-focus",
+          "kind": "selected-code",
+          "start": "0x6eaa90",
+          "endExclusive": "0x6eab24",
+          "fileOffset": 3058320,
+          "bytes": 148,
+          "instructions": 47,
+          "sha256": "f2e53a22779d948199af11e3b37541aaabebdc488654e768d6f1e5be75e9e14f"
+        },
+        {
+          "label": "reinforcement-actions",
+          "kind": "selected-code",
+          "start": "0x6debae",
+          "endExclusive": "0x6debf9",
+          "fileOffset": 3009454,
+          "bytes": 75,
+          "instructions": 25,
+          "sha256": "46991051d94b6883b73444f2c8b01d6787f1df7018eb3c725446e0a9cdc04fc8"
+        },
+        {
+          "label": "reinforcement-waypoint-selection",
+          "kind": "selected-code",
+          "start": "0x65d9a9",
+          "endExclusive": "0x65d9e6",
+          "fileOffset": 2480553,
+          "bytes": 61,
+          "instructions": 20,
+          "sha256": "321de6c32706ec852142de7798fdd46f391f4ad6aa33a1cfb0a57345d0929a52"
+        },
+        {
+          "label": "waypoints-section",
+          "kind": "selected-data",
+          "start": "0x82db0c",
+          "endExclusive": "0x82db16",
+          "fileOffset": 4381452,
+          "bytes": 10,
+          "sha256": "68d85b32641c0a5747a092e959466f14b8c1e71610a0d4da5731ccbfaaaa6e4d"
+        },
+        {
+          "label": "canonical-key-format",
+          "kind": "selected-data",
+          "start": "0x817f6c",
+          "endExclusive": "0x817f6f",
+          "fileOffset": 4292460,
+          "bytes": 3,
+          "sha256": "0b782fc3030dbdf3756f17e7adf2ce5808dfc513ca7589adeb679c7d25eaef6f"
+        }
+      ]
+    }
+  ],
+  "totalRanges": 27,
+  "totalBytes": 1742
+}

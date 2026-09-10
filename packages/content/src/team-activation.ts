@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Original source-bound native action operand compiler. See ../TEAM_ACTIVATION_PROVENANCE.md.
+import { INITIAL_WAYPOINT_LIMITS, compileInitialWaypointSource, resolveInitialWaypoint } from './initial-waypoints.ts';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { isTeamDefinitions, type TeamDefinitions } from './team-definitions.ts';
 import { isEntityDefinitions, type EntityDefinitions } from './entity-definitions.ts';
@@ -23,7 +24,7 @@ export interface TeamActivationPlan {
 }
 export interface TeamActivationSource {
   readonly policy: typeof TEAM_ACTIVATION_POLICY; readonly profile: 'ra2' | 'yr'; readonly source: ScenarioObjects['source'];
-  readonly teamsSha256: string; readonly entitiesSha256: string; readonly rulesSources: RuntimeIni['layers'];
+  readonly initialWaypointsSha256: string; readonly teamsSha256: string; readonly entitiesSha256: string; readonly rulesSources: RuntimeIni['layers'];
   readonly plans: readonly TeamActivationPlan[]; readonly sha256: string;
   readonly nativeExecutionVerified: false; readonly canStartCampaign: false;
 }
@@ -91,6 +92,7 @@ export function compileTeamActivationSource(input: { readonly teams: TeamDefinit
   const waypointSections = findIniSourceSections(mapView, mapView.stages[0]!.layer.id, 'Waypoints');
   if (waypointSections.length > 1) teamActivationFail('duplicate-waypoints-section');
   const byName = new Map(teams.teams.map(t => [teamFold(t.name), t])), byNumber = new Map(objects.waypoints.map(w => [w.number, w]));
+  const initialWaypoints = compileInitialWaypointSource({ profile: teams.profile, source: teams.source, bytes }, { bytes: cap.missionBytes, work: Math.min(cap.work, INITIAL_WAYPOINT_LIMITS.work) });
   const plans: TeamActivationPlan[] = []; let work = 0;
   const charge = (n = 1) => { if (n > cap.work - work) teamActivationFail('work-limit'); work += n; };
   charge(teams.teams.length + objects.waypoints.length);
@@ -119,7 +121,10 @@ export function compileTeamActivationSource(input: { readonly teams: TeamDefinit
     const number = typeof target === 'number' && Number.isInteger(target) && target >= 0 && target <= 701 ? target : null;
     const wp = number === null ? undefined : byNumber.get(number);
     if (a.opcode === 4) add('native-recruitment-unimplemented');
-    else if (!wp || !wp.insideDiamond || wp.row.origin.sectionSpelling !== 'Waypoints') add('reinforcement-waypoint');
+    else { const resolved = resolveInitialWaypoint(initialWaypoints, number ?? -1);
+      if (resolved.status !== 'supported-source') { add('reinforcement-waypoint'); for (const reason of resolved.reasons) add(`waypoint:${reason}`); }
+      else if (resolved.waypoint.row.id !== wp?.row.id) add('reinforcement-waypoint');
+    }
     if (team && !team.typed) add('team-definition');
     plans.push({ id: a.id, rowId: row.row.id, ordinal: a.ordinal, opcode: a.opcode, origin,
       rawTokens: row.row.tokens.slice(a.tokenStart, a.tokenStart + a.tokenCount), branch: a.opcode === 4 ? 'create-team' : 'reinforce',
@@ -129,6 +134,6 @@ export function compileTeamActivationSource(input: { readonly teams: TeamDefinit
       status: reasons.size ? 'unsupported' : 'supported-source', reasons: [...reasons].sort() });
   }
   const data = { policy: TEAM_ACTIVATION_POLICY, profile: teams.profile, source: teams.source, teamsSha256: teams.fingerprint,
-    entitiesSha256: definitions.fingerprint, rulesSources: rules.layers, plans, nativeExecutionVerified: false as const, canStartCampaign: false as const };
+    entitiesSha256: definitions.fingerprint, initialWaypointsSha256: initialWaypoints.sha256, rulesSources: rules.layers, plans, nativeExecutionVerified: false as const, canStartCampaign: false as const };
   const result = teamActivationFreeze({ ...data, sha256: teamFingerprint(data, cap.serializedBytes) }); brand.set(result, teams); return result;
 }
