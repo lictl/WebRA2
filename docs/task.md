@@ -14,15 +14,12 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
-Current wave: coordinator [numerical world integration #164](https://github.com/lictl/WebRA2/issues/164)
-and [actor modifiers and firing/death #147](https://github.com/lictl/WebRA2/issues/147),
-continuing [authoritative combat #132](https://github.com/lictl/WebRA2/issues/132) after the
-reviewed [core/source-preparation checkpoint PR137](https://github.com/lictl/WebRA2/pull/137);
-browser agent implements fresh actor and standing-fire source/scheduler facts under147 after reviewed162;
-format agent implements [ordinary infantry death #163](https://github.com/lictl/WebRA2/issues/163)
-after merged death prerequisites155;
-simulation agent [source team activation/spawning #160](https://github.com/lictl/WebRA2/issues/160),
-after the reviewed [team runtime PR158](https://github.com/lictl/WebRA2/pull/158).
+Current wave: coordinator [dying-world lifecycle #170](https://github.com/lictl/WebRA2/issues/170)
+and [source combat #132](https://github.com/lictl/WebRA2/issues/132), joining reviewed
+numerical combat166 and ordinary human death165. The browser agent's
+[fresh actor/firing PR168](https://github.com/lictl/WebRA2/pull/168) passed independent source review at3975027; final distribution integration follows, source attack integration remains147/132. The simulation
+agent continues [persistent team Sleep #169](https://github.com/lictl/WebRA2/issues/169)
+after [source reinforcement PR167](https://github.com/lictl/WebRA2/pull/167).
 The owner unlocked the Mac and the browser tool confirms access. Per the new D17
 priority, use Chrome for development acceptance and defer full Firefox/Edge/Safari
 end-to-end checks until the remaining implementation is finished. No essential
@@ -33,6 +30,9 @@ Recent reviewed merges:
 
 | Component | PR / merge SHA | Exact-head evidence |
 | --- | --- | --- |
+| Source reinforcement transactions | [167](https://github.com/lictl/WebRA2/pull/167), `f315b4b6d6e657aa5884e24e950e3613d582d4f4` | 877 checks; [integration review](https://github.com/lictl/WebRA2/pull/167#pullrequestreview-5163349030), separate source/adapter reviews; eight YR occurrences move/save/replay; Sleep169 and trigger activation remain |
+| Ordinary death decision | [165](https://github.com/lictl/WebRA2/pull/165), `2e04f34281899e02566119ee50dbfba12d0bb0c9` | 845 checks; [independent integration review](https://github.com/lictl/WebRA2/pull/165#pullrequestreview-5163246014); 576 private decisions, 45 native ranges; world lifecycle remains170 |
+| Numerical combat transactions | [166](https://github.com/lictl/WebRA2/pull/166), `bce99e4d24e267f46955bb1eadacbfa34d72497a` | 835 checks; [independent review](https://github.com/lictl/WebRA2/pull/166#pullrequestreview-5163207383), 7,863 extra assertions; explicit numeric inputs, no source attack admission |
 | Veteran/elite ability selection | [162](https://github.com/lictl/WebRA2/pull/162), `7512b6707a337a7ca3bab0b46fc18dc7253dd6d2` | 827 checks; [independent review](https://github.com/lictl/WebRA2/pull/162#pullrequestreview-5163054208); 67,602 private values and25 native spans; ability preparation only |
 | Chrome RTS controls | [153](https://github.com/lictl/WebRA2/pull/153), `b063749b52aab1ed57a833dd991961e72daaa326` | 808 checks; independent source/final COMMENT reviews; both openings in actual Chrome, group orders and local save/replay; modifier drags synthetic only |
 | Actor death prerequisites | [161](https://github.com/lictl/WebRA2/pull/161), `6f7db8cfc025c47541e9df63d9a98a7876bb7ed1` | 819 checks; [source review](https://github.com/lictl/WebRA2/pull/161#pullrequestreview-5162937715) and [integration review](https://github.com/lictl/WebRA2/pull/161#pullrequestreview-5162963777); source preparation only, ordinary execution remains163 |
@@ -55,7 +55,7 @@ Recent reviewed merges:
 | Initial weapon spelling proof | [142](https://github.com/lictl/WebRA2/pull/142), `c9ab75a280eaed4956de0b986ac2258210527f05` | 644 tests; [review](https://github.com/lictl/WebRA2/pull/142#pullrequestreview-5162066332) |
 | Combat actor initialization | [143](https://github.com/lictl/WebRA2/pull/143), `21588d19fa5d870163a6aaad38cdc40c017c9ba6` | 678 tests; source review on PR, [integration review](https://github.com/lictl/WebRA2/pull/143#pullrequestreview-5162128139) |
 
-Issues131,133,134,139,140,141,145,146,149,151,152,155 are closed within their component scope. #127 and parent120 remain open for the Safari
+Issues131,133,134,139,140,141,145,146,149,151,152,155,160,163,164 are closed within their component scope. #127 and parent120 remain open for the Safari
 automatic-running acceptance row shared with115; GitHub unexpectedly closed127
 during squash, so the coordinator reopened it with the exact remaining criterion.
 Both opening worlds have matching model/moving-save/replay identities in actual
@@ -140,10 +140,10 @@ the coordinator after independent exact-head COMMENT review and successful check
 
 | Role | Current work and exclusive paths | Branch / private worktree |
 | --- | --- | --- |
-| Coordinator | #164 numerical world execution; #147 integration; #160 adapter/review; shared contracts/handoff | `codex/164-ordinary-combat` at root; `codex/160-spawn-team-adapter`, `local/worktrees/spawn-team-adapter` |
-| browser_feasibility | #147 source fresh actor/standing fire facts and pure scheduler; sole native UI owner | new isolated source worktree; preserved `local/reviews/combat-veterancy-162` and `local/worktrees/world-controls` |
-| mix_reader | #163 ordinary human infantry death decision/lifecycle; new content source/tests/provenance | `codex/163-ordinary-death`; preserved `local/worktrees/combat-death` and `local/worktrees/native-random` |
-| bootstrap_review | #160 source reinforcement context/insertion/scheduler/replay; new content and sim source/tests/provenance | `codex/160-team-spawning`, `local/worktrees/team-spawning`; preserved `local/worktrees/team-runtime` |
+| Coordinator | #170 saved death/world occupancy, #132/147 source combat integration; shared contracts/handoff | root starts `codex/170-world-death`; PR167 integration in `local/worktrees/team-spawning` |
+| browser_feasibility | #147 fresh actor/standing fire source and scheduler PR168; next source combat bridge contract; sole native UI owner | `codex/147-initial-firing`, `local/worktrees/initial-firing` |
+| mix_reader | Independent PR168 source/firing review, then death170 review | `local/reviews/initial-firing-168`; preserved `local/worktrees/ordinary-death` |
+| bootstrap_review | #169 persistent Sleep source policy and proposed shared adapter | new `codex/169-team-sleep` tree; preserved `local/worktrees/team-spawning` |
 
 Voxel UI [PR144](https://github.com/lictl/WebRA2/pull/144) merged after exact-head
 source and final browser-evidence review. All four actual browser families passed
@@ -163,11 +163,15 @@ themselves. Reviewed159 supplies campaign house modifiers;157 supplies numerical
 stages;154 supplies the random primitive;161 supplies death prerequisites. PR162
 adds source-bound veteran/elite ability selection, including the RA2 double versus
 YR float rank representation. Current actor state, firing integration and world
-attachment remain147/132; ordinary human infantry death execution is163.
+attachment remain147/132; ordinary human infantry decision163 is merged; saved world lifecycle remains170.
 
 Reviewed158 supplies existing-member source move/jump transactions. Its distinct
 per-member destinations are an explicit WebRA2 formation policy; native regrouping,
-Guard/acquisition and source spawning remain separate. Reviewed153 reuses the
+Guard/acquisition remain separate. PR167 now supplies bounded source action7/80 spawning,
+with exact source type/owner joins, atomic insertion, monotonic IDs and compound
+team/world save/replay. Its private review reproduced eight YR action occurrences
+with twelve actors and312 subsequent restores; no RA2 action was admitted before
+Sleep169. Recruitment action4 and trigger activation remain separate. Reviewed153 reuses the
 helper for direct Chrome group orders and HUD controls, preserving atomic admission
 and exact saved commands. Actual Chrome acceptance and independent private
 save/replay probes passed for both openings. Shift/Alt/middle modifier drags have
