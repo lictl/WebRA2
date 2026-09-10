@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2026 WebRA2 contributors. Private, bounded application messages.
 import { validArtworkSummary, validObjectPick, type ArtworkSummary, type ObjectPick } from './object-protocol.ts';
-import { validWorldAction, validWorldSummary, validWorldSnapshot, validWorldDocument, validWorldRejection, type WorldAction, type WorldSummary, type WorldSnapshot, type WorldDocument, type WorldRejection } from './world-protocol.ts';
+import { WORLD_UI, isRetiredWorldActor, validWorldAction, validWorldSummary, validWorldSnapshot, validWorldDocument, validWorldRejection, type WorldAction, type WorldSummary, type WorldSnapshot, type WorldDocument, type WorldRejection } from './world-protocol.ts';
 import { validControlPoints, type WorldControlPoint } from './world-selection.ts';
 import { validVoxelFrame, type VoxelFrameSummary } from './voxel-protocol.ts';
 export const TERRAIN_VERSION = 5;
@@ -11,7 +11,7 @@ export type Zoom = 0.5 | 1 | 2 | 4;
 export type Camera = { cameraX: number; cameraY: number; zoom: Zoom; width: number; height: number };
 export type TerrainProgress = { phase: 'scan' | 'verify' | 'definitions' | 'mission' | 'theater' | 'tiles' | 'compose' | 'artwork' | 'sprites' | 'voxel-sources' | 'voxels'; completed: number; total: number; bytes: number };
 export type SceneSummary = { world: WorldSummary | null; profile: TerrainProfile; mission: string; contentHash: string; artwork: ArtworkSummary; mapHash: string; paletteHash: string; cells: number; objects: number; assets: number; verifiedBytes: number; sourceBytes: number; decodedBytes: number; decodedSlots: number; bounds: { x: number; y: number; width: number; height: number }; diagnostics: { code: string; count: number }[] };
-export type FrameSummary = { voxel: VoxelFrameSummary | null; rgbaBytes: number; depthBytes: number; ownerBytes: number; totalPixelBytes: number; samples: number; objectOwnerBytes: number; spriteSamples: number; paletteBytes: number; objects: number };
+export type FrameSummary = { retiredObjectIds?: string[]; voxel: VoxelFrameSummary | null; rgbaBytes: number; depthBytes: number; ownerBytes: number; totalPixelBytes: number; samples: number; objectOwnerBytes: number; spriteSamples: number; paletteBytes: number; objects: number };
 export type CellPick = { sourceRecord: number; x: number; y: number; assetId: string; subtile: number; worldX: number; worldY: number; depth: number };
 export type SelectedTerrainFile = { file: File; relativePath: string };
 export type TerrainAction = { type: 'load'; profile: TerrainProfile; files: SelectedTerrainFile[]; width: number; height: number } | { type: 'render'; camera: Camera } | { type: 'focus'; entityId: number } | { type: 'pick'; frameId: number; x: number; y: number } | WorldAction;
@@ -52,6 +52,19 @@ export function validScene(v: unknown): v is SceneSummary {
 }
 export function validCellPick(v: unknown): v is CellPick | null { return v === null || (shape(v,['sourceRecord','x','y','assetId','subtile','worldX','worldY','depth']) && int(v.sourceRecord,0,130815) && int(v.x,1,511) && int(v.y,1,511) && typeof v.assetId==='string' && /^[A-Za-z0-9][A-Za-z0-9._:/#-]{0,255}$/.test(v.assetId) && int(v.subtile,0,255) && number(v.worldX) && number(v.worldY) && number(v.depth,2097152)); }
 export function validPick(v: unknown): v is ViewportPick { return v === null || validObjectPick(v) || (shape(v,['kind','cell']) && v.kind === 'terrain' && v.cell !== null && validCellPick(v.cell)); }
+function validFrameObjects(a: Record<string,unknown>, summary: SceneSummary, world: WorldSnapshot|null): boolean {
+  if (!int(a.objects,0,summary.artwork.rendered)) return false;
+  if (!Object.hasOwn(a,'retiredObjectIds')) return a.objects===summary.artwork.rendered;
+  if (!rows(a.retiredObjectIds,WORLD_UI.entities) || a.objects+a.retiredObjectIds.length!==summary.artwork.rendered) return false;
+  if (!a.retiredObjectIds.length) return true;
+  if (!world || !summary.world) return false;
+  // Both records have already passed the exact actor-ID/order join. Initial artwork
+  // preparation remains immutable; only distinct completed dead actors explain a drop.
+  const retired=new Set(summary.world.actors.filter((_,i)=>isRetiredWorldActor(world.actors[i]!)).map(a=>a.objectId));
+  let prior='';
+  for (const id of a.retiredObjectIds) { if (typeof id!=='string' || id<=prior || !retired.has(id)) return false; prior=id; }
+  return true;
+}
 export function validResult(v: unknown): v is TerrainResult {
   if (validWorldDocument(v) || validWorldRejection(v)) return true;
   if (shape(v,['type','frameId','selection']) && v.type==='pick') return int(v.frameId,1) && validPick(v.selection);
@@ -59,6 +72,7 @@ export function validResult(v: unknown): v is TerrainResult {
   if (v.summary.world === null ? v.world !== null : !validWorldSnapshot(v.world, v.summary.world)) return false;
   if (!validControlPoints(v.controlPoints,v.camera.width,v.camera.height,v.summary.world,v.world as WorldSnapshot|null)) return false;
   const bytes=v.camera.width*v.camera.height*4, a=v.allocations;
-  return shape(a,['voxel','rgbaBytes','depthBytes','ownerBytes','totalPixelBytes','samples','objectOwnerBytes','spriteSamples','paletteBytes','objects']) && a.rgbaBytes===bytes && a.depthBytes===bytes && a.ownerBytes===bytes && validVoxelFrame(a.voxel,bytes/4) && a.totalPixelBytes===bytes*4+(a.voxel?bytes/4*17:0) && a.objectOwnerBytes===bytes && int(a.samples,0,64*1024**2) && int(a.spriteSamples,0,a.samples) && int(a.paletteBytes,0,256*1280) && a.objects===v.summary.artwork.rendered && v.rgba instanceof ArrayBuffer && Object.getPrototypeOf(v.rgba)===ArrayBuffer.prototype && !Object.getOwnPropertyDescriptor(ArrayBuffer.prototype,'resizable')?.get?.call(v.rgba) && Reflect.ownKeys(v.rgba).length===0 && v.rgba.byteLength===bytes;
+  const retirement=!!a && typeof a==='object' && Object.hasOwn(a,'retiredObjectIds');
+  return shape(a,['voxel','rgbaBytes','depthBytes','ownerBytes','totalPixelBytes','samples','objectOwnerBytes','spriteSamples','paletteBytes','objects',...(retirement?['retiredObjectIds']:[])]) && a.rgbaBytes===bytes && a.depthBytes===bytes && a.ownerBytes===bytes && validVoxelFrame(a.voxel,bytes/4) && a.totalPixelBytes===bytes*4+(a.voxel?bytes/4*17:0) && a.objectOwnerBytes===bytes && int(a.samples,0,64*1024**2) && int(a.spriteSamples,0,a.samples) && int(a.paletteBytes,0,256*1280) && validFrameObjects(a,v.summary,v.world as WorldSnapshot|null) && v.rgba instanceof ArrayBuffer && Object.getPrototypeOf(v.rgba)===ArrayBuffer.prototype && !Object.getOwnPropertyDescriptor(ArrayBuffer.prototype,'resizable')?.get?.call(v.rgba) && Reflect.ownKeys(v.rgba).length===0 && v.rgba.byteLength===bytes;
 }
 export function centered(summary: SceneSummary, width: number, height: number, zoom: Zoom = 1): Camera { return { cameraX:summary.bounds.x+summary.bounds.width/2-width/zoom/2, cameraY:summary.bounds.y+summary.bounds.height/2-height/zoom/2, width,height,zoom }; }

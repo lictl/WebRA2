@@ -10,6 +10,7 @@ import { ART_REPORT_LIMIT, validArtworkSummary, type ArtworkSummary, type Artwor
 import { WORLD_VOXEL_LIMITS, WORLD_VOXEL_POLICY } from './voxel-protocol.ts';
 import { composeVoxelWorld, voxelWorldProjection } from './world-voxel-compositor.ts';
 import type { ViewportScene } from './terrain-worker-runtime.ts';
+import { isRetiredWorldActor } from './world-protocol.ts';
 
 type WorldJoin = { modelHash: string; actors: readonly { objectId: string; id: number; rowId: string }[] };
 /** Capture source metadata synchronously. Only the genuine owned atlas and copied palettes survive preparation. */
@@ -90,16 +91,18 @@ export function createVoxelWorldViewport(base: ViewportScene, terrain: ScenarioT
   const paletteCopies=Object.freeze(preview.palettes.filter(p=>used.has(p.id)).map(p=>Object.freeze({id:p.id,rgba:p.rgba.slice(),remap:null,transparentIndex:0})));
   return {artwork:combined,scene:{...(base.locate?{locate:base.locate}:{}),render(viewport,snapshot){
     if(modelHash!==null&&(!snapshot||snapshot.modelHash!==modelHash))throw new Error('voxel-world-snapshot');
-    const positions=new Map(snapshot?.actors.map(a=>[a.id,a])??[]),instances:VoxelInstance[]=[],sources=new Map<string,ObjectInfo>();
+    const positions=new Map(snapshot?.actors.map(a=>[a.id,a])??[]),instances:VoxelInstance[]=[],sources=new Map<string,ObjectInfo>(),retired=new Set<string>();
     for(const p of initial){
       const position=p.actorId===null?p.info:positions.get(p.actorId);if(!position)throw new Error('voxel-world-actor');
-      if(p.actorId!==null&&positions.get(p.actorId)!.health===0)continue;
+      if(p.actorId!==null&&isRetiredWorldActor(positions.get(p.actorId)!)){retired.add(p.info.id);continue;}
       const cell=ground.get(position.x+position.y*512);if(!cell)throw new Error('voxel-world-ground');
       instances.push({id:p.instanceId,partId:p.partId,paletteId:p.paletteId,modelToView:voxelWorldProjection(cell,viewport)});
       sources.set(p.instanceId,Object.freeze({...p.info,x:position.x,y:position.y}));
     }
-    const frame=base.render(viewport,snapshot);if(!instances.length)return frame;
-    const voxel=renderVoxelFrame({atlas,instances,palettes:paletteCopies,viewport:{width:viewport.width,height:viewport.height,backgroundRgba:[0,0,0,0]},lighting:'unlit'},
+    const lower=base.render(viewport,snapshot),frame=retired.size?{...lower,allocations:{...lower.allocations,retiredObjectIds:[...new Set([...(lower.allocations.retiredObjectIds??[]),...retired])].sort()}}:lower;
+    if(!instances.length)return frame;
+    const livePalettes=new Set(instances.map(p=>p.paletteId));
+    const voxel=renderVoxelFrame({atlas,instances,palettes:paletteCopies.filter(p=>livePalettes.has(p.id)),viewport:{width:viewport.width,height:viewport.height,backgroundRgba:[0,0,0,0]},lighting:'unlit'},
       {dimension:960,pixels:WORLD_VOXEL_LIMITS.pixels,instances:WORLD_VOXEL_LIMITS.instances,instanceVoxels:WORLD_VOXEL_LIMITS.instanceVoxels,samples:WORLD_VOXEL_LIMITS.samples});
     return composeVoxelWorld(frame,voxel,sources);
   }}};

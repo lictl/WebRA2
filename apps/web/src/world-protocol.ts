@@ -7,6 +7,8 @@ export type WorldCombatState = { targetId: number|null; readyTick: number; windu
 export type WorldActorInfo = { combatRole?: WorldCombatRole; id: number; rowId: string; objectId: string; typeId: string; owner: number | null; kind: string; movable: boolean; maximumHealth: number | null; reasons: string[]; omittedReasons: number };
 export type WorldSummary = { combatPolicy?: 'webra2-source-standing-infantry-combat-1'; policy: 'webra2-world-ui-1'; modelHash: string; motionPolicy: string; defaultPlayerId: number | null; players: WorldPlayer[]; actors: WorldActorInfo[]; limitations: string[]; omittedLimitations: number; truncatedFields: number };
 export type WorldActor = { combat?: WorldCombatState; id: number; x: number; y: number; health: number | null; goalX: number | null; goalY: number | null; nextX: number | null; nextY: number | null; routeLength: number; progress: number; edgeCost: number | null; waitTicks: number };
+/** Presentation only: keep a pending death's standing art until its saved lifecycle completes. */
+export function isRetiredWorldActor(actor: WorldActor): boolean { return actor.health===0 && !(actor.combat?.deathSequence!=null && actor.combat.corpseIndex===null); }
 export type WorldEvent = { tick: number; phase: 'command' | 'navigation' | 'movement' | 'combat'; kind: string; entityId: number; cell: number | null; value: number | null };
 export type WorldSnapshot = { modelHash: string; revision: number; nextTick: number; stateHash: string; queuedCommands: number; actors: WorldActor[]; events: WorldEvent[]; omittedEvents: number };
 export type WorldAttackOrder = { type: 'world-orders'; playerId: number; entityIds: number[]; expectedRevision: number; order: 'attack'; targetId: number };

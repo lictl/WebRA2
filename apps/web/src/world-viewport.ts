@@ -6,6 +6,7 @@ import type { SpriteObject } from '../../../packages/render/src/sprite-layer.ts'
 import type { PlacedStill } from './placed-still.ts';
 import type { ObjectInfo } from './object-protocol.ts';
 import type { ViewportScene } from './terrain-worker-runtime.ts';
+import { isRetiredWorldActor } from './world-protocol.ts';
 type WorldArtJoin = { modelHash:string; actors:readonly {objectId:string;id:number;rowId:string}[] };
 /** Source cells and initial art descriptors are captured before an asynchronous request can mutate inputs. */
 export function createWorldViewport(scene: TerrainScene, terrain: ScenarioTerrain, still: PlacedStill, summary: WorldArtJoin): ViewportScene {
@@ -19,7 +20,12 @@ export function createWorldViewport(scene: TerrainScene, terrain: ScenarioTerrai
   return { locate(x,y){const c=ground.get(x+y*512);return c?{x:c.column*30+30,y:c.row*15+15-c.elevation*15}:null;}, render(viewport, snapshot) {
     if (!snapshot || snapshot.modelHash !== summary.modelHash) throw new Error('world-art-snapshot');
     const positions = new Map(snapshot.actors.map(a => [a.id, a])), descriptions = new Map<string, ObjectInfo>();
-    const visible=initial.filter(({actor})=>{const p=actor?positions.get(actor.id):undefined;return p?.health!==0||(p.combat?.deathSequence!=null&&p.combat.corpseIndex===null);});
+    const retiredObjectIds:string[]=[];
+    const visible=initial.filter(({actor,object})=>{
+      const p=actor?positions.get(actor.id):undefined;
+      if(actor&&!p)throw new Error('world-art-entity-join');
+      if(p&&isRetiredWorldActor(p)){retiredObjectIds.push(object.id);return false;}return true;
+    });
     const objects: SpriteObject[] = visible.map(({ object, info, cell, actor }) => {
       const position = actor ? positions.get(actor.id) : undefined;
       if (actor && !position) throw new Error('world-art-entity-join');
@@ -29,9 +35,10 @@ export function createWorldViewport(scene: TerrainScene, terrain: ScenarioTerrai
       descriptions.set(object.id, Object.freeze({ ...info, x: position.x, y: position.y }));
       return Object.freeze({ ...object, x: object.x + dx, y: object.y + dy - (current.elevation - cell.elevation) * 15, depth: Object.freeze({ ...object.depth, base: object.depth.base + dy }) });
     });
-    const frame = scene.renderSprites(viewport, { ...still.batch, objects });
+    const usedPalettes=new Set(objects.map(o=>o.paletteId));
+    const frame = scene.renderSprites(viewport, { ...still.batch, objects, palettes:still.batch.palettes.filter(p=>usedPalettes.has(p.id)) });
     // Every pick closure retains the descriptions for its own frame, never a later snapshot.
-    return { ...frame, pick(x, y) {
+    return { ...frame, allocations:{...frame.allocations,retiredObjectIds:retiredObjectIds.sort()}, pick(x, y) {
       const picked = frame.pick(x, y); if (!picked) return null;
       if (picked.kind === 'terrain') { const { kind: _, ...cell } = picked; return { kind: 'terrain', cell }; }
       const object = descriptions.get(picked.id); if (!object) throw new Error('world-art-pick');
