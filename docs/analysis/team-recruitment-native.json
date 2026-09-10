@@ -1,0 +1,533 @@
+{
+  "schemaVersion": 1,
+  "method": "static-pinned-PE-ranges; code endpoints checked with Capstone 5.0.6; no executable run",
+  "scope": "CreateTeam4 ordinary existing-actor recruitment and Flash50 counter/lifecycle; paired static paths, no original executable execution or global scheduling equivalence",
+  "images": [
+    {
+      "profile": "ra2",
+      "executable": "game.exe",
+      "size": 5077312,
+      "sha256": "73288c03b58d370be268ca6d156b4e33bfdb2066dc980359467d8852ff3b00df",
+      "ranges": [
+        {
+          "label": "action4",
+          "kind": "code",
+          "start": "0x6aec7d",
+          "endExclusive": "0x6aecb3",
+          "offset": 2813053,
+          "size": 54,
+          "sha256": "2a6b84da5e738539790d3f5ab60f5dfb0998ada3ecfb485eb56f261e8dd6dc46"
+        },
+        {
+          "label": "create-team",
+          "kind": "code",
+          "start": "0x6bec80",
+          "endExclusive": "0x6bed0a",
+          "offset": 2878592,
+          "size": 138,
+          "sha256": "54a39ee9595d34dba0d18c4aeabc4f6ff0a33a18b773a8790c47a88946f0fad3"
+        },
+        {
+          "label": "team-constructor",
+          "kind": "code",
+          "start": "0x6b7430",
+          "endExclusive": "0x6b776d",
+          "offset": 2847792,
+          "size": 829,
+          "sha256": "32a4481fdd5c66b6f0ee295924c9a47d57e3b263fac30ad6b9cc10fb26e8e283"
+        },
+        {
+          "label": "team-destructor",
+          "kind": "code",
+          "start": "0x6b7770",
+          "endExclusive": "0x6b79d8",
+          "offset": 2848624,
+          "size": 616,
+          "sha256": "987d37e10252a76c7f504aa5256a92624c019019c9852e2e7fca0fe3f4766b10"
+        },
+        {
+          "label": "deficient-force",
+          "kind": "code",
+          "start": "0x6b7be5",
+          "endExclusive": "0x6b7c2b",
+          "offset": 2849765,
+          "size": 70,
+          "sha256": "c4c76c449e12ff71440d623bc7c239774c65df3110eb59ed2637e469268eb8a9"
+        },
+        {
+          "label": "can-add",
+          "kind": "code",
+          "start": "0x6b8dc0",
+          "endExclusive": "0x6b8fb0",
+          "offset": 2854336,
+          "size": 496,
+          "sha256": "16e11a46fad7cdfef328590ba93a817e5d160f26dd47f43274406720ae4240fa"
+        },
+        {
+          "label": "add-member",
+          "kind": "code",
+          "start": "0x6b8cc0",
+          "endExclusive": "0x6b8dbc",
+          "offset": 2854080,
+          "size": 252,
+          "sha256": "7e9d039ae37c1755c1b3bca86a9918e51866e6421427ce1494a8f1a8e7333ddc"
+        },
+        {
+          "label": "liberate",
+          "kind": "code",
+          "start": "0x6b8fb0",
+          "endExclusive": "0x6b91be",
+          "offset": 2854832,
+          "size": 526,
+          "sha256": "a9b3497c3190255f6b59249de5baec47ec6fefe40efefc234d2ca8c9c35f32ad"
+        },
+        {
+          "label": "nearest-selection",
+          "kind": "code",
+          "start": "0x6b91c0",
+          "endExclusive": "0x6b954b",
+          "offset": 2855360,
+          "size": 907,
+          "sha256": "0b642e19157b695032bb643ac1335ae9b6be54958bc5bbe89efcd478b056360c"
+        },
+        {
+          "label": "effective-group",
+          "kind": "code",
+          "start": "0x6bfa60",
+          "endExclusive": "0x6bfa81",
+          "offset": 2882144,
+          "size": 33,
+          "sha256": "71f5fa3e54e240b564c16de91ae515d2e422aacc47301a2a99251dbeab2c7642"
+        },
+        {
+          "label": "squared-xy-distance",
+          "kind": "code",
+          "start": "0x5d4e00",
+          "endExclusive": "0x5d4e3e",
+          "offset": 1920512,
+          "size": 62,
+          "sha256": "07eb7a94351e6180934049ec60fd129e21ea777bf5b0ebb3c33f71fa591fe9ca"
+        },
+        {
+          "label": "step-advance-end",
+          "kind": "code",
+          "start": "0x6b7cf4",
+          "endExclusive": "0x6b7d92",
+          "offset": 2850036,
+          "size": 158,
+          "sha256": "ced193d12db28a524e1b045fd02dbe7390ec9521e60b41df79dee082f2f1dff4"
+        },
+        {
+          "label": "end-destructor-dispatch",
+          "kind": "code",
+          "start": "0x6b807a",
+          "endExclusive": "0x6b8093",
+          "offset": 2850938,
+          "size": 25,
+          "sha256": "63da3132fb51ddf5fd85f1230bf3e8e19bf03672f6c56a910a2e90ec18444da3"
+        },
+        {
+          "label": "mission-recruitable-query",
+          "kind": "code",
+          "start": "0x594db0",
+          "endExclusive": "0x594dc2",
+          "offset": 1658288,
+          "size": 18,
+          "sha256": "0e985fb659036ab045791c13b8605b23d759569d3a084fe62917e5d9b9a41348"
+        },
+        {
+          "label": "mission-control-constructor",
+          "kind": "code",
+          "start": "0x594dd0",
+          "endExclusive": "0x594e05",
+          "offset": 1658320,
+          "size": 53,
+          "sha256": "2fb74ebd0c6eca8795cc16955ba09c6bd8257d29d40631ab7667d4854fc20919"
+        },
+        {
+          "label": "mission-control-array-init",
+          "kind": "code",
+          "start": "0x4d4520",
+          "endExclusive": "0x4d453c",
+          "offset": 869664,
+          "size": 28,
+          "sha256": "71967bcfe007b2f80e551f10b2f5b1be0970cec78edd1062b53b7ce33756bab5"
+        },
+        {
+          "label": "mission-control-load",
+          "kind": "code",
+          "start": "0x594e30",
+          "endExclusive": "0x594fd5",
+          "offset": 1658416,
+          "size": 421,
+          "sha256": "578c9960bdf0784792eee3229cedd66175491388a15b142b123916fff1bb912d"
+        },
+        {
+          "label": "mission-control-stage",
+          "kind": "code",
+          "start": "0x6524f2",
+          "endExclusive": "0x65250f",
+          "offset": 2434290,
+          "size": 29,
+          "sha256": "1124974824615bee5b871222e8e09bbac1e11121f2d27f11f815d4588ef280ec"
+        },
+        {
+          "label": "rules-property-call",
+          "kind": "code",
+          "start": "0x643af6",
+          "endExclusive": "0x643afe",
+          "offset": 2374390,
+          "size": 8,
+          "sha256": "327951cdd00f68cb51d7097f685338fe9b84bbd1f2fd88b06067d6bf315f67c3"
+        },
+        {
+          "label": "flash-dispatch",
+          "kind": "code",
+          "start": "0x6b865e",
+          "endExclusive": "0x6b8690",
+          "offset": 2852446,
+          "size": 50,
+          "sha256": "1b7b206ab1ef7397f151eec076cb17ef4c20cb18da0e2f1586dcfb70b61a6007"
+        },
+        {
+          "label": "flash-update",
+          "kind": "code",
+          "start": "0x4bbf00",
+          "endExclusive": "0x4bbf1b",
+          "offset": 769792,
+          "size": 27,
+          "sha256": "4ddf6ef39b0e059efa86b522c23f3e396f1220bb3ad863b47651b4cece43ff2f"
+        },
+        {
+          "label": "flash-caller",
+          "kind": "code",
+          "start": "0x6c7eb3",
+          "endExclusive": "0x6c7f50",
+          "offset": 2916019,
+          "size": 157,
+          "sha256": "95c4599edb97c09aa04321abebc9676e32c6e53fa957db8403b66799609eca5d"
+        },
+        {
+          "label": "opcode50-slot",
+          "kind": "data",
+          "start": "0x6b8830",
+          "endExclusive": "0x6b8834",
+          "offset": 2852912,
+          "size": 4,
+          "sha256": "bc9dd5f7b3e92aaa4bebd949adf5f5cacb120dfc0789104ec7690f7755e4bd81",
+          "uint32Value": "0x6b865e"
+        },
+        {
+          "label": "guard-name-pointer",
+          "kind": "data",
+          "start": "0x7cd788",
+          "endExclusive": "0x7cd78c",
+          "offset": 3987336,
+          "size": 4,
+          "sha256": "1403b7a6d13e4c18931757063c019390d720e86ee023da3d636d61105e6181f5",
+          "uint32Value": "0x7cd8dc"
+        },
+        {
+          "label": "sleep-name-pointer",
+          "kind": "data",
+          "start": "0x7cd774",
+          "endExclusive": "0x7cd778",
+          "offset": 3987316,
+          "size": 4,
+          "sha256": "a20e00248a85b37deb1ceec6b8cfc0a319fc1b134b5917459be9e0d3866bf73c",
+          "uint32Value": "0x7cd904"
+        },
+        {
+          "label": "recruitable-key",
+          "kind": "literal",
+          "start": "0x7e1d5c",
+          "endExclusive": "0x7e1d67",
+          "offset": 4070748,
+          "size": 11,
+          "sha256": "9f0da36dda5f6fc0c40599b3227f353e59599e71cb30a1da051c0e9e00914dce"
+        },
+        {
+          "label": "guard-name-literal",
+          "kind": "literal",
+          "start": "0x7cd8dc",
+          "endExclusive": "0x7cd8e1",
+          "offset": 3987676,
+          "size": 5,
+          "sha256": "c8d3fc567bbcbf384407a4ca279787fdb6e73932155e962e562507acfbf53094"
+        },
+        {
+          "label": "sleep-name-literal",
+          "kind": "literal",
+          "start": "0x7cd904",
+          "endExclusive": "0x7cd909",
+          "offset": 3987716,
+          "size": 5,
+          "sha256": "d466bcf52eb6921b1e747e51bf2cc1441926455ba146ecc477bed1574e44f9c0"
+        }
+      ]
+    },
+    {
+      "profile": "yr",
+      "executable": "gamemd.exe",
+      "size": 5286208,
+      "sha256": "3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600",
+      "ranges": [
+        {
+          "label": "action4",
+          "kind": "code",
+          "start": "0x6deb57",
+          "endExclusive": "0x6deb8d",
+          "offset": 3009367,
+          "size": 54,
+          "sha256": "2a904ec74f74859d8cbd4bb95814b95f9f0f1f977b5d85cb3e4d58d600d2916b"
+        },
+        {
+          "label": "create-team",
+          "kind": "code",
+          "start": "0x6f09c0",
+          "endExclusive": "0x6f0a6e",
+          "offset": 3082688,
+          "size": 174,
+          "sha256": "a0498528b3b32e4304f0a3c407ad0f33ab81e55cb2c31f8549fca2b82f3778b3"
+        },
+        {
+          "label": "team-constructor",
+          "kind": "code",
+          "start": "0x6e8a90",
+          "endExclusive": "0x6e8dd1",
+          "offset": 3050128,
+          "size": 833,
+          "sha256": "b83d70f56df02811dd56e47e16a79230cac91845a68675279703fce1b021079c"
+        },
+        {
+          "label": "team-destructor",
+          "kind": "code",
+          "start": "0x6e8de0",
+          "endExclusive": "0x6e9048",
+          "offset": 3050976,
+          "size": 616,
+          "sha256": "d2db9ae8537e9fbf349b7b61006ef46aeed63d98e064ed3ada8b8325f9b38aaf"
+        },
+        {
+          "label": "deficient-force",
+          "kind": "code",
+          "start": "0x6e9255",
+          "endExclusive": "0x6e929b",
+          "offset": 3052117,
+          "size": 70,
+          "sha256": "77ed8c5926d6441423e40bdf818086a018beb192e10f684d14f67bc0703aa4fa"
+        },
+        {
+          "label": "can-add",
+          "kind": "code",
+          "start": "0x6ea610",
+          "endExclusive": "0x6ea862",
+          "offset": 3057168,
+          "size": 594,
+          "sha256": "dda8bcc5e6e8a880d678ad0d75315b7e73792d5679cc15163830e663e57fe08c"
+        },
+        {
+          "label": "add-member",
+          "kind": "code",
+          "start": "0x6ea500",
+          "endExclusive": "0x6ea601",
+          "offset": 3056896,
+          "size": 257,
+          "sha256": "ab948a42d096b23655aef7af391f0a89d6dcde31556cfc8b3d1f0468cd9f00bb"
+        },
+        {
+          "label": "liberate",
+          "kind": "code",
+          "start": "0x6ea870",
+          "endExclusive": "0x6eaa84",
+          "offset": 3057776,
+          "size": 532,
+          "sha256": "0acbbed9248ecf9b7573e42e971547f54bfea67e33223edcc988ce4034f2c4b4"
+        },
+        {
+          "label": "nearest-selection",
+          "kind": "code",
+          "start": "0x6eaa90",
+          "endExclusive": "0x6eae28",
+          "offset": 3058320,
+          "size": 920,
+          "sha256": "899702fb2e73f8e40eb91d3928eed525fbc7ace7acf44221876514b93590803c"
+        },
+        {
+          "label": "effective-group",
+          "kind": "code",
+          "start": "0x6f1870",
+          "endExclusive": "0x6f1891",
+          "offset": 3086448,
+          "size": 33,
+          "sha256": "baf4721153c020eed560a3047219028506233a2ff1168066e691200840dae7c8"
+        },
+        {
+          "label": "squared-xy-distance",
+          "kind": "code",
+          "start": "0x5f6560",
+          "endExclusive": "0x5f659e",
+          "offset": 2057568,
+          "size": 62,
+          "sha256": "07eb7a94351e6180934049ec60fd129e21ea777bf5b0ebb3c33f71fa591fe9ca"
+        },
+        {
+          "label": "step-advance-end",
+          "kind": "code",
+          "start": "0x6e9364",
+          "endExclusive": "0x6e9402",
+          "offset": 3052388,
+          "size": 158,
+          "sha256": "2de65a99cc38185a995eeaa5c095581f292ea4f44e6f6fcc99f6e233d3eb2e0c"
+        },
+        {
+          "label": "end-destructor-dispatch",
+          "kind": "code",
+          "start": "0x6e9713",
+          "endExclusive": "0x6e972c",
+          "offset": 3053331,
+          "size": 25,
+          "sha256": "3e0abe9ab264104d918a6644a1d54bd83e15361c11d99197baf6da1a3e71afbd"
+        },
+        {
+          "label": "mission-recruitable-query",
+          "kind": "code",
+          "start": "0x5b36e0",
+          "endExclusive": "0x5b36f2",
+          "offset": 1783520,
+          "size": 18,
+          "sha256": "3e3cfb368e8d17560af84dff4d32d75ee0f0eaa664bcad03aa818d0a64ef7496"
+        },
+        {
+          "label": "mission-control-constructor",
+          "kind": "code",
+          "start": "0x5b3700",
+          "endExclusive": "0x5b3735",
+          "offset": 1783552,
+          "size": 53,
+          "sha256": "2fb74ebd0c6eca8795cc16955ba09c6bd8257d29d40631ab7667d4854fc20919"
+        },
+        {
+          "label": "mission-control-array-init",
+          "kind": "code",
+          "start": "0x4e7cf0",
+          "endExclusive": "0x4e7d0c",
+          "offset": 949488,
+          "size": 28,
+          "sha256": "e9c68c57e719e484e482e0d3711a246cce54c214203e405ad6e3797a98fa2e2d"
+        },
+        {
+          "label": "mission-control-load",
+          "kind": "code",
+          "start": "0x5b3760",
+          "endExclusive": "0x5b390c",
+          "offset": 1783648,
+          "size": 428,
+          "sha256": "7bf7c3e75182871be6ff9d47096b4d8f2895311cfc92cc12c5e22d8a94793496"
+        },
+        {
+          "label": "mission-control-stage",
+          "kind": "code",
+          "start": "0x679c92",
+          "endExclusive": "0x679caf",
+          "offset": 2595986,
+          "size": 29,
+          "sha256": "eee3c730080fcbf873014b293ca000de24cf21ec83fee5904901cc1be83c054b"
+        },
+        {
+          "label": "rules-property-call",
+          "kind": "code",
+          "start": "0x668eed",
+          "endExclusive": "0x668ef5",
+          "offset": 2526957,
+          "size": 8,
+          "sha256": "e53c06c2987864bbd074305c5e4f42472841d7db14384c4f1a3f6d73d8bbf84e"
+        },
+        {
+          "label": "flash-dispatch",
+          "kind": "code",
+          "start": "0x6e9cf7",
+          "endExclusive": "0x6e9d29",
+          "offset": 3054839,
+          "size": 50,
+          "sha256": "6e4a194a214a79c468a6f2ebc932929d2d6db24e15eac97da5d9fd80a4ed8ad9"
+        },
+        {
+          "label": "flash-update",
+          "kind": "code",
+          "start": "0x4cc770",
+          "endExclusive": "0x4cc78b",
+          "offset": 837488,
+          "size": 27,
+          "sha256": "4ddf6ef39b0e059efa86b522c23f3e396f1220bb3ad863b47651b4cece43ff2f"
+        },
+        {
+          "label": "flash-caller",
+          "kind": "code",
+          "start": "0x6fac31",
+          "endExclusive": "0x6faccd",
+          "offset": 3124273,
+          "size": 156,
+          "sha256": "392e5eed3bed4df9656a6d636ae7b153b9d773e564dcabdf5d425e3781714922"
+        },
+        {
+          "label": "opcode50-slot",
+          "kind": "data",
+          "start": "0x6ea03c",
+          "endExclusive": "0x6ea040",
+          "offset": 3055676,
+          "size": 4,
+          "sha256": "3a4ef355b3be612b86f72d38240b2e28563c215c3c85e76a5c24623c222f69bd",
+          "uint32Value": "0x6e9cf7"
+        },
+        {
+          "label": "guard-name-pointer",
+          "kind": "data",
+          "start": "0x816cc0",
+          "endExclusive": "0x816cc4",
+          "offset": 4287680,
+          "size": 4,
+          "sha256": "f99509de99b725d80ec6cfe9f7891fa9e8600912370c95f5d0e50425f621cd87",
+          "uint32Value": "0x816e44"
+        },
+        {
+          "label": "sleep-name-pointer",
+          "kind": "data",
+          "start": "0x816cac",
+          "endExclusive": "0x816cb0",
+          "offset": 4287660,
+          "size": 4,
+          "sha256": "72701c80711fecd30f401c481dee015608d24c672515e942431d7dad199e991b",
+          "uint32Value": "0x816e6c"
+        },
+        {
+          "label": "recruitable-key",
+          "kind": "literal",
+          "start": "0x82c2a4",
+          "endExclusive": "0x82c2af",
+          "offset": 4375204,
+          "size": 11,
+          "sha256": "9f0da36dda5f6fc0c40599b3227f353e59599e71cb30a1da051c0e9e00914dce"
+        },
+        {
+          "label": "guard-name-literal",
+          "kind": "literal",
+          "start": "0x816e44",
+          "endExclusive": "0x816e49",
+          "offset": 4288068,
+          "size": 5,
+          "sha256": "c8d3fc567bbcbf384407a4ca279787fdb6e73932155e962e562507acfbf53094"
+        },
+        {
+          "label": "sleep-name-literal",
+          "kind": "literal",
+          "start": "0x816e6c",
+          "endExclusive": "0x816e71",
+          "offset": 4288108,
+          "size": 5,
+          "sha256": "d466bcf52eb6921b1e747e51bf2cc1441926455ba146ecc477bed1574e44f9c0"
+        }
+      ]
+    }
+  ]
+}
