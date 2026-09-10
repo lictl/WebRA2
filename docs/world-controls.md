@@ -81,7 +81,7 @@ model identity. All prior source/codec/privacy and browser-local save bounds rem
 Stop skips destination planning. The legacy single-order diagnostic message
 retains its exact requested cell; it does not silently acquire the group policy.
 
-## Validation checkpoint
+## Validation
 
 The initial `c12d3cef4d79392de8ed35c58520c8012bb7cd5a` checkpoint passes TypeScript
 and all 703 public tests. Its [independent source review](https://github.com/lictl/WebRA2/pull/153#pullrequestreview-5162521482)
@@ -103,16 +103,81 @@ rectangle. These checks are private component evidence, not native browser tests
 The reproducible probe and factual output remain in ignored
 `local/world-controls/preflight.mjs` and `preplanner-facts.json`.
 
-Actual Chrome direct-pointer workflows and final private opening-world
-group/save/replay comparisons remain pending. The owner unlocked the Mac after
-native control reported failed automatic unlock; normal Chrome access is restored.
-The owner's updated testing priority is Chrome during development, with full
-Firefox/Edge/Safari end-to-end checks deferred until later completion. The shared
-planner was independently reviewed and merged in
-[PR #156](https://github.com/lictl/WebRA2/pull/156); final app integration tests
-add real planner-budget/blockage recovery and explicit distinct-cell expectations.
-The integrated app currently passes all 777 public tests, TypeScript, 121 document
-files / 623 local links, 428 publication paths and the 48-output / 108-input build.
-The preserved accepted viewport on port 4177 is unchanged. Safari's separate
-automatic-running gate remains [#115](https://github.com/lictl/WebRA2/issues/115);
-explicit-step checks must not be reported as automatic Run acceptance.
+The shared planner was independently reviewed and merged in
+[PR #156](https://github.com/lictl/WebRA2/pull/156). App integration at
+`adbd0e7b694c9d39c9e164f4a44c107dd3344713` passes all 777 public tests, TypeScript,
+121 document files / 623 local links, 428 publication paths and the 48-output /
+108-input build. Its [independent coordinator review](https://github.com/lictl/WebRA2/pull/153#pullrequestreview-5162730133)
+also reruns the complete private group probe with no finding. New cases exercise
+real planner-budget/blockage recovery and explicit distinct-cell expectations.
+
+The private `local/world-controls/group-probe.mjs` and `group-facts.json` use all
+438 File-backed inputs, genuine source-bound models and the actual group worker
+session. Both profiles preserve unchanged model identities, exact group versus
+individual-command checkpoints, moving save/restore/continuation and replay.
+The bounded observation reaches both assigned cells at tick90 RA2 and tick398 YR.
+These are observed deterministic probe ticks, not native locomotion timings. Stop
+and blocked-plan admission also pass. An earlier 302-tick observation bound was
+insufficient for YR's second route; extending observation to 1026 ticks reached
+its destination without changing planning or movement logic.
+
+## Chrome interaction evidence
+
+Actual Google Chrome **152.0.7977.83** on 2026-09-10 exercised the immutable
+`adbd0e7` build at localhost4178, with all 438 files chosen through the native
+folder picker. The exact 48-file manifest SHA-256 is
+`69f1faee2c763a4c774ed89bbf97c249f350d66249093cf5d322c195d8c26394`.
+The selected Files remain on-device. The 19-request browser observation contains
+only code/style GETs and a favicon404, with no declared request bodies; the launcher
+serves no retail paths. This log covers requests reaching the local launcher,
+with the existing `connect-src 'none'` app policy providing the network boundary.
+
+Both openings pass direct click, plain rectangle selection, right-click exposed
+terrain, distinct two-unit movement goals, Step/Run/Pause, compact health/order
+HUD, local moving save/restore, replay verification and English/Traditional Chinese
+copy. RA2 also exercises actual Shift-click removal/re-addition, S, a focused
+numeric field's arrow-key behavior, canvas arrow-key panning and enemy rejection.
+YR exercises Stop through its button, rejection of the RA2 checkpoint without
+changing the world, load cancellation/retry and navigation from a running world.
+Returning to the preview retains the file selection but clears the world/frame
+and hides its controls. Both restores and Escape clear UI selection.
+
+| Chrome case | RA2 | Yuri's Revenge |
+| --- | --- | --- |
+| Control house / actors | Explicit development house1 / 12,13 | Ordinary default house0 / 1,33 |
+| Requested cell | 92,61 | 87,100 |
+| Saved individual goals | 12→92,61; 13→91,61 | 1→86,100; 33→86,99 |
+| Tick2 moving SHA-256 | `f873ecf33c7c950b44a5e8482199a54fa07dfa3b343f65635f4bda614d77adf4` | `b00029e96fef1533a12aca6f2ac7d2495db92b00153b608f1977e4d8aa7e1cfa` |
+| Browser-local restore | Exact tick2 hash; selection empty | Exact tick2 hash; selection empty |
+| Run paused observation | Tick334, both arrived, health125 each | Tick534, both arrived, health100 each |
+| Verified replay terminal | `530fa8c6ccb415183eb9b8d1056cb5f1d4b6863dd3a6c2271802d9a2ece2b973` | `019739a36e804332719515304857e2aa10a835a2f6b0a0dbfb1d9489ee6172cb` |
+
+Both Chrome queued and tick2 hashes exactly match the private component probe;
+the later native pause ticks are different observations, not earliest arrival
+measurements. The private metadata-only browser record is
+`local/world-controls/browser-acceptance.json`; `tested-source.json`,
+`tested-manifest.json`, `browser-request-snapshot.json` and the immutable
+`browser-build/dist/` preserve its attribution. No retail images or saves are
+published with this report.
+
+The owner's updated development priority is Chrome, with full Firefox/Edge/Safari
+end-to-end checks deferred until later completion. Actual Shift-drag, Alt-left-drag
+and middle-drag combinations were not exercised: the available automation exposes
+plain drag and click modifiers but no documented held-modifier drag. Their original
+gesture tests pass; this is synthetic-only coverage. Export/import/reload and
+memory/startup benchmarks were not repeated in this controls slice. Prior browser
+world evidence remains separately scoped. The preserved accepted viewport on4177
+is unchanged. Safari's separate automatic-running gate remains
+[#115](https://github.com/lictl/WebRA2/issues/115). This component does not establish
+native formations, global congestion freedom, attacks or a playable campaign.
+
+Final integration with reviewed main `48bb1908116166e30c01c537923977ba90a77e0c`
+passes all 784 public tests, TypeScript, 123 documents / 634 local links, 432
+publication paths, M0 checks and the 49-output / 108-input build. All 47 unaffected
+files are byte-identical to the browser-tested manifest, including every runtime
+JS, CSS and HTML file. Only the copied licensing overview changes and the reviewed
+native-numbers component notice is added. Independent HTTP reads verify every one
+of the 48 frozen output hashes; those later audit requests are separate from the
+19-request browser snapshot. Private `final-build-comparison.json`,
+`final-manifest.json` and `http-artifact-audit.json` retain these checks. Final
+manifest SHA-256: `a3550d1ea1ce98e6e5a113b7aad94d229bced7f963fbb774ce46d3220a3dcd17`.
