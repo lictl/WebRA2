@@ -192,10 +192,11 @@ The standalone native random primitive in `packages/sim/src/native-random.ts` ad
 Electronic Arts Random2/Random3 under GPL-3.0-or-later. Its
 [provenance notice](../packages/sim/NATIVE_RANDOM_PROVENANCE.md) pins the source,
 copyright and modifications. Distributions containing it must retain those notices,
-the GPL license and applicable corresponding source. It is not attached to the
-browser world yet; the build includes its notice for subsequent integration.
+the GPL license and applicable corresponding source. The development build includes it through the optional ordinary numerical world
+policy. Source combat admission in the browser remains a separate integration.
 
-The original native combat numerical stages are GPL-3.0-or-later WebRA2 code.
+The original native combat numerical stages and `ordinary-combat-rules.ts`
+transaction composition are GPL-3.0-or-later WebRA2 code.
 Their [provenance notice](../packages/sim/NATIVE_COMBAT_NUMBERS_PROVENANCE.md)
 records selected native observations and synthetic arithmetic evidence. Preserve
 that notice, GPL text and applicable corresponding source when distributing them.
