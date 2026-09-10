@@ -2,7 +2,7 @@
 
 [Issue #152](https://github.com/lictl/WebRA2/issues/152) implements an explicit
 existing-actor controller over the [typed team compiler](team-definitions.md) and
-[authoritative world](world-movement.md). Work is in progress. No native program is
+[authoritative world](world-movement.md). The executable component is in review preparation. No native program is
 executed and no original campaign is playable through this component yet.
 
 The accepted boundary is a genuine TeamDefinitions result joined to genuine
@@ -19,7 +19,7 @@ execution or resource checks leave the caller's pair unchanged. Prepared orders
 are saveable and retryable only after deterministic recomputation against their
 pinned base state. The complete replay records external admission timing.
 
-The admitted execution policy will use the current WebRA2 whole-cell world,
+The admitted execution policy uses the current WebRA2 whole-cell world,
 separately from native locomotor and formation behavior. Script 3's waypoint focus
 and script 6's cursor arithmetic have native evidence in both supplied profiles.
 Their update cadence, destination assignment and stationary-arrival policy remain
@@ -34,9 +34,11 @@ there is no generic completion fallback. Team recruitment, spawning, transports,
 trigger activation and full native membership lifecycle remain separate work.
 
 [Native evidence and provenance](../packages/sim/TEAM_RUNTIME_PROVENANCE.md).
-Private source comparisons and original compound world/controller tests will be
-recorded at the implementation checkpoint. No passing runtime checks are claimed
-by this initial research checkpoint.
+Nine original compound runtime tests now pass, including both-profile group movement,
+every-tick restored continuation, pending-plan retry, jump loops, authoritative member
+loss, external admissions, a 30-tick occupied destination and replay, and atomic
+resource failures. Private source comparisons and the final evidence ledger remain
+to be recorded before independent review.
 
 ## Shared group destination planner
 
@@ -80,5 +82,5 @@ instead of treating an assignment as arrival.
 The initial component checkpoint passes four source-program tests and six planner
 tests, including both-profile group movement, stable input ordering, exact hold and
 mid-edge behavior, atomic no-partial failures, malicious inputs, footprint lifetime,
-and unreachable directed cells. The full team cursor/transaction runtime and its
-compound replay are still being implemented.
+and unreachable directed cells. The team cursor/transaction runtime and its compound replay add the nine tests
+described above.
