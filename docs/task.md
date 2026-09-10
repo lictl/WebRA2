@@ -14,7 +14,46 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
-Current [cell-entry PR202](https://github.com/lictl/WebRA2/pull/202) is being
+Current root [object combat PR207](https://github.com/lictl/WebRA2/pull/207), issue204,
+is in local/worktrees/mission-object-events, branch codex/204-mission-object-events.
+The genuine source adapter and VM/world dispatch are implemented; source review is
+in progress with browser_feasibility. The private world hit facts preserve existing
+public traces/save shapes. Events6/7/44/48 retain source family order, attacker-house
+matching and repeating death latches. The [working report](mission-object-events.md)
+and [dispatch census](analysis/mission-object-dispatch-census.json) distinguish the
+original synthetic runtime tests from private source/native checks. All6/19 opening
+references resolve; complete source preflight still has268/472 required diagnostics
+and neither original opening has authority. All25/48 eligible browser combat actors
+have supported callback context. The legacy comparison passes64 programs,1,536ticks
+and3,264 assertions with unchanged existing program/work/save identities.
+
+[Audio decoder PR209](https://github.com/lictl/WebRA2/pull/209), issue205, is implemented
+by mix_reader at c413d23fc5ba4e29236ad0d2e06f8501fd2a980c; bootstrap_review owns
+independent exact-head review. Public1,126 tests pass, and149 private decodes match
+9,961,462 scalar FFmpeg samples; one malformed stereo tail remains explicitly rejected.
+[Control groups PR208](https://github.com/lictl/WebRA2/pull/208), issue206, is implemented
+at d76df3c01cd47908140a7b7624d531f106115390 with1,125 public tests and actualChrome
+RA2/YR acceptance at unchanged source2b3ad0e. It merged as
+86f736da07ed3d8718f8e3c2b466ab6fd34246bd after the
+[independent review](https://github.com/lictl/WebRA2/pull/208#pullrequestreview-5166969079)
+and hosted34475171792 passed. Issue206 is closed; PR207 includes the clean UI merge.
+The user continues to preferChrome during development (D17).
+
+Next root slice: compose reviewed changes and their exact GPL notices; then connect
+source team actions to one shared world/team tick owner. mix_reader is performing a
+read-only assessment of existing activation/recruit/spawn contracts before issue
+scope is fixed. Root owns shared contracts/configuration/task and merges. No human
+input is needed. No original mission is fully playable yet.
+
+Cell-entry202 merged as 5430a7482733d93c94074fe826c7ab97b33f6ce9, reviewed at
+31f775811e733889ba474e51f5b9a876c8620273. Its
+[final composition review](https://github.com/lictl/WebRA2/pull/202#pullrequestreview-5166647010)
+passes with 1,117 public tests, exact hosted34472781609, 174 documents/870 links,
+616 publication paths and71 code/license outputs from144 inputs. Issue201 is closed;
+all12 JavaScript/CSS/HTML outputs remain identical to merged main203. The source
+and complete-preflight limits in the historical checkpoint below remain applicable.
+
+Historical integration checkpoint for [cell-entry PR202](https://github.com/lictl/WebRA2/pull/202) is being
 composed with merged main203 in `local/worktrees/mission-cell-entry`, branch
 `codex/201-mission-cell-entry`. Source/runtime head
 `6537b8113d2d5716da3b240cf84990de2cc8976f` passes 1,102 public tests and its
@@ -25,8 +64,7 @@ movable source actors meet the supported context. Source hashes are
 `f6c2ee31f04fe4e74f63d382e483d8250060d1199222866e4560cc7788cde6c1` and
 `6d0d7d0be05b3de9fd3b818f1ea7f78bf3818727a05a59c3a98a3913115f7193`.
 Both full authorities remain null (274/491 required diagnostics). The no-cell legacy
-comparison passes 32 programs/768 ticks/1,632 assertions. Final composition checks
-and exact-head independent review remain required before merge.
+comparison passes 32 programs/768 ticks/1,632 assertions. The final composition and review completed in the merge recorded above.
 
 [Audio PR203](https://github.com/lictl/WebRA2/pull/203) merged as
 `538a7f655bce84fc4674db57f1d35c556959ef21`, reviewed at
