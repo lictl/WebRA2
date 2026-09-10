@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
-import { combatOrdinaryBinding, combatDamage, COMBAT_LIMITS as C, type CombatActor, type CombatWeapon } from './combat-model.ts';
+import { combatDeathBinding, combatOrdinaryBinding, combatDamage, COMBAT_LIMITS as C, type CombatActor, type CombatWeapon } from './combat-model.ts';
 import { worldAddress, worldFail, worldInteger, worldList, worldPosition, worldRecord, WORLD_LIMITS as W } from './world-values.ts';
 import { canonicalText } from './canonical.ts';
-import { createNativeRandom, restoreNativeRandom, nextNativeReloadJitter, NATIVE_RELOAD_MAX_DRAWS, type NativeRandomState } from './native-random.ts';
+import { createNativeRandom, restoreNativeRandom, nextNativeReloadJitter, nextNativeRandomWord, NATIVE_RELOAD_MAX_DRAWS, type NativeRandomState } from './native-random.ts';
 import { ordinaryCombatDamage, ordinaryCombatReload, ordinaryCombatMaximumReload } from './ordinary-combat-rules.ts';
+import { ordinaryDeathActor, ordinaryDeathWeapon, ordinaryDeathDuration } from './ordinary-death-rules.ts';
 import type { WorldModel } from './world-model.ts';
 import type { WorldEntity } from './world.ts';
 
@@ -11,7 +12,9 @@ export type CombatOrderState = { entityId: number; targetId: number | null; weap
   readyTick: number; burstRemaining: number; burstTick: number; ammo: number };
 export type CombatImpact = { id: number; sourceId: number; targetId: number; weaponId: string;
   launchTick: number; dueTick: number; from: number; aim: number };
-export type CombatState = { actors: CombatOrderState[]; impacts: CombatImpact[]; nextImpactId: number; ordinaryRandom?: {state:{[K in keyof NativeRandomState]:NativeRandomState[K]};draws:number} };
+export type OrdinaryDeathRecord = { entityId:number; sourceId:number; weaponId:string; victimOwner:number; sourceOwner:number;
+  sequence:11|12; startedTick:number; completionTick:number; corpseIndex:number|null };
+export type CombatState = { deaths?:OrdinaryDeathRecord[]; actors: CombatOrderState[]; impacts: CombatImpact[]; nextImpactId: number; ordinaryRandom?: {state:{[K in keyof NativeRandomState]:NativeRandomState[K]};draws:number} };
 type Emit = (kind: string, entityId: number, cell?: number | null, value?: number | null) => void;
 const alive = (e: WorldEntity | undefined): e is WorldEntity => !!e && e.health !== null && e.health > 0;
 function clearBurst(a: CombatOrderState): void { a.weaponId = null; a.burstRemaining = 0; a.burstTick = 0; }
@@ -21,7 +24,7 @@ export function stopCombat(state: CombatState, entityId: number): void {
 }
 export function createCombatState(model: WorldModel): CombatState {
   const ordinary=combatOrdinaryBinding(model.combat!);
-  return { ...(ordinary?{ordinaryRandom:{state:createNativeRandom(ordinary.seed),draws:0}}:{}), actors: model.combat!.actors.map(a => ({ entityId: a.entityId, targetId: null, weaponId: null,
+  return { ...(combatDeathBinding(model.combat!)?{deaths:[]}:{}), ...(ordinary?{ordinaryRandom:{state:createNativeRandom(ordinary.seed),draws:0}}:{}), actors: model.combat!.actors.map(a => ({ entityId: a.entityId, targetId: null, weaponId: null,
     readyTick: 0, burstRemaining: 0, burstTick: 0, ammo: a.initialAmmo })), impacts: [], nextImpactId: 1 };
 }
 function distanceSquared(from: number, to: number): number {
@@ -46,12 +49,13 @@ function damageFor(model:WorldModel,source:number,w:CombatWeapon,target:CombatAc
   return ordinary?ordinaryCombatDamage(ordinary,source,w.id,target.entityId):combatDamage(w,target.armor);
 }
 function weaponLegal(w: CombatWeapon, target: CombatActor, model:WorldModel,source:number): boolean {
-  return (target.layer === 'air' ? w.air : w.ground) && damageFor(model,source,w,target) > 0;
+  const death=combatDeathBinding(model.combat!);
+  return (!death||!!ordinaryDeathActor(death,target.entityId)) && (target.layer === 'air' ? w.air : w.ground) && damageFor(model,source,w,target) > 0;
 }
 
 export function validateCombatState(model: WorldModel, input: unknown, entities: WorldEntity[], nextTick: number): CombatState {
-  const config = model.combat!,ordinary=combatOrdinaryBinding(config);
-  const r = worldRecord(input, ['actors', 'impacts', 'nextImpactId',...(ordinary?['ordinaryRandom']:[])]);
+  const config = model.combat!,ordinary=combatOrdinaryBinding(config),death=combatDeathBinding(config);
+  const r = worldRecord(input, ['actors', 'impacts', 'nextImpactId',...(ordinary?['ordinaryRandom']:[]),...(death?['deaths']:[])]);
   const byId = new Map(entities.map(e => [e.id, e])), actorsById = new Map(config.actors.map(a => [a.entityId, a]));
   const weapons = new Map(config.weapons.map(w => [w.id, w]));
   const rows = worldList(r.actors, C.actors); if (rows.length !== config.actors.length) worldFail('combat-save-actors');
@@ -87,15 +91,36 @@ export function validateCombatState(model: WorldModel, input: unknown, entities:
     if (ids.has(id) || dueTick < priorTick || dueTick === priorTick && id <= priorId) worldFail('combat-save-impact-order');
     ids.add(id); priorTick = dueTick; priorId = id; impacts.push({ id, sourceId, targetId, weaponId: w.id, launchTick, dueTick, from, aim });
   }
+  let deaths:OrdinaryDeathRecord[]|undefined;
+  if(death){
+    let prior=0;const definitions=new Map(model.entities.map(d=>[d.id,d]));
+    deaths=worldList(r.deaths,death.rules.actors.length).map(value=>{
+      const d=worldRecord(value,['entityId','sourceId','weaponId','victimOwner','sourceOwner','sequence','startedTick','completionTick','corpseIndex']);
+      const entityId=worldInteger(d.entityId,1,2147483647),sourceId=worldInteger(d.sourceId,1,2147483647);
+      const victim=ordinaryDeathActor(death,entityId),weapon=typeof d.weaponId==='string'?ordinaryDeathWeapon(death,d.weaponId):undefined;
+      if(entityId<=prior||!victim||!weapon||!actorsById.get(sourceId)?.weapons.includes(weapon.weaponId)||!targetLegal(model,sourceId,entityId)||byId.get(entityId)!.health!==0||!weaponLegal(weapons.get(weapon.weaponId)!,actorsById.get(entityId)!,model,sourceId))worldFail('death-save-identity');prior=entityId;
+      const sourceOwner=worldInteger(d.sourceOwner,0,W.players-1),victimOwner=worldInteger(d.victimOwner,0,W.players-1);
+      if(sourceOwner!==definitions.get(sourceId)!.owner||victimOwner!==definitions.get(entityId)!.owner)worldFail('death-save-owner');
+      const sequence=worldInteger(d.sequence,11,12) as 11|12,startedTick=worldInteger(d.startedTick,0,nextTick-1);
+      const completionTick=worldInteger(d.completionTick,1,W.tick-1);
+      if(sequence!==weapon.infDeath+10||completionTick!==startedTick+ordinaryDeathDuration(death,entityId,sequence))worldFail('death-save-sequence');
+      const corpseIndex=d.corpseIndex===null?null:worldInteger(d.corpseIndex,0,victim.corpseAnimationIds.length-1);
+      if((corpseIndex===null)!==(completionTick>=nextTick))worldFail('death-save-completion');
+      return {entityId,sourceId,weaponId:weapon.weaponId,sourceOwner,victimOwner,sequence,startedTick,completionTick,corpseIndex};
+    });
+    const recorded=new Set(deaths.map(d=>d.entityId));
+    if(death.rules.actors.some(d=>byId.get(d.entityId)!.health===0&&!recorded.has(d.entityId)))worldFail('death-save-missing');
+  }
   let ordinaryRandom:CombatState['ordinaryRandom'];
   if(ordinary){
     const random=worldRecord(r.ordinaryRandom,['state','draws']),state=restoreNativeRandom(random.state);
-    const draws=worldInteger(random.draws,0,nextTick*C.shotsPerTick*NATIVE_RELOAD_MAX_DRAWS);
+    const draws=worldInteger(random.draws,0,nextTick*C.shotsPerTick*NATIVE_RELOAD_MAX_DRAWS+(deaths?.filter(d=>d.corpseIndex!==null).length??0));
+    if(draws<(deaths?.filter(d=>d.corpseIndex!==null).length??0))worldFail('death-save-random-count');
     if(state.disabled||state.index1!==draws%250)worldFail('ordinary-save-random-cursor');
     if(draws===0&&canonicalText(state)!==canonicalText(createNativeRandom(ordinary.seed)))worldFail('ordinary-save-random-seed');
     ordinaryRandom={state,draws};
   }
-  return { actors, impacts, nextImpactId,...(ordinaryRandom?{ordinaryRandom}:{}) };
+  return { actors, impacts, nextImpactId,...(deaths?{deaths}:{}),...(ordinaryRandom?{ordinaryRandom}:{}) };
 }
 
 /** An accepted attack holds its target; moving into range is an explicit move order in this first policy. */
@@ -110,11 +135,23 @@ export function attackCombat(model: WorldModel, state: CombatState, entities: Wo
 
 /** After movement: scheduled impacts by due tick/ID, then firing by entity ID. Work is charged before each operation. */
 export function stepCombat(model: WorldModel, state: CombatState, entities: WorldEntity[], tick: number, emit: Emit): number {
-  const config = model.combat!,ordinary=combatOrdinaryBinding(config), byId = new Map(entities.map(e => [e.id, e]));
+  const config = model.combat!,ordinary=combatOrdinaryBinding(config),death=combatDeathBinding(config), byId = new Map(entities.map(e => [e.id, e]));
   const actors = new Map(config.actors.map(a => [a.entityId, a])), orders = new Map(state.actors.map(a => [a.entityId, a]));
   const weapons = new Map(config.weapons.map(w => [w.id, w])); let work = 0, shots = 0;
   const charge = (count=1) => { if (count>C.operationsPerTick-work)worldFail('combat-work-limit');work+=count; };
   if(ordinary)state.ordinaryRandom!.state=restoreNativeRandom(state.ordinaryRandom!.state);
+  if(death){
+    // WebRA2 phase order: complete due sequences after motion, before this tick's shots.
+    charge(state.deaths!.length);
+    const due=state.deaths!.filter(d=>d.corpseIndex===null&&d.completionTick===tick).sort((a,b)=>a.completionTick-b.completionTick||a.entityId-b.entityId);
+    for(const d of due){
+      charge();const random=state.ordinaryRandom!,draw=nextNativeRandomWord(random.state);
+      random.state=draw.state;random.draws=worldInteger(random.draws+draw.drawCount,0,Number.MAX_SAFE_INTEGER);
+      d.corpseIndex=draw.value%ordinaryDeathActor(death,d.entityId)!.corpseAnimationIds.length;
+      const at=worldAddress(byId.get(d.entityId)!.x,byId.get(d.entityId)!.y);
+      emit('corpse-selected',d.entityId,at,d.corpseIndex);emit('destroyed',d.entityId,at,d.sourceId);
+    }
+  }
   function hit(sourceId: number, targetId: number, w: CombatWeapon, aim: number): void {
     charge(); const target = byId.get(targetId);
     if (!alive(target) || w.delivery === 'fixed-cell' && worldAddress(target.x, target.y) !== aim) { emit('impact-missed', sourceId, aim, targetId); return; }
@@ -123,7 +160,15 @@ export function stepCombat(model: WorldModel, state: CombatState, entities: Worl
     if (target.health === 0) {
       target.goal = null; target.route = []; target.progress = 0; target.waitTicks = 0;
       const order = orders.get(target.id); if (order) clearOrder(order);
-      emit('destroyed', target.id, worldAddress(target.x, target.y), sourceId);
+      if(death){
+        const sequence=(ordinaryDeathWeapon(death,w.id)!.infDeath+10) as 11|12;
+        const completionTick=tick+ordinaryDeathDuration(death,target.id,sequence);if(completionTick>=W.tick)worldFail('death-completion-horizon');
+        const sourceOwner=model.entities.find(d=>d.id===sourceId)!.owner!,victimOwner=model.entities.find(d=>d.id===target.id)!.owner!;
+        state.deaths!.push({entityId:target.id,sourceId,weaponId:w.id,victimOwner,sourceOwner,sequence,startedTick:tick,completionTick,corpseIndex:null});
+        state.deaths!.sort((a,b)=>a.entityId-b.entityId);
+        emit('dying',target.id,worldAddress(target.x,target.y),sourceId);
+        emit('death-sequence',target.id,worldAddress(target.x,target.y),sequence);
+      }else emit('destroyed', target.id, worldAddress(target.x, target.y), sourceId);
     }
   }
   for (const p of state.impacts) if (p.dueTick === tick) hit(p.sourceId, p.targetId, weapons.get(p.weaponId)!, p.aim);
@@ -167,4 +212,9 @@ export function stepCombat(model: WorldModel, state: CombatState, entities: Worl
   // A later actor may kill an earlier actor's target; no dangling live orders survive the phase.
   for (const a of state.actors) { charge(); if (a.targetId !== null && !alive(byId.get(a.targetId))) clearOrder(a); }
   state.impacts.sort((a, b) => a.dueTick - b.dueTick || a.id - b.id); return work;
+}
+
+/** Health-zero pending sequences still own their anchor. Completed corpse art owns no cells. */
+export function combatDyingActorIds(state:CombatState|undefined):Set<number>{
+  return new Set(state?.deaths?.filter(d=>d.corpseIndex===null).map(d=>d.entityId)??[]);
 }

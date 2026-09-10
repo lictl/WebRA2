@@ -3,9 +3,10 @@
 import { orderCommands, type CommandEnvelope, type SaveEnvelope } from '../../contracts/src/index.ts';
 import { canonicalText } from './canonical.ts';
 import { findNavigationPath } from './navigation.ts';
+import { ORDINARY_DEATH_ENGINE_VERSION, ORDINARY_DEATH_POLICY } from './ordinary-death-rules.ts';
 import { COMBAT_ENGINE_VERSION } from './combat-model.ts';
 import { ORDINARY_COMBAT_ENGINE_VERSION, ORDINARY_COMBAT_POLICY } from './ordinary-combat-rules.ts';
-import { attackCombat, createCombatState, stepCombat, stopCombat, validateCombatState, type CombatState } from './combat.ts';
+import { combatDyingActorIds, attackCombat, createCombatState, stepCombat, stopCombat, validateCombatState, type CombatState } from './combat.ts';
 import { assertWorldModel, worldAddress, worldClone, worldContent, worldEdgeCost, worldFail, worldInteger, worldList, worldPosition,
   worldRecord, WORLD_ENGINE_VERSION, WORLD_LIMITS as C, WORLD_MOTION_POLICY, type WorldModel, type WorldEntityDefinition } from './world-model.ts';
 
@@ -18,7 +19,7 @@ export type WorldTrace = { tick: number; phase: 'command' | 'navigation' | 'move
 export type WorldStep = { nextTick: number; events: WorldTrace[]; work: { entityVisits: number; navigationExpansions: number; transitions: number } };
 type LiveSave = { -readonly [K in keyof WorldSave]: WorldSave[K] } & { queuedCommands: CommandEnvelope[]; scheduledWork: []; rngStates: Record<string, never> };
 
-const engineVersion = (model: WorldModel) => model.combat?.policy===ORDINARY_COMBAT_POLICY ? ORDINARY_COMBAT_ENGINE_VERSION : model.combat ? COMBAT_ENGINE_VERSION : WORLD_ENGINE_VERSION;
+const engineVersion = (model: WorldModel) => model.combat?.policy===ORDINARY_DEATH_POLICY ? ORDINARY_DEATH_ENGINE_VERSION : model.combat?.policy===ORDINARY_COMBAT_POLICY ? ORDINARY_COMBAT_ENGINE_VERSION : model.combat ? COMBAT_ENGINE_VERSION : WORLD_ENGINE_VERSION;
 const rulesVersion = (model: WorldModel) => model.combat ? model.combat.policy : WORLD_MOTION_POLICY;
 function command(value: unknown, combat: boolean): CommandEnvelope {
   const r = worldRecord(value, ['schemaVersion', 'tick', 'playerId', 'sequence', 'kind', 'payload']);
@@ -30,11 +31,11 @@ function command(value: unknown, combat: boolean): CommandEnvelope {
   return { ...common, payload: r.kind === 'move' ? { entityId, ...worldPosition(worldAddress(payload.x, payload.y)) } : r.kind === 'attack' ? { entityId, targetId: worldInteger(payload.targetId, 1, 2147483647) } : { entityId } };
 }
 function occupancy(model: WorldModel, state: WorldState): Map<number, number> {
-  const counts = new Map(model.blocked.map(at => [at, 1]));
+  const counts = new Map(model.blocked.map(at => [at, 1])), dying=combatDyingActorIds(state.combat);
   const add = (at: number) => counts.set(at, (counts.get(at) ?? 0) + 1);
   for (let i = 0; i < state.entities.length; i++) {
     const e = state.entities[i]!, d = model.entities[i]!;
-    if (d.blocksCell && e.health !== 0) { add(worldAddress(e.x, e.y)); if (e.progress > 0) add(e.route[1]!); }
+    if (d.blocksCell && (e.health !== 0||dying.has(e.id))) { add(worldAddress(e.x, e.y)); if (e.progress > 0) add(e.route[1]!); }
   }
   const byId = new Map(state.entities.map(e => [e.id, e]));
   for (const p of model.footprints) if (byId.get(p.entityId)!.health !== 0) for (const at of p.cells) add(at);
@@ -103,9 +104,10 @@ function validateSave(model: WorldModel, input: unknown): LiveSave {
     ...(model.combat ? { combat: validateCombatState(model, s.combat, entities, nextTick) } : {}) }, counts = occupancy(model, state);
   // Only original shared anchors may overlap. A legal edit cannot introduce a new
   // occupant at a blocked cell or move immutable static footprints away from their actor.
+  const dying=combatDyingActorIds(state.combat);
   for (let i = 0; i < entities.length; i++) {
     const e = entities[i]!, d = model.entities[i]!, at = worldAddress(e.x, e.y);
-    if (d.blocksCell && e.health !== 0 && (counts.get(at) ?? 0) > 1 &&
+    if (d.blocksCell && (e.health !== 0||dying.has(e.id)) && (counts.get(at) ?? 0) > 1 &&
       (d.initialHealth === 0 || at !== worldAddress(d.x, d.y))) worldFail('world-save-anchor-overlap');
   }
   // Extra cells are occupants too. Reviving an initially absent stationary
@@ -244,7 +246,7 @@ export class WorldSimulation {
           else if (e.route.length === 1) { e.route = []; break; }
         }
       }
-      // Phase 4: due impacts, then stable-ID firing. Destruction releases occupancy for the next tick.
+      // Phase 4: due death completions, impacts, then stable-ID firing. Completed deaths release cells next tick.
       if (state.combat) work.transitions += stepCombat(this.#model, state.combat, state.entities, save.nextTick,
         (kind, id, cell, value) => emit('combat', kind, id, cell, value));
       // Logical work accounting; not CPU timings or exhaustive validation/allocation operations.

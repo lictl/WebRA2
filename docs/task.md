@@ -17,7 +17,7 @@ mission behavior. No original mission is playable yet.
 Current wave: coordinator [dying-world lifecycle #170](https://github.com/lictl/WebRA2/issues/170)
 and [source combat #132](https://github.com/lictl/WebRA2/issues/132), joining reviewed
 numerical combat166 and ordinary human death165. The browser agent's
-[fresh actor/firing PR168](https://github.com/lictl/WebRA2/pull/168) passed independent source review at3975027; final distribution integration follows, source attack integration remains147/132. The simulation
+[fresh actor/firing PR168](https://github.com/lictl/WebRA2/pull/168) merged after source and final distribution review; source attack integration remains147/132. The simulation
 agent continues [persistent team Sleep #169](https://github.com/lictl/WebRA2/issues/169)
 after [source reinforcement PR167](https://github.com/lictl/WebRA2/pull/167).
 The owner unlocked the Mac and the browser tool confirms access. Per the new D17
@@ -30,6 +30,7 @@ Recent reviewed merges:
 
 | Component | PR / merge SHA | Exact-head evidence |
 | --- | --- | --- |
+| Fresh actor state and standing firing | [168](https://github.com/lictl/WebRA2/pull/168), `3c0eef32c26300707fd787776ab47b7d129a6bc5` | 897 checks; [source review](https://github.com/lictl/WebRA2/pull/168#pullrequestreview-5163354482) and [integration review](https://github.com/lictl/WebRA2/pull/168#pullrequestreview-5163393603); 24,766 private leaves, 96 timing programs; live source resolution remains132/147 |
 | Source reinforcement transactions | [167](https://github.com/lictl/WebRA2/pull/167), `f315b4b6d6e657aa5884e24e950e3613d582d4f4` | 877 checks; [integration review](https://github.com/lictl/WebRA2/pull/167#pullrequestreview-5163349030), separate source/adapter reviews; eight YR occurrences move/save/replay; Sleep169 and trigger activation remain |
 | Ordinary death decision | [165](https://github.com/lictl/WebRA2/pull/165), `2e04f34281899e02566119ee50dbfba12d0bb0c9` | 845 checks; [independent integration review](https://github.com/lictl/WebRA2/pull/165#pullrequestreview-5163246014); 576 private decisions, 45 native ranges; world lifecycle remains170 |
 | Numerical combat transactions | [166](https://github.com/lictl/WebRA2/pull/166), `bce99e4d24e267f46955bb1eadacbfa34d72497a` | 835 checks; [independent review](https://github.com/lictl/WebRA2/pull/166#pullrequestreview-5163207383), 7,863 extra assertions; explicit numeric inputs, no source attack admission |
@@ -140,9 +141,9 @@ the coordinator after independent exact-head COMMENT review and successful check
 
 | Role | Current work and exclusive paths | Branch / private worktree |
 | --- | --- | --- |
-| Coordinator | #170 saved death/world occupancy, #132/147 source combat integration; shared contracts/handoff | root starts `codex/170-world-death`; PR167 integration in `local/worktrees/team-spawning` |
+| Coordinator | #170 saved death/world occupancy implemented, independent review next; #132/147 source combat integration; shared contracts/handoff | root starts `codex/170-world-death`; preserved `local/worktrees/team-spawning` and `local/worktrees/initial-firing` |
 | browser_feasibility | #147 fresh actor/standing fire source and scheduler PR168; next source combat bridge contract; sole native UI owner | `codex/147-initial-firing`, `local/worktrees/initial-firing` |
-| mix_reader | Independent PR168 source/firing review, then death170 review | `local/reviews/initial-firing-168`; preserved `local/worktrees/ordinary-death` |
+| mix_reader | Independent death170 world review after completed168 review | `local/reviews/initial-firing-168`; preserved `local/worktrees/ordinary-death` |
 | bootstrap_review | #169 persistent Sleep source policy and proposed shared adapter | new `codex/169-team-sleep` tree; preserved `local/worktrees/team-spawning` |
 
 Voxel UI [PR144](https://github.com/lictl/WebRA2/pull/144) merged after exact-head
@@ -492,3 +493,23 @@ source review and distribution integration are still pending; none of this enabl
 an original mission yet. Root164 adds an explicit numerical core mode preserving
 existing hashes, with complete explicit factors/seed and saved RNG. Follow
 [the policy](ordinary-combat.md) for scope and original test evidence.
+
+## Current death/world and live source bridge checkpoint
+
+Issue170 adds `ordinary-death-rules.ts` and optional world policy4. Pending dying
+infantry retain anchor occupancy in world navigation and group destinations. Saved
+records carry victim/attacker/owner/weapon/sequence/ticks; completion consumes one
+unsigned word from the numerical reload stream, selects a complete corpse vector
+and releases occupancy for the next movement tick. Durations and phase ordering
+are explicit WebRA2 choices. Original tests cover both profiles, ongoing attribution
+after attacker death, simultaneous corpse/reload ordering, save tampering, replay and
+atomic budget/horizon failures. This is explicit engine-input integration, not retail
+attack permission; see [the contract](ordinary-death.md).
+
+Browser agent is joining the reviewed source factories for an actual ordinary
+infantry bridge under132/147. Keep attack-ready and damageable target-only actors
+separate, with remaining actors retained in movement. Derive current terrain/impact
+occupants and actor status from the genuine model and validated world state; UI
+commands contain IDs only. Native source effects remain explicit. Next root work
+joins source admission and firing168 to numerical/death transactions, then exposes
+Chrome attack controls and source-combat save/replay. No essential human input.

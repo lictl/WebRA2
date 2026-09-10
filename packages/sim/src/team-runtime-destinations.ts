@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Original WebRA2 group-cell policy shared by explicit team scripts and player-order adapters.
 import { findNavigationPath, navigationCell, NAVIGATION_LIMITS } from './navigation.ts';
+import { combatDyingActorIds } from './combat.ts';
 import { WorldSimulation, type WorldSave } from './world.ts';
 import { assertWorldModel, type WorldModel } from './world-model.ts';
 import { worldAddress, worldHash, worldInteger, worldList, worldPosition, worldRecord } from './world-values.ts';
@@ -43,11 +44,13 @@ export function planTeamDestinations(input: { readonly model: WorldModel; readon
     policy:TEAM_DESTINATION_POLICY,modelSha256:model.sha256,checkpointSha256:worldHash(checkpoint),status,reason,
     assignments:Object.freeze(assignments.map(a=>Object.freeze(a))),work:Object.freeze({...work})});
   const charge=(n=1)=>{if(n>cap.work-work.visits)return false;work.visits+=n;return true;};
+  const dying=combatDyingActorIds(checkpoint.state.combat);
+  if(!charge(checkpoint.state.combat?.deaths?.length??0))return result('budget-exhausted','occupancy-work');
   const counts = new Map<number,number>(), staticCells = new Set(model.blocked), add=(n:number)=>counts.set(n,(counts.get(n)??0)+1);
   for(const n of model.blocked){if(!charge())return result('budget-exhausted','occupancy-work');add(n);}
   for(const {e,d} of byId.values()){
     if(!charge())return result('budget-exhausted','occupancy-work');
-    if(e.health!==0 && d.blocksCell){add(worldAddress(e.x,e.y));if(e.progress>0)add(e.route[1]!);}
+    if((e.health!==0||dying.has(e.id)) && d.blocksCell){add(worldAddress(e.x,e.y));if(e.progress>0)add(e.route[1]!);}
   }
   for(const p of model.footprints){if(!charge())return result('budget-exhausted','occupancy-work');if(byId.get(p.entityId)!.e.health===0)continue;
     for(const n of p.cells){if(!charge())return result('budget-exhausted','occupancy-work');staticCells.add(n);add(n);}}

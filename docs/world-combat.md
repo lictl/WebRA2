@@ -222,3 +222,8 @@ Current roster fingerprints are
 (YR). The comparison scripts are `local/combat-roster/probe.mjs`,
 `local/combat-roster/oracle/{actor-oracle,entity-oracle}.py` and
 `local/combat-roster/roster-oracle.py`. Reproduction inputs and results stay ignored.
+
+The optional [ordinary death lifecycle](ordinary-death.md) extends numerical mode
+with saved dying actors, retained ground occupancy, attributed terminal events and
+shared-stream corpse selection. Its explicit rules still require a source admission
+adapter before retail browser attacks can run.
