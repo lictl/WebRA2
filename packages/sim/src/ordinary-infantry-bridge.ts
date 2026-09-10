@@ -102,24 +102,35 @@ export function compileOrdinaryInfantryBridge(input: OrdinaryInfantryBridgeInput
     if (reasonCharacters > cap.reasonCharacters) fail('reason-limit'); return Object.freeze(out); };
   const capabilities = compileCombatWeapons({ weapons: i.weapons });
   const roster = compileCombatRoster({ world: i.world, definitions: i.definitions, actors: i.actors, weapons: i.weapons, capabilities });
+  // Account for indexing and for linear searches inside the existing genuine selector/program factories.
+  for (const list of [i.definitions.definitions, i.actors.definitions, i.initial.placements, i.modifiers.houses, i.weapons.weapons, i.weapons.warheads,
+    i.weapons.links, i.world.model.entities, i.veterancy.types, i.ordinaryDeath.types, i.instant.records, i.effects.roots, capabilities.records, i.initial.types]) charge(list.length);
   const types = new Map(i.definitions.definitions.map(t => [t.id, t])), actors = new Map(i.actors.definitions.map(a => [a.id, a]));
   const initial = new Map(i.initial.placements.map(p => [p.rowId, p])), houses = new Map(i.modifiers.houses.map(h => [h.houseId, h]));
   const weapons = new Map(i.weapons.weapons.map(w => [w.id, w])), warheads = new Map(i.weapons.warheads.map(w => [w.id, w]));
   const primary = new Map(i.weapons.links.filter(l => l.slot === 'primary').map(l => [l.typeId, l.field]));
+  const worldEntities = new Map(i.world.model.entities.map(e => [e.id, e])), veteranTypes = new Map(i.veterancy.types.map(t => [t.typeId, t]));
+  const deathTypes = new Map(i.ordinaryDeath.types.map(t => [t.typeId, t])), contexts = new Map(i.instant.records.map(r => [r.weaponId, r]));
+  const admissions = new Map(capabilities.records.map(r => [r.weaponId, r])), fireTypes = new Map(i.initial.types.map(t => [t.typeId, t]));
+  const effectRoots = new Map(i.effects.roots.map(r => [`${r.ownerId}:${r.key}:${r.context}`, r]));
   const rows: OrdinaryInfantryActor[] = [], combatActors: CombatActor[] = [], numeric: OrdinaryCombatActor[] = [], programs: InfantryFiringProgram[] = [], deathActors: OrdinaryDeathActor[] = [];
   const readyWeapons = new Map<string, CombatWeapon>(), deathWeapons = new Map<string, { weaponId: string; infDeath: 1 | 2 }>();
   for (const p of roster.actors) {
     charge(); const type = p.typeId === null ? undefined : types.get(p.typeId), actor = p.typeId === null ? undefined : actors.get(p.typeId), fresh = initial.get(p.rowId);
-    const source = i.world.model.entities.find(e => e.id === p.entityId)!;
+    const source = worldEntities.get(p.entityId)!;
     const weaponId = p.typeId === null ? null : known(primary.get(p.typeId)), weapon = weaponId === null ? undefined : weapons.get(weaponId), warhead = weapon ? warheads.get(known(weapon.fields.warhead) ?? '') : undefined;
-    const selected = fresh?.veterancy !== null && fresh?.veterancy !== undefined && type && ['infantry', 'unit', 'aircraft', 'structure'].includes(type.kind)
-      ? selectCombatVeterancy(i.veterancy, { typeId: type.id, veterancy: fresh.veterancy }) : null;
-    const house = p.ownerId === null ? undefined : houses.get(p.ownerId), deathType = i.ordinaryDeath.types.find(t => t.typeId === p.typeId);
+    const hasRank = fresh?.veterancy !== null && fresh?.veterancy !== undefined && type && ['infantry', 'unit', 'aircraft', 'structure'].includes(type.kind);
+    if (hasRank) charge(i.veterancy.types.length);
+    const selected = hasRank ? selectCombatVeterancy(i.veterancy, { typeId: type!.id, veterancy: fresh!.veterancy! }) : null;
+    const house = p.ownerId === null ? undefined : houses.get(p.ownerId), deathType = p.typeId === null ? undefined : deathTypes.get(p.typeId);
     // Source rank is typed independently. Other active veteran consumers stay explicit until implemented.
     const common = p.reasons.filter(r => r !== 'initial-veterancy');
+    // The prepared graph contains normal slots only. Elite slot/fallback selection is not proven,
+    // including the victim's current weapon consulted by the ordinary Suicide death branch.
+    if (selected?.rank === 'elite') common.push('elite-current-weapon-selection');
     if (type?.kind !== 'infantry' || known(type.locomotor)?.kind !== 'walk') common.push('not-standing-Walk-infantry');
     if (fresh?.status !== 'ready' || fresh.actorId !== p.entityId) common.push('fresh-source-state');
-    const veteranType = i.veterancy.types.find(t => t.typeId === p.typeId);
+    const veteranType = p.typeId === null ? undefined : veteranTypes.get(p.typeId);
     if (selected && (selected.rank === 'veteran' || selected.rank === 'elite')) {
       const lists = selected.rank === 'veteran' ? [known(veteranType?.veteran)] : [known(veteranType?.veteran), known(veteranType?.elite)];
       for (const list of lists) { if (list === null) common.push('unknown-active-veterancy'); else for (const name of list)
@@ -137,9 +148,8 @@ export function compileOrdinaryInfantryBridge(input: OrdinaryInfantryBridgeInput
     if (weaponId !== null && (!weapon || weapon.status !== 'typed' || known(weapon.fields.suicide) !== false)) targetReasons.push('current-weapon-source');
     const attackReasons = [...targetReasons];
     if (roster.alliances.status !== 'ready') attackReasons.push('incomplete-alliance-source');
-    const context = i.instant.records.find(r => r.weaponId === weaponId), capability = capabilities.records.find(r => r.weaponId === weaponId);
-    const fire = i.effects.roots.find(r => r.ownerId === weaponId && r.key === 'Anim' && r.context === 'ordinary-firing');
-    const impact = i.effects.roots.find(r => r.ownerId === warhead?.id && r.key === 'AnimList' && r.context === 'ordinary-impact');
+    const context = weaponId === null ? undefined : contexts.get(weaponId), capability = weaponId === null ? undefined : admissions.get(weaponId);
+    const fire = effectRoots.get(`${weaponId}:Anim:ordinary-firing`), impact = effectRoots.get(`${warhead?.id}:AnimList:ordinary-impact`);
     const effectReady = fire?.status === 'presentation-only' && impact?.status === 'presentation-only';
     if (context?.status !== 'context-supported') attackReasons.push('instant-source');
     if (!effectReady) attackReasons.push('ordinary-animation-closure');
@@ -157,16 +167,19 @@ export function compileOrdinaryInfantryBridge(input: OrdinaryInfantryBridgeInput
     }
     if (known(actor?.startingAmmo) !== -1) attackReasons.push('finite-ammo-reload-not-bound');
     if (!warhead || known(warhead.fields.infDeath) !== 1 && known(warhead.fields.infDeath) !== 2) attackReasons.push('ordinary-death-mode');
-    if (i.initial.types.find(t => t.typeId === p.typeId)?.standingPrimary.status !== 'ready') attackReasons.push('standing-fire-program');
+    const fireType = p.typeId === null ? undefined : fireTypes.get(p.typeId);
+    if (fireType?.standingPrimary.status !== 'ready') attackReasons.push('standing-fire-program');
+    if (known(fireType?.frames.FireUp) === null || known(fireType?.frames.FireUp)! > 10000) attackReasons.push('world-fire-up-limit');
     const target = reasons(targetReasons), attack = reasons(attackReasons), role = target.length ? 'movement-only' as const : attack.length ? 'target-only' as const : 'attacker' as const;
     rows.push(freeze({ entityId: p.entityId, rowId: p.rowId, typeId: p.typeId, ownerId: p.ownerId, playerId: p.playerId, role,
-      attackReasons: attack, targetReasons: target, weaponId: role === 'attacker' ? weaponId : null, currentWeaponId: weaponId,
+      attackReasons: attack, targetReasons: target, weaponId: role === 'attacker' ? weaponId : null, currentWeaponId: selected?.rank === 'elite' ? null : weaponId,
       warheadId: role === 'attacker' ? warhead!.id : null, veterancy: fresh?.veterancy ?? null }));
     if (role === 'movement-only') continue;
     combatActors.push({ entityId: p.entityId, armor: p.armor!, layer: 'ground', weapons: role === 'attacker' ? [weaponId!] : [], initialAmmo: p.initialAmmo! });
     numeric.push(factors as OrdinaryCombatActor);
     deathActors.push({ entityId: p.entityId, corpseAnimationIds: deathType!.corpse!.candidates.map(c => c.animationId), sequence11Ticks, sequence12Ticks });
     if (role === 'attacker') {
+      charge(i.initial.placements.length + i.initial.types.length);
       programs.push(createInfantryFiringProgram(i.initial, p.rowId));
       readyWeapons.set(weaponId!, { id: weaponId!, damage: known(weapon!.fields.damage)!, range: known(weapon!.fields.range)!, minimumRange: known(weapon!.fields.minimumRange)!,
         reloadTicks: known(weapon!.fields.rof)!, burst: 1, burstDelayTicks: 1, delivery: 'instant', speed: 0, ground: true, air: false, verses: known(warhead!.fields.verses)!.map(combatFactor) });
@@ -202,6 +215,7 @@ function joined(bridge: OrdinaryInfantryBridge, model: WorldModel): Private {
 export function evaluateOrdinaryInfantryState(bridge: OrdinaryInfantryBridge, model: WorldModel, state: WorldState,
   input: { readonly sourceId: number; readonly targetId: number }): OrdinaryInfantryAttack {
   const data = joined(bridge, model), r = worldRecord(input, ['sourceId', 'targetId']), sourceId = worldInteger(r.sourceId, 1, 2147483647), targetId = worldInteger(r.targetId, 1, 2147483647);
+  if (state.modelSha256 !== model.sha256 || state.entities.length !== model.entities.length) fail('state-join');
   const sourceRow = data.rows.get(sourceId), targetRow = data.rows.get(targetId), reasons: string[] = [];
   let work = 0; const charge = (n = 1): void => { work += n; if (work > bridge.limits.contextWork) fail('context-work'); };
   charge(state.entities.length); const entities = new Map(state.entities.map(e => [e.id, e])), source = entities.get(sourceId), target = entities.get(targetId);
