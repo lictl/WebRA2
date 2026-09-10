@@ -14,10 +14,11 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
-Current wave: coordinator [actor modifiers and firing/death #147](https://github.com/lictl/WebRA2/issues/147),
+Current wave: coordinator [numerical world integration #164](https://github.com/lictl/WebRA2/issues/164)
+and [actor modifiers and firing/death #147](https://github.com/lictl/WebRA2/issues/147),
 continuing [authoritative combat #132](https://github.com/lictl/WebRA2/issues/132) after the
 reviewed [core/source-preparation checkpoint PR137](https://github.com/lictl/WebRA2/pull/137);
-browser agent independently reviews [veterancy PR162](https://github.com/lictl/WebRA2/pull/162) after merged Chrome controls149;
+browser agent implements fresh actor and standing-fire source/scheduler facts under147 after reviewed162;
 format agent implements [ordinary infantry death #163](https://github.com/lictl/WebRA2/issues/163)
 after merged death prerequisites155;
 simulation agent [source team activation/spawning #160](https://github.com/lictl/WebRA2/issues/160),
@@ -32,6 +33,7 @@ Recent reviewed merges:
 
 | Component | PR / merge SHA | Exact-head evidence |
 | --- | --- | --- |
+| Veteran/elite ability selection | [162](https://github.com/lictl/WebRA2/pull/162), `7512b6707a337a7ca3bab0b46fc18dc7253dd6d2` | 827 checks; [independent review](https://github.com/lictl/WebRA2/pull/162#pullrequestreview-5163054208); 67,602 private values and25 native spans; ability preparation only |
 | Chrome RTS controls | [153](https://github.com/lictl/WebRA2/pull/153), `b063749b52aab1ed57a833dd991961e72daaa326` | 808 checks; independent source/final COMMENT reviews; both openings in actual Chrome, group orders and local save/replay; modifier drags synthetic only |
 | Actor death prerequisites | [161](https://github.com/lictl/WebRA2/pull/161), `6f7db8cfc025c47541e9df63d9a98a7876bb7ed1` | 819 checks; [source review](https://github.com/lictl/WebRA2/pull/161#pullrequestreview-5162937715) and [integration review](https://github.com/lictl/WebRA2/pull/161#pullrequestreview-5162963777); source preparation only, ordinary execution remains163 |
 | Source-bound campaign house modifiers | [159](https://github.com/lictl/WebRA2/pull/159), `8f9b4b08340dc80fa0ec4636de38cc1b2cc9cc12` | 780 checks; [independent review](https://github.com/lictl/WebRA2/pull/159#pullrequestreview-5162842856); 999 private numerical comparisons; explicit difficulty indices, preparation only |
@@ -138,8 +140,8 @@ the coordinator after independent exact-head COMMENT review and successful check
 
 | Role | Current work and exclusive paths | Branch / private worktree |
 | --- | --- | --- |
-| Coordinator | #147 actor modifiers/firing; #160 existing team runtime adapter; shared contracts/handoff and reviews | `codex/147-actor-runtime` at root; `codex/160-spawn-team-adapter`, `local/worktrees/spawn-team-adapter` |
-| browser_feasibility | Independent PR162 review; sole native UI owner, Chrome acceptance when new UI is ready | `local/reviews/combat-veterancy-162`; preserved `local/worktrees/world-controls` |
+| Coordinator | #164 numerical world execution; #147 integration; #160 adapter/review; shared contracts/handoff | `codex/164-ordinary-combat` at root; `codex/160-spawn-team-adapter`, `local/worktrees/spawn-team-adapter` |
+| browser_feasibility | #147 source fresh actor/standing fire facts and pure scheduler; sole native UI owner | new isolated source worktree; preserved `local/reviews/combat-veterancy-162` and `local/worktrees/world-controls` |
 | mix_reader | #163 ordinary human infantry death decision/lifecycle; new content source/tests/provenance | `codex/163-ordinary-death`; preserved `local/worktrees/combat-death` and `local/worktrees/native-random` |
 | bootstrap_review | #160 source reinforcement context/insertion/scheduler/replay; new content and sim source/tests/provenance | `codex/160-team-spawning`, `local/worktrees/team-spawning`; preserved `local/worktrees/team-runtime` |
 
@@ -449,11 +451,12 @@ in GitHub until the next substantive handoff update, avoiding metadata-only cycl
 
 ## Active continuation after PR153/161
 
-Reviewed main is `6f7db8cfc025c47541e9df63d9a98a7876bb7ed1`. PR162's
+Reviewed main is `7512b6707a337a7ca3bab0b46fc18dc7253dd6d2`. PR162's
 source veterancy component passes827 checks,131docs/678links, and53 build outputs
 with108 inputs. Independent review reproduces67,602 private source scalars and25
 complete native spans (7,539 bytes), with no executable-combat claim. Its exact-head
-review is pending this handoff refresh. Root continues147/132 integration after merge.
+review and CI passed and it is merged. Root164 now connects these numerical
+primitives to the world core; source actor/firing admission147 and death163 follow.
 
 PR153 merged Chrome acceptance at runtime
 `adbd0e7b694c9d39c9e164f4a44c107dd3344713` on4178. Root independently matched
@@ -474,3 +477,14 @@ scripts. Seven YR opening templates admit current move/jump; RA2 needs more opco
 These counts do not imply mission playability. Issue163 implements the ordinary
 human infantry death subset with explicit WebRA2 sequence-completion cadence;
 unit/special-effect paths remain guarded. No essential human input is needed.
+
+Root160 adapter checkpoint `ba18ae633f6b467efe287e06f312384854b36587` is
+integrated in the worker tree as20e44c4 after separate worker inspection. Seven
+original adapter tests and817 checks on that prototype baseline pass. The worker's
+compound scheduler now covers source spawning, saved retries and pending replay;
+private runs spawn all8 eligible YR action occurrences and move12 actors across
+7 templates, with312 checkpoint restores and8 replay comparisons. Its final PR,
+source review and distribution integration are still pending; none of this enables
+an original mission yet. Root164 adds an explicit numerical core mode preserving
+existing hashes, with complete explicit factors/seed and saved RNG. Follow
+[the policy](ordinary-combat.md) for scope and original test evidence.
