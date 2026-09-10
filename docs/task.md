@@ -14,6 +14,20 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
+Current root slice: [source cell-entry events201](https://github.com/lictl/WebRA2/issues/201)
+in `local/worktrees/mission-cell-entry`, branch `codex/201-mission-cell-entry`.
+Root owns shared VM/compound event delivery and RegisterEvent/TagRaiseEvent evidence;
+bootstrap_review owns separate source binding, event1/movement call-site research
+and original source fixtures. Audio196 and battlefield UI197 continue independently.
+No original event is admitted until source and runtime semantics are joined.
+
+Waypoint198 merged as `06d61025b6c7a0a811dedb9a6ea2e8702d4b25bc`, reviewed at
+`c1e3c7f0ea4c142751e6b0fe06c125072fe81c13`. The
+[final composition review](https://github.com/lictl/WebRA2/pull/198#pullrequestreview-5166178817)
+confirms 1,084 tests, 168 documents/846 links, 592 paths and 69 outputs/142 inputs,
+with all ten source files unchanged and the exact waypoint GPL notice packaged.
+Hosted run34468297892 passed; issue193 closes within this initial-source scope.
+
 Coordinator integrates corrected [waypoint PR198](https://github.com/lictl/WebRA2/pull/198)
 in `local/worktrees/waypoint-integration`, branch `codex/193-waypoint-integration`.
 The [independent source review](https://github.com/lictl/WebRA2/pull/198#pullrequestreview-5166057854)
