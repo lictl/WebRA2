@@ -235,12 +235,19 @@ so that assertion now uses a real `node:http` request. Neither correction change
 a measured engine module. Full public `npm run check` passes 1,229 tests, types, document/publication/M0
 checks and a 77-output/145-input product build; these public
 checks are not browser timing or campaign acceptance.
+The final composition also runs the five original harness boundary tests through
+`npm run check:performance-tools` inside `npm run check`; CI does not run timed
+browser benchmarks or enforce wall-clock thresholds on shared hardware.
 
 Frame `allocations` are accounted renderer buffers, not total live heap or peak
 process RSS. Optional `measureUserAgentSpecificMemory` is feature-detected after
 timing and describes a browser-specific post-run page/worker estimate that may
 trigger collection; it cannot establish peak memory. No Node measurement is
 presented as Chrome evidence.
+The optional memory button was not invoked in these runs: there is no measured
+page/worker heap, RSS or peak-memory result. Cold engine/module loading, sustained
+tick/frame cadence, combat, mission VM/AI, voxel rendering and complete campaign
+workloads remain unmeasured by this baseline.
 
 The harness is original WebRA2 GPL-3.0-or-later instrumentation. Its separable
 notice list is MIT and matches the broader existing

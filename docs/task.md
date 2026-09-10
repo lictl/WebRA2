@@ -12,7 +12,9 @@ no original mission is yet fully playable and no human input is currently needed
 
 Root owns codex/222-performance-boundaries in local/reviews/performance-222 from
 merged main7deefd203e9cceb8802d44af867ed3e0a38f4991. The primary checkout remains
-clean main at that revision. [ADR 0004](adr/0004-hybrid-engine-and-performance-gates.md)
+clean main at that revision. [Draft PR224](https://github.com/lictl/WebRA2/pull/224)
+contains the documentation and original benchmark harness.
+[ADR 0004](adr/0004-hybrid-engine-and-performance-gates.md)
 records the hybrid boundary: TypeScript UI/content orchestration, measured coarse
 WASM kernels or reusable codecs, and separately planned GPU rendering. No native
 language or whole-engine rewrite has been selected. The persistent cinematic
@@ -32,13 +34,14 @@ Exclusive active roles, within the agreed four-agent limit:
   composition, independent evidence checks and ordinary GitHub merge.
 - browser_feasibility: sole CUA/Chrome owner; new tools/performance/ harness and
   docs/performance-baseline.md. Baseline code7deefd2, isolated tree
-  local/reviews/browser-performance-222 and new4199 server. Preserve previous
+  local/reviews/browser-performance-222, exploratory4199 and frozen final4200
+  servers. Preserve previous
   immutable servers through4197 and media8767/probe8768; audio4198 was not started.
 - mix_reader: completed read-only hot-path and ownership audit of7deefd2; available
   for independent harness/evidence review. Its219 source review is paused.
 - bootstrap_review: preserved219 and reviewed performance methodology; owns
-  independent root documentation review. No concurrent compute/browser workload
-  during Chrome timing.
+  independent root documentation review. Keep heavy builds/checks outside Chrome
+  timing and leave browser control to the sole owner.
 
 Benchmark acceptance: reproducible original scalable workloads, exact code/build/
 Chrome/machine, warmup and sample counts, repeated median/p95 results, output checks,
@@ -46,8 +49,19 @@ explicit inclusive stages and allocation scope. Separate worker transport from
 JS/WASM boundary costs. No retail payloads, Node timing presented as Chrome, or
 campaign/GPU performance claim. Use results to select a linked bounded next
 optimization with deterministic equivalence gates; do not preemptively port the
-whole simulation. Current PR, final checks and review/merge evidence will be
-recorded as they complete.
+whole simulation. PR224 carries the final exact-head review and merge record;
+check its current state before resuming rather than assuming a draft was merged.
+
+Root independently recalculated all261 rows from the three visible Chrome runs,
+verified11,127 checked samples and equal per-case result identities, and checked
+all68 frozen benchmark outputs on disk/HTTP against their hashes plus59 code
+inputs. Four private/query routes were refused and CSP retained connect-src none.
+The existing full1,229 tests/types, document/publication/M0 checks and build pass.
+All77 application disk hashes and145 inputs were checked against merged218:
+all12 executable/UI outputs match; only the updated licensing notice differs.
+The new five harness boundary tests are a separate original-only CI gate; they do
+not run browser timings on shared CI hardware. Final composition checks and
+independent reviews are next before ordinary merge.
 
 ## Preserved audio wave
 
@@ -56,7 +70,7 @@ recorded as they complete.
   codex/216-pcm-playback, local/worktrees/mission-audio-playback. Author reports12
   focused tests and full1,231/types passing. Actual Chrome acceptance and independent
   review remain incomplete; no native playback policy or merge is claimed.
-- [Issue219](https://github.com/lictl/WebRA2/issues/219): source sound/EVA policy
+- [Issue219](https://github.com/lictl/WebRA2/issues/219) / [draft PR226](https://github.com/lictl/WebRA2/pull/226): source sound/EVA policy
   at pushed6e1e730e646ca4b1479793f66b426d457d87af2b, clean
   codex/219-mission-audio-policy, local/worktrees/mission-audio-policy.
   [Pause evidence](https://github.com/lictl/WebRA2/issues/219#issuecomment-5620865968)
@@ -74,7 +88,10 @@ recorded as they complete.
   full checks and independent review remain. Branch clean and pushed; do not merge
   this checkpoint as a finished feature.
 
-After222, implement its measured next performance slice and rerun the baseline.
+After222, implement [renderer performance225](https://github.com/lictl/WebRA2/issues/225)
+and rerun the baseline: a bounded WebGL2 terrain/SHP experiment against the CPU
+reference, with pixel/depth/picking, resource and sustained product-cadence checks.
+This targets the measured frame cost; no GPU gain or deployment is yet claimed.
 Then resume216/219/220 in dependency order, preserving these acceptance gaps.
 Source review and bounded correctness work may run alongside performance work
 when they do not contend for write paths or timing resources. No additional owner

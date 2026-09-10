@@ -23,6 +23,9 @@ Worker placement and module lifetime also matter: CPU work in WASM on the main
 thread still blocks that thread, and repeated compilation/instantiation has costs.
 [WebAssembly performance patterns](https://web.dev/articles/webassembly-performance-patterns-for-web-apps).
 Measure complete integration costs, not just a tight native loop.
+WebGL exposes hardware-accelerated graphics through a browser API, which is why
+the rendering experiment is distinct from a CPU-language migration.
+[MDN WebGL overview](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API).
 
 The project already uses a persistent FFmpeg WASM cinematic decoder with explicit
 memory and queue bounds. See [the measured media path](../persistent-media.md) and
@@ -131,6 +134,12 @@ This gate is a baseline and prioritization step. Repeat it as combat, visibility
 economy and campaign AI are integrated, and on representative large campaigns and
 all release browser families in M5/M6. An original microbenchmark or an incomplete
 opening world cannot close campaign performance acceptance.
+
+The first follow-up is [renderer performance225](https://github.com/lictl/WebRA2/issues/225):
+compare a bounded WebGL2 terrain/SHP path against the CPU reference and measure
+sustained product cadence with pixel/depth/picking and resource checks. The original
+baseline identifies frame composition as a leading component cost; this selection
+does not assert a GPU speedup or select a WASM simulation language.
 
 ## Alternatives and consequences
 
