@@ -56,7 +56,9 @@ operation deadline was too short even outside the browser.
 Only `world-replay-validate` now has a three-minute upper deadline; ordinary operations
 remain at 30 seconds and asset preparation retains its existing separate limit. The
 original replay tick/work/input caps still apply. The bilingual busy message offers an
-explicit cancellation button. Cancellation terminates the worker, clears pending reply
+explicit cancellation button. Active validation has its own operation flag, so selection changes,
+Space/Stop shortcuts and hidden-page notices cannot hide that button or its explanation.
+Cancellation terminates the worker, clears pending reply
 handlers and returns to retained Files; saved local checkpoints remain intact. There is
 no promise of completion for every supported input or background-tab execution. Synthetic
 clock tests cover both deadlines and abort cleanup; delayed-worker and mounted-view tests

@@ -86,8 +86,8 @@ export function mountWorld(root: HTMLElement, controller: TerrainController): ()
     const actor = world.actors.find(a => a.id === state.selectedEntity), info = summary.actors.find(a => a.id === state.selectedEntity);
     if (actor && actor.id !== priorEntity) { priorEntity = actor.id; get<HTMLInputElement>('x').value = String(actor.x); get<HTMLInputElement>('y').value = String(actor.y); }
     get('clock').textContent = `${t('tick')} ${world.nextTick} · ${t('queued')} ${world.queuedCommands}`;
-    get('cancel-replay').hidden=!(state.busy&&state.worldNotice==='worldVerifying');
-    get('run').textContent = t(state.running ? 'pause' : 'run'); get('notice').textContent = t(state.worldNotice);
+    get('cancel-replay').hidden=!(state.busy&&state.verifyingReplay);
+    get('run').textContent = t(state.running ? 'pause' : 'run'); get('notice').textContent = t(state.verifyingReplay?'worldVerifying':state.worldNotice);
     for (const id of ['step', 'house', 'unit', 'slot', 'save', 'load', 'delete', 'export-save', 'import-save', 'export-replay', 'import-replay', 'verify']) (get(id) as HTMLButtonElement).disabled = state.busy;
     get<HTMLButtonElement>('run').disabled = state.busy && !state.running; get<HTMLButtonElement>('focus').disabled = state.busy || !actor;
     for (const id of ['move', 'stop']) get<HTMLButtonElement>(id).disabled = !controller.canOrder(); get<HTMLButtonElement>('picked').disabled = !controller.canOrder() || state.selection?.kind !== 'terrain';

@@ -7,19 +7,19 @@ import { actorsInBox, controllable, selectWorldActors, type SelectionBox, type S
 import type { Locale } from './i18n.ts';
 import { WORLD_UI, worldDocumentText, type WorldAction, type WorldDocument } from './world-protocol.ts';
 import { LocalWorldStorage, type WorldStorage, type SaveSlot } from './world-storage.ts';
-export type TerrainState={locale:Locale;profile:TerrainProfile;phase:'empty'|'selected'|'loading'|'choosing'|'ready'|'cancelled'|'failed';campaign:CampaignLaunchPlan|null;files:number;bytes:number;busy:boolean;progress:TerrainProgress|null;frame:FrameResult|null;selection:ViewportPick;notice:string;error:string|null;running:boolean;playerId:number|null;selectedEntity:number|null;selectedEntities:number[];interactionEpoch:number;interacting:boolean;slot:SaveSlot;worldNotice:string;replayHash:string|null};
+export type TerrainState={locale:Locale;profile:TerrainProfile;phase:'empty'|'selected'|'loading'|'choosing'|'ready'|'cancelled'|'failed';campaign:CampaignLaunchPlan|null;files:number;bytes:number;busy:boolean;verifyingReplay:boolean;progress:TerrainProgress|null;frame:FrameResult|null;selection:ViewportPick;notice:string;error:string|null;running:boolean;playerId:number|null;selectedEntity:number|null;selectedEntities:number[];interactionEpoch:number;interacting:boolean;slot:SaveSlot;worldNotice:string;replayHash:string|null};
 export function canPick(state:TerrainState,x:number,y:number):boolean {const f=state.frame;return !!f && !state.busy && state.phase==='ready' && Number.isInteger(x) && Number.isInteger(y) && x>=0 && y>=0 && x<f.camera.width && y<f.camera.height;}
 export class TerrainController{
   #files:File[]=[];#port:TerrainPort|null=null;#active:AbortController|null=null;#generation=0;#desired:Camera|null=null;#listeners=new Set<(s:TerrainState)=>void>();#width=960;#height=640;
   state:TerrainState;
-  constructor(locale:Locale='en',private factory:()=>TerrainPort=()=>new TerrainBridge(),private storage:WorldStorage=new LocalWorldStorage()){this.state={locale,profile:'ra2',phase:'empty',campaign:null,files:0,bytes:0,busy:false,progress:null,frame:null,selection:null,notice:'choose',error:null,running:false,playerId:null,selectedEntity:null,selectedEntities:[],interactionEpoch:0,interacting:false,slot:1,worldNotice:'worldPaused',replayHash:null};}
+  constructor(locale:Locale='en',private factory:()=>TerrainPort=()=>new TerrainBridge(),private storage:WorldStorage=new LocalWorldStorage()){this.state={locale,profile:'ra2',phase:'empty',campaign:null,files:0,bytes:0,busy:false,verifyingReplay:false,progress:null,frame:null,selection:null,notice:'choose',error:null,running:false,playerId:null,selectedEntity:null,selectedEntities:[],interactionEpoch:0,interacting:false,slot:1,worldNotice:'worldPaused',replayHash:null};}
   subscribe(fn:(s:TerrainState)=>void):()=>void{this.#listeners.add(fn);fn(this.state);return()=>this.#listeners.delete(fn);}
   #update(p:Partial<TerrainState>):void{
     this.state={...this.state,...p};
     if(Object.hasOwn(p,'frame')){const f=this.state.frame;const ids=this.state.selectedEntities.filter(id=>controllable(f?.summary.world,f?.world,this.state.playerId,id));this.state={...this.state,selectedEntities:ids,selectedEntity:ids[0]??null};}
     for(const fn of this.#listeners)fn(this.state);
   }
-  #stop():void{this.#generation++;this.#active?.abort();this.#active=null;this.#port?.dispose();this.#port=null;this.#desired=null;this.state={...this.state,campaign:null,running:false,playerId:null,selectedEntity:null,selectedEntities:[],interactionEpoch:this.state.interactionEpoch+1,interacting:false,replayHash:null,worldNotice:'worldPaused'};}
+  #stop():void{this.#generation++;this.#active?.abort();this.#active=null;this.#port?.dispose();this.#port=null;this.#desired=null;this.state={...this.state,campaign:null,verifyingReplay:false,running:false,playerId:null,selectedEntity:null,selectedEntities:[],interactionEpoch:this.state.interactionEpoch+1,interacting:false,replayHash:null,worldNotice:'worldPaused'};}
   select(files:ArrayLike<File>):void{
     this.#stop();if(!Number.isSafeInteger(files.length) || files.length<0 || files.length>VIEW_LIMIT.files){this.#files=[];this.#update({phase:'failed',files:0,bytes:0,busy:false,progress:null,frame:null,selection:null,notice:'tooMany',error:null});return;}
     this.#files=Array.from(files);this.#update({phase:files.length?'selected':'empty',files:files.length,bytes:this.#files.reduce((n,f)=>n+f.size,0),busy:false,progress:null,frame:null,selection:null,notice:files.length?'selected':'choose',error:null});
@@ -138,7 +138,7 @@ export class TerrainController{
   setPlayer(id:number|null):void{if(this.state.busy)return;if(id!==null&&!this.state.frame?.summary.world?.players.some(p=>p.id===id))return;this.#update({playerId:id,running:false,selectedEntity:null,selectedEntities:[],selection:null,interacting:false,interactionEpoch:this.state.interactionEpoch+1,worldNotice:'worldSelectionCleared'});}
   setSlot(slot:SaveSlot):void{if(!this.state.busy&&[1,2,3].includes(slot))this.#update({slot});}
   setRunning(running:boolean):void{const active=running&&!this.state.busy&&this.state.phase==='ready'&&!!this.state.frame?.world;this.#update({running:active,worldNotice:active?'worldRunning':'worldPaused'});}
-  hidden():void{this.#update({running:false,worldNotice:this.state.worldNotice==='worldVerifying'?'worldVerifying':'worldHidden'});}
+  hidden():void{this.#update({running:false,worldNotice:'worldHidden'});}
   canOrder():boolean{const f=this.state.frame;return !this.state.busy&&this.state.selectedEntities.length>0&&this.state.selectedEntities.every(id=>controllable(f?.summary.world,f?.world,this.state.playerId,id));}
   canAttack(targetId:number):boolean{
     const f=this.state.frame;if(!this.canOrder()||!f?.summary.world?.combatPolicy)return false;
@@ -155,7 +155,7 @@ export class TerrainController{
     const generation=this.#generation,port=this.#port,active=new AbortController();let transportFailed=false;this.#active=active;this.#update({busy:true,error:null});
     const live=()=>generation===this.#generation&&!active.signal.aborted;
     const request=async(action:WorldAction):Promise<WorldDocument|null>=>{
-      if(action.type==='world-replay-validate')this.#update({worldNotice:'worldVerifying'});
+      if(action.type==='world-replay-validate')this.#update({verifyingReplay:true,worldNotice:'worldVerifying'});
       let result;try{result=await port.request(action,active.signal);}catch(error){transportFailed=true;throw error;}if(!live())return null;
       if(result.type==='world-rejection'){this.#update({running:false,worldNotice:result.code==='world-ui-group-blocked'?'worldGroupBlocked':result.code==='world-ui-group-budget-exhausted'?'worldGroupBudget':result.code==='world-ui-attack-range'?'worldAttackRange':result.code==='world-ui-attack-moving'?'worldAttackMoving':result.code==='world-ui-attack-context'?'worldAttackContext':result.code==='world-ui-attack-unsupported'?'worldAttackUnsupported':'worldRejected',error:result.code});return null;}
       if(result.type==='world-document')return result;
@@ -165,7 +165,7 @@ export class TerrainController{
     };
     try{const result=await run(active.signal,request);return live()?result:null;}
     catch(error){if(live()){if(transportFailed)this.#failure(error,generation);else{const code=error instanceof Error?error.message:'unavailable';this.#update({running:false,worldNotice:['quota','storage','empty'].includes(code)?'world'+code[0]!.toUpperCase()+code.slice(1):'worldRejected',error:code});}}return null;}
-    finally{if(live()){this.#active=null;this.#update({busy:false});const camera=this.state.frame?.camera;if(camera&&this.#desired&&Object.entries(camera).some(([k,v])=>this.#desired![k as keyof Camera]!==v))void this.#render();}}
+    finally{if(live()){this.#active=null;this.#update({busy:false,verifyingReplay:false});const camera=this.state.frame?.camera;if(camera&&this.#desired&&Object.entries(camera).some(([k,v])=>this.#desired![k as keyof Camera]!==v))void this.#render();}}
   }
   async step(ticks=1):Promise<void>{await this.#worldOperation(async(_signal,request)=>request({type:'world-step',ticks}));}
   async order(x?:number,y?:number):Promise<void>{

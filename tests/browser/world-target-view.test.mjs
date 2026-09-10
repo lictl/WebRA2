@@ -39,7 +39,9 @@ test('manual target choice survives subscription updates until a new enemy inspe
   controller.state={...controller.state,selection:{kind:'object',object:{id:'object-1'}}};controller.selectEntities([1]);assert.equal(target.value,'2');
   target.value='3';target.handlers.change();controller.clearSelection(false);assert.equal(target.value,'3');
   const cancel=nodes.get('#world-cancel-replay');assert.equal(cancel.hidden,true);
-  controller.state={...controller.state,busy:true,worldNotice:'worldVerifying'};controller.setLocale('zh-Hant');assert.equal(cancel.hidden,false);
+  controller.selectEntities([1]);controller.state={...controller.state,busy:true,verifyingReplay:true,worldNotice:'worldVerifying'};controller.setLocale('zh-Hant');assert.equal(cancel.hidden,false);
+  nodes.get('#world-clear').handlers.click();assert.equal(cancel.hidden,false);
+  const canvas=nodes.get('#terrain-canvas');for(const key of [' ','s','Escape']){canvas.handlers.keydown({key,target:canvas,altKey:false,ctrlKey:false,metaKey:false,repeat:false,preventDefault(){}});assert.equal(cancel.hidden,false);assert.match(nodes.get('#world-notice').textContent,/驗證重播/);}
   cancel.handlers.click();assert.equal(controller.state.phase,'cancelled');assert.equal(controller.state.frame,null);assert.equal(controller.state.busy,false);
  }finally{unmount?.();controller?.dispose();if(priorDocument===undefined)delete globalThis.document;else globalThis.document=priorDocument;await rm(directory,{recursive:true,force:true});}
 });
