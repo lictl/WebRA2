@@ -53,4 +53,3 @@ export async function loadCatalogMission(catalog:BrowserCatalog,request:Omit<Cam
     const composed=createVoxelWorldViewport(base,preview.terrain,preview.objects,still.artwork,plan,voxels,joins);
     return {scene:composed.scene,summary:{...summary,artwork:composed.artwork},...(world?{world}:{})};
 }
-
