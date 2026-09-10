@@ -35,7 +35,7 @@ const value=(v:string)=>v.split(';',1)[0]!.replace(/^[ \t]+|[ \t]+$/g,'');
 const theaters=Object.freeze({ra2:Object.freeze({temperate:['temperat','tem'],snow:['snow','sno'],urban:['urban','urb']}),
   yr:Object.freeze({temperate:['temperat','tem'],snow:['snow','sno'],urban:['urban','urb'],desert:['desert','des'],newurban:['urbann','ubn'],lunar:['lunar','lun']})});
 function section(doc:IniDocument,name:string){
-  const found=doc.sections.filter(s=>fold(s.name)===fold(name));if(found.length>1)fail('ambiguous-section');
+  const found=doc.sections.filter(s=>fold(s.name)===fold(name));if(found.length>1)fail('ambiguous-section');if(found.length&&found[0]!.name!==name)fail('unsupported-section-case');
   return found.length?doc.entries.filter(e=>e.sectionOccurrence===found[0]!.occurrence&&e.section===found[0]!.name):[];
 }
 function field(doc:IniDocument,name:string,key:string,maximum=512):string|null{
@@ -74,7 +74,7 @@ export async function prepareCampaignLaunches(catalog:BrowserCatalog,input:{read
     const shared=[battle,mapsel,missionTable,strings].filter(r=>r.status!=='resolved').map(r=>`source-${r.status}:${r.path}`);
     if(tableError)shared.push(tableError);
     const entries:CampaignLaunchEntry[]=[],requests=new Map<CampaignFaction,CampaignMissionRequest>();let membership:ReturnType<typeof section>=[];
-    try{membership=battleDoc?section(battleDoc,'Battles'):[];}catch{shared.push('ambiguous-battles');}
+    try{membership=battleDoc?section(battleDoc,'Battles'):[];if(new Set(membership.map(e=>fold(e.key))).size!==membership.length)fail('ambiguous-battles');}catch{shared.push('ambiguous-battles');}
     for(const id of ['allied','soviet'] as const){
       const data=empty(id),reasons=[...shared],nativeId=id==='allied'?'all1':'sov1';
       try{

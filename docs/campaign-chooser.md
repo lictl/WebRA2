@@ -1,8 +1,8 @@
 # Campaign chooser and retained local content
 
 Issue [179](https://github.com/lictl/WebRA2/issues/179) adds a source-selected
-opening chooser. This is a working implementation checkpoint: content preparation
-is implemented; worker/UI integration and actual Chrome acceptance are pending.
+opening chooser. The source compiler and retained worker/UI integration are implemented. Actual
+Chrome acceptance is pending at this checkpoint.
 It does not implement campaign progression, cinematics, mission victory or a
 completed playable original campaign.
 
@@ -17,9 +17,15 @@ retained and verified as a source dependency; its rows do not create progression
 edges in this component. Additional battle-file augmentation and debug-menu starts
 are outside this first chooser policy.
 
-A genuine same-realm plan owns its launch requests. The UI will submit only the
-cached fingerprint and faction entry ID. The main app retains local File handles;
-worker catalog disposal and scene replacement are explicit lifecycle operations.
+A genuine same-realm plan owns its launch requests. The UI submits only the
+cached fingerprint and faction entry ID. The main app retains local File handles. Private terrain wirev6 adds bounded
+`campaign-scan`, `campaign-launch` and `campaign-back` actions. One worker retains
+its verified catalog and genuine plan; back releases the scene/world, while cancel
+terminates the worker and preserves main-owned files for retry. Profile replacement
+releases the old catalog. Progress allows one unacknowledged message plus the latest
+coalesced record. Only exact cached plan identity and entry IDs authorize a launch;
+returned profile, mission hash and frame identity must match. No arbitrary map path
+or source file upload is accepted from a launch message.
 Plan identity binds selected source bytes and excludes session source handles.
 World/save identity continues through the existing content factories unchanged.
 
@@ -67,10 +73,16 @@ records the source leads and license boundary.
 
 ## Checkpoint validation
 
-Five original tests cover profile/faction choices, source-derived theater paths,
+Eleven original tests cover profile/faction choices, source-derived theater paths,
 localized values, absent and conflicting fields, malicious paths, debug entries,
 independent catalog ordering, abort/reentrancy, immutable plan authority and text
-bounds. The full438-file private probe prepares both factions in both profiles.
+bounds. Mounted event tests cover selection, locale, profile replacement, disabled
+entries and literal rendering of hostile text. Additional bridge/controller/worker
+tests cover retained catalog authority, stale messages, back, cancellation and retry.
+The full438-file private probe prepares both faction scenes/worlds in both profiles.
+The existing Allied model hashes remain exactly `b314f5dd1f8e0028134f1f9efa1d41ceace3e3479015019c026544d783204ddf`
+(RA2) and `5c5a7396c346e7bf3b6c8d5f94af1042e368754365e53be4ee758fa2ee72c08d`
+(YR). These private preparations are not browser measurements or completed missions.
 No actual Chrome chooser run has occurred at this checkpoint.
 
 Run `node --import tsx --test tests/content/campaign-launch.test.ts` with Node24.20.0.
