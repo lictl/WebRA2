@@ -37,3 +37,48 @@ trigger activation and full native membership lifecycle remain separate work.
 Private source comparisons and original compound world/controller tests will be
 recorded at the implementation checkpoint. No passing runtime checks are claimed
 by this initial research checkpoint.
+
+## Shared group destination planner
+
+`planTeamDestinations({model, checkpoint, actorIds, target}, lowerLimits?)` in
+`team-runtime-destinations.ts` accepts a genuine world model and validates the full
+checkpoint using WorldSimulation.restore. Invalid source/state/actor inputs throw
+before planning. The result has policy `webra2-nearest-distinct-cells-1`, model and
+checkpoint hashes, status `ready`, `blocked` or `budget-exhausted`, assignments and
+work counts. Failure returns **no partial assignments**. Geometry is not command
+permission: callers must still authenticate the issuer and admit orders atomically.
+
+Actors sort by numeric ID; candidate cells in a square around the target sort by
+squared distance, y, then x. Selected actors remain obstacles until the world moves
+them. A stationary actor may hold its own current cell only when it is unshared
+and otherwise unoccupied. An actor partway through an edge plans from its reserved
+next cell, because replacing a move order finishes that edge in the current core.
+Static blockers, living footprint cells and reserved movement cells participate.
+
+Each assignment needs a bounded path in that actor's genuine navigation grid.
+Assigned destinations are distinct. Later destinations cannot occupy earlier
+planned paths or required diagonal corner cells, preventing a simple permanent
+choke caused by parking a follower in the leader's route. Routes can still cross
+transiently and future world changes can block them. This greedy planner is neither
+a global formation optimizer nor a proof that concurrent movement will terminate.
+It can report blocked despite another joint assignment existing. Scripts must wait
+for actual stationary arrival and retain blocked state; no timeout implies success.
+
+Hard, lower-only bounds are 64 actors, radius 16, 1,089 candidate cells, 256 path
+queries, 262,144 aggregate expansions and 1,048,576 counted visits. Each query uses
+the existing navigation component's array/path caps. These limits bound work and
+allocations; they are not a total RSS or frame-duration promise. A source waypoint
+remains the group center, while individual assigned cells are explicit saved
+WebRA2 formation decisions, not native Stray/RelaxedStray equivalence.
+
+Queued command destinations and other groups' future endpoints are not reserved
+by this call. Separate admissions can therefore select the same future destination.
+The helper preserves all queued commands and makes no global reservation or
+deadlock-freedom claim; applications must expose failed or congested movement
+instead of treating an assignment as arrival.
+
+The initial component checkpoint passes four source-program tests and six planner
+tests, including both-profile group movement, stable input ordering, exact hold and
+mid-edge behavior, atomic no-partial failures, malicious inputs, footprint lifetime,
+and unreachable directed cells. The full team cursor/transaction runtime and its
+compound replay are still being implemented.
