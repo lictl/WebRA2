@@ -217,3 +217,9 @@ Its [provenance notice](../packages/sim/TEAM_RUNTIME_PROVENANCE.md), GPL text an
 corresponding source accompany distribution; the web build includes the notice.
 The move/jump controller and compound world transactions retain their own notice
 separately from the shared destination planner and MIT world simulation.
+
+The original actor death prerequisite compiler is GPL-3.0-or-later. Its
+[provenance notice](../packages/content/COMBAT_DEATH_PROVENANCE.md), GPL text
+and corresponding source accompany distribution. The build includes this notice
+separately from animation effects and combat actor initialization. The compiler
+retains conditional effects and source references; it does not execute death.
