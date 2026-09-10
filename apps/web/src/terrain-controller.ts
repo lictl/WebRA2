@@ -5,21 +5,25 @@ import { TerrainBridge,type TerrainPort } from './terrain-bridge.ts';
 import { centered,VIEW_LIMIT,validCamera,type Camera,type FrameResult,type TerrainProfile,type TerrainProgress,type ViewportPick,type Zoom } from './terrain-protocol.ts';
 import { actorsInBox, controllable, selectWorldActors, type SelectionBox, type SelectionMode } from './world-selection.ts';
 import type { Locale } from './i18n.ts';
+import { WorldControlGroups, type ControlGroupContext, type ControlGroupFeedback } from './world-control-groups.ts';
 import { WORLD_UI, worldDocumentText, type WorldAction, type WorldDocument } from './world-protocol.ts';
 import { LocalWorldStorage, type WorldStorage, type SaveSlot } from './world-storage.ts';
-export type TerrainState={locale:Locale;profile:TerrainProfile;phase:'empty'|'selected'|'loading'|'choosing'|'ready'|'cancelled'|'failed';campaign:CampaignLaunchPlan|null;files:number;bytes:number;busy:boolean;verifyingReplay:boolean;progress:TerrainProgress|null;frame:FrameResult|null;selection:ViewportPick;notice:string;error:string|null;running:boolean;playerId:number|null;selectedEntity:number|null;selectedEntities:number[];interactionEpoch:number;interacting:boolean;slot:SaveSlot;worldNotice:string;replayHash:string|null};
+export type TerrainState={locale:Locale;profile:TerrainProfile;phase:'empty'|'selected'|'loading'|'choosing'|'ready'|'cancelled'|'failed';campaign:CampaignLaunchPlan|null;files:number;bytes:number;busy:boolean;verifyingReplay:boolean;progress:TerrainProgress|null;frame:FrameResult|null;selection:ViewportPick;notice:string;error:string|null;running:boolean;playerId:number|null;selectedEntity:number|null;selectedEntities:number[];interactionEpoch:number;interacting:boolean;slot:SaveSlot;controlGroupFeedback:ControlGroupFeedback|null;worldNotice:string;replayHash:string|null};
 export function canPick(state:TerrainState,x:number,y:number):boolean {const f=state.frame;return !!f && !state.busy && state.phase==='ready' && Number.isInteger(x) && Number.isInteger(y) && x>=0 && y>=0 && x<f.camera.width && y<f.camera.height;}
 export class TerrainController{
   #files:File[]=[];#port:TerrainPort|null=null;#active:AbortController|null=null;#generation=0;#desired:Camera|null=null;#listeners=new Set<(s:TerrainState)=>void>();#width=960;#height=640;
+  #controlGroups=new WorldControlGroups();
   state:TerrainState;
-  constructor(locale:Locale='en',private factory:()=>TerrainPort=()=>new TerrainBridge(),private storage:WorldStorage=new LocalWorldStorage()){this.state={locale,profile:'ra2',phase:'empty',campaign:null,files:0,bytes:0,busy:false,verifyingReplay:false,progress:null,frame:null,selection:null,notice:'choose',error:null,running:false,playerId:null,selectedEntity:null,selectedEntities:[],interactionEpoch:0,interacting:false,slot:1,worldNotice:'worldPaused',replayHash:null};}
+  constructor(locale:Locale='en',private factory:()=>TerrainPort=()=>new TerrainBridge(),private storage:WorldStorage=new LocalWorldStorage()){this.state={locale,profile:'ra2',phase:'empty',campaign:null,files:0,bytes:0,busy:false,verifyingReplay:false,progress:null,frame:null,selection:null,notice:'choose',error:null,running:false,playerId:null,selectedEntity:null,selectedEntities:[],interactionEpoch:0,interacting:false,slot:1,controlGroupFeedback:null,worldNotice:'worldPaused',replayHash:null};}
   subscribe(fn:(s:TerrainState)=>void):()=>void{this.#listeners.add(fn);fn(this.state);return()=>this.#listeners.delete(fn);}
   #update(p:Partial<TerrainState>):void{
     this.state={...this.state,...p};
     if(Object.hasOwn(p,'frame')){const f=this.state.frame;const ids=this.state.selectedEntities.filter(id=>controllable(f?.summary.world,f?.world,this.state.playerId,id));this.state={...this.state,selectedEntities:ids,selectedEntity:ids[0]??null};}
+    if(this.#controlGroups.sync(this.#groupContext()))this.state={...this.state,controlGroupFeedback:null};
     for(const fn of this.#listeners)fn(this.state);
   }
-  #stop():void{this.#generation++;this.#active?.abort();this.#active=null;this.#port?.dispose();this.#port=null;this.#desired=null;this.state={...this.state,campaign:null,verifyingReplay:false,running:false,playerId:null,selectedEntity:null,selectedEntities:[],interactionEpoch:this.state.interactionEpoch+1,interacting:false,replayHash:null,worldNotice:'worldPaused'};}
+  #groupContext():ControlGroupContext|null{const f=this.state.frame;return this.state.phase==='ready'&&f?.summary.world&&f.world?{scene:this.#generation,summary:f.summary.world,snapshot:f.world,playerId:this.state.playerId}:null;}
+  #stop():void{this.#controlGroups.clear();this.#generation++;this.#active?.abort();this.#active=null;this.#port?.dispose();this.#port=null;this.#desired=null;this.state={...this.state,campaign:null,verifyingReplay:false,running:false,playerId:null,selectedEntity:null,selectedEntities:[],interactionEpoch:this.state.interactionEpoch+1,interacting:false,replayHash:null,controlGroupFeedback:null,worldNotice:'worldPaused'};}
   select(files:ArrayLike<File>):void{
     this.#stop();if(!Number.isSafeInteger(files.length) || files.length<0 || files.length>VIEW_LIMIT.files){this.#files=[];this.#update({phase:'failed',files:0,bytes:0,busy:false,progress:null,frame:null,selection:null,notice:'tooMany',error:null});return;}
     this.#files=Array.from(files);this.#update({phase:files.length?'selected':'empty',files:files.length,bytes:this.#files.reduce((n,f)=>n+f.size,0),busy:false,progress:null,frame:null,selection:null,notice:files.length?'selected':'choose',error:null});
@@ -115,6 +119,12 @@ export class TerrainController{
     const cleared=!ids.length || (mode==='toggle' && ids.some(id=>controllable(frame.summary.world,frame.world,this.state.playerId,id)));
     this.#update({selectedEntities:selected.ids,selectedEntity:selected.ids[0]??null,interactionEpoch:this.state.interactionEpoch+1,worldNotice:selected.limited?'worldSelectionLimit':!selected.ids.length?(cleared?'worldSelectionCleared':'worldCannotSelect'):'worldSelectionChanged'});return !selected.limited;
   }
+  controlGroup(slot:number,assign:boolean):boolean{
+    const context=this.#groupContext();if(!context||this.state.busy||this.state.verifyingReplay||typeof assign!=='boolean')return false;
+    const result=this.#controlGroups.use(context,slot,assign,this.state.selectedEntities);if(!result)return false;
+    this.#update({controlGroupFeedback:result.feedback,interacting:false,interactionEpoch:this.state.interactionEpoch+1,
+      ...(result.ids?{selectedEntities:result.ids,selectedEntity:result.ids[0]??null,selection:null}:{})});return true;
+  }
   selectEntity(id:number):void{this.selectEntities([id]);}
   selectBox(frameId:number,box:SelectionBox,additive=false):boolean{
     const frame=this.state.frame;if(!frame||frame.frameId!==frameId||!canPick(this.state,box.left,box.top)||!canPick(this.state,box.right,box.bottom)||box.left>box.right||box.top>box.bottom)return false;
@@ -161,7 +171,7 @@ export class TerrainController{
       if(result.type==='world-rejection'){this.#update({running:false,worldNotice:result.code==='world-ui-group-blocked'?'worldGroupBlocked':result.code==='world-ui-group-budget-exhausted'?'worldGroupBudget':result.code==='world-ui-attack-range'?'worldAttackRange':result.code==='world-ui-attack-moving'?'worldAttackMoving':result.code==='world-ui-attack-context'?'worldAttackContext':result.code==='world-ui-attack-unsupported'?'worldAttackUnsupported':'worldRejected',error:result.code});return null;}
       if(result.type==='world-document')return result;
       if(result.type!=='frame'||!result.world)throw new Error('invalid');
-      if(action.type==='world-restore')this.#update({selectedEntities:[],selectedEntity:null,interacting:false,interactionEpoch:this.state.interactionEpoch+1});
+      if(action.type==='world-restore'){this.#controlGroups.clear();this.#update({selectedEntities:[],selectedEntity:null,controlGroupFeedback:null,interacting:false,interactionEpoch:this.state.interactionEpoch+1});}
       this.#update({frame:result,selection:null,notice:'ready',worldNotice:action.type==='world-restore'?'worldLoaded':this.state.running?'worldRunning':'worldPaused',replayHash:null});return null;
     };
     try{const result=await run(active.signal,request);return live()?result:null;}
