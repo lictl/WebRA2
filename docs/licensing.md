@@ -167,6 +167,10 @@ accompanies the development bundle. The pure world model/movement/replay code
 remains separable original MIT material. No source assets or original saves are
 included in these adapters or their synthetic tests.
 
+Source-bound combat composition is original GPL-3.0-or-later code over the typed
+weapon graph. Its [notice](../packages/sim/COMBAT_CONTENT_PROVENANCE.md) accompanies
+the development bundle. The separable original combat execution core remains MIT.
+
 The native combat-actor initialization compiler and original fixtures are
 GPL-3.0-or-later. Its [provenance notice](../packages/content/COMBAT_ACTORS_PROVENANCE.md)
 accompanies the development bundle and distinguishes initial source state from
