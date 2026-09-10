@@ -14,6 +14,20 @@ Placed artwork, typed entities and flat terrain traversal are merged. Current wo
 connects authoritative movement and save/replay to the browser, then combat and
 mission behavior. No original mission is playable yet.
 
+Coordinator is preparing [audio decoder PR209](https://github.com/lictl/WebRA2/pull/209)
+distribution in local/worktrees/audio-decode-integration, branch
+codex/205-audio-decode-integration. Source head
+c413d23fc5ba4e29236ad0d2e06f8501fd2a980c is under bootstrap_review independent review.
+All six author paths remain unchanged. Root adds the exact GPL decoder notice to
+the build and its exact-copy check, licensing record and this handoff. The current
+composition includes reviewed control groups208, merged as
+86f736da07ed3d8718f8e3c2b466ab6fd34246bd. Complete integration checks are pending.
+The separate [object-event PR207](https://github.com/lictl/WebRA2/pull/207) is under
+browser_feasibility review at 581bb423061cf63791f1318105429b168a0829f1 with
+1,145 public tests passing. Root will compose it before the decoder merge.
+No full campaign authority or human blocker is reported. Playback scheduling and
+source team dispatch remain next integration work.
+
 Current [cell-entry PR202](https://github.com/lictl/WebRA2/pull/202) is being
 composed with merged main203 in `local/worktrees/mission-cell-entry`, branch
 `codex/201-mission-cell-entry`. Source/runtime head
