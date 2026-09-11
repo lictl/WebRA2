@@ -6,6 +6,21 @@ import { validWorldAction } from './world-protocol.ts';
 import { captureGpuFrame } from './gpu-protocol.ts';
 type ResidentIndex={objects:Set<string>;resources:Set<string>};
 const sameMembers=(a:Set<string>,b:Set<string>)=>a.size===b.size&&[...a].every(id=>b.has(id));
+/** Pin every top-level descriptor before choosing a codec. A switching Proxy
+ * cannot enter a different result family during the fallback validator. */
+function captureResult(input:unknown):TerrainResult {
+  if(!input||typeof input!=='object'||Object.getPrototypeOf(input)!==Object.prototype)throw new Error('invalid');
+  const keys=Reflect.ownKeys(input);if(keys.length>12)throw new Error('invalid');
+  const value:Record<string,unknown>={};
+  for(const key of keys){
+    if(typeof key!=='string'||key==='__proto__')throw new Error('invalid');
+    const d=Object.getOwnPropertyDescriptor(input,key);if(!d||!('value'in d))throw new Error('invalid');
+    value[key]=d.value;
+  }
+  if(value.type==='gpu-frame')return captureGpuFrame(value);
+  if(!validResult(value))throw new Error('invalid');
+  return value;
+}
 export const TERRAIN_DEADLINES=Object.freeze({load:15*60_000,operation:30_000,replay:180_000});
 export interface TerrainPort { request(action:TerrainAction,signal:AbortSignal,progress?:(p:TerrainProgress)=>void):Promise<TerrainResult>; dispose():void }
 export type TerrainWorkerPort=Pick<Worker,'postMessage'|'terminate'|'addEventListener'|'removeEventListener'>;
@@ -31,15 +46,9 @@ export class TerrainBridge implements TerrainPort {
         }
         if(shape(v,['version','id','type','code']) && v.version===7 && v.type==='error' && code(v.code)){finish(new Error(v.code));return;}
         if(!shape(v,['version','id','type','result']) || v.version!==7 || v.type!=='result'){finish(new Error('invalid'));return;}
-        // GPU capture is also its complete validation. Retain that owned result instead
-        // of discarding a validator's capture and traversing the same snapshot twice.
+        // GPU capture is also its complete validation; retain its one owned snapshot.
         let result:TerrainResult;
-        try{
-          const raw=v.result,kind=raw&&typeof raw==='object'?Object.getOwnPropertyDescriptor(raw,'type'):undefined;
-          if(kind&&'value'in kind&&kind.value==='gpu-frame')result=captureGpuFrame(raw);
-          else if(validResult(raw))result=raw;
-          else{finish(new Error('invalid'));return;}
-        }catch{finish(new Error('invalid'));return;}
+        try{result=captureResult(v.result);}catch{finish(new Error('invalid'));return;}
         if(result.type==='campaign-plan'){
           if(action.type==='campaign-scan'?result.plan.profile!==action.profile:action.type==='campaign-back'?result.plan.fingerprint!==action.fingerprint:true){finish(new Error('invalid'));return;}
           this.#campaign=structuredClone(result.plan);this.#identity=null;this.#worldHash=null;this.#revision=0;this.#sceneId=0;this.#gpu=false;this.#resident=null;finish(undefined,result);return;

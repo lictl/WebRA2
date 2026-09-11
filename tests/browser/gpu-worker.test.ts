@@ -128,3 +128,19 @@ test('bridge retains one descriptor-captured GPU snapshot for initialization and
   assert.deepEqual(reads,[{world:1,summary:1},{world:1,summary:1}]);assert.equal(gets,0);
   bridge.dispose();
 });
+
+
+test('a changing result-family descriptor cannot bypass GPU capture through the fallback validator',async()=>{
+  for(const first of ['frame','renderer-refusal','world-document']){
+    const {worker,bridge,s}=await start(true);let reads=0,gets=0;
+    worker.transform=reply=>{
+      if(reply.type!=='result'||reply.result.type!=='gpu-frame')return reply;
+      return {...reply,result:new Proxy(reply.result,{
+        get(target,key){gets++;return Reflect.get(target,key);},
+        getOwnPropertyDescriptor(target,key){const d=Reflect.getOwnPropertyDescriptor(target,key);if(key==='type'&&++reads===1)return {...d,value:first};return d;},
+      })};
+    };
+    await assert.rejects(bridge.request({type:'renderer-mode',mode:'gpu'},s),/invalid/);
+    assert.equal(reads,1);assert.equal(gets,0);assert.equal(worker.terminated,1);
+  }
+});
