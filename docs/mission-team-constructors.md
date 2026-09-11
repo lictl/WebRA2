@@ -1,53 +1,86 @@
 # Team constructors with current ownership
 
-[Issue245](https://github.com/lictl/WebRA2/issues/245) remains in progress under
+[Issue245](https://github.com/lictl/WebRA2/issues/245), under
 [ownership233](https://github.com/lictl/WebRA2/issues/233) and
-[first mission230](https://github.com/lictl/WebRA2/issues/230). This intermediate
-checkpoint supplies genuine source and structural birth-history contracts. Actual
-owned-world insertion is the next required part of the same implementation; do not
-close the slice or claim campaign admission from this catalog.
+[first mission230](https://github.com/lictl/WebRA2/issues/230), adds ordinary unit
+construction to the source-bound shared team runtime. Actions7/80 can append
+units, execute their supported scripts and release them while preserving the
+world's current ownership, population, combat and infantry occupancy capabilities.
+Whole-source closure and mission dispatch remain separate gates.
 
 `compileMissionTeamConstructorSource({actions, houses, constructors})` requires
-genuine, exactly joined factories. It retains every action, complete TaskForce order
-and each represented archetype. Ordinary unit construction requires the existing
-constructor prerequisites and symmetric supported house counts. Infantry, unknown
-count classifications, unsupported entry locomotors and unresolved tag attachment
-remain unsupported. Source declaration closure and cell-entry world invariants remain
-separate. No selected program or ready catalog suppresses unrelated diagnostics.
+exactly joined genuine factories. Every source action, complete TaskForce order
+and represented archetype remains visible. Unit construction requires the existing
+placement/type prerequisites and supported house-count classifications. Infantry,
+unknown population classifications, unsupported entry locomotors and nonempty or
+unresolved team tags remain unsupported. The catalog never suppresses unrelated
+source declarations or cell-entry invariant diagnostics.
 
 `restoreMissionTeamConstructorHistory(source, births, workLimit)` owns bounded
-record data. Each birth pins the source action, team, common-history ordinal,
-instance ID, birth tick, prior-transfer revision and complete member sequence.
-IDs append above all original actors and never reuse an earlier ID. Type, owner,
-health and movement fields come from the genuine source catalog. Original actors,
-navigation, blockers and source capabilities cannot be supplied or changed through
-this API. The private accessor returns the exact original base and derived appended
-definitions for the coordinator's world-model integration.
+records. Each birth pins the source action, team, common-history ordinal, instance
+ID, birth tick, prior-transfer revision and complete member sequence. IDs append
+above every original actor and never reuse a previous ID. Type, initial owner,
+health and movement derive from the genuine source catalog. Original actors,
+navigation, blockers and source capabilities cannot be replaced through this API.
+A structural history is not proof of a trigger invocation or historical occupancy.
 
-A structural restore is not proof that a trigger executed or a cell was unoccupied
-at the historical birth. The common transaction must validate source receipts,
-complete history and current occupancy before insertion. Same-tick owner transfers
-need prior-transfer revisions because ticks alone do not define action order.
+The optional `constructors` argument to `compileMissionTeamOwnedBinding` selects
+`webra2-ordinary-unit-team-ownership-1`. It requires the matching genuine empty
+construction history in the base model. Omitting the option preserves the existing
+fixed-actor binding and save identities. The common runtime then derives each
+current model from the complete saved history before accepting its world save.
+Every birth records the preceding ownership transfer revision; tick numbers alone
+cannot distinguish source actions at the same boundary.
 
-The source proof composes previously reviewed
-[reinforcement](team-spawning.md), [constructor cell prerequisites](mission-team-cell-context.md)
-and [house population](mission-house-state.md) components. No original executable is run.
-Fresh private evidence and the owned-world transaction tests will accompany the
-completed integration. Original fixture tests currently exercise existing real
-action7/80 movement, release/Sleep and save/replay alongside the new birth contracts.
-The [license notice](../packages/sim/MISSION_TEAM_CONSTRUCTOR_PROVENANCE.md) records
-the source boundary and distribution obligation.
+The coordinator's `WorldSimulation.migrateConstruction` accepts a genuine prior
+simulation and a genuine extended model. It proves the exact original actor and
+birth prefix, current tick/revision, complete new definitions and unchanged
+capability objects. Queued commands cannot gain source or target authority over a
+future ID. Candidate creation, population insertion and final core validation are
+atomic. Failed work limits or collisions leave the previous simulation unchanged.
+The resulting strict `webra2-world-9` save cannot be restored under an old model or
+created directly from a nonempty birth history.
 
-The next ownership checkpoint adds birth-time population reconstruction and a pure
-`appendWorldOwnership` candidate helper. It inserts each genuine birth between
-exact saved transfer revisions, starts current-owner history at that birth,
-retains the original actor prefix, and rejects premature lifecycle changes.
-The helper owns supplied descriptors and reserves copy, ledger and restoration
-work before each operation. It does not commit a world or authenticate a trigger.
+`appendWorldOwnership` interleaves registration at exact saved transfer boundaries.
+Born actors begin their owner history at that boundary; pre-birth owner queries
+reject. Historical transfers retain their original selection and counters. An
+active team member cannot be transferred until its native team-update policy is
+modeled. A released unit can transfer through the genuine current world; it does
+not become a placed recruitment candidate or acquire inferred mission state.
 
-This checkpoint depends on the coordinator's `WorldModel.construction` and
-`WorldSimulation.migrateConstruction` hooks. The existing fifteen ownership and
-constructor tests pass; four new world composition suites are written against
-that interface and await the coordinated implementation. The dependency-pending
-commit is not independently buildable or ready for merge. The full check recorded
-above applies to the preceding source/history checkpoint only.
+New units occupy whole cells, including movement reservations. Original infantry
+slot permissions and combat objects are preserved, but the new unit receives
+neither a slot nor a combat actor definition. Selection includes pending-death
+anchors and all current actors. The source combat adapter preserves the complete
+original source prefix and remains conservative about newly inserted occupants.
+
+Budgets reserve descriptor snapshots, derived models, ownership reconstruction,
+core migration, roster migration and pending recomputation before publication.
+Returned work is a deterministic resource policy rather than a timing claim.
+Restoring a pending result can cost more than an ordinary settled step while
+producing identical state and events. Permanent IDs, atomic bounded placement,
+request ordering and one script update per tick remain explicit D03 policies.
+
+The proof composes reviewed [reinforcement](team-spawning.md),
+[constructor prerequisites](mission-team-cell-context.md),
+[recruitment](team-recruitment.md) and [house population](mission-house-state.md).
+The [paired additional tag audit](analysis/mission-team-constructors-native.json)
+reproduces eight complete-instruction spans (2,464 bytes) and 26 native checks.
+It follows Object tag initialization, TeamType tag selection and Team.AddMember's conditional replacement. A source team with no tag
+leaves the new actor's null tag intact in this supported path. No executable is run,
+and no binary listings or original mission payloads are published. The
+[license notice](../packages/sim/MISSION_TEAM_CONSTRUCTOR_PROVENANCE.md) records
+source and distribution obligations.
+
+The composed checkpoint passes 1,508 public tests plus14 tool tests, types,
+218 documents/1,135 links,810 publication paths and M0 metadata; the product build
+contains79 code/license outputs from193 approved inputs. These are public original
+fixtures, not retail execution. Six new common-runtime suites cover action7/80 movement, Flash/release and Sleep; same-tick births and ownership
+revisions; preserved combat/slots; queued future IDs; exact work limits; source
+substitution; atomic active-capture refusal; and settled/pending save/replay.
+The eight-range paired tag ledger reproduces independently from the pinned
+images. Fresh private opening source/runtime and raw-oracle results remain a
+separate evidence update before final review. A full private RA2 run already
+reaches200ticks with one constructed unit and held Sleep; its single long replay
+exceeds the existing aggregate work cap and is recorded as rejected, not passing. No browser, spawned-combat, dynamic trigger attachment, general constructor
+or full-campaign claim follows from these tests.

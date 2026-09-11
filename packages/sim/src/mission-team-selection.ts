@@ -3,6 +3,7 @@
 import { type MissionTeamContext, type MissionTeamSpawnActor, type MissionTeamRecord, missionTeamContextData, missionTeamAction, missionTeamRuntimeData } from './mission-team-context.ts';
 import { restoreMissionTeamOwnedWorld } from './mission-team-owned-binding.ts';
 import { currentWorldOwner, worldOwnershipAtRevision } from './world-ownership.ts';
+import { combatDyingActorIds } from './combat.ts';
 import { WorldSimulation } from './world.ts';
 import { worldAddress, worldInteger, WORLD_LIMITS } from './world-values.ts';
 import { navigationCell } from './navigation.ts';
@@ -15,7 +16,7 @@ export function planMissionTeamClaim(context: MissionTeamContext, input: unknown
   const familyCap = selected.spawn ? Math.min(cap.insertionWork, selected.spawn.limits.insertionWork) : Math.min(cap.selectionWork, selected.recruitment!.limits.work);
   const budget = Math.min(worldInteger(workLimit, 0, cap.tickWork), familyCap);
   const owned = missionTeamRuntimeData(data.runtime).owned;
-  const restored = owned ? restoreMissionTeamOwnedWorld(owned, input, budget) : null;
+  const restored = owned ? restoreMissionTeamOwnedWorld(owned, input, budget, data.model) : null;
   const world = restored?.world ?? WorldSimulation.restore(data.model, missionTeamSnapshot(input)).save(), tick = world.nextTick;
   let work = restored?.work ?? 0;
   const charge = (n = 1) => { if (n > budget - work) fail('claim-work'); work += n; };
@@ -28,10 +29,10 @@ export function planMissionTeamClaim(context: MissionTeamContext, input: unknown
     data.records.length + 2 + data.instances.length > cap.history) fail('claim-capacity');
   const ordinal = data.records.length, instanceId = `mission-team:${ordinal}`, base = { ordinal, actionId, instanceId, teamId: t.teamId, bornAtTick: tick };
   if (selected.spawn) {
-    const c = selected.spawn, occupied = new Set<number>(), live = new Map<number, boolean>(); let living = 0;
+    const c = selected.spawn, occupied = new Set<number>(), live = new Map<number, boolean>(), dying = combatDyingActorIds(world.state.combat); let living = 0;
     for (const at of data.model.blocked) { charge(); occupied.add(at); }
     for (let i = 0; i < world.state.entities.length; i++) {
-      charge(); const e = world.state.entities[i]!, d = data.model.entities[i]!, alive = e.health !== 0; live.set(e.id, alive);
+      charge(); const e = world.state.entities[i]!, d = data.model.entities[i]!, alive = e.health !== 0 || dying.has(e.id); live.set(e.id, alive);
       if (!alive) continue; living++; if (d.blocksCell) { occupied.add(worldAddress(e.x, e.y)); if (e.progress > 0) occupied.add(e.route[1]!); }
     }
     if (t.memberTypeIds.length > c.limits.livingActors - living || t.memberTypeIds.length > WORLD_LIMITS.entities - data.model.entities.length) fail('living-capacity');
@@ -39,7 +40,8 @@ export function planMissionTeamClaim(context: MissionTeamContext, input: unknown
     const firstId = (data.model.entities.at(-1)?.id ?? 0) + 1;
     worldInteger(firstId + t.memberTypeIds.length - 1, 1, 2147483647);
     for (const command of world.queuedCommands) { charge(); const id = (command.payload as { entityId: number }).entityId;
-      if (id >= firstId && id < firstId + t.memberTypeIds.length) fail('queued-new-actor'); }
+      const target = (command.payload as { targetId?: number }).targetId;
+      if (id >= firstId && id < firstId + t.memberTypeIds.length || target !== undefined && target >= firstId && target < firstId + t.memberTypeIds.length) fail('queued-new-actor'); }
     const wx = selected.action.plan.waypoint.x!, wy = selected.action.plan.waypoint.y!, candidates: { x: number; y: number; distance: number }[] = [];
     for (let y = Math.max(0, wy - c.limits.radius); y <= Math.min(511, wy + c.limits.radius); y++) for (let x = Math.max(0, wx - c.limits.radius); x <= Math.min(511, wx + c.limits.radius); x++) {
       charge(); candidates.push({ x, y, distance: (x - wx) ** 2 + (y - wy) ** 2 }); }
@@ -51,7 +53,7 @@ export function planMissionTeamClaim(context: MissionTeamContext, input: unknown
       if (!found) return result(null); occupied.add(worldAddress(found.x, found.y));
       actors.push({ entityId: firstId + actors.length, typeId, houseId: t.houseId, playerId: t.playerId, initialHealth: type.maximumHealth, x: found.x, y: found.y });
     }
-    return result({ ...base, kind: 'spawned', actors });
+    return result({ ...base, kind: 'spawned', actors, ...(owned ? { ownershipRevision: world.state.ownership!.transfers.length } : {}) });
   }
   const c = selected.recruitment!, template = c.templates.find(t => t.teamId === selected.action.teamId)!;
   if (template.status !== 'supported-source' || !template.anchor) fail('recruit-source');

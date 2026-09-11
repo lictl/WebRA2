@@ -8,7 +8,7 @@ import type { WorldModel } from './world-model.ts';
 import { teamSpawnContextData, type TeamSpawnContext } from './team-spawn-context.ts';
 import { teamRecruitmentContextData, type TeamRecruitmentContext } from './team-recruitment-context.ts';
 import { missionTeamContextData, missionTeamRuntimeData, type MissionTeamContext } from './mission-team-context.ts';
-import { worldAddress, worldClone, worldHash, worldInteger, worldList, worldRecord, worldSymbol } from './world-values.ts';
+import { worldAddress, worldClone, worldHash, worldInteger, worldList, worldRecord, worldSymbol, WORLD_LIMITS } from './world-values.ts';
 import { navigationCell } from './navigation.ts';
 import { planTeamDestinations, TEAM_DESTINATION_LIMITS, TEAM_DESTINATION_POLICY, type TeamDestinationAssignment } from './team-runtime-destinations.ts';
 import { teamProgramWorld, teamRuntimeFail as fail, teamRuntimeFreeze as freeze, type TeamProgram, type TeamTemplate } from './team-runtime-program.ts';
@@ -68,6 +68,13 @@ export function bindMissionTeamActors(context: MissionTeamContext): TeamRoster {
 }
 /** Append exactly one live claim/release while conserving the world and surviving controllers. */
 export function migrateMissionTeamCheckpoint(previousContext:MissionTeamContext,input:unknown,nextContext:MissionTeamContext,nextWorldInput:unknown):TeamCheckpoint {
+  return migrateMissionTeamCheckpointWithWork(previousContext,input,nextContext,nextWorldInput).checkpoint;
+}
+/** Additional work accounts for the genuine world constructor migration. Existing
+ * roster/save validation remains covered by the owning common runtime's reserve. */
+export function migrateMissionTeamCheckpointWithWork(previousContext:MissionTeamContext,input:unknown,nextContext:MissionTeamContext,
+  nextWorldInput:unknown,workLimit:number=WORLD_LIMITS.replayWork):Readonly<{checkpoint:TeamCheckpoint;work:number}> {
+  const limit=worldInteger(workLimit,0,WORLD_LIMITS.replayWork);let work=0;
   const before=missionTeamContextData(previousContext),after=missionTeamContextData(nextContext);
   const same=(a:unknown,b:unknown)=>canonicalText(a)===canonicalText(b);
   if(before.runtime!==after.runtime||before.program!==after.program||after.records.length!==before.records.length+1||
@@ -78,6 +85,11 @@ export function migrateMissionTeamCheckpoint(previousContext:MissionTeamContext,
   if(event.kind==='spawned'){
     if(event.bornAtTick!==tick||!same(before.model.entities,after.model.entities.slice(0,before.model.entities.length))||
       after.model.entities.length!==before.model.entities.length+event.actors.length)fail('mission-migration-constructors');
+    if(before.model.construction){
+      const migrated=WorldSimulation.migrateConstruction(WorldSimulation.restore(before.model,prior.world),after.model,limit);
+      work=migrated.work;
+      if(!same(world,migrated.world.save()))fail('mission-migration-world');
+    }else{
     const {entities:_be,sha256:_bs,initialSharedCells:_bi,...beforeModel}=before.model;
     const {entities:_ae,sha256:_as,initialSharedCells:_ai,...afterModel}=after.model;
     if(!same(beforeModel,afterModel))fail('mission-migration-model');
@@ -94,6 +106,7 @@ export function migrateMissionTeamCheckpoint(previousContext:MissionTeamContext,
     }
     for(const footprint of before.model.footprints)if(live.get(footprint.entityId))for(const cell of footprint.cells)occupied.add(cell);
     for(const actor of event.actors){const at=worldAddress(actor.x,actor.y);if(occupied.has(at))fail('mission-migration-occupied');occupied.add(at);}
+    }
   }else{
     if(after.model.sha256!==before.model.sha256||!same(world,prior.world))fail('mission-migration-world');
     if(event.kind==='recruited'){
@@ -111,7 +124,8 @@ export function migrateMissionTeamCheckpoint(previousContext:MissionTeamContext,
   const roster=bindMissionTeamActors(nextContext),fresh=new Map(initial(roster,tick).instances.map(s=>[s.id,s]));
   const instances=roster.bindings.map(b=>old.get(b.id)??fresh.get(b.id)!);
   if(old.size!==before.instances.length-(event.kind==='released'?1:0)||[...old.keys()].some(id=>!instances.some(s=>s.id===id)))fail('mission-migration-state');
-  return restoreTeamCheckpoint(roster,{...prior,rosterSha256:roster.sha256,world,team:{...prior.team,instances}});
+  const checkpoint=restoreTeamCheckpoint(roster,{...prior,rosterSha256:roster.sha256,world,team:{...prior.team,instances}});
+  return Object.freeze({checkpoint,work});
 }
 /** Only the genuine source catalog can provide empty, partial-template or recruited actor bindings. */
 export function bindRecruitedTeamActors(context: TeamRecruitmentContext): TeamRoster {

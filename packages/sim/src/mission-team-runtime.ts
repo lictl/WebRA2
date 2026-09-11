@@ -6,13 +6,16 @@ import { worldHouseInvocation, type WorldHouseInvocation, type WorldHouseTransfe
 import type { WorldModel } from './world-model.ts';
 import { worldHash, worldInteger, worldList, worldRecord, worldSymbol, worldSourceHash, worldAddress } from './world-values.ts';
 import { teamRuntimeFreeze as freeze } from './team-runtime-program.ts';
-import { bindMissionTeamActors, migrateMissionTeamCheckpoint, createTeamCheckpoint, restoreTeamCheckpoint,
+import { bindMissionTeamActors, migrateMissionTeamCheckpoint, migrateMissionTeamCheckpointWithWork, createTeamCheckpoint, restoreTeamCheckpoint,
   prepareTeamTick, type TeamCheckpoint, type TeamOrder, type TeamEvent } from './team-runtime.ts';
 import { admitTeamWorldCommands, commitTeamTick, teamWorldStep } from './team-runtime-world.ts';
 import { missionTeamActionSourceContext } from './mission-team-action-source.ts';
 import { MISSION_TEAM_RUNTIME_POLICY, missionTeamRuntimeData, missionTeamContextData, restoreMissionTeamContext, missionTeamAction,
   type MissionTeamRuntime, type MissionTeamRecord, type MissionTeamContext } from './mission-team-context.ts';
 import { planMissionTeamClaim } from './mission-team-selection.ts';
+import { combatDyingActorIds } from './combat.ts';
+import { missionTeamOwnedConstructionModel } from './mission-team-owned-binding.ts';
+import type { MissionTeamConstructorBirth } from './mission-team-constructor-types.ts';
 import { missionTeamFail as fail, missionTeamSnapshot } from './mission-team-values.ts';
 export interface MissionTeamReceipt {
   readonly effectOrder: number; readonly emittedAtTick: number; readonly dueTick: number;
@@ -70,11 +73,12 @@ function baseCheckpoint(runtime: MissionTeamRuntime, input: unknown, workLimit =
   // Historical constructor coordinates are not original map overlap permissions.
   // Only the base world's source actors may retain its initially shared anchors.
   const baseIds = new Set(missionTeamRuntimeData(runtime).baseModel.entities.map(e => e.id));
+  const dying = combatDyingActorIds(team.world.state.combat);
   const counts = new Map<number, number>(), add = (at: number) => counts.set(at, (counts.get(at) ?? 0) + 1);
   for (const at of data.model.blocked) add(at);
   for (let i = 0; i < team.world.state.entities.length; i++) {
     const e = team.world.state.entities[i]!, definition = data.model.entities[i]!;
-    if (e.health !== 0 && definition.blocksCell) { add(worldAddress(e.x, e.y)); if (e.progress > 0) add(e.route[1]!); }
+    if ((e.health !== 0 || dying.has(e.id)) && definition.blocksCell) { add(worldAddress(e.x, e.y)); if (e.progress > 0) add(e.route[1]!); }
   }
   for (const footprint of data.model.footprints) if (entities.get(footprint.entityId)!.health !== 0) for (const at of footprint.cells) add(at);
   for (let i = 0; i < team.world.state.entities.length; i++) {
@@ -146,15 +150,25 @@ function computeTick(runtime: MissionTeamRuntime, base: MissionTeamCheckpoint, w
       actionEvents.push({ tick, requestId: request.id, instructionId: request.instructionId, kind: exhausted ? 'exhausted' : 'blocked', recordOrdinal: null }); continue;
     }
     const record = plan.record; if (record.kind === 'released') fail('claim-kind');
-    const old = missionTeamContextData(context), next = restoreMissionTeamContext(runtime, [...old.records, record], team.world, budget - work), nextData = missionTeamContextData(next);
-    charge(nextData.work + nextData.worldRestoreWork * 3 + 1 + old.records.length + (record.kind === 'spawned' ? record.actors.length : record.actorIds.length));
+    const old = missionTeamContextData(context), records = [...old.records, record], owned = missionTeamRuntimeData(runtime).owned;
     let nextWorld: WorldSave = team.world;
-    if (record.kind === 'spawned') {
+    if (owned && record.kind === 'spawned') {
+      const births = records.filter((r): r is Extract<MissionTeamRecord, { kind: 'spawned' }> => r.kind === 'spawned')
+        .map(({ kind: _kind, ...birth }) => birth as MissionTeamConstructorBirth);
+      const prepared = missionTeamOwnedConstructionModel(owned, births, budget - work); charge(prepared.work);
+      charge(old.worldRestoreWork);
+      const migrated = WorldSimulation.migrateConstruction(WorldSimulation.restore(old.model, team.world), prepared.model, budget - work);
+      charge(migrated.work); nextWorld = migrated.world.save();
+    }
+    const next = restoreMissionTeamContext(runtime, records, nextWorld, budget - work), nextData = missionTeamContextData(next);
+    charge(nextData.work + nextData.worldRestoreWork * 3 + 1 + old.records.length + (record.kind === 'spawned' ? record.actors.length : record.actorIds.length));
+    if (!owned && record.kind === 'spawned') {
       const added = record.actors.map(a => ({ id: a.entityId, x: a.x, y: a.y, health: a.initialHealth, goal: null, route: [], progress: 0, waitTicks: 0 }));
       nextWorld = WorldSimulation.restore(nextData.model, { ...team.world, state: { ...team.world.state, modelSha256: nextData.model.sha256,
         entities: [...team.world.state.entities, ...added] } }).save();
     }
-    team = migrateMissionTeamCheckpoint(context, team, next, nextWorld); context = next;
+    const migration = migrateMissionTeamCheckpointWithWork(context, team, next, nextWorld, budget - work); charge(migration.work);
+    team = migration.checkpoint; context = next;
     requests.push({ ...request, attempts, status: record.kind, nextAttemptTick: null, recordOrdinal: record.ordinal });
     actionEvents.push({ tick, requestId: request.id, instructionId: request.instructionId, kind: record.kind, recordOrdinal: record.ordinal });
   }
@@ -222,7 +236,7 @@ export function transferMissionTeamOwnership(runtime: MissionTeamRuntime, input:
   if (snapshot?.pending) fail('pending-ownership');
   const checked = baseCheckpoint(runtime, snapshot, budget - snapshotWork), checkpoint = checked.checkpoint, active = missionTeamContextData(checked.context);
   const beforeWork = snapshotWork + checked.work + active.worldRestoreWork; if (beforeWork > budget) fail('ownership-work');
-  const simulation = WorldSimulation.restore(data.baseModel, checkpoint.team.world);
+  const simulation = WorldSimulation.restore(active.model, checkpoint.team.world);
   const result = simulation.transferOwnership(worldHouseInvocation(invocation), budget - beforeWork);
   const claimed = new Set(active.instances.flatMap(i => [...i.actorIds]));
   if (result.changedEntityIds.some(id => claimed.has(id))) fail('active-owner-change');
