@@ -16,9 +16,9 @@ executable was run. Complete instruction decoding is an integrity check for each
 selected span, not evidence of a completed runtime implementation.
 
 Action99 uses the mode7 sound registry lookup and the final alpha waypoint token.
-The waypoint resolves through the current map cell and bridge height. The native
-consumer searches the cell's object list for a building first and then a terrain
-object. Units and infantry do not receive the attached custom-sound assignment.
+The waypoint resolves through the current map cell and bridge height. When the native object-enumeration global is enabled, the consumer searches
+the cell's object list for a building first and then a terrain object. The paired
+RA2/YR global gate remains an explicit integration requirement. Units and infantry do not receive the attached custom-sound assignment.
 A found object receives the sound index in its custom-sound field. Otherwise the
 consumer creates a positional controller at the waypoint's exact world coordinates
 with flag1. The source field is separate from the object's type-defined ambient
@@ -54,6 +54,22 @@ pending controller/listener state. Stop116 has no sound sample reference and doe
 not reinterpret its ignored numeric field as a registry lookup. The general
 presentation cursor and mission VM have not gained authority to invoke either
 operation in this source checkpoint.
+
+## Source verification
+
+Source checkpoint `b31de63c2797b8ecd1f62d1d838a86c6657527da` passes the complete
+public check: 1,311 original tests plus14 tool checks, types,203 documents/1,046
+local links,731 publication paths, M0 consistency and78 build outputs from145
+approved inputs. No retail payload is part of that suite or build.
+
+The fresh private438-file probe and [independent raw census](analysis/mission-spatial-audio-census.json)
+verify26 RA2 and97 YR sound99 references plus1 RA2 and19 YR stop116 locations.
+The separate Python census makes9,499 comparisons, including2,545 focused spatial
+comparisons. All sound99 audio references are source-supported; stop116 remains a
+location-only cue with no sample binding. Both opcodes remain unadmitted by the
+mission VM. The existing sound19/EVA21 dispatch leaves197 RA2 /437 YR required
+diagnostics, and both whole-mission authorities remain null. This is source
+verification, with no native execution or browser playback claim.
 
 ## Required integration
 
