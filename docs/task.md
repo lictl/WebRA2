@@ -9,7 +9,18 @@ active save/restore, required AI/combat/presentation and reference comparisons.
 Do not substitute a synthetic scenario or skip required original instructions.
 No human input is currently needed. YR and wider campaigns remain the standing scope.
 
-Current reviewed main is28ed58273164ad8556c378b5d9b75da9f8645d5e.
+Current reviewed main isc265e01d8cda63b7d850227a300416a256fb7d13.
+Audio [PR221](https://github.com/lictl/WebRA2/pull/221) merged as
+578e43eeb5ad59179e04828ccf9fd35422bef880 after exactfbbc899
+[review](https://github.com/lictl/WebRA2/pull/221#pullrequestreview-5173723845)
+and hosted34546633431. Actual original Chrome PCM lifecycle/hidden/resume checks
+and the independent69-output/7-input evidence audit pass; see
+[playback](mission-audio-playback.md). Source dispatch/native sample selection remain separate.
+Closure [PR232](https://github.com/lictl/WebRA2/pull/232) merged asc265e01 after
+exact6aafb66 [review](https://github.com/lictl/WebRA2/pull/232#pullrequestreview-5173760538)
+and hosted34546818740. The independent raw oracle reproduces6,954 comparisons;
+[the report](first-mission-closure.md) defines the concrete remaining mission dependencies.
+Its254/461 diagnostics are source instruction occurrences, not feature counts.
 [GPU PR227](https://github.com/lictl/WebRA2/pull/227) merged after exactf20407a
 [diagnostic review](https://github.com/lictl/WebRA2/pull/227#pullrequestreview-5170235428),
 [preparation review](https://github.com/lictl/WebRA2/pull/227#pullrequestreview-5170236517),
@@ -28,40 +39,49 @@ Active wave (one root +three workers; use existing agents):
   worker/protocol integration, shared configuration/provenance/task and merges.
   Build resident scene transport and independent presentation without changing
   logical commands/ticks/saves or dropping current voxel/effect artwork.
-- bootstrap_review: codex/229-gpu-picking in local/worktrees/gpu-picking. Own new
-  gpu-picking module/tests for bounded exact displayed-frame picking without GPU
-  readback. Root supplies the scalar-only frame-pixel visitor in gpu-scene.ts.
-- browser_feasibility: sole CUA/Chrome owner. First resume preserved216/PR221 in
-  local/worktrees/mission-audio-playback with actual original PCM lifecycle checks,
-  then229 UI integration after contract freeze. Exclusive component/report paths
-  until root assigns product UI. No root CUA initialization.
-- mix_reader: codex/230-mission-closure in local/worktrees/mission-closure. Own new
-  first-mission closure report/metadata. Fresh current all01t dependency preflight,
-  group concrete execution blockers and shortest next implementation order. No
-  engine/shared files until an assigned follow-up. Whole-source gates and source
-  provenance remain; diagnostic occurrence counts are not missing-feature counts.
+- bootstrap_review: codex/229-gpu-picking in local/worktrees/gpu-picking. Picker833a494
+  and resident transfer0fd0723 are integrated asb8915f7/e137b0f. Root reviews this
+  low-level work; worker now independently reviews root application913e6e8. Next
+  assess preserving voxel depth/picking on the GPU, with a new assigned issue before edits.
+- browser_feasibility: sole CUA/Chrome owner;216 is merged. Now codex/229-gpu-viewport
+  in local/worktrees/gpu-viewport. Presenter626443d integrated as14d63f1. Own
+  terrain-controller/view/i18n and focused UI tests/report. Use frozen GPU wire913e6e8
+  after resident dependency e137b0f. Import resources once, separate local presentation
+  sequence from worker frame/revision, exact displayed picking, camera-local RAF,
+  explicit CPU fallback preserving world and latest camera. No root CUA initialization.
+- mix_reader: closure report is merged. Now [233](https://github.com/lictl/WebRA2/issues/233),
+  codex/233-mission-house-state. Own new source/house-state helper/contracts, original
+  tests and source/native evidence. Paired action14/36 and event9/10/11 proof precedes
+  current-owner/registered-versus-present population reduction. Per-actor current owner
+  will enter canonical WorldSave with a versioned contract; initial definition owner
+  remains source identity. Root must coordinate existing world/command/combat/slot/team
+  edits explicitly. No health-derived substitute for native house counters.
 
-Preserve audio drafts221/223/226 and frozen servers through4209/media8767/8768.
-New immutable browser builds use4210 onward. The game/ installation is read-only;
+Preserve audio drafts223/226 and frozen servers through4210/media8767/8768.
+New immutable browser builds use4211 onward. The game/ installation is read-only;
 no bundled executables run and no retail content enters commits/builds/GitHub.
 Commit coherent changes, obtain independent exact-head scoped COMMENT reviews,
 check CI/rules, and ordinarily merge matching that SHA. Shared accounts never
 impersonate separate approvals. Record genuine blockers as issues and continue
 independent work. Do not stop just because one bounded subtask completes.
 
-Baseline full check:1,271 public tests +5 baseline-tool +9 GPU-tool tests, types,
-196docs/1,001links,711publication paths, M0 consistency and77product outputs/145inputs.
+Root composed4dd75d1 full check passes1,344 public tests +5 baseline-tool +9 GPU-tool
+tests, types,201docs/1,024links,729publication paths, M0 and77product outputs/149inputs.
+Root application913e6e8 also passes43 focused worker/world/terrain/voxel checks;
+real original SHP projections agree with CPU picking through movement and retirement.
+These are synthetic integration checks, not Chrome cadence or campaign acceptance.
+Current mode refusal preserves all voxel artwork; selected retail openings therefore
+remain CPU-rendered until GPU voxel composition is implemented. Never claim60FPS
+retail mission performance from the original-only experiment.
 Next checks belong to each changed component and composed229. Pause heavy work during
 sole-browser-owner timing windows. Native hidden/backend checks remain explicit
 product gates; do not bypass browser tool security restrictions to obtain them.
 
 ## Preserved audio wave
 
-- [Issue216](https://github.com/lictl/WebRA2/issues/216) / [draft PR221](https://github.com/lictl/WebRA2/pull/221):
-  browser PCM lifecycle component at0c5a436301a170558ab1139b828c38dccba00001,
-  codex/216-pcm-playback, local/worktrees/mission-audio-playback. Author reports12
-  focused tests and full1,231/types passing. Actual Chrome acceptance and independent
-  review remain incomplete; no native playback policy or merge is claimed.
+- [Issue216](https://github.com/lictl/WebRA2/issues/216) / [PR221](https://github.com/lictl/WebRA2/pull/221):
+  merged as578e43e; see current evidence above. Preserve clean authorfbbc899 and
+  frozen original harness4210 at local/worktrees/mission-audio-playback/local/pcm216/final-1.
 - [Issue219](https://github.com/lictl/WebRA2/issues/219) / [draft PR226](https://github.com/lictl/WebRA2/pull/226): source sound/EVA policy
   at pushed6e1e730e646ca4b1479793f66b426d457d87af2b, clean
   codex/219-mission-audio-policy, local/worktrees/mission-audio-policy.
