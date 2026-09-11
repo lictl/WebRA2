@@ -257,3 +257,26 @@ worktree at `local/prototype234.ts` and `local/prototype234.json`; policy2 adds
 `local/prototype234-policy2.ts` and `local/prototype234-policy2.json`. Actual GPU
 comparisons for the revised bounds, independent numeric review, and sustained
 Chrome60FPS measurements remain required. No gameplay, save or RNG code is changed by this checkpoint.
+
+## Preparation allocation follow-up
+
+The first four short Chrome scale probes exposed CPU preparation as the dominant
+cost. At 16/64/256/1,024 original groups, the browser worker recorded observed rates
+of 109.375/44.75/11.25/3 frames per second, with median preparation costs
+2.8/16.4/72.4/290.7 ms. GPU query medians were 1.13/1.73/3.59/8.02 ms. These are
+short diagnostic runs, not sustained acceptance, and the large cases fail the
+60 FPS target. Their raw evidence remains under the browser worker's ignored
+`local/voxel234/final-1` directory.
+
+The first optimization removes transient arrays and callbacks from each voxel's
+bounds calculation and hoists instance-invariant radii. Binary64 expression order,
+integer clipping, candidate order, resource accounting and shader code stay the
+same. An alternating original-only Node comparison reproduced all copied packet
+and allocation hashes for 45 oracle cases and 72 moving workload frames. For the
+1,024-group case, 14 measured samples per version after four warmups gave median
+preparation 36.43 ms before and 20.50 ms after; p95 was 52.80 and 39.77 ms.
+Hashes were compared outside timing. This local result neither predicts the
+browser rate nor establishes the 60 FPS target; the corrected browser probe is
+still required. A public six-frame multipart regression pins the earlier complete
+packet digest and checks previous-frame ownership across successful and failed
+preparation.

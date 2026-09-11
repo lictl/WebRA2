@@ -2,11 +2,12 @@
 // Original sparse cubes and matrices; no retail geometry or native rendering claim.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { createGpuVoxelScene, prepareGpuVoxelFrame, pickGpuVoxelFrame, copyGpuVoxelSceneData, copyGpuVoxelFrameData } from '../../packages/render/src/gpu-voxel-policy.ts';
 import { createVoxelAtlas, renderVoxelFrame } from '../../packages/render/src/voxel-render.ts';
 import { createRuntimeVxl } from '../../packages/formats/src/runtime-vxl.ts';
 import { vxl, hva, sha } from '../content/voxel.fixture.ts';
-import { gpuVoxelOracleCases, gpuVoxelBoundaryCases } from './gpu-voxel-fixtures.ts';
+import { gpuVoxelOracleCases, gpuVoxelBoundaryCases, gpuVoxelWorkload } from './gpu-voxel-fixtures.ts';
 function fixture(cells: readonly (readonly [number,number,number,number,number])[] = [[0,0,0,1,7]], size = [1,1,1], pose?:number[]) {
  const bytes=vxl(cells,size).bytes,animation=pose?hva([pose]):null,atlas=createVoxelAtlas({assets:[{id:'source',kind:'vxl',sha256:sha(bytes),bytes},...(animation?[{id:'pose',kind:'hva' as const,sha256:sha(animation),bytes:animation}]:[])],parts:[{id:'part',vxlAssetId:'source',vxlSection:0,hva:animation?{assetId:'pose',layout:'frame-major',frame:0,section:0}:null,transformPolicy:'openra-hva-bounds-scale'}]});
  const rgba=new Uint8Array(1024);for(let i=0;i<256;i++)rgba.set([i,255-i,i*17%256,255],i*4);rgba[11*4+3]=0;
@@ -138,4 +139,22 @@ test('candidate clipping explicitly excludes a permitted repeated-addition lower
  assert.equal(origin,.08154296875);assert(origin>=0&&origin<1);
  // This unculled alternative would hit. The experiment's declared candidate clip excludes it.
  assert.equal(pickGpuVoxelFrame(frame,2047,0),null);
+});
+
+test('moving multipart packets preserve the pre-optimization integer bins and staging exactly',()=>{
+ const workload=gpuVoxelWorkload(16),hash=createHash('sha256');
+ const initial=copyGpuVoxelFrameData(workload.frame);
+ for(let step=0;step<6;step++){
+  const phase=(step+1)*.071,dx=Math.sin(phase*.7)*5,dy=Math.cos(phase*.9)*3;
+  const instances=workload.reference.instances.map((v,i)=>{const modelToView=v.modelToView.slice();modelToView[3]!+=dx+(i%3-1)*Math.sin(phase)*.25;modelToView[7]!+=dy;return {...v,modelToView};});
+  const frame=prepareGpuVoxelFrame(workload.scene,{instances,width:960,height:640}),packet=copyGpuVoxelFrameData(frame);
+  for(const key of ['inverses','boxes','offsets','candidates'] as const)hash.update(new Uint8Array(packet[key].buffer,packet[key].byteOffset,packet[key].byteLength));
+  hash.update(JSON.stringify({tilesX:packet.tilesX,placements:packet.placements,allocations:frame.allocations}));
+  // Later preparation and caller edits cannot overwrite any previously published frame.
+  instances[0]!.modelToView.fill(0);assert.deepEqual(copyGpuVoxelFrameData(frame),packet);
+  assert.throws(()=>prepareGpuVoxelFrame(workload.scene,{instances:workload.reference.instances,width:960,height:640},{samples:0}),/sample-budget/);
+  assert.deepEqual(copyGpuVoxelFrameData(workload.frame),initial);
+ }
+ // Recorded from d478270 before scalar allocation removal, outside any timing region.
+ assert.equal(hash.digest('hex'),'f0cbd40441d652e0329e68680d35cd0ee4077b18e1f9432ea94a1dc615f81859');
 });
