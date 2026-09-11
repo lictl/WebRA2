@@ -203,6 +203,13 @@ function restoreWithBudget(runtime: MissionTeamRuntime, input: unknown, budget: 
 export function restoreMissionTeamCheckpoint(runtime: MissionTeamRuntime, input: unknown): MissionTeamCheckpoint {
   missionTeamRuntimeData(runtime); return restoreWithBudget(runtime, input, runtime.limits.tickWork);
 }
+/** Compound adapters charge the existing owned reconstruction counter without
+ * repeating the operation. This does not authenticate a mission invocation. */
+export function restoreMissionTeamCheckpointWithWork(runtime: MissionTeamRuntime, input: unknown, workLimit: number) {
+  missionTeamRuntimeData(runtime);
+  const checkpoint = restoreWithBudget(runtime, input, worldInteger(workLimit, 0, runtime.limits.tickWork));
+  return freeze({ checkpoint, work: restorationWork.get(checkpoint)! });
+}
 /** Explicit component inputs; a transfer is a separate ordered admission. */
 export interface MissionTeamAdmission { readonly requests: readonly MissionTeamReceipt[]; readonly commands: readonly CommandEnvelope[];
   readonly ownershipTransfers?: readonly WorldHouseInvocation[] }
@@ -262,6 +269,11 @@ export function admitMissionTeamInput(runtime: MissionTeamRuntime, input: unknow
 export function prepareMissionTeamTick(runtime: MissionTeamRuntime, input: unknown): MissionTeamCheckpoint {
   const base = restoreMissionTeamCheckpoint(runtime, input), work = missionTeamRuntimeData(runtime).owned ? restorationWork.get(base)! : 0;
   return base.pending ? base : freeze({ ...base, pending: computeTick(runtime, base, runtime.limits.tickWork - work) });
+}
+/** Exposes the work already charged by admission, preserving legacy identities. */
+export function admitMissionTeamInputWithWork(runtime: MissionTeamRuntime, input: unknown, admission: MissionTeamAdmission, workLimit: number) {
+  const checkpoint = admitMissionTeamInput(runtime, input, admission, workLimit);
+  return freeze({ checkpoint, work: admissionWork.get(checkpoint)! });
 }
 function result(plan: MissionTeamTick, work: number): MissionTeamResult {
   const value = freeze({ checkpoint: plan.checkpoint, actionEvents: plan.actionEvents, orders: plan.orders, events: plan.events, worldEvents: plan.worldEvents, work });
