@@ -2,9 +2,9 @@
 
 Issue [247](https://github.com/lictl/WebRA2/issues/247) is a bounded dependency of
 the [fixed-actor ownership composition](mission-team-ownership.md) and the
-[first original mission](first-mission-closure.md). This source checkpoint is
-incomplete: the source catalog and serialized witness are implemented; independent
-native/corpus checks and root runtime integration are still required.
+[first original mission](first-mission-closure.md). The source catalog and serialized
+witness are implemented with paired static and private source checks. Independent
+review and root runtime integration remain required.
 
 The current ownership policy requires both Guard and Sleep to be recruitable
 after any ownership transfer. Source Sleep can be non-recruitable while an
@@ -29,6 +29,33 @@ native MissionClass timer. A placed Sleep starts at 0/-1; its mission after a
 transfer remains unverified. Unit idle branches, active claims/capture, released
 teams and dynamic constructors stay gated. A motionless actor cannot recreate a
 lost Guard certificate.
+
+The [paired native ledger](analysis/mission-stationary-native.json) pins 66 records
+and 11,876 bytes from both complete executable hashes: 36 complete functions,
+four constructor instructions, 22 pointers and four literals. MissionClass starts
+current, suspended and queued missions at -1. The placed Infantry reader resolves
+the exact mission name, queues it without an immediate-start request, then calls
+NextMission after successful placement. Fresh campaign mode is explicit because
+the RA2 reader has a separate non-campaign idle branch. The effective recruitment
+selector reads current first, using queued only when current is -1.
+
+The family vtable joins connect both owner routines to Infantry idle. Its no-target,
+no-destination Guard/AreaGuard branch preserves the current mission; YR additionally
+requests Guard during ordinary Infantry ownership change. That request still uses
+the CanStart gate, so it cannot certify a prior Sleep actor. Foot locomotor/queued
+destination branches and Unit special cases are retained as limitations. This
+supports the bounded untouched-Guard policy, not a proof of every transitive
+callback or autonomous MissionClass transition.
+
+The [private-source census](analysis/mission-stationary-census.json) reads 438
+selected files for each profile. A separate Python parser rehashed five archive
+roots and eight direct members and checked 109,522 values against the TypeScript
+projection. All 1,381 source actor identities, positions and initial mission fields
+are included. Previously reviewed recruitment eligibility reasons remain upstream
+dependencies. RA2 has 234 conditional actor/catalog rows covering 18 distinct
+Guard actors; YR has 20 rows and 20 distinct actors. These are mission predicates,
+not selected recruits. Both source Sleep controls remain non-recruitable, the
+existing transfer gate remains false, and neither original program was activated.
 
 Saving includes a bounded operation journal, exact source/world hashes and team
 history. Restore replays the original core call boundaries and compares the
@@ -65,5 +92,38 @@ The initial original tests cover both profiles, source controls and overrides,
 retained unsupported rows/constructors, same-realm identity and descriptor capture,
 and exact aggregate work rejection. Witness cases also cover receipt forgery,
 skipped/reused operations, restored forks, edited journals, Flash-only history,
-lower work/length limits and 600 idle ticks with exact reconstruction. See the
+lower work/length limits, 600 idle ticks, repeated transfer history followed by
+queued commands, and pending projectile/live route reconstruction. Fifteen owned
+source/witness tests plus two coordinator receipt tests pass. See the
 [provenance notice](../packages/sim/MISSION_STATIONARY_PROVENANCE.md).
+The complete checkpoint check passes 1,505 public tests, 14 tool tests, types,
+218 Markdown files/1,130 links, 809 publication paths, M0 consistency and a
+79-output/190-input engine build. These public tests use original fixtures.
+
+Private Node 24.20.0 characterization on macOS arm64 used original overlapping
+idle placements on a ten-cell fixture. One process measured 80 single-tick calls
+(10 warmups, 70 samples) and ten restored-fork joins. These are inclusive local
+characterizations, not isolated benchmarks, navigation throughput or browser
+cadence. Independent stage medians are not additive.
+
+| Actors | Live witness update median | Restored-fork update median / p95 | Restore 80 ticks | Logical restore work |
+| --- | --- | --- | --- | --- |
+| 2 | 0.005 ms | 0.064 / 0.144 ms | 81 ms | 565,982 |
+| 64 | 0.013 ms | 0.444 / 0.745 ms | 517 ms | 4,198,276 |
+| 256 | 0.032 ms | 1.541 / 1.732 ms | 1,920 ms | 15,563,812 |
+| 1,024 | 0.041 ms | 9.662 / 81.659 ms | refused after 3,829 ms | exceeds 16,777,216 |
+
+A separate two-actor, 1,800-tick journal restores exactly in 3,071 ms using
+12,561,261 work, despite occupying one compressed journal row. All completed
+restores matched the full world and witness; the 1,024-actor refusal is retained.
+The earlier under-reserved restore measurements are obsolete and remain private
+for comparison. This component does not yet establish scalable long-session
+restoration for the original mission. Common-runtime integration must preserve
+these resource refusals and address the replay cost before broader admission.
+
+Private reproduction remains in the author's ignored `local/` directory:
+`probe247.mjs` produces `stationary247/corpus`, `oracle247.py` independently checks
+the raw source projection, and `native247/ledger.py` rehashes the pinned images and
+regenerates the public metadata. `stationary247/cost.ts` reproduces the original
+characterization; current and pre-correction facts are retained separately.
+Native listings and source rows remain private.

@@ -6,9 +6,9 @@ The new stationary source/policy modules and original fixtures are WebRA2 work
 licensed GPL-3.0-or-later. They compose the existing GPL team/source components;
 they contain no retail bytes, disassembly or extracted mission rows.
 
-This is an intermediate #247 source checkpoint. The paired native ledger, private
-source census are still in progress. The serialized core witness is implemented,
-but the optional root runtime integration and independent review remain. It must not be
+This #247 component includes a paired native ledger, private source census and
+serialized core witness. The optional root runtime integration and independent
+review remain. It must not be
 used to admit a mission or to replace the current ownership/recruitment gate yet.
 
 Static observations on the pinned RA2/YR images distinguish the current mission
@@ -20,6 +20,20 @@ preservation branch and separate Zombie/Paralyzed checks. YR ownership explicitl
 queues Guard; the RA2 owner routine instead reaches the family idle callback.
 These are conditional control-flow observations, not proof that a motionless
 world entity has any particular current or queued native mission.
+
+The [native ledger](../../docs/analysis/mission-stationary-native.json) records
+66 spans/pointers/literals totaling 11,876 bytes, including 36 complete functions.
+The full image pins are RA2 `game.exe`
+`73288c03b58d370be268ca6d156b4e33bfdb2066dc980359467d8852ff3b00df`
+and YR `gamemd.exe`
+`3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600`.
+The private verifier checks instruction boundaries, concrete vtable targets,
+mission-name indices and selected consumer calls (112 assertions). Existing
+[allocation evidence](../../docs/mission-team-allocation-source.md) supplies the
+fresh campaign mode distinction; the native placed-row branch is pinned here.
+The [census](../../docs/analysis/mission-stationary-census.json) records the separate
+109,522-value raw-source comparison over five complete archive roots/eight members.
+These are author reproducibility checks, not independent review or retail execution.
 
 The new source catalog consumes only a genuine
 `MissionTeamOwnedBinding`. Its source/model/house joins and complete upstream

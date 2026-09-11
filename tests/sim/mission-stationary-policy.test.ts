@@ -8,6 +8,10 @@ import { WorldSimulation, readWorldStationaryBoundary, worldStationaryBoundaryHa
 import { compileMissionTeamRuntime, restoreMissionTeamContext } from '../../packages/sim/src/mission-team-context.ts';
 import { createMissionTeamCheckpoint, transferMissionTeamOwnership, admitMissionTeamInput, stepMissionTeamWorld, missionTeamWorldStep } from '../../packages/sim/src/mission-team-runtime.ts';
 import { worldHash } from '../../packages/sim/src/world-values.ts';
+import { createCombatModel, combatFactor } from '../../packages/sim/src/combat-model.ts';
+import { createWorldModel, worldPosition } from '../../packages/sim/src/world-model.ts';
+import { compileMissionTeamOwnedBinding } from '../../packages/sim/src/mission-team-owned-binding.ts';
+import { compileMissionStationarySource } from '../../packages/sim/src/mission-stationary-source.ts';
 
 function setup(profile: 'ra2' | 'yr', options: Parameters<typeof stationaryFixture>[1] = {}) {
   const f = stationaryFixture(profile, options), created = createMissionStationaryWitness(f.stationary);
@@ -174,5 +178,45 @@ test('restore reserves accumulated transfers and queued command graphs at every 
     assert.throws(() => restoreMissionStationaryWitness(f.stationary, saved, world, context, { work: restored.work - 1 }), /work/);
     assert.throws(() => restoreMissionStationaryWitness(f.stationary, saved, world, context, { work: 100_000 }), /work/);
     assert.deepEqual(f.world.save(), world); assert.deepEqual(saveMissionStationaryWitness(f.stationary, witness).save, saved);
+  }
+});
+
+test('restore budgets live routes and pending combat without admitting a source combat capability', () => {
+  for (const profile of ['ra2', 'yr'] as const) {
+    const f = stationaryFixture(profile, { rows: '0=Rival,Walker,256,2,2,0,Guard,0,None,0,-1,0,1,1\n' +
+      '1=Commander,Walker,256,4,2,0,Guard,0,None,0,-1,0,1,1\n2=Rival,Walker,256,3,1,0,Guard,0,None,0,-1,0,1,1' });
+    // A generic original core model exercises the save graph. This does not
+    // supply the separate source combat bridge required by compound admission.
+    const base = f.model, combat = createCombatModel({ weapons: [{ id: 'original:slow', damage: 25, range: 2048,
+      minimumRange: 0, reloadTicks: 4, burst: 1, burstDelayTicks: 2, delivery: 'tracked', speed: 1,
+      ground: true, air: false, verses: Array.from({ length: 11 }, () => combatFactor(1)) }],
+    actors: base.entities.map(e => ({ entityId: e.id, armor: 0, layer: 'ground', weapons: ['original:slow'], initialAmmo: -1 })), allies: [] });
+    const model = createWorldModel({ contentIdentity: base.contentIdentity, sourceSha256: base.sourceSha256,
+      definitionsSha256: base.definitionsSha256, entities: base.entities, navigation: base.navigation,
+      blocked: base.blocked.map(worldPosition), footprints: base.footprints.map(p => ({ entityId: p.entityId, cells: p.cells.map(worldPosition) })),
+      ownership: f.houses, combat });
+    const binding = compileMissionTeamOwnedBinding({ source: f.source, world: model });
+    const source = compileMissionStationarySource({ binding, initialization: 'fresh-campaign' });
+    const runtime = compileMissionTeamRuntime(f.source, {}, binding);
+    let { witness, world } = createMissionStationaryWitness(source);
+    const commands = [
+      { schemaVersion: 1, tick: 0, playerId: 1, sequence: 0, kind: 'attack', payload: { entityId: 1, targetId: 2 } },
+      { schemaVersion: 1, tick: 0, playerId: 1, sequence: 1, kind: 'move', payload: { entityId: 3, x: 3, y: 4 } },
+      { schemaVersion: 1, tick: 40, playerId: 1, sequence: 2, kind: 'stop', payload: { entityId: 1 } }
+    ];
+    witness = advanceMissionStationaryWitness(source, witness, world.admitCommands(commands)).witness;
+    witness = advanceMissionStationaryWitness(source, witness, world.step()).witness;
+    const snapshot = world.save(), saved = saveMissionStationaryWitness(source, witness).save;
+    assert(snapshot.state.combat!.impacts.length > 0);
+    assert(snapshot.state.entities[2]!.route.length >= 2); assert(snapshot.state.entities[2]!.progress > 0);
+    assert.equal(snapshot.queuedCommands.length, 1);
+    assert(saved.actors.every(a => a.reasons.length > 0));
+    const context = restoreMissionTeamContext(runtime, [], snapshot);
+    const restored = restoreMissionStationaryWitness(source, saved, snapshot, context);
+    assert.deepEqual(restored.world.save(), snapshot);
+    assert.deepEqual(saveMissionStationaryWitness(source, restored.witness).save, saved);
+    assert.deepEqual(restoreMissionStationaryWitness(source, saved, snapshot, context, { work: restored.work }).world.save(), snapshot);
+    assert.throws(() => restoreMissionStationaryWitness(source, saved, snapshot, context, { work: restored.work - 1 }), /work/);
+    assert.deepEqual(world.save(), snapshot); assert.equal(source.runtimeAuthority, false);
   }
 });
