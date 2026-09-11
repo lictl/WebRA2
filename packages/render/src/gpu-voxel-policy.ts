@@ -8,19 +8,26 @@ export const GPU_VOXEL_LIMITS = Object.freeze({ parts: 256, palettes: 256, voxel
   samples: 64 * 1024 * 1024, candidateTests: 128 * 1024 * 1024, binEntries: 8 * 1024 * 1024, binCandidates: 4096,
   residentBytes: 128 * 1024 * 1024, frameBytes: 128 * 1024 * 1024 });
 export type GpuVoxelLimits = { -readonly [K in keyof typeof GPU_VOXEL_LIMITS]: number };
+export const GPU_VOXEL_LAYOUT_LIMITS = Object.freeze({ capturedBytes: 4 * 1024 * 1024, matrixBytes: 4096 * 12 * 8 });
+export type GpuVoxelLayoutLimits = { -readonly [K in keyof typeof GPU_VOXEL_LAYOUT_LIMITS]: number };
 export interface GpuVoxelPartInput { readonly id: string; readonly voxels: Uint8Array; readonly modelMatrix: readonly number[] }
 export interface GpuVoxelPaletteInput { readonly id: string; readonly rgba: Uint8Array; readonly remap: Uint8Array | null; readonly transparentIndex: number | null }
 export interface GpuVoxelInstance { readonly id: string; readonly partId: string; readonly paletteId: string; readonly modelToView: readonly number[] }
 export interface GpuVoxelScene { readonly policy: typeof GPU_VOXEL_POLICY; readonly allocations: Readonly<{ parts: number; palettes: number; voxels: number; residentBytes: number }> }
+export interface GpuVoxelInstanceLayout { readonly policy: typeof GPU_VOXEL_POLICY; readonly scene: GpuVoxelScene;
+  readonly allocations: Readonly<{ instances: number; capturedBytes: number; matrixBytes: number }> }
 export interface GpuVoxelFrame { readonly policy: typeof GPU_VOXEL_POLICY; readonly scene: GpuVoxelScene; readonly width: number; readonly height: number;
   readonly allocations: Readonly<{ instances: number; instanceVoxels: number; boxes: number; samples: number; candidateTests: number; binEntries: number; maxBinCandidates: number; frameBytes: number }> }
 export interface GpuVoxelHit { readonly instanceId: string; readonly partId: string; readonly voxelOrdinal: number; readonly x: number; readonly y: number; readonly z: number;
   readonly colorIndex: number; readonly normalIndex: number; readonly depth: number; readonly owner: number }
 interface Part { id: string; start: number; count: number; matrix: number[] }
+interface Selection { id: string; part: Part; palette: number; m: number[]; inputIndex: number }
+interface Layout { scene: GpuVoxelScene; resident: Resident; cap: GpuVoxelLayoutLimits; bindings: Omit<Selection, 'm'>[] }
 interface Placement { id: string; part: Part; palette: number; start: number; end: number; inverse64: number[] }
 interface Resident { cap: GpuVoxelLimits; parts: Part[]; paletteIds: string[]; geometry: Uint32Array; rgba: Uint8Array }
 interface Prepared { cap: GpuVoxelLimits; resident: Resident; placements: Placement[]; inverses: Float32Array; boxes: Int32Array; oldBounds: Int32Array; offsets: Uint32Array; candidates: Uint32Array; tilesX: number }
 const scenes = new WeakMap<GpuVoxelScene, Resident>(), frames = new WeakMap<GpuVoxelFrame, Prepared>();
+const layouts = new WeakMap<GpuVoxelInstanceLayout, Layout>();
 function fail(code: string): never { throw new Error('gpu-voxel-' + code); }
 function projectionBound(value: number): boolean { return Number.isFinite(value) && Math.abs(value) <= 1048576; }
 function integer(value: unknown, min: number, max: number): number { if (!Number.isSafeInteger(value) || Object.is(value, -0) || (value as number) < min || (value as number) > max) fail('integer'); return value as number; }
@@ -48,6 +55,61 @@ function limits(value: Partial<GpuVoxelLimits> | undefined, parent: GpuVoxelLimi
   const cap: GpuVoxelLimits = { ...parent }; if (value === undefined) return cap;
   if (!value || Object.getPrototypeOf(value) !== Object.prototype) fail('limits');
   for (const key of Reflect.ownKeys(value)) { if (typeof key !== 'string' || !Object.hasOwn(cap, key)) fail('limits'); const d = Object.getOwnPropertyDescriptor(value, key); if (!d || !('value' in d)) fail('limits'); cap[key as keyof GpuVoxelLimits] = integer(d.value, 0, cap[key as keyof GpuVoxelLimits]); } return cap;
+}
+function layoutLimits(value?: Partial<GpuVoxelLayoutLimits>): GpuVoxelLayoutLimits {
+  const cap = { ...GPU_VOXEL_LAYOUT_LIMITS }; if (value === undefined) return cap;
+  if (!value || Object.getPrototypeOf(value) !== Object.prototype) fail('layout-limits');
+  for (const key of Reflect.ownKeys(value)) {
+    if (typeof key !== 'string' || !Object.hasOwn(cap, key)) fail('layout-limits');
+    const d = Object.getOwnPropertyDescriptor(value, key); if (!d || !('value' in d)) fail('layout-limits');
+    cap[key as keyof GpuVoxelLayoutLimits] = integer(d.value, 0, cap[key as keyof GpuVoxelLayoutLimits]);
+  }
+  return cap;
+}
+function selectInstances(resident: Resident, value: unknown, cap: GpuVoxelLimits): Selection[] {
+  const values = array(value, cap.instances), ids = new Set<string>();
+  return values.map((value, inputIndex) => {
+    const r = record(value, ['id', 'partId', 'paletteId', 'modelToView']), id = name(r.id), partId = name(r.partId), paletteId = name(r.paletteId), m = matrix(r.modelToView);
+    if (ids.has(id)) fail('instance'); ids.add(id);
+    const part = resident.parts.find(p => p.id === partId), palette = resident.paletteIds.indexOf(paletteId);
+    if (!part || palette < 0) fail('reference'); return { id, part, palette, m, inputIndex };
+  }).sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+}
+
+/** Capture static joins once. Subsequent matrix planes remain in this original caller order. */
+export function createGpuVoxelInstanceLayout(scene: GpuVoxelScene, instances: readonly GpuVoxelInstance[], lower?: Partial<GpuVoxelLayoutLimits>): GpuVoxelInstanceLayout {
+  const resident = scenes.get(scene); if (!resident) return fail('scene'); const cap = layoutLimits(lower);
+  const selected = selectInstances(resident, instances, resident.cap);
+  // Logical captured strings + numeric joins, not a measurement of JavaScript object overhead.
+  const capturedBytes = selected.reduce((n, p) => n + 16 + 2 * (p.id.length + p.part.id.length + resident.paletteIds[p.palette]!.length), 0), matrixBytes = selected.length * 12 * 8;
+  if (capturedBytes > cap.capturedBytes || matrixBytes > cap.matrixBytes) fail('layout-budget');
+  let instanceVoxels = 0; for (const p of selected) { instanceVoxels += p.part.count; if (instanceVoxels > resident.cap.instanceVoxels) fail('instance-budget'); }
+  const bindings = selected.map(({ m: _matrix, ...binding }) => binding);
+  const layout: GpuVoxelInstanceLayout = Object.freeze({ policy: GPU_VOXEL_POLICY, scene, allocations: Object.freeze({ instances: bindings.length, capturedBytes, matrixBytes }) });
+  layouts.set(layout, { scene, resident, cap, bindings }); return layout;
+}
+
+function matrixPlane(value: unknown, expectedBytes: number, maximumBytes: number): Float64Array {
+  if (!value || Object.getPrototypeOf(value) !== Float64Array.prototype) return fail('matrix-plane');
+  let n: number, b: ArrayBuffer, at: number;
+  try { n = byteLength.call(value); b = buffer.call(value); at = byteOffset.call(value); } catch { return fail('matrix-plane'); }
+  if (n !== expectedBytes || n > maximumBytes || Object.getPrototypeOf(b) !== ArrayBuffer.prototype || resizable?.call(b)) fail('matrix-plane');
+  // Intrinsics bypass named shadow accessors; a detached buffer rejects even for an empty layout.
+  try { return new Float64Array(new Float64Array(b, at, n / 8)); } catch { return fail('matrix-plane'); }
+}
+
+/** Own one bounded binary64 plane; no approximate transforms, bounds or inverse reuse. */
+export function prepareGpuVoxelLayoutFrame(layout: GpuVoxelInstanceLayout, input: { readonly matrices: Float64Array; readonly width: number; readonly height: number }, lower?: Partial<GpuVoxelLimits>): GpuVoxelFrame {
+  const owned = layouts.get(layout); if (!owned) return fail('layout');
+  const cap = limits(lower, owned.resident.cap), raw = record(input, ['matrices', 'width', 'height']);
+  const width = integer(raw.width, 1, cap.dimension), height = integer(raw.height, 1, cap.dimension); if (width * height > cap.pixels) fail('pixel-budget');
+  if (owned.bindings.length > cap.instances) fail('instance-budget');
+  const plane = matrixPlane(raw.matrices, owned.bindings.length * 12 * 8, owned.cap.matrixBytes);
+  const selected = owned.bindings.map(binding => {
+    const m: number[] = []; for (let i = 0; i < 12; i++) { const n = plane[binding.inputIndex * 12 + i]!; if (!Number.isFinite(n) || Math.abs(n) > 1048576) fail('matrix'); m.push(n); }
+    inverse(m); return { ...binding, m };
+  });
+  return prepareSelectedFrame(owned.scene, owned.resident, cap, width, height, selected);
 }
 
 /** Own already decoded sparse geometry. This experimental factory does not authenticate a game source. */
@@ -105,9 +167,10 @@ function candidateAllowance(inv: number[], width: number, height: number) {
 export function prepareGpuVoxelFrame(scene: GpuVoxelScene, input: { readonly instances: readonly GpuVoxelInstance[]; readonly width: number; readonly height: number }, lower?: Partial<GpuVoxelLimits>): GpuVoxelFrame {
   const resident = scenes.get(scene); if (!resident) return fail('scene'); const cap = limits(lower, resident.cap), raw = record(input, ['instances', 'width', 'height']);
   const width = integer(raw.width, 1, cap.dimension), height = integer(raw.height, 1, cap.dimension); if (width * height > cap.pixels) fail('pixel-budget');
-  const values = array(raw.instances, cap.instances), ids = new Set<string>(), placements: Placement[] = [], forwards: number[][] = [];
-  const selected = values.map(value => { const r = record(value, ['id', 'partId', 'paletteId', 'modelToView']), id = name(r.id), partId = name(r.partId), paletteId = name(r.paletteId), m = matrix(r.modelToView);
-    if (ids.has(id)) fail('instance'); ids.add(id); const part = resident.parts.find(p => p.id === partId), palette = resident.paletteIds.indexOf(paletteId); if (!part || palette < 0) fail('reference'); return { id, part, palette, m }; }).sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+  return prepareSelectedFrame(scene, resident, cap, width, height, selectInstances(resident, raw.instances, cap));
+}
+function prepareSelectedFrame(scene: GpuVoxelScene, resident: Resident, cap: GpuVoxelLimits, width: number, height: number, selected: Selection[]): GpuVoxelFrame {
+  const placements: Placement[] = [], forwards: number[][] = [];
   let instanceVoxels = 0; for (const p of selected) { const start = instanceVoxels; instanceVoxels += p.part.count; if (instanceVoxels > cap.instanceVoxels) fail('instance-budget');
     const forward = multiply(p.m, p.part.matrix), inverse64 = inverse(forward); placements.push({ id: p.id, part: p.part, palette: p.palette, start, end: instanceVoxels, inverse64 }); forwards.push(forward); }
   const tilesX = Math.ceil(width / 16), tilesY = Math.ceil(height / 16), tileCount = tilesX * tilesY; let samples = 0, binEntries = 0;
