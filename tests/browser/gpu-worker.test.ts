@@ -11,7 +11,7 @@ import { makeOriginalTerrain, makeOriginalSprites, originalObject } from '../ren
 import { createGpuPicker } from '../../packages/render/src/gpu-picking.ts';
 import { GpuOriginalWorker, gpuOriginalLoad } from './gpu-worker.fixture.ts';
 const signal=()=>new AbortController().signal;
-async function start(){const worker=new GpuOriginalWorker(),bridge=new TerrainBridge(worker),s=signal();const first=await bridge.request(gpuOriginalLoad,s) as FrameResult;return {worker,bridge,s,first};}
+async function start(withSprite=false){const worker=new GpuOriginalWorker(undefined,withSprite),bridge=new TerrainBridge(worker),s=signal();const first=await bridge.request(gpuOriginalLoad,s) as FrameResult;return {worker,bridge,s,first};}
 
 test('GPU negotiation transfers resident planes once and worker world steps do not rasterize',async()=>{
   const {worker,bridge,s,first}=await start();
@@ -59,6 +59,27 @@ test('bridge rejects stale scene, repeated resources, wrong renderer and malform
   const {worker,bridge,s}=await start(),init=await bridge.request({type:'renderer-mode',mode:'gpu'},s) as GpuFrameResult;
   worker.transform=r=>r.type==='result'&&r.result.type==='gpu-frame'?{...r,result:{...r.result,resources:init.resources,objectInfo:init.objectInfo}}:r;
   await assert.rejects(bridge.request({type:'world-step',ticks:1},s),/invalid/);assert.equal(worker.terminated,1);
+});
+
+test('bridge binds every current sprite to the initial resident object and resource catalog',async()=>{
+  const changes=[(f:GpuFrameResult)=>{f.objects=[{...f.objects[0]!,id:'object-999'}];},(f:GpuFrameResult)=>{f.objects=[{...f.objects[0]!,frameId:'unknown'}];},(f:GpuFrameResult)=>{f.objects=[{...f.objects[0]!,paletteId:'unknown'}];},(f:GpuFrameResult)=>{f.objects=[{...f.objects[0]!,depth:{...f.objects[0]!.depth,rowStep:1}}];}];
+  for(const initialization of [true,false])for(const change of changes){
+    const {worker,bridge,s}=await start(true);
+    if(!initialization)await bridge.request({type:'renderer-mode',mode:'gpu'},s);
+    worker.transform=r=>{if(r.type==='result'&&r.result.type==='gpu-frame')change(r.result);return r;};
+    await assert.rejects(bridge.request(initialization?{type:'renderer-mode',mode:'gpu'}:{type:'world-step',ticks:1},s),/invalid/);assert.equal(worker.terminated,1);
+  }
+  const {worker,bridge,s}=await start(true);await bridge.request({type:'renderer-mode',mode:'gpu'},s);
+  const moved=await bridge.request({type:'world-order',order:'move',entityId:1,playerId:0,x:6,y:3},s) as GpuFrameResult;
+  assert.equal(moved.objects[0]!.id,'object-0');await bridge.request({type:'world-step',ticks:3},s);
+  await bridge.request({type:'renderer-mode',mode:'cpu'},s);
+  worker.transform=r=>{
+    if(r.type==='result'&&r.result.type==='gpu-frame'&&r.result.resources){
+      const f=r.result;f.objects=[{...f.objects[0]!,id:'object-999'}];f.objectInfo=[{...f.objectInfo![0]!,id:'object-999'}];
+      f.resources={...f.resources!,objects:[{...f.resources!.objects[0]!,id:'object-999'}]};
+    }return r;
+  };
+  await assert.rejects(bridge.request({type:'renderer-mode',mode:'gpu'},s),/invalid/);assert.equal(worker.terminated,1);
 });
 
 test('GPU message capture owns metadata and rejects extra data, bad planes, dishonest retirement and accessor fields',async()=>{

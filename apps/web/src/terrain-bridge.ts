@@ -4,11 +4,14 @@ import { shape,int,code,validAction,validProgress,validResult,type TerrainAction
 import type { CampaignLaunchPlan } from './campaign-protocol.ts';
 import { validWorldAction } from './world-protocol.ts';
 import { captureGpuFrame } from './gpu-protocol.ts';
+type ResidentIndex={objects:Set<string>;resources:Set<string>};
+const sameMembers=(a:Set<string>,b:Set<string>)=>a.size===b.size&&[...a].every(id=>b.has(id));
 export const TERRAIN_DEADLINES=Object.freeze({load:15*60_000,operation:30_000,replay:180_000});
 export interface TerrainPort { request(action:TerrainAction,signal:AbortSignal,progress?:(p:TerrainProgress)=>void):Promise<TerrainResult>; dispose():void }
 export type TerrainWorkerPort=Pick<Worker,'postMessage'|'terminate'|'addEventListener'|'removeEventListener'>;
 export class TerrainBridge implements TerrainPort {
   #sequence=0;#pending:((e:Error)=>void)|null=null;#dead=false;#identity:string|null=null;#worldHash:string|null=null;#revision=0;#campaign:CampaignLaunchPlan|null=null;#sceneId=0;#gpu=false;
+  #resident:ResidentIndex|null=null;
   constructor(private worker:TerrainWorkerPort=new Worker('/workers/terrain.js',{type:'module'})){}
   request(action:TerrainAction,signal:AbortSignal,progress?:(p:TerrainProgress)=>void):Promise<TerrainResult>{
     if(this.#dead || this.#pending || !validAction(action))return Promise.reject(new Error('unavailable'));
@@ -32,7 +35,7 @@ export class TerrainBridge implements TerrainPort {
         if(result.type==='gpu-frame'){try{result=captureGpuFrame(result);}catch{finish(new Error('invalid'));return;}}
         if(result.type==='campaign-plan'){
           if(action.type==='campaign-scan'?result.plan.profile!==action.profile:action.type==='campaign-back'?result.plan.fingerprint!==action.fingerprint:true){finish(new Error('invalid'));return;}
-          this.#campaign=structuredClone(result.plan);this.#identity=null;this.#worldHash=null;this.#revision=0;this.#sceneId=0;this.#gpu=false;finish(undefined,result);return;
+          this.#campaign=structuredClone(result.plan);this.#identity=null;this.#worldHash=null;this.#revision=0;this.#sceneId=0;this.#gpu=false;this.#resident=null;finish(undefined,result);return;
         }
         if(action.type==='campaign-scan'||action.type==='campaign-back'){finish(new Error('invalid'));return;}
         if(result.type==='renderer-refusal'){
@@ -55,6 +58,21 @@ export class TerrainBridge implements TerrainPort {
           const initializing=action.type==='load'||action.type==='campaign-launch',expectedGpu=initializing?false:action.type==='renderer-mode'?action.mode==='gpu':this.#gpu;
           if((result.type==='gpu-frame')!==expectedGpu){finish(new Error('invalid'));return;}
           if(result.type==='gpu-frame'&&(result.sceneId!==this.#sceneId||((result.resources!==null)!==(action.type==='renderer-mode'&&action.mode==='gpu')))){finish(new Error('invalid'));return;}
+          let resident=initializing?null:this.#resident;
+          if(result.type==='gpu-frame'){
+            if(result.resources){
+              const next={objects:new Set(result.resources.objects.map(o=>o.id)),resources:new Set(result.resources.spriteResources.map(r=>JSON.stringify([r.frameId,r.paletteId,r.rowStep])))};
+              if(resident&&(!sameMembers(next.objects,resident.objects)||!sameMembers(next.resources,resident.resources))){finish(new Error('invalid'));return;}
+              resident=next;
+            }
+            if(!resident){finish(new Error('invalid'));return;}
+            const covered=new Set(result.retiredObjectIds);
+            for(const object of result.objects){
+              if(!resident.objects.has(object.id)||covered.has(object.id)||!resident.resources.has(JSON.stringify([object.frameId,object.paletteId,object.depth.rowStep]))){finish(new Error('invalid'));return;}
+              covered.add(object.id);
+            }
+            if(!sameMembers(covered,resident.objects)){finish(new Error('invalid'));return;}
+          }
           if(action.type==='load'&&result.summary.mission!==(action.profile==='ra2'?'all01t.map':'all01umd.map')){finish(new Error('invalid'));return;}
           if(action.type==='campaign-launch'){
             const entry=this.#campaign!.entries.find(e=>e.id===action.entryId)!;
@@ -66,7 +84,7 @@ export class TerrainBridge implements TerrainPort {
           if(result.world && result.world.revision!==expectedRevision){finish(new Error('invalid'));return;}
           if(validWorldAction(action) && (!result.world || !['world-order','world-orders','world-step','world-restore'].includes(action.type))){finish(new Error('invalid'));return;}
           this.#identity=identity;this.#worldHash=result.summary.world?.modelHash??null;this.#revision=result.world?.revision??0;
-          if(initializing)this.#sceneId=id;this.#gpu=result.type==='gpu-frame';
+          if(initializing)this.#sceneId=id;this.#gpu=result.type==='gpu-frame';this.#resident=resident;
         }
         finish(undefined,result);
       };
@@ -77,5 +95,5 @@ export class TerrainBridge implements TerrainPort {
       try{this.worker.postMessage({version:7,id,action});}catch{failed();}
     });
   }
-  dispose():void{if(this.#dead)return;this.#dead=true;this.#pending?.(new DOMException('Cancelled','AbortError'));this.worker.terminate();}
+  dispose():void{this.#resident=null;if(this.#dead)return;this.#dead=true;this.#pending?.(new DOMException('Cancelled','AbortError'));this.worker.terminate();}
 }
