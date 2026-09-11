@@ -184,12 +184,12 @@
       "profile": "ra2",
       "claim": "object-audio-destruction-span",
       "kind": "code-span",
-      "virtualStart": "0x5d26bb",
+      "virtualStart": "0x5d26bc",
       "virtualEndExclusive": "0x5d26eb",
-      "fileOffset": 1910459,
-      "size": 48,
-      "sha256": "0edccfbd0164a30b157ec224186e1da479762b58cc165c9288c8f67cb7f43b8c",
-      "instructionCount": 16,
+      "fileOffset": 1910460,
+      "size": 47,
+      "sha256": "32ab38f5286d9dcb14b73696c51304847ec2c77a37f5b0da82159242202136b3",
+      "instructionCount": 14,
       "allBytesDecoded": true
     },
     {

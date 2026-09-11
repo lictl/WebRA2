@@ -13,7 +13,10 @@ original catalog data and hashes.
 The paired [source ledger](analysis/mission-spatial-audio-native.json) records
 selected spans from both pinned Steam images. Files were read statically; neither
 executable was run. Complete instruction decoding is an integrity check for each
-selected span, not evidence of a completed runtime implementation.
+selected span, not evidence of a completed runtime implementation. Independent
+review corrected the RA2 cleanup span to the branch-target instruction boundary
+`0x5d26bc`; the ledger contains36 records covering4,373 bytes. Decoding alone had
+not detected the prior one-byte boundary error.
 
 Action99 uses the mode7 sound registry lookup and the final alpha waypoint token.
 The waypoint resolves through the current map cell and bridge height. When the native object-enumeration global is enabled, the consumer searches
