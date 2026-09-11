@@ -139,6 +139,14 @@ function joinWorld(source: MissionSpatialAudioSource, model: WorldModel): void {
   if (base.sha256 !== source.baseWorldSha256 || base.sha256 !== original.bindings.worldSha256) fail('world-join');
   if (!joined) { joined = new WeakSet(); joinedModels.set(source, joined); } joined.add(model);
 }
+/** Bounded complete initial-world identity join for presentation-intent consumers.
+ * It authenticates component identity, never a source action invocation. */
+export function validateMissionSpatialAudioWorld(source: MissionSpatialAudioSource, model: WorldModel,
+  workLimit: number = MISSION_SPATIAL_AUDIO_LIMITS.work): number {
+  missionSpatialAudioSourceContext(source); assertWorldModel(model);
+  const limit = worldInteger(workLimit, 0, MISSION_SPATIAL_AUDIO_LIMITS.work), work = sourceWorldWork(source, model);
+  if (work > limit) fail('work-limit'); joinWorld(source, model); return work;
+}
 /** Own caller descriptors with a deterministic structural reservation before any
  * restore. The returned work is a resource policy, not a CPU instruction count. */
 function captureCheckpoint(value: unknown, charge: (n: number) => void): WorldSave {

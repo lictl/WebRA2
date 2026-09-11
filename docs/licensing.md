@@ -400,3 +400,8 @@ are GPL-3.0-or-later under the existing
 [mission/world notice](../packages/sim/MISSION_WORLD_PROVENANCE.md).
 See the [bounded source report](mission-spatial-world.md). No new third-party
 dependency or retail content is included.
+
+
+The saved spatial-intent component and compound adapter are original
+GPL-3.0-or-later code under the same mission/world notice. Their source-bound
+metadata and original fixtures contain no retail audio or native executable code.
