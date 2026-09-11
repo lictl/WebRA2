@@ -15,50 +15,49 @@ development target; other browsers come later. Assets remain on-device/read-only
 
 ## Active work and exclusive ownership
 
-- Coordinator: spatial current-world source/dispatch [#236](https://github.com/lictl/WebRA2/issues/236),
-  tree `local/worktrees/spatial-world`, branch `codex/236-spatial-world`.
-  Source/resolver checkpoint `6d16e75`, census checkpoint `38786f9`, now composed
-  with main through house merge `232dc07`. Five original source tests and the
-  pre-composition full1,424 +14 checks pass. Fresh438-file source compilation
-  supports27/27 RA2 and106/116 YR spatial occurrences;8 ramp and2 overlay YR
-  occurrences remain gated. Independent Python audit:3,974 comparisons, including
-  1,859 raw packed-map/selected-TMP checks and four rehashed roots. Retained model
-  foundations/audio choices remain explicitly reused. Ordered VM99/116 target request dispatch now exists; no browser playback yet.
-  Full composition1,444 +14 tests/types/docs/M0/build79/189 passes before the
-  final controller metadata addition. New native controller ledger:52records/
-  50spans/7,980B, independently rechecked; clock/action ordering remains D03. Root owns source/resolver, VM/bindings/private context/compound
-  integration, shared build/licensing and this handoff. Reviewer reproduced the growing-history work gap. It is corrected with bounded
-  descriptor capture/history reservation before standalone restore and a genuine
-  direct world read per action. Root composed worker read seam e4ae23b as3bfb726.
-  Fresh final source dispatch census and exact-head review are next.
-- `mix_reader`: independent spatial source review in
-  `local/reviews/mission-spatial-world-236`, followed by separately scoped dynamic
-  team/current-owner integration under [#233](https://github.com/lictl/WebRA2/issues/233).
-  House PR235 is merged; do not move/reopen its frozen source checkpoint.
-  Team construction/recruitment/combat/slot composition and YR8997 event-derived
-  Trigger.House persistence remain unimplemented. Never remove those gates by
-  substituting source type ownership or treating every capture as a death.
-- `browser_feasibility`: sole CUA/Chrome owner, current
-  `local/worktrees/gpu-voxel-browser`, [#234](https://github.com/lictl/WebRA2/issues/234),
-  [PR237](https://github.com/lictl/WebRA2/pull/237). Scalar composition `3f3e937`,
-  frozen4226/scalar-1 manifest `f58e3c1bb8e340d81ef5de5763dd94a4b4b57dfeaea205921df8b5a774dbced4`.
-  Actual45-case GPU oracle retains prior comparison results. Short64/256/1,024
-  group probes produce54.875/15.5/3.875 observed FPS, still below60. Median
-  preparation9.8/43.5/186.7ms versus GPU1.80/3.57/8.16ms; no skip/disjoint and all
-  issued work drained. This is a voxel component workload without simulation.
-  Preparation-only4227/stages-1 confirms the Chrome bottleneck without GL:
-  1,024 pristine191.0ms and instrumented191.1ms,22 exact packet comparisons.
-  Next compare identical minified Node/Chrome preparation before selecting reuse
-  or WASM. Preserve failed runs and explicit driver-highp clipped policy bounds.
+- Coordinator: [spatial dispatch PR240](https://github.com/lictl/WebRA2/pull/240),
+  issue236, tree `local/worktrees/spatial-world`, branch `codex/236-spatial-world`.
+  Source/runtime `c68b8e5` plus the final replay-result fix are undergoing exact-head
+  review. Full baseline: 1,444 public +14 tool checks, types, 212 docs/1,109 links,
+  777 publication paths, M0 and79 outputs/189 inputs. Fresh438-file preparation
+  accepts27/27 RA2 and106/116 YR spatial actions; required diagnostics fall
+  185→158 and399→293, with whole authorities still null. Independent raw audit:
+  4,411 comparisons, including1,859 packed-map/TMP checks and four full roots.
+  Source hashes are unchanged;8 YR ramps and2 overlays remain gated.
+  Root source/resolver/VM/context/compound code is reviewed by `mix_reader`;
+  worker current-entity read seam3bfb726 is independently reviewed by root.
+  Standalone restore reserves structural/history work; per-action reads use the
+  current private world. Final correction includes nav/blocker join reservation
+  and full replay request batches. Next: ordinary reviewed merge, then saved
+  spatial controller intent and browser consumer in `local/worktrees/spatial-controller`,
+  branch `codex/236-spatial-controller`. Root owns contracts/config/licensing/handoff.
+- `mix_reader`: independent PR240 review in `local/reviews/mission-spatial-world-236`,
+  then dynamic team/current-owner composition under [#233](https://github.com/lictl/WebRA2/issues/233).
+  House PR235 is merged. Team construction/recruitment/combat/slot integration and
+  YR8997 event-derived Trigger.House remain gated. Never substitute type ownership
+  for Trigger.House or treat every capture as death. Static team-detach and nullable
+  trigger-house evidence is preserved in the house worker's private notes.
+- `browser_feasibility`: sole CUA/Chrome owner, tree `local/worktrees/gpu-voxel-browser`,
+  [#234](https://github.com/lictl/WebRA2/issues/234) / [PR237](https://github.com/lictl/WebRA2/pull/237).
+  Native foreground captured-layout short cadence at frozen4229, source0cf5725,
+  manifest `6028291f0f592fd9405ae745e3673d1046b605453a6b6e907e291d17dcd82e01`:
+  64/256/1,024 groups produce120.625/113.25/42 observed completions/s. Minimum
+  full-second counts120/112/41. At1,024, median preparation18.8ms and GPU5.818ms;
+  all resources drain with no skip/disjoint. This larger row fails60; no long run.
+  The earlier4225/4226 slow failures remain, but native selected-tab status was
+  unverified. Repeating unchanged4227 after native tab/button selection lowered
+  1,024 preparation191→22.5ms with identical packets. Do not infer a language
+  bottleneck from the earlier timings. Preserve explicit driver-highp policy bounds.
 - `bootstrap_review`: GPU core tree `local/worktrees/gpu-voxel-feasibility`,
-  frozen exact `7202860ffa98c5b4bbc853e0e0de4f24982f8271` on PR237. Scalar bounds
-  remove temporary allocations with unchanged full packets/arithmetic/shader;
-  full1,302 public +14 tool checks pass on that earlier component baseline.
-  Current bounded subtask: paired static object/position sound-controller fields,
-  assignment/update/stop/replacement and phase evidence under236. Private research
-  only until reviewed metadata is ready. Position99 allocates a fresh controller;
-  object99 stores desired sound;116 requests stop rather than immediate silence.
-  Native pump/update ordering remains to finish before choosing a consumer phase.
+  public source `16a26cb3338a9ab6171fa20a63f43f66b631f3ef` on PR237.
+  Captured layout reuses stable instance metadata with owned matrices; intrinsic
+  element-type validation rejects forged typed-array storage. Private exact basis/
+  envelope/geometry reuse probes preserve89 packets and306,176 picks, but no
+  effective cache has been published. Next measure a meaningful preparation saving
+  or propose bounded worker scheduling with freshness/copy costs. No broad WASM
+  rewrite or new public cache API is selected. The controller static assessment
+  is complete:52 records/50 spans/7,980 bytes; native clock/action phase remains
+  unproved and the browser consumer must name its D03 phase.
 
 Stop heavy tests/probes during browser timing windows; agents signal START/END.
 Root never initializes CUA. Reuse the agreed coordinator plus three workers.

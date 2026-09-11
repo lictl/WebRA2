@@ -52,8 +52,16 @@ test('ordered spatial requests use exact targets and survive save/replay without
     const next = stepMissionWorld(f.compound, result.checkpoint);
     assert.deepEqual(next.spatialAudio!.requests.map(r => r.sequence), [2, 3]);
     assert.deepEqual(stepMissionWorld(f.compound, restoreMissionWorld(f.compound, result.checkpoint)), next);
-    assert.deepEqual(replayMissionWorld(f.compound, { schemaVersion: 1, modelSha256: f.compound.sha256, initialCheckpoint: initial,
-      admissions: [], finalNextTick: 2, finalStateSha256: worldHash(next.checkpoint) }).checkpoint, next.checkpoint);
+    const replay = (checkpoint = initial, end = next.checkpoint) => replayMissionWorld(f.compound,
+      { schemaVersion: 1, modelSha256: f.compound.sha256, initialCheckpoint: checkpoint,
+        admissions: [], finalNextTick: end.world.nextTick, finalStateSha256: worldHash(end) });
+    assert.deepEqual(replay(), stepMissionWorld(f.compound, initial, 2));
+    assert.deepEqual(replay(result.checkpoint), next);
+    const zero = replay(next.checkpoint, next.checkpoint);
+    assert(isMissionWorldSpatialAudio(f.compound, zero.spatialAudio));
+    assert.equal(zero.spatialAudio.fromNextTick, 2); assert.equal(zero.spatialAudio.toNextTick, 2);
+    assert.equal(zero.spatialAudio.stateSha256, worldHash(next.checkpoint));
+    assert.deepEqual(zero.spatialAudio.requests, []);
     assert.equal(batch.nativePlaybackVerified, false); assert.equal(f.compound.canStartCampaign, false);
   }
 });

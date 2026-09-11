@@ -81,7 +81,7 @@ signed-level extrema/nonzero TMP height, building/terrain precedence, current
 removal, ambiguous geometry, copied/stale sources and budget rollback. Full1,424
 public +14 tool checks passed with210docs/1,091links, publication/M0 guards and
 79 code/license outputs from188 inputs. These are earlier source-only results;
-the expanded dispatch composition is undergoing its own full checks.
+the expanded dispatch composition has separate checks below.
 
 Fresh source-only compilation read438 files: RA2 supports27/27 spatial occurrences
 (24 positional/3 object); YR supports106/116 (103 positional/3 object), with8 ramp
@@ -94,19 +94,33 @@ world ordering and audio choices are retained reviewed inputs; the oracle does
 not independently reconstruct their upstream selection or native object order.
 No source rows, coordinates, names, assets or native listings are published.
 
-Independent source review added52 original cases/224 assertions and reproduced
-the raw audit; it found the corrected history-accounting issue above. Final
-exact-head review, updated source preparation and full dispatch validation remain
-due. Neither synthetic tests nor successful decoding constitute an original
-campaign playthrough.
+Fresh dispatch preparation at2c3822b also reads438 files and accepts the same
+27/106 supported actions. Required diagnostics fall185→158 RA2 and399→293 YR;
+remaining diagnostics are unchanged except the ten unsupported YR spatial rows
+now name their source gate. Both complete authorities remain null. The separate
+[dispatch census](analysis/mission-spatial-dispatch-census.json) retains this exact
+checkpoint. A separate Python audit checks4,411 comparisons, including raw action
+operands, all selected geometry, current initial-world target results and the
+complete diagnostic replacement. The reviewer independently repeated fresh
+preparation and4,411 comparisons atc68b8e5, adjusting only the added navigation/
+blocker work reservation. Earlier source-only evidence remains immutable.
+
+Independent review adds52 original source cases/224 assertions and12 dispatch
+cases/322 assertions. It reproduced the corrected history-accounting problem.
+The coordinator also corrected replay output: replay previously restored the
+right checkpoint but omitted its spatial request batch. Grouped, resumed and
+zero-tick replay now return authenticated batches with payload/trace limits.
+Neither these tests nor decoding constitutes an original campaign playthrough.
 
 Code: [source/resolver](../packages/sim/src/mission-spatial-audio-source.ts),
 [source tests](../tests/sim/mission-spatial-audio-source.test.ts),
 [dispatch tests](../tests/sim/mission-spatial-audio-dispatch.test.ts).
 
 The expanded composition now passes1,444 public +14 tool checks, type checking,
-211 document files/1,106 links, publication/M0 checks and79 code/license outputs
-from189 inputs. The added source/controller documentation is validated separately.
+212 document files/1,109 links,777 publication paths, M0 checks and79 code/license
+outputs from189 inputs at2c3822b, independently repeated with controller metadata.
+The final small accounting/replay changes pass focused tests and types; hosted
+checks and exact-head review are required before merge.
 The six dispatch tests cover positional/object targets, ordered house composition,
 source refusals, cursor/one-use limits, every-boundary restore/replay and the
 corrected long-history reservation. The core read seam adds six separate original

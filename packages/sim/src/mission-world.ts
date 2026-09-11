@@ -91,6 +91,9 @@ function restoreSpatialState(spatial: MissionSpatialAudioSource, value: unknown)
   return freeze({ policy: MISSION_SPATIAL_AUDIO_DISPATCH_POLICY, sourceSha256: spatial.sha256,
     tick: worldInteger(r.tick, 0, MISSION_LOGIC_LIMITS.tick), nextSequence: worldInteger(r.nextSequence, 0, 1_000_000) });
 }
+function spatialRequestUnits(requests: readonly MissionWorldSpatialAudioRequest[]): number {
+  return requests.reduce((n, r) => n + r.instructionId.length + r.bindingId.length + r.triggerId.length + 16, 0);
+}
 /** The target was resolved during this private VM call, not reconstructed here
  * from its final world or accepted from a caller-supplied effect list. */
 function appendSpatial(s: Source, cursor: MissionWorldSpatialAudioState, effects: readonly MissionEffect[], tick: number, remainingUnits: number) {
@@ -536,7 +539,7 @@ export function replayMissionWorld(model: MissionWorldModel, value: unknown): Mi
   });
   const effects: MissionEffect[] = [], worldEvents: WorldTrace[] = [], requests: MissionWorldPresentationRequest[] = [];
   const actions: MissionTeamEvent[] = [], orders: TeamOrder[] = [], events: (TeamEvent & { tick: number })[] = [];
-  const audioRequests: MissionWorldAudioRequest[] = [];
+  const audioRequests: MissionWorldAudioRequest[] = [], spatialRequests: MissionWorldSpatialAudioRequest[] = [];
   const start = checkpoint.world.nextTick; let units = 0;
   function advance(tick: number): void {
     while (checkpoint.world.nextTick < tick) {
@@ -556,6 +559,12 @@ export function replayMissionWorld(model: MissionWorldModel, value: unknown): Mi
         if (step.audio.requests.length > MISSION_WORLD_LIMITS.trace - audioRequests.length) fail('replay-audio-trace-limit');
         audioRequests.push(...step.audio.requests);
       }
+      if (step.spatialAudio) {
+        units += spatialRequestUnits(step.spatialAudio.requests);
+        if (units > MISSION_WORLD_LIMITS.presentationUnits) fail('replay-spatial-payload-limit');
+        if (step.spatialAudio.requests.length > MISSION_WORLD_LIMITS.trace - spatialRequests.length) fail('replay-spatial-trace-limit');
+        spatialRequests.push(...step.spatialAudio.requests);
+      }
       checkpoint = step.checkpoint; effects.push(...step.effects); worldEvents.push(...step.worldEvents);
     }
   }
@@ -563,5 +572,6 @@ export function replayMissionWorld(model: MissionWorldModel, value: unknown): Mi
   advance(end); if (worldHash(checkpoint) !== r.finalStateSha256) fail('replay-final-hash');
   return freeze({ checkpoint, effects, worldEvents, work, ...(s.teams ? { teams: { actions, orders, events } } : {}),
     ...(s.cues ? { presentation: presentation(model, start, checkpoint, requests) } : {}),
-    ...(s.audio ? { audio: audioBatch(model, start, checkpoint, audioRequests) } : {}) });
+    ...(s.audio ? { audio: audioBatch(model, start, checkpoint, audioRequests) } : {}),
+    ...(s.spatial ? { spatialAudio: spatialBatch(model, start, checkpoint, spatialRequests) } : {}) });
 }
