@@ -14,6 +14,8 @@ import { TerrainBridge } from '../../apps/web/src/terrain-bridge.ts';
 import { validResult, type FrameResult, type TerrainAction } from '../../apps/web/src/terrain-protocol.ts';
 import { terrainText, artworkStatusText } from '../../apps/web/src/terrain-i18n.ts';
 import { createWorldViewport } from '../../apps/web/src/world-viewport.ts';
+import { importGpuScene, exportGpuScene, prepareGpuFrame } from '../../packages/render/src/gpu-scene.ts';
+import { createGpuPicker } from '../../packages/render/src/gpu-picking.ts';
 import { validWorldSnapshot, type WorldSummary, type WorldSnapshot } from '../../apps/web/src/world-protocol.ts';
 function packed(bytes:Uint8Array, lzo:boolean):string {
   if(lzo){const data=Buffer.from([bytes.length+17,...bytes,17,0,0]),b=Buffer.alloc(data.length+4);b.writeUInt16LE(data.length);b.writeUInt16LE(bytes.length,2);b.set(data,4);return b.toString('base64');}
@@ -89,6 +91,18 @@ test('world snapshot cells move owned original artwork while each frame retains 
   const a=first.pick(90,29),b=second.pick(120,44);assert.equal(a?.kind,'object');assert.equal(b?.kind,'object');
   if(a?.kind!=='object'||b?.kind!=='object')assert.fail();assert.deepEqual([a.object.x,a.object.y],[2,2]);assert.deepEqual([b.object.x,b.object.y],[3,2]);assert.equal(first.pick(90,29)?.kind,'object');assert.notDeepEqual(first.rgba,second.rgba);
   assert.deepEqual(scene.locate!(3,2),{x:120,y:15});assert.throws(()=>scene.render(view,{...snapshot(2,2),modelHash:'b'.repeat(64)}),/snapshot/);
+  const source=scene.gpu!(),resident=importGpuScene(structuredClone(exportGpuScene(source.scene))),picker=createGpuPicker(resident);
+  for(const state of [snapshot(2,2),snapshot(3,2),{...snapshot(3,2),actors:[{...snapshot(3,2).actors[0]!,health:0}]}]){
+    const projection=source.project(state),gpu=prepareGpuFrame(resident,view,projection.objects),cpu=scene.render(view,state);
+    assert.deepEqual(projection.retiredObjectIds,cpu.allocations.retiredObjectIds);
+    for(let y=0;y<view.height;y++)for(let x=0;x<view.width;x++){
+      const actual=picker.pick(gpu,x,y),expected=cpu.pick(x,y);
+      if(expected?.kind==='object'){
+        assert(actual?.kind==='object');assert.deepEqual([actual.id,actual.canvasX,actual.canvasY,actual.worldX,actual.worldY,actual.depth],[expected.object.id,expected.canvasX,expected.canvasY,expected.worldX,expected.worldY,expected.depth]);
+      }else if(expected?.kind==='terrain'){assert(actual?.kind==='terrain');const{kind:_,...cell}=actual;assert.deepEqual(cell,expected.cell);}else assert.equal(actual,null);
+    }
+  }
+  picker.dispose();
 });
 test('real sprite frames survive pending death, completed retirement and restore across the bridge',async()=>{
   const m=mission.slice(0,mission.indexOf('[Units]')),f=await fixture({mission:m}),still=createPlacedStill(f.terrain,f.objects,f.preview),info=[...still.objects.values()][0]!;

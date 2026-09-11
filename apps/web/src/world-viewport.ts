@@ -3,11 +3,12 @@
 import type { TerrainScene } from '../../../packages/render/src/terrain-scene.ts';
 import type { ScenarioTerrain } from '../../../packages/content/src/scenario-terrain.ts';
 import type { SpriteObject } from '../../../packages/render/src/sprite-layer.ts';
+import { compileGpuScene } from '../../../packages/render/src/gpu-scene.ts';
 import type { PlacedStill } from './placed-still.ts';
 import type { ObjectInfo } from './object-protocol.ts';
 import type { ViewportScene } from './terrain-worker-runtime.ts';
 import { infantrySlotOffset } from './infantry-slot-projection.ts';
-import { isRetiredWorldActor } from './world-protocol.ts';
+import { isRetiredWorldActor, type WorldSnapshot } from './world-protocol.ts';
 type WorldArtJoin = { modelHash:string; motionPolicy?:string; actors:readonly {objectId:string;id:number;rowId:string}[] };
 /** Source cells and initial art descriptors are captured before an asynchronous request can mutate inputs. */
 export function createWorldViewport(scene: TerrainScene, terrain: ScenarioTerrain, still: PlacedStill, summary: WorldArtJoin): ViewportScene {
@@ -19,7 +20,7 @@ export function createWorldViewport(scene: TerrainScene, terrain: ScenarioTerrai
     const cell = ground.get(info.x + info.y * 512); if (!cell) throw new Error('world-art-ground');
     return { object: o, info, cell, actor: actors.get(o.id) };
   });
-  return { locate(x,y){const c=ground.get(x+y*512);return c?{x:c.column*30+30,y:c.row*15+15-c.elevation*15}:null;}, render(viewport, snapshot) {
+  const project=(snapshot?:WorldSnapshot)=>{
     if (!snapshot || snapshot.modelHash !== modelHash) throw new Error('world-art-snapshot');
     const positions = new Map(snapshot.actors.map(a => [a.id, a])), descriptions = new Map<string, ObjectInfo>();
     const retiredObjectIds:string[]=[];
@@ -38,6 +39,12 @@ export function createWorldViewport(scene: TerrainScene, terrain: ScenarioTerrai
       descriptions.set(object.id, Object.freeze({ ...info, x: position.x, y: position.y }));
       return Object.freeze({ ...object, x: object.x + dx, y: object.y + dy - (current.elevation - cell.elevation) * 15, depth: Object.freeze({ ...object.depth, base: object.depth.base + dy }) });
     });
+    return {objects,descriptions,retiredObjectIds:retiredObjectIds.sort()};
+  };
+  return { locate(x,y){const c=ground.get(x+y*512);return c?{x:c.column*30+30,y:c.row*15+15-c.elevation*15}:null;},
+    gpu(){return {scene:compileGpuScene(scene,still.batch),objectInfo:[...still.objects.values()],project};},
+    render(viewport, snapshot) {
+    const {objects,descriptions,retiredObjectIds}=project(snapshot);
     const usedPalettes=new Set(objects.map(o=>o.paletteId));
     const frame = scene.renderSprites(viewport, { ...still.batch, objects, palettes:still.batch.palettes.filter(p=>usedPalettes.has(p.id)) });
     // Every pick closure retains the descriptions for its own frame, never a later snapshot.

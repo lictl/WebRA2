@@ -6,6 +6,7 @@ import type { ScenarioTerrain } from '../../../packages/content/src/scenario-ter
 import type { ScenarioObjects } from '../../../packages/content/src/scenario-objects.ts';
 import type { TerrainScene } from '../../../packages/render/src/terrain-scene.ts';
 import type { ViewportScene } from './terrain-worker-runtime.ts';
+import { compileGpuScene } from '../../../packages/render/src/gpu-scene.ts';
 import { createSpriteAtlas, type SpriteBatch, type SpriteObject } from '../../../packages/render/src/sprite-layer.ts';
 import { ART_REPORT_LIMIT, PLACED_STILL_POLICY, type ArtworkSummary, type ArtworkType, type ObjectInfo } from './object-protocol.ts';
 export type PlacedStill = { batch: SpriteBatch; artwork: ArtworkSummary; objects: ReadonlyMap<string, ObjectInfo> };
@@ -66,7 +67,7 @@ export function createPlacedStill(terrain: ScenarioTerrain, objects: ScenarioObj
 
 /** This closure captures only owned rendering planes/palettes and bounded descriptions. */
 export function createPlacedViewport(terrainScene:TerrainScene,still:PlacedStill):ViewportScene {
-  return {render(viewport){
+  return {gpu(){return {scene:compileGpuScene(terrainScene,still.batch),objectInfo:[...still.objects.values()],project:()=>({objects:still.batch.objects,retiredObjectIds:[]})};},render(viewport){
     const frame=terrainScene.renderSprites(viewport,still.batch);
     return {...frame,pick(x:number,y:number){
       const picked=frame.pick(x,y);if(!picked)return null;

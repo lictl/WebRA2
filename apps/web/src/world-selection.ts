@@ -31,6 +31,14 @@ export function actorsInBox(points: readonly WorldControlPoint[], box: Selection
 
 /** Project authoritative saved cell/slot positions using the retained verified terrain locator. */
 export function projectControlPoints(summary: WorldSummary | null, snapshot: WorldSnapshot | null, camera: { cameraX: number; cameraY: number; zoom: number; width: number; height: number }, locate?: (x: number, y: number) => { x: number; y: number } | null): WorldControlPoint[] {
+  return projectWorldControlPoints(summary,snapshot,locate).flatMap(point=>{
+    const x=Math.floor((point.x-camera.cameraX)*camera.zoom),y=Math.floor((point.y-camera.cameraY)*camera.zoom);
+    if(!Number.isSafeInteger(x)||!Number.isSafeInteger(y))throw new Error('world-ui-control-point');
+    return x>=0&&y>=0&&x<camera.width&&y<camera.height?[{entityId:point.entityId,x,y}]:[];
+  });
+}
+/** Unclipped anchors permit camera-only presentation without another simulation request. */
+export function projectWorldControlPoints(summary: WorldSummary | null, snapshot: WorldSnapshot | null, locate?: (x: number, y: number) => { x: number; y: number } | null): WorldControlPoint[] {
   if (!summary || !snapshot || !locate) return [];
   const points: WorldControlPoint[] = [];
   for (let i = 0; i < snapshot.actors.length; i++) {
@@ -38,9 +46,8 @@ export function projectControlPoints(summary: WorldSummary | null, snapshot: Wor
     if (!info || info.id !== actor.id) throw new Error('world-ui-control-join');
     if (!info.movable || actor.health === null || actor.health <= 0) continue;
     const point = locateWorldActor(summary,actor,locate); if (!point) continue;
-    const x = Math.floor((point.x - camera.cameraX) * camera.zoom), y = Math.floor((point.y - camera.cameraY) * camera.zoom);
-    if (!Number.isSafeInteger(x) || !Number.isSafeInteger(y)) throw new Error('world-ui-control-point');
-    if (x >= 0 && y >= 0 && x < camera.width && y < camera.height) points.push({ entityId: actor.id, x, y });
+    if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) throw new Error('world-ui-control-point');
+    points.push({ entityId: actor.id, x:point.x, y:point.y });
   }
   return points;
 }
