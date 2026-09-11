@@ -2,8 +2,10 @@
 // Copyright 2026 WebRA2 contributors. See ../GPU_PROVENANCE.md.
 import { describeTerrainRasters, type TerrainPick, type TerrainScene, type TerrainViewport } from './terrain-scene.ts';
 import { describeSpriteRasters, type SpriteBatch, type SpriteObject, type SpritePick } from './sprite-layer.ts';
-import { GPU_DEPTH_MAX, GPU_DEPTH_MIN, GPU_DRAW_STRIDE, GPU_PREPARE_LIMITS, GPU_SCENE_POLICY,
-  type GpuFrame, type GpuFrameData, type GpuPrepareLimits, type GpuRasterData, type GpuScene, type GpuSceneData } from './gpu-contracts.ts';
+import { captureGpuTransfer, gpuResourceKey, prepareTransferredSprites, type GpuSpritePlacement } from './gpu-transfer.ts';
+export { validateGpuSceneTransfer, captureGpuSpriteObjects } from './gpu-transfer.ts';
+import { GPU_SCENE_TRANSFER_POLICY, GPU_DEPTH_MAX, GPU_DEPTH_MIN, GPU_DRAW_STRIDE, GPU_PREPARE_LIMITS, GPU_SCENE_POLICY,
+  type GpuFrame, type GpuFrameData, type GpuPrepareLimits, type GpuRasterData, type GpuScene, type GpuSceneData, type GpuSceneTransfer, type GpuSpriteResource, type GpuTransferLimits } from './gpu-contracts.ts';
 
 export class GpuSceneError extends Error { constructor(readonly code: string) { super(code); this.name = 'GpuSceneError'; } }
 function fail(code: string): never { throw new GpuSceneError(code); }
@@ -26,17 +28,12 @@ function limits(options: Partial<GpuPrepareLimits>): GpuPrepareLimits {
   }
   return cap;
 }
-type TerrainSource = ReturnType<typeof describeTerrainRasters>;
-type SpriteSource = ReturnType<typeof describeSpriteRasters>;
-type SpritePlacement = ReturnType<SpriteSource['prepare']>['placements'][number];
-interface Piece { x: number; y: number; raster: number }
 interface OwnedScene {
-  cap: Readonly<GpuPrepareLimits>; rasters: GpuRasterData[]; terrain: TerrainSource;
-  pieces: Piece[][]; sprites: SpriteSource | null; spriteRasters: Map<string, number>;
+  cap: Readonly<GpuPrepareLimits>; rasters: readonly GpuRasterData[]; packet: GpuSceneTransfer;
+  resources: ReadonlyMap<string, GpuSpriteResource>; frameGeometry: ReadonlyMap<string, GpuSpriteResource>;
 }
-interface OwnedFrame { packet: GpuFrameData; objects: SpritePlacement[] }
+interface OwnedFrame { packet: GpuFrameData; objects: GpuSpritePlacement[] }
 const scenes = new WeakMap<GpuScene, OwnedScene>(), frames = new WeakMap<GpuFrame, OwnedFrame>();
-const resourceKey = (object: SpriteObject): string => JSON.stringify([object.frameId, object.paletteId, object.depth.rowStep]);
 function sceneData(scene: GpuScene): OwnedScene { const data = scenes.get(scene); if (!data) fail('gpu-scene-identity'); return data; }
 function frameData(frame: GpuFrame): OwnedFrame { const data = frames.get(frame); if (!data) fail('gpu-frame-identity'); return data; }
 
@@ -64,13 +61,40 @@ export function compileGpuScene(terrainScene: TerrainScene, batch?: SpriteBatch,
   // All aggregate expanded plane sizes pass before the first raster allocation.
   const rasters = sources.map((source, id): GpuRasterData => Object.freeze({ id, width: source.width, height: source.height, ...source.copy() }));
   let rasterId = 0;
-  const pieces = terrain.sprites.map(s => s.patches.map(p => ({ x: p.x, y: p.y, raster: rasterId++ })));
-  const spriteRasters = new Map((sprites?.resources ?? []).map(r => [r.key, rasterId++]));
-  const scene: GpuScene = Object.freeze({ policy: GPU_SCENE_POLICY, nativeBehaviorVerified: false,
-    allocations: Object.freeze({ rasterCount: rasters.length, rasterPixels: pixels, rasterBytes: pixels * 8,
-      terrainPieces, objects: sprites?.objects.length ?? 0 }) });
-  scenes.set(scene, { cap: Object.freeze(cap), terrain, sprites, rasters, pieces, spriteRasters }); return scene;
+  const terrainGroups = terrain.sprites.map(s => Object.freeze({ left: s.left, top: s.top, right: s.right, bottom: s.bottom,
+    pieces: Object.freeze(s.patches.map(p => Object.freeze({ x: p.x, y: p.y, rasterId: rasterId++ }))) }));
+  const neutral: TerrainViewport = { cameraX: 0, cameraY: 0, zoom: 1, width: 1, height: 1, backgroundRgba: [0, 0, 0, 0] };
+  const initial = sprites?.prepare(sprites.objects, neutral, 64 * 1024 * 1024), variants = new Map<string, GpuSpriteResource>();
+  for (const p of initial?.placements ?? []) {
+    const rowStep = p.object.depth.rowStep, key = gpuResourceKey({ ...p.object, rowStep }); if (variants.has(key)) continue;
+    const m = p.metadata, r = m.rectangle;
+    variants.set(key, Object.freeze({ frameId: p.object.frameId, paletteId: p.object.paletteId, rowStep, rasterId: rasterId++,
+      assetId: m.assetId, frame: m.frame, canvasWidth: m.canvasWidth, canvasHeight: m.canvasHeight,
+      rectangle: Object.freeze({ x: r.x, y: r.y, width: r.width, height: r.height }) }));
+  }
+  const packet: GpuSceneTransfer = Object.freeze({ schemaVersion: 1, policy: GPU_SCENE_TRANSFER_POLICY, scenePolicy: GPU_SCENE_POLICY,
+    limits: Object.freeze(cap), spriteObjectLimit: sprites?.objectLimit ?? null, rasters: Object.freeze(rasters), terrainGroups: Object.freeze(terrainGroups),
+    terrain: Object.freeze(terrain.placements.map(p => Object.freeze({ sourceRecord: p.sourceRecord, x: p.x, y: p.y, assetId: p.assetId, subtile: p.subtile,
+      left: p.left, top: p.top, groundY: p.groundY, group: p.sprite }))), spriteResources: Object.freeze([...variants.values()]),
+    objects: Object.freeze(sprites?.objects ?? []) });
+  // The original bridges already own the resolved planes. Shared validation retains
+  // new native views over those buffers, without a second resident raster copy.
+  return registerScene(captureGpuTransfer(packet, {}, 'borrowed'));
 }
+function registerScene(packet: GpuSceneTransfer): GpuScene {
+  const pixels = packet.rasters.reduce((n, r) => n + r.width * r.height, 0);
+  const terrainPieces = packet.terrain.reduce((n, p) => n + packet.terrainGroups[p.group]!.pieces.length, 0);
+  const scene: GpuScene = Object.freeze({ policy: GPU_SCENE_POLICY, nativeBehaviorVerified: false,
+    allocations: Object.freeze({ rasterCount: packet.rasters.length, rasterPixels: pixels, rasterBytes: pixels * 8, terrainPieces, objects: packet.objects.length }) });
+  scenes.set(scene, { packet, cap: packet.limits, rasters: packet.rasters,
+    resources: new Map(packet.spriteResources.map(r => [gpuResourceKey(r), r])), frameGeometry: new Map(packet.spriteResources.map(r => [r.frameId, r])) });
+  return scene;
+}
+/** Detached, function-free resident resources. Sending its buffers may detach only the exported packet. */
+export function exportGpuScene(scene: GpuScene): GpuSceneTransfer { return captureGpuTransfer(sceneData(scene).packet); }
+/** Own all imported planes; valid presentation packets grant no source or simulation authority. */
+export function importGpuScene(packet: unknown, options: Partial<GpuTransferLimits> = {}): GpuScene { return registerScene(captureGpuTransfer(packet, options)); }
+
 
 function viewportCopy(request: TerrainViewport, cap: Readonly<GpuPrepareLimits>): TerrainViewport {
   fields(request, ['cameraX', 'cameraY', 'zoom', 'width', 'height', 'backgroundRgba']);
@@ -89,8 +113,9 @@ function viewportCopy(request: TerrainViewport, cap: Readonly<GpuPrepareLimits>)
 /** Camera sampling is evaluated in JS binary64 once per output axis, never rounded to a GPU float camera. */
 export function prepareGpuFrame(scene: GpuScene, request: TerrainViewport, objects?: readonly SpriteObject[]): GpuFrame {
   const data = sceneData(scene), cap = data.cap, viewport = viewportCopy(request, cap);
-  if (!data.sprites && objects !== undefined) fail('gpu-no-sprite-catalog');
-  const sprites = data.sprites?.prepare(objects ?? data.sprites.objects, viewport, cap.samples);
+  const resident = data.packet;
+  if (resident.spriteObjectLimit === null && objects !== undefined) fail('gpu-no-sprite-catalog');
+  const sprites = resident.spriteObjectLimit === null ? null : prepareTransferredSprites(objects ?? resident.objects, resident.spriteObjectLimit, cap.coordinate, cap.samples, data.resources, data.frameGeometry, viewport);
   const draws: number[] = []; let samples = 0, cpuSamples = sprites?.samples ?? 0;
   const { cameraX, cameraY, zoom, width, height } = viewport;
   const bounds = (left: number, top: number, right: number, bottom: number): [number, number, number, number] => [
@@ -106,19 +131,18 @@ export function prepareGpuFrame(scene: GpuScene, request: TerrainViewport, objec
     if (draws.length / GPU_DRAW_STRIDE >= cap.draws) fail('gpu-draw-budget');
     draws.push(x0, y0, x1, y1, left, top, rasterId, depthBase, owner, kind, front, 0);
   };
-  for (const p of data.terrain.placements) {
-    const sprite = data.terrain.sprites[p.sprite]!;
+  for (const p of resident.terrain) {
+    const sprite = resident.terrainGroups[p.group]!;
     const [x0, y0, x1, y1] = bounds(p.left + sprite.left, p.top + sprite.top, p.left + sprite.right, p.top + sprite.bottom);
     cpuSamples += Math.max(0, x1 - x0) * Math.max(0, y1 - y0);
     if (cpuSamples > cap.samples) fail('gpu-cpu-reference-sample-budget');
     if (x0 >= x1 || y0 >= y1) continue;
-    for (const piece of data.pieces[p.sprite]!) add(p.left + piece.x, p.top + piece.y, piece.raster, p.groundY, p.sourceRecord, 1, 0);
+    for (const piece of sprite.pieces) add(p.left + piece.x, p.top + piece.y, piece.rasterId, p.groundY, p.sourceRecord, 1, 0);
   }
   const terrainDraws = draws.length / GPU_DRAW_STRIDE, objectPlacements = sprites?.placements ?? [];
   for (let i = 0; i < objectPlacements.length; i++) {
-    const p = objectPlacements[i]!, raster = data.spriteRasters.get(resourceKey(p.object));
-    if (raster === undefined) fail('gpu-unprepared-sprite-resource');
-    add(p.left, p.top, raster, p.object.depth.base, i, 2, p.object.depth.terrainTie === 'front' ? 1 : 0);
+    const p = objectPlacements[i]!;
+    add(p.left, p.top, p.metadata.rasterId, p.object.depth.base, i, 2, p.object.depth.terrainTie === 'front' ? 1 : 0);
   }
   const sampleX = new Int32Array(width), sampleY = new Int32Array(height), packed = Int32Array.from(draws);
   for (let x = 0; x < width; x++) sampleX[x] = Math.floor(cameraX + (x + 0.5) / zoom);
@@ -170,7 +194,7 @@ export function pickGpuFrame(frame: GpuFrame, sample: Readonly<{ kind: number; o
   const worldX = data.packet.sampleX[Math.floor(viewX)]!, worldY = data.packet.sampleY[Math.floor(viewY)]!;
   if (depth < GPU_DEPTH_MIN) fail('gpu-pick-depth');
   if (kind === 1) {
-    const p = scene.terrain.placements[owner]; if (!p) fail('gpu-pick-owner');
+    const p = scene.packet.terrain[owner]; if (!p) fail('gpu-pick-owner');
     return Object.freeze({ kind: 'terrain', sourceRecord: p.sourceRecord, x: p.x, y: p.y, assetId: p.assetId, subtile: p.subtile, worldX, worldY, depth });
   }
   const p = data.objects[owner]; if (!p) fail('gpu-pick-owner');
