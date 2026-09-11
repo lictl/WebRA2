@@ -98,6 +98,10 @@ The original WebGL2 experiment and its composing diagnostic are GPL-3.0-or-later
 [GPU provenance](../packages/render/GPU_PROVENANCE.md) distinguishes original GPU
 code from the existing CPU/decoder references. Retain that notice and composed
 notices in diagnostic distributions. No retail textures or new dependency are added.
+The complete voxel transport/group adapter uses the same GPL terms and existing
+decoder/transform attribution. The web build explicitly includes both that GPU
+notice and [GPU voxel provenance](../packages/render/GPU_VOXEL_PROVENANCE.md).
+The genuine atlas copy accessor introduces no dependency or retail fixture.
 
 The original bounded mission trigger interpreter and fixtures are GPL-3.0-or-later;
 [mission runtime provenance](../packages/sim/MISSION_LOGIC_PROVENANCE.md) separates

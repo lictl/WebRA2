@@ -45,3 +45,8 @@ notice, this notice, the [GPL text](../../LICENSES/GPL-3.0-or-later.txt) and
 corresponding source/build instructions when distributing the combined program.
 See [the license mapping](../../docs/licensing.md). Source licenses grant no rights
 to distribute player-supplied voxel geometry, animation transforms or palettes.
+
+The original `copyVoxelAtlasData` accessor exposes bounded owned copies of complete
+selected geometry and model matrices from that genuine atlas. It retains immutable
+source metadata and the same decoder/transform attribution. Per-pose copy accounting
+does not measure JavaScript heap overhead; no new source or dependency is adopted.

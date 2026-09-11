@@ -52,6 +52,34 @@ function limits(value:Partial<Limits>):Limits {
 const digest=(bytes:Uint8Array):string=>Array.from(sha256(bytes),b=>b.toString(16).padStart(2,'0')).join('');
 interface OwnedPart {metadata:VoxelPartMetadata;voxels:Uint8Array}
 const atlases=new WeakMap<VoxelAtlas,{parts:Map<string,OwnedPart>;cap:Limits}>();
+export const VOXEL_ATLAS_COPY_LIMITS = Object.freeze({parts:256,voxels:1048576,copyBytes:8*1024*1024,work:2097152});
+export type VoxelAtlasCopyLimits = {-readonly [K in keyof typeof VOXEL_ATLAS_COPY_LIMITS]:number};
+export interface VoxelAtlasData {
+  readonly atlas:VoxelAtlas;
+  readonly parts:readonly Readonly<{metadata:VoxelPartMetadata;voxels:Uint8Array;modelMatrix:readonly number[]}>[];
+  readonly allocations:Readonly<{parts:number;voxels:number;copyBytes:number;work:number}>;
+}
+/** Copy every selected part from a genuine atlas. Geometry is caller-owned; metadata is immutable.
+ * Aliased source sections are charged/copied once per selected pose. Logical numeric bytes exclude
+ * JavaScript object overhead. Complete reservation precedes the first geometry or matrix copy. */
+export function copyVoxelAtlasData(atlas:VoxelAtlas,lower:Partial<VoxelAtlasCopyLimits>={}):VoxelAtlasData {
+  const owned=atlases.get(atlas);if(!owned)fail('voxel-atlas');
+  if(!lower||![Object.prototype,null].includes(Object.getPrototypeOf(lower)))fail('voxel-copy-limits');
+  const cap:VoxelAtlasCopyLimits={...VOXEL_ATLAS_COPY_LIMITS};
+  for(const key of Reflect.ownKeys(lower)){
+    if(typeof key!=='string'||!Object.hasOwn(cap,key))fail('voxel-copy-limits');
+    const d=Object.getOwnPropertyDescriptor(lower,key)!;if(!('value'in d))fail('voxel-copy-limits');
+    integer(d.value,0,cap[key as keyof VoxelAtlasCopyLimits],'voxel-copy-limits');cap[key as keyof VoxelAtlasCopyLimits]=d.value;
+  }
+  const count=owned.parts.size;if(count>cap.parts||count>cap.work)fail('voxel-copy-budget');
+  let voxels=0,copyBytes=0,work=count;
+  for(const part of owned.parts.values()){
+    const n=part.voxels.byteLength/5;voxels+=n;copyBytes+=part.voxels.byteLength+12*8;work+=n+12;
+    if(voxels>cap.voxels||copyBytes>cap.copyBytes||work>cap.work)fail('voxel-copy-budget');
+  }
+  const parts=atlas.parts.map(metadata=>Object.freeze({metadata,voxels:owned.parts.get(metadata.id)!.voxels.slice(),modelMatrix:Object.freeze([...metadata.modelMatrix])}));
+  return Object.freeze({atlas,parts:Object.freeze(parts),allocations:Object.freeze({parts:count,voxels,copyBytes,work})});
+}
 /** Owns selected geometry/poses. No asset name matching, normal table, animation or world-facing inference. */
 export function createVoxelAtlas(input:VoxelAtlasInput,options:Partial<Limits>={}):VoxelAtlas {
   const cap=limits(options);fields(input,['assets','parts']);array(input.assets,cap.assets);array(input.parts,cap.parts);
