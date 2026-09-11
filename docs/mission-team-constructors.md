@@ -37,3 +37,17 @@ completed integration. Original fixture tests currently exercise existing real
 action7/80 movement, release/Sleep and save/replay alongside the new birth contracts.
 The [license notice](../packages/sim/MISSION_TEAM_CONSTRUCTOR_PROVENANCE.md) records
 the source boundary and distribution obligation.
+
+The next ownership checkpoint adds birth-time population reconstruction and a pure
+`appendWorldOwnership` candidate helper. It inserts each genuine birth between
+exact saved transfer revisions, starts current-owner history at that birth,
+retains the original actor prefix, and rejects premature lifecycle changes.
+The helper owns supplied descriptors and reserves copy, ledger and restoration
+work before each operation. It does not commit a world or authenticate a trigger.
+
+This checkpoint depends on the coordinator's `WorldModel.construction` and
+`WorldSimulation.migrateConstruction` hooks. The existing fifteen ownership and
+constructor tests pass; four new world composition suites are written against
+that interface and await the coordinated implementation. The dependency-pending
+commit is not independently buildable or ready for merge. The full check recorded
+above applies to the preceding source/history checkpoint only.

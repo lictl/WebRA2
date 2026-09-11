@@ -4,10 +4,13 @@ import { createMissionHouseState, applyMissionHouseChanges, planMissionHouseTran
 import { worldAddress, worldClone, worldFail as fail, worldHash, worldInteger as integer, worldList, worldRecord, WORLD_LIMITS as C } from './world-values.ts';
 import type { MissionHouseState, MissionHouseParticipation, MissionHouseCounts, MissionHouseSource, MissionHouseChange } from './mission-house-types.ts';
 import type { WorldEntity, WorldState } from './world.ts';
-import type { WorldModel } from './world-model.ts';
+import { assertWorldModel, type WorldModel } from './world-model.ts';
 import { teamRuntimeFreeze as freeze } from './team-runtime-program.ts';
 import type { InfantryPassageCatalog } from './infantry-passage-catalog.ts';
 import { navigationCell } from './navigation.ts';
+import { missionTeamConstructorHistoryData } from './mission-team-constructor-history.ts';
+import { missionTeamConstructorSourceData } from './mission-team-constructor-source.ts';
+import { missionTeamSnapshot } from './mission-team-values.ts';
 
 export const WORLD_OWNERSHIP_ENGINE = 'webra2-world-8' as const;
 export const WORLD_OWNERSHIP_POLICY = 'webra2-current-house-1' as const;
@@ -41,9 +44,16 @@ function arrival(catalog: InfantryPassageCatalog, ids: readonly number[], owner:
 
 function budget(model: WorldModel, n: number | undefined) {
   const limit = n === undefined ? C.replayWork : integer(n, 0, C.replayWork); let work = 0;
-  return { charge(n = 1) { if (n > limit - work) fail('world-ownership-work'); work += n; }, get work() { return work; } };
+  return { charge(n = 1) { if (n > limit - work) fail('world-ownership-work'); work += n; }, get work() { return work; }, get remaining() { return limit - work; } };
 }
-const passWork = (source: MissionHouseSource) => source.types.length + source.houses.length + source.tagChains.length + source.initialActors.length * 12 + source.instructions.length;
+const passWork = (source: MissionHouseSource, actors = source.initialActors.length) => source.types.length + source.houses.length + source.tagChains.length + actors * 12 + source.instructions.length;
+const modelPassWork = (model: WorldModel) => passWork(model.ownership!, model.construction ? model.entities.length : undefined);
+function constructionData(model: WorldModel) {
+  if (!model.construction) return undefined;
+  const data = missionTeamConstructorHistoryData(model.construction);
+  if (missionTeamConstructorSourceData(data.source).houses !== model.ownership) fail('world-ownership-construction-source');
+  return data;
+}
 export function worldHouseInvocation(value: unknown): WorldHouseInvocation {
   const r = worldRecord(value, ['instructionId', 'sourceHouse', 'triggerHouse']);
   if (typeof r.instructionId !== 'string' || !r.instructionId.length || r.instructionId.length > 255) fail('world-house-instruction');
@@ -61,6 +71,7 @@ function participation(model: WorldModel, life: readonly WorldHouseLifecycle[], 
  * Native limbo, absorption and technician conversion are not inferred from health. */
 export function createWorldOwnership(model: WorldModel): WorldOwnershipState {
   const source = model.ownership ?? fail('world-ownership-model');
+  if (constructionData(model)?.births.length) fail('world-ownership-construction-create');
   const lifecycle = model.entities.map(e => ({ entityId: e.id, lethalTick: e.initialHealth === 0 ? 0 : null, removedTick: e.initialHealth === 0 ? 0 : null }));
   const ledger = createMissionHouseState(source, participation(model, lifecycle, 0));
   return { policy: WORLD_OWNERSHIP_POLICY, sourceSha256: source.sha256, lifecycle, transfers: [], counts: worldClone(ledger.counts),
@@ -71,13 +82,19 @@ export function createWorldOwnership(model: WorldModel): WorldOwnershipState {
 export function restoreWorldOwnership(model: WorldModel, value: unknown, entities: readonly WorldEntity[], tick: number,
   workLimit?: number): WorldOwnershipState {
   const source = model.ownership ?? fail('world-ownership-model'), meter = budget(model, workLimit);
+  const construction = constructionData(model), births = construction?.births ?? [];
+  // Histories are already genuine immutable source data. Reserve their traversal
+  // before creating indexes; only the model's source-authenticated prefix is initial.
+  if (construction) meter.charge(births.length + construction.entities.length * 3 + model.entities.length);
+  const born = new Map(births.flatMap(b => b.actors.map(a => [a.entityId, b] as const)));
+  if (births.some(b => b.bornAtTick > tick)) fail('world-ownership-birth-time');
   const r = worldRecord(value, ['policy', 'sourceSha256', 'lifecycle', 'transfers', 'counts', ...(model.infantryPassage ? ['sharing'] : [])]);
   if (r.policy !== WORLD_OWNERSHIP_POLICY || r.sourceSha256 !== source.sha256) fail('world-ownership-identity');
   const rows = worldList(r.lifecycle, C.entities); meter.charge(rows.length * 6);
   if (rows.length !== model.entities.length || entities.length !== rows.length) fail('world-ownership-coverage');
   const lifecycle = rows.map((value, i) => {
     const r = worldRecord(value, ['entityId', 'lethalTick', 'removedTick']), d = model.entities[i]!, e = entities[i]!;
-    const lethalTick = r.lethalTick === null ? null : integer(r.lethalTick, d.initialHealth === 0 ? 0 : 1, tick);
+    const lethalTick = r.lethalTick === null ? null : integer(r.lethalTick, d.initialHealth === 0 ? 0 : (born.get(d.id)?.bornAtTick ?? 0) + 1, tick);
     const removedTick = r.removedTick === null ? null : integer(r.removedTick, lethalTick ?? tick + 1, tick);
     if (r.entityId !== d.id || e.id !== d.id || (lethalTick !== null) !== (e.health === 0) ||
       (removedTick !== null && lethalTick === null) || (d.initialHealth === 0 && (lethalTick !== 0 || removedTick !== 0))) fail('world-ownership-lifecycle');
@@ -129,13 +146,16 @@ export function restoreWorldOwnership(model: WorldModel, value: unknown, entitie
   // Each underlying ledger operation is bounded independently. Reserve those
   // fixed source/actor scans before executing them, including empty selections.
   const passageActors=new Map(model.infantryPassage?.actors.map(a=>[a.entityId,a]));
-  const pass = passWork(source);
-  meter.charge(pass * (transfers.length * 3 + 2));
-  let ledger = createMissionHouseState(source, participation(model, lifecycle, 0));
+  const pass = modelPassWork(model);
+  // Each birth adds at most one lifecycle pass and one insertion/publish pass.
+  // Reserve the maximum current actor population, not only initial placed rows.
+  meter.charge(pass * (transfers.length * 3 + 2 + births.length * 2));
+  let ledger = createMissionHouseState(source, participation(model, lifecycle, 0).filter(p => !born.has(p.entityId)));
+  const lifeIndex = new Map(lifecycle.map((l, i) => [l.entityId, i]));
   const ownerHistory = new Map(ledger.actors.map(a => [a.entityId, [{ tick: 0, revision: 0, owner: a.owner }]]));
   const advance = (tick: number) => {
-    const next = participation(model, lifecycle, tick), changes = next.flatMap<MissionHouseChange>((p, i) => {
-      const a = ledger.actors[i]!;
+    const next = participation(model, lifecycle, tick), changes = ledger.actors.flatMap<MissionHouseChange>(a => {
+      const p = next[lifeIndex.get(a.entityId)!]!;
       if (!a.exists) return [];
       if (!p.exists) return [{ kind: 'remove' as const, entityId: p.entityId }];
       if (a.tagEligible !== p.tagEligible || a.present !== p.present || a.registered !== p.registered)
@@ -144,7 +164,21 @@ export function restoreWorldOwnership(model: WorldModel, value: unknown, entitie
     });
     if (changes.length) ledger = applyMissionHouseChanges(ledger, changes);
   };
+  let birthIndex = 0;
+  const insertBirths = (revision: number, throughTick: number) => {
+    while (birthIndex < births.length && births[birthIndex]!.ownershipRevision === revision) {
+      const b = births[birthIndex++]!;
+      if (b.bornAtTick > throughTick || revision > 0 && b.bornAtTick < transfers[revision - 1]!.nextTick) fail('world-ownership-birth-order');
+      advance(b.bornAtTick);
+      ledger = applyMissionHouseChanges(ledger, b.actors.map(a => ({ kind: 'insert', actor: {
+        entityId: a.entityId, typeId: a.typeId, owner: a.playerId, tagId: null,
+        exists: true, registered: true, present: true, tagEligible: true,
+      } })));
+      for (const a of b.actors) ownerHistory.set(a.entityId, [{ tick: b.bornAtTick, revision, owner: a.playerId }]);
+    }
+  };
   for (const [index,t] of transfers.entries()) {
+    insertBirths(index, t.nextTick);
     advance(t.nextTick);
     const plan = planMissionHouseTransfer(ledger, t.instructionId, { sourceHouse: t.sourceHouse, triggerHouse: t.triggerHouse });
     if (worldHash(plan.entityIds) !== worldHash(t.entityIds)) fail('world-ownership-transfer-selection');
@@ -157,6 +191,8 @@ export function restoreWorldOwnership(model: WorldModel, value: unknown, entitie
     for (const id of plan.changedEntityIds) ownerHistory.get(id)!.push({ tick: t.nextTick, revision: index + 1, owner: plan.destinationHouse });
     ledger = applyMissionHouseTransfer(ledger, plan);
   }
+  insertBirths(transfers.length, tick);
+  if (birthIndex !== births.length) fail('world-ownership-birth-revision');
   advance(tick);
   for (let i = 0; i < entities.length; i++) if (entities[i]!.owner !== ledger.actors[i]!.owner) fail('world-ownership-owner-history');
   // Canonical cloning bounds nested count records and rejects non-data properties.
@@ -167,6 +203,49 @@ export function restoreWorldOwnership(model: WorldModel, value: unknown, entitie
     ...(model.infantryPassage ? {sharing} : {}) };
   context.set(state, { model, source, ledger, work: meter.work, ownerHistory }); return freeze(state);
 }
+/** Appends population only after the core has selected a genuine extended model.
+ * The result is component data, not a constructor invocation or a world commit.
+ * Whole-save command/occupancy validation remains the WorldSimulation boundary. */
+export function appendWorldOwnership(previousModel: WorldModel, nextModel: WorldModel, previousState: WorldState,
+  newEntities: readonly WorldEntity[], nextTick: number, workLimit?: number): Readonly<{ ownership: WorldOwnershipState; work: number }> {
+  assertWorldModel(previousModel); assertWorldModel(nextModel); integer(nextTick, 0, C.tick);
+  const meter = budget(nextModel, workLimit), next = constructionData(nextModel) ?? fail('world-ownership-construction-model');
+  const previous = constructionData(previousModel), oldBirths = previous?.births ?? [];
+  meter.charge(previousModel.entities.length * 16 + nextModel.entities.length * 16 + next.births.length * 8 + next.entities.length * 16);
+  if (previousModel.ownership !== nextModel.ownership || previousModel.combat !== nextModel.combat ||
+    previousModel.infantryPassage !== nextModel.infantryPassage || previous && previous.source !== next.source ||
+    oldBirths.length > next.births.length || worldHash(oldBirths) !== worldHash(next.births.slice(0, oldBirths.length)) ||
+    worldHash(previousModel.entities) !== worldHash(nextModel.entities.slice(0, previousModel.entities.length))) fail('world-ownership-construction-prefix');
+  // Own caller descriptors before trusting array length, history or entity fields.
+  const fields = worldRecord(previousState, ['modelSha256', 'entities', 'planningCursor', 'admissionCursors',
+    ...(previousModel.combat ? ['combat'] : []), ...(previousModel.infantryPassage ? ['infantrySlots'] : []), 'ownership']);
+  const prior = missionTeamSnapshot({ ownership: fields.ownership, entities: fields.entities }, n => meter.charge(n)) as
+    { ownership: WorldOwnershipState; entities: WorldEntity[] };
+  const entities = missionTeamSnapshot(newEntities, n => meter.charge(n)) as WorldEntity[];
+  if (fields.modelSha256 !== previousModel.sha256 || !Array.isArray(entities) || entities.length !== nextModel.entities.length ||
+    worldHash(prior.entities) !== worldHash(entities.slice(0, previousModel.entities.length))) fail('world-ownership-construction-state');
+  const restored = restoreWorldOwnership(previousModel, prior.ownership, prior.entities, nextTick, meter.remaining);
+  meter.charge(worldOwnershipWork(restored));
+  const births = next.births.slice(oldBirths.length), revision = restored.transfers.length;
+  if (births.some(b => b.bornAtTick !== nextTick || b.ownershipRevision !== revision)) fail('world-ownership-construction-boundary');
+  const inserted = births.flatMap(b => b.actors);
+  if (entities.length !== prior.entities.length + inserted.length) fail('world-ownership-construction-coverage');
+  const expected = nextModel.entities.slice(previousModel.entities.length).map(d => ({ id: d.id, x: d.x, y: d.y,
+    health: d.initialHealth, owner: d.owner, goal: null, route: [], progress: 0, waitTicks: 0 }));
+  if (worldHash(expected) !== worldHash(entities.slice(previousModel.entities.length))) fail('world-ownership-construction-initial');
+  meter.charge(modelPassWork(nextModel) * births.length * 2);
+  let ledger = worldOwnershipLedger(previousModel, restored);
+  for (const b of births) ledger = applyMissionHouseChanges(ledger, b.actors.map(a => ({ kind: 'insert', actor: {
+    entityId: a.entityId, typeId: a.typeId, owner: a.playerId, tagId: null,
+    exists: true, registered: true, present: true, tagEligible: true,
+  } })));
+  const candidate: WorldOwnershipState = { ...restored,
+    lifecycle: [...restored.lifecycle, ...inserted.map(a => ({ entityId: a.entityId, lethalTick: null, removedTick: null }))],
+    counts: worldClone(ledger.counts) };
+  const ownership = restoreWorldOwnership(nextModel, candidate, entities, nextTick, meter.remaining);
+  meter.charge(worldOwnershipWork(ownership));
+  return Object.freeze({ ownership, work: meter.work });
+}
 export function worldOwnershipLedger(model: WorldModel, state: WorldOwnershipState): MissionHouseState {
   const c = context.get(state); if (!c || c.model !== model) fail('world-ownership-context'); return c.ledger;
 }
@@ -175,7 +254,7 @@ export function worldOwnershipWork(state: WorldOwnershipState): number { return 
  * It cannot turn arbitrary owner fields or saved permission flags into an occupancy authority. */
 export function worldOwnershipInfantryData(state: WorldOwnershipState, catalog: InfantryPassageCatalog) {
   const c=context.get(state);if(!c || c.model.infantryPassage!==catalog) fail('world-ownership-infantry-context');
-  return {owners:c.ledger.actors.map(a=>({entityId:a.entityId,owner:a.owner})),sharing:state.sharing!,
+  return {model:c.model,owners:c.ledger.actors.map(a=>({entityId:a.entityId,owner:a.owner})),sharing:state.sharing!,
     transferredIds:[...c.ownerHistory].filter(([,history])=>history.length>1).map(([id])=>id)};
 }
 /** Drop departed/retired members immediately. Claims never authorize return to a hostile cell. */
@@ -196,6 +275,7 @@ export function pruneWorldHouseSharing(model: WorldModel, state: WorldState): nu
 export function worldOwnershipOwnerAt(model: WorldModel, state: WorldOwnershipState, entityId: number, tick: number): number | null {
   const c = context.get(state); if (!c || c.model !== model) fail('world-ownership-context');
   const history = c.ownerHistory.get(entityId) ?? fail('world-ownership-actor');
+  if (tick < history[0]!.tick) fail('world-ownership-before-birth');
   let lo = 0, hi = history.length;
   while (lo < hi) { const mid = (lo + hi) >>> 1; if (history[mid]!.tick <= tick) lo = mid + 1; else hi = mid; }
   return history[Math.max(0, lo - 1)]!.owner;
@@ -208,6 +288,7 @@ Readonly<{ owner: number | null; lastChangeRevision: number }> {
   const c = context.get(state); if (!c || c.model !== model) fail('world-ownership-context');
   integer(revision, 0, state.transfers.length);
   const history = c.ownerHistory.get(entityId) ?? fail('world-ownership-actor');
+  if (revision < history[0]!.revision) fail('world-ownership-before-birth');
   let lo = 0, hi = history.length;
   while (lo < hi) { const mid = (lo + hi) >>> 1; if (history[mid]!.revision <= revision) lo = mid + 1; else hi = mid; }
   const row = history[Math.max(0, lo - 1)]!;
@@ -245,7 +326,7 @@ export function updateWorldOwnershipLifecycle(model: WorldModel, state: WorldSta
   });
   const ledger = applyMissionHouseChanges(prior, changes);
   state.ownership = { ...owned, lifecycle: changed, counts: worldClone(ledger.counts) };
-  return worldOwnershipWork(restored) + passWork(model.ownership!);
+  return worldOwnershipWork(restored) + modelPassWork(model);
 }
 /** Pure candidate construction. WorldSimulation must also cancel orders, update occupancy and validate the whole result. */
 export function prepareWorldHouseTransfer(model: WorldModel, state: WorldState, nextTick: number, value: unknown,
@@ -255,7 +336,7 @@ export function prepareWorldHouseTransfer(model: WorldModel, state: WorldState, 
   // Reserve the pre/post history reconstruction and the plan/apply scans before
   // changing any candidate entity. This is logical work, not a CPU timing estimate.
   const sharingWork = model.infantryPassage ? model.entities.length*(128+model.infantryPassage.alliances.length*36) : 0;
-  const work = 2 * worldOwnershipWork(ownership) + 5 * passWork(model.ownership!) + model.entities.length * 4 + sharingWork + 1;
+  const work = 2 * worldOwnershipWork(ownership) + 5 * modelPassWork(model) + model.entities.length * 4 + sharingWork + 1;
   if (work > (workLimit ?? C.replayWork)) fail('world-ownership-work');
   const prior = worldOwnershipLedger(model, ownership), plan = planMissionHouseTransfer(prior, invocation.instructionId, { sourceHouse: invocation.sourceHouse, triggerHouse: invocation.triggerHouse });
   const ledger = applyMissionHouseTransfer(prior, plan), byId = new Map(ledger.actors.map(a => [a.entityId, a]));

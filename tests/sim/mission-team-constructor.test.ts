@@ -2,30 +2,12 @@
 // Original bounded unit births; no retail mission rows or native execution.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { missionTeamFixture } from './mission-team-transaction-fixture.ts';
-import { compileMissionHouseSource } from '../../packages/sim/src/mission-house-source.ts';
-import { compileMissionCellEntrySource } from '../../packages/sim/src/mission-cell-entry-source.ts';
-import { compileMissionTeamCellSource } from '../../packages/sim/src/mission-team-cell-source.ts';
 import { compileMissionTeamConstructorSource, missionTeamConstructorSourceData } from '../../packages/sim/src/mission-team-constructor-source.ts';
 import { restoreMissionTeamConstructorHistory, missionTeamConstructorHistoryData } from '../../packages/sim/src/mission-team-constructor-history.ts';
 import { createMissionTeamCheckpoint, admitMissionTeamInput, stepMissionTeamWorld, restoreMissionTeamCheckpoint, replayMissionTeamWorld } from '../../packages/sim/src/mission-team-runtime.ts';
 import { worldHash } from '../../packages/sim/src/world-values.ts';
-import type { MissionTeamConstructorBirth } from '../../packages/sim/src/mission-team-constructor-types.ts';
+import { constructorFixture as fixture, constructorBirths as births } from './mission-team-constructor-fixture.ts';
 const profiles = ['ra2', 'yr'] as const;
-const unit = '[VehicleTypes]\n0=Carrier\n[Carrier]\nStrength=110\nSpeed=128\nSpeedType=Foot\nLocomotor={4A582741-9839-11D1-B709-00A024DDAFD1}';
-function fixture(profile: 'ra2' | 'yr', extra = '', script = '0=3,1\n1=50,5', infantry = false) {
-  const keys = new Set(extra.split('\n').filter(r => r.includes('=')).map(r => r.split('=')[0]));
-  const rules = unit.split('\n').filter(r => !keys.has(r.split('=')[0])).join('\n') + '\n' + extra;
-  const f = missionTeamFixture({ profile, forceType: infantry ? 'Walker' : 'Carrier', script, waypoint: '0=3003\n1=3004', extraRules: rules });
-  const houses = compileMissionHouseSource({ bindings: f.bindings, definitions: f.definitions, rules: f.rules, mission: f.mission });
-  const constructors = compileMissionTeamCellSource({ cells: compileMissionCellEntrySource({ bindings: f.bindings }), actions: f.source,
-    definitions: f.definitions, rules: f.rules, mission: f.mission });
-  const input = { actions: f.source, houses, constructors }, catalog = compileMissionTeamConstructorSource(input);
-  return { ...f, input, catalog };
-}
-function births(history: ReturnType<typeof createMissionTeamCheckpoint>['history']): MissionTeamConstructorBirth[] {
-  return history.filter(r => r.kind === 'spawned').map(({ kind: _kind, ...r }) => ({ ...r, ownershipRevision: 0 }));
-}
 test('both profiles retain every action and authenticate complete ordinary unit constructor prerequisites', () => {
   for (const profile of profiles) {
     const f = fixture(profile), catalog = f.catalog;
