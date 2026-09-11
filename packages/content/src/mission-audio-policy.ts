@@ -55,14 +55,16 @@ export interface MissionEvaRequestPolicy {
 }
 export interface MissionAudioPolicyBinding {
   readonly instructionId: string;
-  readonly opcode: 19 | 20 | 21;
+  readonly opcode: 19 | 20 | 21 | 99;
   readonly instruction: MissionCueInstruction;
   readonly reference: MissionAudioCatalog['bindings'][number];
   readonly status: 'supported-source' | 'unsupported';
   readonly values: readonly MissionAudioPolicyValue[];
   readonly selection: MissionSoundSelectionPolicy | MissionEvaRequestPolicy | null;
   readonly caller: Readonly<{ type: 'global-sound'; panning: 8192; volume: 1; controller: null }>
-    | Readonly<{ type: 'eva'; typeOverride: 2; priorityOverride: -1 }> | null;
+    | Readonly<{ type: 'eva'; typeOverride: 2; priorityOverride: -1 }>
+    | Readonly<{ type: 'spatial-sound'; waypoint: number; x: number; y: number;
+      selection: 'current-building-first-terrain-otherwise-position'; positionalFlags: 1 }> | null;
   readonly requiredState: readonly string[];
   readonly reasons: readonly string[];
   readonly retainedFields: readonly MissionAudioField[];
@@ -145,7 +147,7 @@ export function compileMissionAudioPolicy(input: MissionAudioPolicyInput, option
   }
   if(audio.bindings.length>cap.bindings || cues.instructions.length>cap.bindings)fail('binding-limit');
   const expected = new Map<string,MissionCueInstruction>();
-  for(const i of cues.instructions){charge();if(i.opcode===19||i.opcode===20||i.opcode===21){if(expected.has(i.id))fail('instruction-identity');expected.set(i.id,i);}}
+  for(const i of cues.instructions){charge();if(i.opcode===19||i.opcode===20||i.opcode===21||i.opcode===99){if(expected.has(i.id))fail('instruction-identity');expected.set(i.id,i);}}
   if(expected.size!==audio.bindings.length)fail('instruction-identity');
   // Pre-count every repeated/default field, sample reference and input string across the whole catalog.
   for(const b of audio.bindings){charge();
@@ -203,8 +205,12 @@ export function compileMissionAudioPolicy(input: MissionAudioPolicyInput, option
       const result={key,status:errors.length?'unsupported' as const:'supported-source' as const,value,unit,history:loads,reasons:errors};values.push(result);
       if(errors.length)reasons.push(...errors.map(x=>`${key}:${x}`));return result;
     }
-    if(b.opcode===19){
-      caller={type:'global-sound',panning:8192,volume:1,controller:null};
+    if(b.opcode===19||b.opcode===99){
+      if(b.opcode===19)caller={type:'global-sound',panning:8192,volume:1,controller:null};
+      else if(instruction.spatialLocation)caller={type:'spatial-sound',...instruction.spatialLocation,positionalFlags:1};
+      else reasons.push('spatial-waypoint-source');
+      if(b.opcode===99)requireState.push('current-building-first-terrain-cell-order','current-map-elevation-and-bridge-height',
+        'custom-object-controller-and-limbo-lifecycle','positional-flags-and-exact-coordinate-stop','listener-viewport-pan-volume-and-shroud');
       for(const f of b.fields)if(!SOUND_FIELDS.has(f.key))reasons.push(`unsupported-definition-field:${f.key}`);
       for(const f of b.defaults)if(!SOUND_DEFAULTS.has(f.key))reasons.push(`unsupported-defaults-field:${f.key}`);
       field('Volume',80,'native-read-number-percent',s=>number(s),true);

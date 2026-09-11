@@ -4,7 +4,10 @@ import { sha256 } from '@noble/hashes/sha2.js';
 export const MISSION_CUE_POLICY = 'webra2-mission-cue-reference-1' as const;
 export const MISSION_CUE_LIMITS = Object.freeze({ inputBytes: 32 * 1024 ** 2, memberBytes: 16 * 1024 ** 2,
   instructions: 8192, textUnits: 1_048_576, textPerCue: 4096, serializedBytes: 16 * 1024 ** 2 });
-export type MissionCueOpcode = 10 | 11 | 19 | 20 | 21 | 48 | 55;
+export const MISSION_SPATIAL_AUDIO_CUE_POLICY = 'webra2-mission-spatial-audio-cues-1' as const;
+export type MissionCueOpcode = 10 | 11 | 19 | 20 | 21 | 48 | 55 | 99 | 116;
+export interface MissionSpatialAudioLocation { readonly waypoint: number; readonly x: number; readonly y: number;
+  readonly selection: 'current-building-first-terrain-otherwise-position' }
 export interface MissionCueSource { readonly id: string; readonly profile: 'ra2' | 'yr'; readonly sha256: string }
 export type MissionCuePayload =
   | { readonly kind: 'text'; readonly label: string; readonly text: string; readonly languageId: number; readonly stringOrdinal: number; readonly stringsSha256: string }
@@ -14,11 +17,13 @@ export type MissionCuePayload =
 export interface MissionCueInstruction {
   readonly id: string; readonly triggerId: string; readonly ordinal: number; readonly opcode: MissionCueOpcode;
   readonly status: 'resolved-reference' | 'unsupported'; readonly payload: MissionCuePayload | null;
+  readonly spatialLocation?: MissionSpatialAudioLocation;
   readonly operand: Readonly<{ mode: string; value: string; waypoint: string }>;
   readonly reasons: readonly string[]; readonly pendingPresentation: readonly string[];
 }
 export interface MissionCueCatalog {
   readonly policy: typeof MISSION_CUE_POLICY; readonly profile: 'ra2' | 'yr'; readonly source: MissionCueSource;
+  readonly spatialAudioPolicy?: typeof MISSION_SPATIAL_AUDIO_CUE_POLICY; readonly initialWaypointsSha256?: string;
   readonly sha256: string; readonly pins: readonly Readonly<{ role: 'mission' | 'strings'; path: string; sha256: string; size: number }>[];
   readonly instructions: readonly MissionCueInstruction[];
   readonly coverage: readonly Readonly<{ opcode: MissionCueOpcode; occurrences: number; resolvedReferences: number }>[];
