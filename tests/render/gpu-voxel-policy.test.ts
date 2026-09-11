@@ -100,7 +100,7 @@ test('quantized inverse coverage crosses tile boundaries and contrasting near ti
  const data=copyGpuVoxelFrameData(edge.frame);assert.equal(data.offsets[1]!-data.offsets[0]!,1);assert(data.boxes[0]!<=15&&data.boxes[1]!<=15);
 });
 test('overflow-prone denominator and subnormal inverse contexts reject before frame publication',()=>{
- const f=fixture();for(const z of [1e-31,2**-130])assert.throws(()=>prepareGpuVoxelFrame(f.scene,{instances:[instance('small',[1,0,z,10,0,1,0,10,0,0,1,10])],width:32,height:32}),/numeric-envelope/);
+ const f=fixture();for(const z of [1e-31,2**-130])assert.throws(()=>prepareGpuVoxelFrame(f.scene,{instances:[instance('small',[1,0,z,10,0,1,0,10,0,0,1,10])],width:32,height:32}),/candidate-numeric-context/);
 });
 test('candidate bins cover unculled separate, fused and reciprocal slab variants',()=>{
  const f=fixture([[0,0,0,1,7],[1,0,0,2,7]],[2,1,1]),geometry=copyGpuVoxelSceneData(f.scene).geometry,round=Math.fround;
@@ -125,4 +125,17 @@ test('candidate bins cover unculled separate, fused and reciprocal slab variants
   }
  }
  assert.equal(probes,262144);assert(hits>0);
+});
+
+test('candidate clipping explicitly excludes a permitted repeated-addition lowering',()=>{
+ const f=fixture(),u=1.283205509185791;
+ const frame=prepareGpuVoxelFrame(f.scene,{instances:[instance('actor',[1/u,0,0,2047.62,0,1,0,0,0,0,1,0])],width:2048,height:1});
+ const data=copyGpuVoxelFrameData(frame),bits=new Uint32Array(1),floats=new Float32Array(bits.buffer);
+ function upward(value:number){const rounded=Math.fround(value);if(rounded>=value)return rounded;floats[0]=rounded;bits[0]=bits[0]!+(rounded>=0?1:-1);return floats[0]!;}
+ let product=0;for(let i=0;i<2047;i++)product=upward(product+data.inverses[0]!);
+ product=upward(product+upward(data.inverses[0]!*.5));const origin=upward(product+data.inverses[3]!);
+ assert.equal(frame.policy,'webra2-voxel-highp-clipped-ray-3');assert.equal(frame.allocations.boxes,0);
+ assert.equal(origin,.08154296875);assert(origin>=0&&origin<1);
+ // This unculled alternative would hit. The experiment's declared candidate clip excludes it.
+ assert.equal(pickGpuVoxelFrame(frame,2047,0),null);
 });

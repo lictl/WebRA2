@@ -6,10 +6,13 @@ can use GPU composition for current mission views. This is a prototype, with no
 production integration or native rendering claim. Initial actual Chrome correctness
 observations are recorded below; sustained cadence has not been measured.
 
-The current `webra2-voxel-highp-ray-2` policy owns decoded sparse xyz/color/normal
+The current `webra2-voxel-highp-clipped-ray-3` policy owns decoded sparse xyz/color/normal
 records, copied resolved palettes and model matrices. The uploaded inverse
 coefficients are Float32, while the GPU evaluates its slab expressions using the
-implementation's GLSL ES highp arithmetic. Slab intervals retain the half-open
+implementation's GLSL ES highp arithmetic **within the prepared integer candidate
+clips**. These clips are an explicit bounded presentation policy, not a promise to
+include every hit from an unculled shader under every permitted lowering. Slab
+intervals retain the half-open
 parallel-axis rule and require `near > far`. Strictly greater shader depth wins;
 equal depth keeps lexical instance order followed by source voxel ordinal.
 Transparent source indices, remapped transparent palette entries and zero-alpha
@@ -78,15 +81,17 @@ cannot change a prior frame or pick.
 
 The initial nominal forward boxes did not establish shader coverage: a cube placed
 at15.5000001 on both screen axes quantizes to an inverse translation of15.5, admitting
-pixel15,15 in a tile omitted by the old boxes. Policy2 derives an additional envelope
+pixel15,15 in a tile omitted by the old boxes. The candidate-clipping policy derives
+an additional allowance
 from the actual uploaded inverse and unions it with the old box. It does not silently
 retain the old clipping as a GPU raster rule.
 
 For each inverse row `(u,v,d,w)` and viewport `(W,H)`, let
 `S = |u| W + |v| H + |w| + 257` and `E = S / 65536`. The model-space slab is expanded
 from `[lo,lo+1]` to `[lo-E,lo+1+E]`. This deliberately generous128-times-binary32-epsilon
-allowance bounds the product/add/subtract errors, permitted fusion/reassociation and
-reciprocal/division error after multiplying the endpoint error back by `|d|`.
+allowance covers the stated ordinary multiplication/addition/subtraction, fusion,
+reassociation and direct-division/reciprocal-multiply evaluation family after
+multiplying the endpoint error back by `|d|`.
 Intermediate flush-to-zero absolute errors are also smaller than this allowance.
 Nonzero subnormal inverse coefficients are rejected; nonzero `|d| < S * 2^-100` is
 rejected so the relevant quotient/reciprocal range cannot overflow. Zero directions
@@ -100,9 +105,27 @@ The projected radius receives an additional `M * (r/(1-r) + 64*epsilon64)` to co
 the inversion residual and binary64 projection/translation rounding. Inverting the
 expanded cube and unioning with the old binary64 box yields the candidate bounds.
 Expanded corners must remain within±2,097,152; unsupported numerical contexts fail
-the complete frame. This derivation assumes conforming GLSL highp arithmetic. It is
-not a universal CPU/GPU owner or mask equality proof: near/far overlap and depth
-ordering still use the driver's evaluated results.
+the complete frame. This derivation is limited to that stated evaluation family.
+It is neither a
+universal conforming-highp coverage proof nor a CPU/GPU owner or mask equality proof;
+near/far overlap and depth ordering use the driver's evaluated results.
+
+GLSL ES3.00 section5.11 also permits replacing multiplication with repeated addition.
+An independent review produced a genuine2048×1 frame whose uploaded inverse has
+`u=1.283205509185791`, `w=-2627.517333984375`, and forward translation2047.62. At pixel2047,
+ordinary multiplication gives origin−0.1540539264678955. Repeated addition with upward
+rounding gives+0.08154296875, inside the voxel, while the prepared clip has no candidates.
+The model-space error0.2355968952178955 exceeds the allowance0.08411441370844841.
+This is a retained standards-permitted counterexample, **not an observed Chrome
+lowering**. Increasing an arbitrary epsilon would not establish universal coverage.
+A public original regression records this limitation; the experimental clip remains
+explicitly authoritative for candidate membership.
+
+The D03 disposition accepts this bounded clipping policy for the measured Chrome
+experiment only. The actual-driver oracle remains mandatory. Future product use must
+perform bounded startup correctness checks and retain CPU fallback on failure; a
+finite startup corpus still cannot prove every future transform or conforming driver.
+No cross-driver, production or retail compatibility is established here.
 
 Original tests enumerate262,144 unculled separate/fused/reciprocal ray variants and
 check every hit is present exactly once in its candidate tile. This samples the
@@ -113,7 +136,7 @@ cohort remains identifiable. Expanded-box actual GPU comparisons and independent
 review remain required before cadence acceptance.
 
 Hard limits are256parts/palettes,1,048,576 resident and instantiated voxels,
-4,096instances,1,280×720 total pixels with2048dimension maximum,64Mi conservative
+4,096instances,1,280×720 total pixels with2048dimension maximum,64Mi candidate
 box pixel tests,128Mi shader candidate iterations,8Mi tile-reference entries and
 4,096candidates in any one tile. Projected cube corners must remain within
 ±1,048,576 on all three axes. The candidate iteration count includes box rejection
@@ -217,9 +240,9 @@ boundary fixtures intentionally add a visible color change and an extra eligible
 pixel across a tile edge. These are source-side calculations, not renewed GPU
 observations or frame-rate measurements.
 
-Seventeen focused tests and type checking pass for the revised policy, including
+Eighteen focused tests and type checking pass for the revised policy, including
 249,792 old Float64 pixel comparisons,262,144 unculled arithmetic-variant probes,
-the new numeric rejection/coverage cases and six GL-call/lifecycle tests. Revised
+the numeric rejection/coverage cases and retained repeated-add counterexample and six GL-call/lifecycle tests. Revised
 actual-browser coverage remains pending.
 
 Reproduce the public checks with Node24.20.0:
