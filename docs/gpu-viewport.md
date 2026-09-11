@@ -56,8 +56,12 @@ retail files or a claimed native execution oracle.
 - The first composed full check passed 1,336 public tests, five performance-tool
   tests and nine GPU-tool tests, types, document/publication/evidence checks, and
   a 77-output/152-input code-only build. After the worker validation fixes and
-  SHP controller regression, 109 focused GPU tests passed. Final checks follow
-  the final source/evidence revision.
+  SHP controller regression, 109 focused GPU tests passed. The final source
+  correction passes1,377 public +14 tool tests, types and the complete guard/build
+  chain (78 outputs/152 inputs). The92 product/dependency inputs in the final
+  95-input diagnostic exactly match the coordinator composition; the remaining
+  three inputs are its private original harness. Final evidence-only changes pass
+  document/link and whitespace checks.
 
 ## Browser evidence and performance work
 
