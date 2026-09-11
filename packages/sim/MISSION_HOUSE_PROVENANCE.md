@@ -137,7 +137,8 @@ capture; that separate source/runtime integration remains pending.
 
 Capture preserves settled anchors and cancels newly hostile incoming edges. A
 group rendered hostile by capture receives a bounded saved claim referencing the
-exact source transfer, a compatible pre-transfer owner order and distinct ordinary
+exact source transfer, a compatible pre-transfer owner order (or exact initial
+source sharing) and distinct ordinary
 subcells. Only surviving members at those cells/slots remain covered. Claims are
 checked with full current occupancy and cannot replace static blockers or grant
 retirement. Restoration checks structural possible history, not authenticated
@@ -146,5 +147,7 @@ historical execution; full replay provides the separate execution comparison.
 The group is closed to new arrivals until it becomes allied or members separate.
 Even a third house allied to each member cannot join while it remains closed.
 This is a conservative D03 rule, not a claim about native mixed-owner cell-house
-bookkeeping. Seven original tests cover capture, reservations, group preflight,
+bookkeeping. Initial shared cohorts captured in place retain the same closed
+marker; restoration rejects omission of that marker. Eight original tests cover
+capture, reservations, group preflight,
 pending/completed death, strict save rejection and replay in both profiles.

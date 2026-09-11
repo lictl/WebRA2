@@ -94,7 +94,8 @@ adapter preserves ownership when it reconstructs the model; initial definitions
 and all static blockers remain unchanged.
 
 A hostile group created by capture retains a bounded saved claim tied to a genuine
-transfer index, pre-transfer house compatibility, exact cell/subcells and surviving
+transfer index, pre-transfer house compatibility (or exact initial source sharing),
+exact cell/subcells and surviving
 members. Claims shrink on departure or completed removal and cannot authorize
 re-entry. Restore checks a structurally possible history; it does not prove that an
 untrusted save replayed every historical movement. Complete current occupancy,
@@ -105,11 +106,13 @@ Under this explicit D03 rule, a retained hostile group is closed to all new
 arrivals, including a third house allied to every member. Incoming reservations
 are canceled when a capture closes the cell. Existing actors may hold or leave;
 normal admission resumes when the remaining group is allied or has fewer than two
-members. This avoids inferring native mixed-owner cell bookkeeping. Seven original
+members. Initial shared cohorts follow this same rule after capture; a restored
+save cannot omit their closed marker to admit an invalid third-house edge.
+This avoids inferring native mixed-owner cell bookkeeping. Eight original
 tests cover both profiles, two/three-member groups, directed alliances, group
 planning, forged claims, pending death, minimum budgets and complete replay.
 The combined ownership, movement, source combat, passage and team-world regression
-run passes 115 focused tests; type and documentation checks also pass. These are
+run passes 117 focused tests; type and documentation checks also pass. These are
 original synthetic checks, not imported mission execution.
 
 Team construction/recruitment ownership, compound

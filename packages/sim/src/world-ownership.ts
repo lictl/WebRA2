@@ -114,8 +114,7 @@ export function restoreWorldOwnership(model: WorldModel, value: unknown, entitie
           !navigationCell(grids.get(row.d.navigationClass!)!, {x:cell%512,y:Math.floor(cell/512)})) fail('world-ownership-sharing-member');
         return {entityId,subcell};
       });
-      if (members.length<2 || new Set(members.map(m=>m.subcell)).size!==members.length ||
-        members.every(m=>actors.get(m.entityId)!.initialCell===cell && actors.get(m.entityId)!.sourceSubcell===m.subcell)) fail('world-ownership-sharing-members');
+      if (members.length<2 || new Set(members.map(m=>m.subcell)).size!==members.length) fail('world-ownership-sharing-members');
       previousId=0;
       const remainingIds=worldList(v.remainingIds,3).map(value=> {
         const id=integer(value,previousId+1,2147483647);previousId=id;const row=defs.get(id);
@@ -129,6 +128,7 @@ export function restoreWorldOwnership(model: WorldModel, value: unknown, entitie
   }
   // Each underlying ledger operation is bounded independently. Reserve those
   // fixed source/actor scans before executing them, including empty selections.
+  const passageActors=new Map(model.infantryPassage?.actors.map(a=>[a.entityId,a]));
   const pass = passWork(source);
   meter.charge(pass * (transfers.length * 3 + 2));
   let ledger = createMissionHouseState(source, participation(model, lifecycle, 0));
@@ -151,7 +151,8 @@ export function restoreWorldOwnership(model: WorldModel, value: unknown, entitie
     const owners=new Map(ledger.actors.map(a=>[a.entityId,a.owner])),changed=new Set(plan.changedEntityIds);
     for (const group of sharingByTransfer.get(index)??[]) {
       if (!group.members.some(m=>changed.has(m.entityId)) ||
-        !arrival(model.infantryPassage!,group.members.map(m=>m.entityId),id=>owners.get(id)!)) fail('world-ownership-sharing-history');
+        !(group.members.every(m=>{const a=passageActors.get(m.entityId)!;return a.initialCell===group.cell&&a.sourceSubcell===m.subcell;}) ||
+          arrival(model.infantryPassage!,group.members.map(m=>m.entityId),id=>owners.get(id)!))) fail('world-ownership-sharing-history');
     }
     for (const id of plan.changedEntityIds) ownerHistory.get(id)!.push({ tick: t.nextTick, owner: plan.destinationHouse });
     ledger = applyMissionHouseTransfer(ledger, plan);
@@ -174,7 +175,8 @@ export function worldOwnershipWork(state: WorldOwnershipState): number { return 
  * It cannot turn arbitrary owner fields or saved permission flags into an occupancy authority. */
 export function worldOwnershipInfantryData(state: WorldOwnershipState, catalog: InfantryPassageCatalog) {
   const c=context.get(state);if(!c || c.model.infantryPassage!==catalog) fail('world-ownership-infantry-context');
-  return {owners:c.ledger.actors.map(a=>({entityId:a.entityId,owner:a.owner})),sharing:state.sharing!};
+  return {owners:c.ledger.actors.map(a=>({entityId:a.entityId,owner:a.owner})),sharing:state.sharing!,
+    transferredIds:[...c.ownerHistory].filter(([,history])=>history.length>1).map(([id])=>id)};
 }
 /** Drop departed/retired members immediately. Claims never authorize return to a hostile cell. */
 export function pruneWorldHouseSharing(model: WorldModel, state: WorldState): number {
@@ -251,11 +253,11 @@ export function prepareWorldHouseTransfer(model: WorldModel, state: WorldState, 
     const catalog=model.infantryPassage, rows=new Map(catalog.actors.map(a=>[a.entityId,a])), slots=new Map(state.infantrySlots!.map(s=>[s.entityId,s]));
     const live=new Map(state.ownership.lifecycle.map(l=>[l.entityId,l.removedTick===null])), groups=new Map<number,WorldEntity[]>();
     for(const e of state.entities)if(live.get(e.id) && slots.has(e.id)) {const at=worldAddress(e.x,e.y),list=groups.get(at)??[];list.push(e);groups.set(at,list);}
-    const priorOwners=new Map(prior.actors.map(a=>[a.entityId,a.owner])),sharing=[...state.ownership.sharing!],sharedCells=new Set(sharing.map(g=>g.cell));
+    const changed=new Set(plan.changedEntityIds),priorOwners=new Map(prior.actors.map(a=>[a.entityId,a.owner])),sharing=[...state.ownership.sharing!],sharedCells=new Set(sharing.map(g=>g.cell));
     for(const [cell,group]of groups)if(group.length>1 && !arrival(catalog,group.map(e=>e.id),id=>byId.get(id)!.owner) &&
-      !group.every(e=>rows.get(e.id)!.initialCell===cell&&rows.get(e.id)!.sourceSubcell===slots.get(e.id)!.subcell) &&
-      !sharedCells.has(cell)) {
-      if(group.length>3 || !arrival(catalog,group.map(e=>e.id),id=>priorOwners.get(id)!))fail('world-ownership-sharing-history');
+      group.some(e=>changed.has(e.id)) && !sharedCells.has(cell)) {
+      const original=group.every(e=>rows.get(e.id)!.initialCell===cell&&rows.get(e.id)!.sourceSubcell===slots.get(e.id)!.subcell);
+      if(group.length>3 || !original&&!arrival(catalog,group.map(e=>e.id),id=>priorOwners.get(id)!))fail('world-ownership-sharing-history');
       sharing.push({transferIndex:ownership.transfers.length,cell,
         members:group.map(e=>({entityId:e.id,subcell:slots.get(e.id)!.subcell})),remainingIds:group.map(e=>e.id)});sharedCells.add(cell);
     }

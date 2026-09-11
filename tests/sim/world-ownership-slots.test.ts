@@ -147,3 +147,25 @@ test('a third house allied to both owners cannot enlarge a captured cohort, and 
     assert.equal(replayWorld(f.model,r.document()).stateSha256,worldHash(r.save()));
   }
 });
+
+
+test('captured original shared cohorts close before third-house queries and cancel incoming edges',()=>{
+  for(const profile of ['ra2','yr']as const)for(const incoming of [false,true]){
+    const f=fixture(profile,[tagged(0,2,3,2),infantryRow(1,2,3,4),infantryRow(2,3,3,3,'Observer')],'','',true),r=new WorldReplayRecorder(f.model);
+    if(incoming){r.admitCommands([move(3,2,3,0,0,2)]);r.step();assert(r.save().state.entities[2]!.progress>0);}
+    const before=r.save();r.transferOwnership(f.invocation());const after=r.save();
+    assert.deepEqual(after.state.entities.map(e=>[e.x,e.y]),before.state.entities.map(e=>[e.x,e.y]));
+    assert.deepEqual(after.state.ownership!.sharing,[{transferIndex:0,cell:1538,members:[{entityId:1,subcell:2},{entityId:2,subcell:4}],remainingIds:[1,2]}]);
+    assert.equal(after.state.entities[2]!.progress,0);assert.equal(after.state.infantrySlots![2]!.reservedSubcell,null);
+    assert.equal(occupancy(f.model,after).choose(3,1538).reason,'captured-settled-group');
+    const omitted=structuredClone(after);omitted.state.ownership!.sharing=[];assert.throws(()=>WorldSimulation.restore(f.model,omitted),/captured-group-missing/);
+    if(!incoming)r.admitCommands([move(3,2,3,0,0,2)]);
+    r.step(6);assert.deepEqual([r.save().state.entities[2]!.x,r.save().state.entities[2]!.y],[3,3]);
+    assert.deepEqual(WorldSimulation.restore(f.model,r.save()).save(),r.save());
+    // Returning the second owner to the captured house removes the closed group.
+    r.transferOwnership(f.invocation(36));assert.deepEqual(r.save().state.ownership!.sharing,[]);
+    r.admitCommands([move(3,2,3,r.save().nextTick,1,2)]);r.step(4);
+    assert.deepEqual([r.save().state.entities[2]!.x,r.save().state.entities[2]!.y],[2,3]);
+    assert.equal(replayWorld(f.model,r.document()).stateSha256,worldHash(r.save()));
+  }
+});

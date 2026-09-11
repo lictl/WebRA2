@@ -92,11 +92,18 @@ export function createInfantryOccupancy(catalog: InfantryPassageCatalog, input: 
   const arrivalOrder = (items: Claim[], retained?: (item:Claim)=>boolean): boolean => items.length <= 1 ||
     !!retained && items.every(retained) || items.some((last, index) =>
     items.every(other => other === last || allied(last.entityId!, other.entityId!)) && arrivalOrder(items.filter((_, i) => i !== index),retained));
-  const retained=new Map(current?.sharing.map(g=>[g.cell,g]));
+  const retained=new Map(current?.sharing.map(g=>[g.cell,g])),transferred=new Set(current?.transferredIds);
   for (const [at,list] of claims) if (list.length > 1) {
     // Preserve only exact original source positions/slots, never a moved actor newly joining a hard blocker.
-    if (list.every(c => c.initial && c.anchor)) continue;
-    const prior=retained.get(at), captured=prior ? (c:Claim)=>c.anchor && prior.remainingIds.includes(c.entityId!) &&
+    const original=list.every(c=>c.initial&&c.anchor),priorGroup=retained.get(at);
+    if(original&&!priorGroup){
+      // A capture of an original shared cohort needs the same closed marker as
+      // a moved cohort. Otherwise a third-house query could admit an invalid edge.
+      if(current&&list.length<=3&&list.every(c=>c.entityId!==null&&c.slot!==null)&&
+        list.some(c=>transferred.has(c.entityId!))&&!arrivalOrder(list))fail('captured-group-missing');
+      continue;
+    }
+    const prior=priorGroup, captured=prior ? (c:Claim)=>c.anchor && prior.remainingIds.includes(c.entityId!) &&
       prior.members.some(m=>m.entityId===c.entityId&&m.subcell===c.slot) : undefined;
     if(prior&&list.some(c=>!captured!(c)))fail('captured-group-closed');
     if (list.length > 3 || list.some(c => c.entityId === null || c.slot === null) ||
