@@ -10,6 +10,39 @@ export class GpuRendererError extends Error {
   constructor(readonly code: string, detail = '') { super(code + (detail ? ': ' + detail.slice(0, 4096) : '')); this.name = 'GpuRendererError'; }
 }
 function fail(code: string): never { throw new GpuRendererError(code); }
+
+// Internal context-bound accounting. Tokens expose neither handles nor mutable counters.
+declare const resourceBudgetBrand: unique symbol;
+export interface GpuResourceBudget { readonly [resourceBudgetBrand]: true }
+interface ResourceBudgetData { context: WebGL2RenderingContext; gpuCap: number; cpuCap: number; peakGpu: number; peakCpu: number; owners: Map<object, { gpu: number; cpu: number }> }
+const resourceBudgets = new WeakMap<GpuResourceBudget, ResourceBudgetData>();
+function budgetData(budget: GpuResourceBudget): ResourceBudgetData { const data = resourceBudgets.get(budget); if (!data) fail('gpu-budget-identity'); return data; }
+export function createGpuResourceBudget(context: WebGL2RenderingContext, gpuBytes: number, cpuBytes: number): GpuResourceBudget {
+  integer(gpuBytes, 1, GPU_RENDERER_LIMITS.gpuBytes, 'gpu-budget-limit'); integer(cpuBytes, 1, GPU_RENDERER_LIMITS.gpuBytes, 'gpu-budget-limit');
+  const result = Object.freeze({}) as GpuResourceBudget;
+  resourceBudgets.set(result, { context, gpuCap: gpuBytes, cpuCap: cpuBytes, peakGpu: 0, peakCpu: 0, owners: new Map() }); return result;
+}
+export function registerGpuResourceOwner(budget: GpuResourceBudget, context: WebGL2RenderingContext): object {
+  const data = budgetData(budget); if (data.context !== context) fail('gpu-budget-context');
+  // Three live participants: base, optional voxel, combined targets. Released slots may be reused.
+  if (data.owners.size >= 3) fail('gpu-budget-owners'); const owner = Object.freeze({}); data.owners.set(owner, { gpu: 0, cpu: 0 }); return owner;
+}
+export function checkGpuResourceBudget(budget: GpuResourceBudget, owner: object, gpu: number, cpu: number): void {
+  const data = budgetData(budget); if (!data.owners.has(owner)) fail('gpu-budget-owner');
+  integer(gpu, 0, Number.MAX_SAFE_INTEGER, 'gpu-budget-data'); integer(cpu, 0, Number.MAX_SAFE_INTEGER, 'gpu-budget-data');
+  for (const [key, value] of data.owners) if (key !== owner) { gpu += value.gpu; cpu += value.cpu; }
+  if (gpu > data.gpuCap) fail('gpu-aggregate-memory-limit'); if (cpu > data.cpuCap) fail('gpu-aggregate-staging-limit');
+  data.peakGpu = Math.max(data.peakGpu, gpu); data.peakCpu = Math.max(data.peakCpu, cpu);
+}
+export function commitGpuResourceBudget(budget: GpuResourceBudget, owner: object, gpu: number, cpu: number): void {
+  checkGpuResourceBudget(budget, owner, gpu, cpu); budgetData(budget).owners.set(owner, { gpu, cpu });
+}
+export function releaseGpuResourceOwner(budget: GpuResourceBudget, owner: object): void { if (!budgetData(budget).owners.delete(owner)) fail('gpu-budget-owner'); }
+export function gpuResourceBudgetStats(budget: GpuResourceBudget) {
+  const data = budgetData(budget); let gpu = 0, cpu = 0; for (const value of data.owners.values()) { gpu += value.gpu; cpu += value.cpu; }
+  return Object.freeze({ requestedGpuBytes: gpu, ownedCpuBytes: cpu, peakRequestedGpuBytes: data.peakGpu, peakStagingBytes: data.peakCpu });
+}
+export interface GpuBaseLayerReceipt extends GpuDrawReceipt { readonly generation: number; readonly width: number; readonly height: number }
 const NONE_DEPTH = -2147483648;
 const INSTANCE_BYTES = GPU_DRAW_STRIDE * 4;
 function integer(value: unknown, min: number, max: number, code = 'gpu-data'): number {
@@ -151,18 +184,22 @@ export class GpuRenderer {
   #capabilities: { side: number; layers: number } | null = null;
   #resident: Resident | null = null;
   #last: GpuFrame | null = null;
+  #layer: GpuBaseLayerReceipt | null = null;
+  #shared: { budget: GpuResourceBudget; owner: object } | null = null;
+  #syncBudget(): void { if (this.#shared) commitGpuResourceBudget(this.#shared.budget, this.#shared.owner, this.#gpuBytes(), this.#cpuBytes()); }
   readonly #onLost = (event: Event): void => { event.preventDefault(); this.#lose(); };
 
-  constructor(context: WebGL2RenderingContext, options: Partial<GpuRendererLimits> = {}) {
+  constructor(context: WebGL2RenderingContext, options: Partial<GpuRendererLimits> = {}, budget?: GpuResourceBudget) {
     this.#limits = limits(options);
     if (!context || typeof context.isContextLost !== 'function' || !context.canvas || typeof context.texStorage3D !== 'function') fail('gpu-context');
     this.#gl = context;
+    if (budget) this.#shared = { budget, owner: registerGpuResourceOwner(budget, context) };
     context.canvas.addEventListener('webglcontextlost', this.#onLost);
     if (context.isContextLost()) this.#lose();
   }
   #lose(): void {
     if (this.#state === 'disposed' || this.#state === 'lost') return;
-    this.#state = 'lost'; this.#generation++; this.#resident = null; this.#last = null; this.#capabilities = null;
+    this.#state = 'lost'; this.#generation++; this.#resident = null; this.#last = null; this.#layer = null; this.#capabilities = null; this.#syncBudget();
   }
   #live(): void {
     if (this.#state === 'disposed') fail('gpu-disposed');
@@ -174,6 +211,7 @@ export class GpuRenderer {
   #budget(gpu: number, cpu: number): void {
     if (!Number.isSafeInteger(gpu) || gpu > this.#limits.gpuBytes) fail('gpu-memory-limit');
     if (!Number.isSafeInteger(cpu) || cpu > this.#limits.gpuBytes) fail('gpu-cpu-memory-limit');
+    if (this.#shared) checkGpuResourceBudget(this.#shared.budget, this.#shared.owner, gpu, cpu);
   }
   #hardware(): { side: number; layers: number } {
     if (this.#capabilities) return this.#capabilities;
@@ -298,7 +336,8 @@ export class GpuRenderer {
     } catch (error) { this.#delete(b); throw error; }
   }
 
-  load(scene: GpuScene): void {
+  load(scene: GpuScene): void { this.#layer = null; try { this.#load(scene); } finally { this.#syncBudget(); } }
+  #load(scene: GpuScene): void {
     this.#live();
     const plan = this.#scenePlan(scene);
     this.#budget(this.#gpuBytes() + plan.bytes, this.#cpuBytes() + plan.rasterBytes + plan.bytes);
@@ -375,7 +414,21 @@ export class GpuRenderer {
     }
   }
 
-  draw(frame: GpuFrame): GpuDrawReceipt {
+  draw(frame: GpuFrame): GpuDrawReceipt { this.#layer = null; try { return this.#draw(frame, true); } finally { this.#syncBudget(); } }
+  /** Internal composition seam. The identity receipt grants sampler binding, never raw handles. */
+  drawLayer(frame: GpuFrame): GpuBaseLayerReceipt {
+    this.#layer = null;
+    try { const receipt = this.#draw(frame, false); return this.#layer = Object.freeze({ ...receipt, generation: this.#generation, width: frame.viewport.width, height: frame.viewport.height }); }
+    finally { this.#syncBudget(); }
+  }
+  bindLayer(receipt: GpuBaseLayerReceipt, context: WebGL2RenderingContext): void {
+    this.#live(); const t = this.#resident?.targets;
+    if (context !== this.#gl || !receipt || receipt !== this.#layer || !t || this.#last !== receipt.frame || receipt.generation !== this.#generation || receipt.sequence !== this.#sequence || this.#gl.drawingBufferWidth !== receipt.width || this.#gl.drawingBufferHeight !== receipt.height || t.width !== receipt.width || t.height !== receipt.height) fail('gpu-layer-receipt');
+    for (const [unit, texture] of [t.terrain.color, t.terrain.info, t.sprites.color, t.sprites.info].entries()) this.#bind(unit, this.#gl.TEXTURE_2D, texture);
+    // Correctly typed unsigned fallback samplers when the optional voxel layer is absent.
+    this.#bind(4, this.#gl.TEXTURE_2D, t.terrain.color); this.#bind(5, this.#gl.TEXTURE_2D, t.terrain.color);
+  }
+  #draw(frame: GpuFrame, present: boolean): GpuDrawReceipt {
     this.#live();
     const data = this.#frame(frame), r = this.#resident!, gl = this.#gl;
     if (this.#sequence >= Number.MAX_SAFE_INTEGER) fail('gpu-sequence-limit');
@@ -421,7 +474,7 @@ export class GpuRenderer {
       for (let i = 0; i < textures.length; i++) { const [name, target, texture] = textures[i]!; this.#bind(i, target, texture); gl.uniform1i(u[name]!, i); }
       gl.uniform1i(u.uTerrain!, 5);
       const count = data.draws.length / GPU_DRAW_STRIDE;
-      let calls = 1;
+      let calls = present ? 1 : 0;
       for (let pass = 0; pass < 2; pass++) {
         const target = pass === 0 ? t.terrain : t.sprites;
         gl.bindFramebuffer(gl.FRAMEBUFFER, target.framebuffer); gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
@@ -432,6 +485,7 @@ export class GpuRenderer {
         const start = pass === 0 ? 0 : data.terrainDraws, instances = pass === 0 ? data.terrainDraws : count - data.terrainDraws;
         if (instances) { this.#attributes(r, start * INSTANCE_BYTES); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, instances); calls++; }
       }
+      if (present) {
       gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.drawBuffers([gl.BACK]); gl.disable(gl.DEPTH_TEST);
       gl.bindVertexArray(r.compositeVao); gl.useProgram(r.composite.handle);
       for (const [i, name, texture] of [[0, 'uTerrainColor', t.terrain.color], [1, 'uTerrainInfo', t.terrain.info],
@@ -440,6 +494,7 @@ export class GpuRenderer {
       }
       const bg = data.viewport.backgroundRgba;
       gl.uniform4ui(r.composite.uniform.uBackground!, bg[0], bg[1], bg[2], bg[3]); gl.drawArrays(gl.TRIANGLES, 0, 3);
+      }
       // Steady submission does not query errors or wait for completion. The explicit
       // diagnostic readback/caller correctness harness checks errors outside cadence.
       this.#live(); this.#last = frame;
@@ -484,7 +539,8 @@ export class GpuRenderer {
       peakRequestedGpuBytes: this.#peak, ownedCpuBytes: this.#cpuBytes() });
   }
   /** Call after webglcontextrestored. Rebuilds the retained scene; the next draw supplies a new frame. */
-  restore(): void {
+  restore(): void { this.#layer = null; try { this.#restore(); } finally { this.#syncBudget(); } }
+  #restore(): void {
     if (this.#state === 'disposed') fail('gpu-disposed');
     if (this.#gl.isContextLost()) { this.#lose(); fail('gpu-context-lost'); }
     if (this.#state !== 'lost') fail('gpu-not-lost');
@@ -509,6 +565,8 @@ export class GpuRenderer {
       if (this.#resident) this.#deleteResident(this.#resident);
     }
     this.#resident = null; this.#data = null; this.#last = null; this.#state = 'disposed'; this.#generation++;
+    this.#layer = null;
+    if (this.#shared) { releaseGpuResourceOwner(this.#shared.budget, this.#shared.owner); this.#shared = null; }
     this.#gl.canvas.removeEventListener('webglcontextlost', this.#onLost);
   }
 }
