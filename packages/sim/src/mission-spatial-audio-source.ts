@@ -5,8 +5,7 @@ import { isMissionAudioPolicyCatalog, missionAudioPolicyContext, type MissionAud
 import { isMissionBindingCatalog, missionBindingSourceContext, type MissionBindingCatalog } from './mission-bindings.ts';
 import { worldContentTraversal } from './world-content.ts';
 import { assertWorldModel, createWorldModel, type WorldModel } from './world-model.ts';
-import { WorldSimulation, type WorldSave } from './world.ts';
-import { combatDyingActorIds } from './combat.ts';
+import { WorldSimulation, readWorldEntityPresence, type WorldSave } from './world.ts';
 import { worldAddress, worldHash, worldInteger, worldPosition, worldRecord } from './world-values.ts';
 
 export const MISSION_SPATIAL_AUDIO_SOURCE_POLICY = 'webra2-initial-flat-spatial-audio-1' as const;
@@ -126,27 +125,105 @@ export function compileMissionSpatialAudioSource(input: Readonly<{ bindings: Mis
   const result = freeze({ ...data, sha256: worldHash(data) }); sources.set(result, freeze({ bindings, cues, audio })); return result;
 }
 
-/** Read-only resolver over an exact initial actor model and validated candidate.
- * A returned target is component data; it cannot certify a mission invocation. */
-export function resolveMissionSpatialAudioTarget(source: MissionSpatialAudioSource, model: WorldModel, checkpoint: WorldSave, instructionId: string,
-  workLimit: number = MISSION_SPATIAL_AUDIO_LIMITS.work): Readonly<{ target: MissionSpatialAudioTarget; work: number }> {
+const joinedModels = new WeakMap<MissionSpatialAudioSource, WeakSet<WorldModel>>();
+function sourceWorldWork(source: MissionSpatialAudioSource, model: WorldModel): number {
+  return source.instructions.length + model.entities.length + model.footprints.reduce((n, p) => n + p.cells.length + 1, 0);
+}
+function joinWorld(source: MissionSpatialAudioSource, model: WorldModel): void {
   const original = missionSpatialAudioSourceContext(source); assertWorldModel(model);
-  const limit = worldInteger(workLimit, 0, MISSION_SPATIAL_AUDIO_LIMITS.work);
-  const work = source.instructions.length + model.entities.length + model.footprints.reduce((n, p) => n + p.cells.length + 1, 0);
-  if (work > limit) fail('work-limit');
+  let joined = joinedModels.get(source); if (joined?.has(model)) return;
   const base = createWorldModel({ contentIdentity: model.contentIdentity, sourceSha256: model.sourceSha256,
     definitionsSha256: model.definitionsSha256, entities: model.entities, navigation: model.navigation,
     blocked: model.blocked.map(worldPosition), footprints: model.footprints.map(p => ({ entityId: p.entityId, cells: p.cells.map(worldPosition) })) });
   if (base.sha256 !== source.baseWorldSha256 || base.sha256 !== original.bindings.worldSha256) fail('world-join');
+  if (!joined) { joined = new WeakSet(); joinedModels.set(source, joined); } joined.add(model);
+}
+/** Own caller descriptors with a deterministic structural reservation before any
+ * restore. The returned work is a resource policy, not a CPU instruction count. */
+function captureCheckpoint(value: unknown, charge: (n: number) => void): WorldSave {
+  const active = new WeakSet<object>();
+  function copy(v: unknown, depth: number): unknown {
+    charge(1); if (depth > 32) fail('checkpoint-depth');
+    if (v === null || typeof v === 'boolean') return v;
+    if (typeof v === 'number') { if (!Number.isFinite(v)) fail('checkpoint-number'); return v; }
+    if (typeof v === 'string') { charge(v.length); return v; }
+    if (!v || typeof v !== 'object' || active.has(v)) fail('checkpoint-data');
+    const prototype = Object.getPrototypeOf(v), array = Array.isArray(v);
+    if (array ? prototype !== Array.prototype : prototype !== Object.prototype && prototype !== null) fail('checkpoint-data');
+    active.add(v);
+    if (array) {
+      const length = Object.getOwnPropertyDescriptor(v, 'length');
+      const n = worldInteger(length && 'value' in length ? length.value : undefined, 0, 65536); charge(n);
+      if (Reflect.ownKeys(v).length !== n + 1) fail('checkpoint-array');
+      const out: unknown[] = [];
+      for (let i = 0; i < n; i++) { const d = Object.getOwnPropertyDescriptor(v, String(i));
+        if (!d || !('value' in d) || !d.enumerable) fail('checkpoint-data'); out.push(copy(d.value, depth + 1)); }
+      active.delete(v); return out;
+    }
+    const keys = Reflect.ownKeys(v); charge(keys.length); if (keys.length > 64) fail('checkpoint-record');
+    const out = Object.create(null) as Record<string, unknown>;
+    for (const key of keys) {
+      if (typeof key !== 'string') fail('checkpoint-data'); charge(key.length);
+      const d = Object.getOwnPropertyDescriptor(v, key); if (!d || !('value' in d) || !d.enumerable) fail('checkpoint-data');
+      out[key] = copy(d.value, depth + 1);
+    }
+    active.delete(v); return out;
+  }
+  return copy(value, 0) as WorldSave;
+}
+/** Reserve the existing world ownership reconstruction scans, including no-op
+ * transfers. Structural capture has already bounded/owned all nested input. */
+function ownershipRestoreWork(model: WorldModel, checkpoint: WorldSave): number {
+  const source = model.ownership; if (!source) return 0;
+  const value = checkpoint?.state?.ownership;
+  if (!value || !Array.isArray(value.lifecycle) || !Array.isArray(value.transfers) ||
+    value.lifecycle.length > 2048 || value.transfers.length > 1024) fail('checkpoint-ownership');
+  const pass = source.types.length + source.houses.length + source.tagChains.length + source.initialActors.length * 12 + source.instructions.length;
+  let work = value.lifecycle.length * 6 + pass * (value.transfers.length * 3 + 2);
+  for (const transfer of value.transfers) {
+    if (!transfer || !Array.isArray(transfer.entityIds) || transfer.entityIds.length > 2048) fail('checkpoint-ownership');
+    work += transfer.entityIds.length + 1;
+  }
+  if (model.infantryPassage) {
+    if (!Array.isArray(value.sharing) || value.sharing.length > 2048) fail('checkpoint-ownership');
+    work += model.entities.length * 4 + model.infantryPassage.alliances.length + model.blocked.length +
+      model.footprints.reduce((n, p) => n + p.cells.length, 0) + value.sharing.length * (64 + model.infantryPassage.alliances.length * 18);
+  }
+  return work;
+}
+/** One-time bounded checkpoint ownership/restore. A genuine world is component
+ * state; it does not prove an actual mission action occurred. */
+export function restoreMissionSpatialAudioWorld(source: MissionSpatialAudioSource, model: WorldModel, checkpoint: WorldSave,
+  workLimit: number = MISSION_SPATIAL_AUDIO_LIMITS.work): Readonly<{ world: WorldSimulation; work: number }> {
+  missionSpatialAudioSourceContext(source); assertWorldModel(model);
+  const limit = worldInteger(workLimit, 0, MISSION_SPATIAL_AUDIO_LIMITS.work); let work = 0;
+  const charge = (n: number) => { if (n > limit - work) fail('work-limit'); work += n; };
+  charge(sourceWorldWork(source, model)); joinWorld(source, model);
+  const owned = captureCheckpoint(checkpoint, charge); charge(ownershipRestoreWork(model, owned));
+  return Object.freeze({ world: WorldSimulation.restore(model, owned), work });
+}
+/** Query the exact current private world without serializing or revalidating its
+ * history per action. The core authenticates the instance and occupancy lifetime. */
+export function resolveMissionSpatialAudioInWorld(source: MissionSpatialAudioSource, world: WorldSimulation, instructionId: string,
+  workLimit: number = MISSION_SPATIAL_AUDIO_LIMITS.work): Readonly<{ target: MissionSpatialAudioTarget; work: number }> {
+  missionSpatialAudioSourceContext(source);
+  const limit = worldInteger(workLimit, 0, MISSION_SPATIAL_AUDIO_LIMITS.work);
+  if (source.instructions.length > limit) fail('work-limit');
   const instruction = source.instructions.find(i => i.instructionId === instructionId);
   if (!instruction || instruction.status !== 'supported-initial-source' || !instruction.position) fail('instruction');
-  const world = WorldSimulation.restore(model, checkpoint).save(), actors = new Map(world.state.entities.map(e => [e.id, e]));
-  const dying = combatDyingActorIds(world.state.combat);
-  for (const [family, ids] of [['structure', instruction.buildingIds], ['terrain', instruction.terrainIds]] as const) {
-    for (const id of ids) {
-      const actor = actors.get(id); if (!actor) fail('actor');
-      if (actor.health !== 0 || dying.has(id)) return freeze({ target: { kind: 'object' as const, entityId: id, family }, work });
-    }
-  }
+  const presence = readWorldEntityPresence(world, [...instruction.buildingIds, ...instruction.terrainIds], limit - source.instructions.length);
+  const work = sourceWorldWork(source, presence.model) + presence.work;
+  if (work > limit) fail('work-limit'); joinWorld(source, presence.model);
+  const actors = new Map(presence.entities.map(e => [e.entityId, e]));
+  for (const [family, ids] of [['structure', instruction.buildingIds], ['terrain', instruction.terrainIds]] as const)
+    for (const id of ids) if (actors.get(id)?.present) return freeze({ target: { kind: 'object' as const, entityId: id, family }, work });
   return freeze({ target: { kind: 'position' as const, ...instruction.position }, work });
+}
+/** Standalone read-only resolver. Input capture and ownership reconstruction are
+ * charged before restore; repeated private actions use the already-owned seam. */
+export function resolveMissionSpatialAudioTarget(source: MissionSpatialAudioSource, model: WorldModel, checkpoint: WorldSave, instructionId: string,
+  workLimit: number = MISSION_SPATIAL_AUDIO_LIMITS.work): Readonly<{ target: MissionSpatialAudioTarget; work: number }> {
+  const restored = restoreMissionSpatialAudioWorld(source, model, checkpoint, workLimit);
+  const result = resolveMissionSpatialAudioInWorld(source, restored.world, instructionId, workLimit - restored.work);
+  return Object.freeze({ target: result.target, work: restored.work + result.work });
 }

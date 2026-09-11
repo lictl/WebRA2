@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Original private candidate-world transaction. See ../MISSION_WORLD_PROVENANCE.md.
 import { isMissionBindingAuthority, missionBindingSourceContext, type MissionBindingAuthority } from './mission-bindings.ts';
-import { missionProgramHouseSource, type MissionProgram } from './mission-logic.ts';
+import { missionProgramSpatialAudioSource, missionProgramHouseSource, type MissionProgram } from './mission-logic.ts';
 import { missionHouseSourceContext } from './mission-house-source.ts';
-import { assertWorldModel, type WorldModel } from './world-model.ts';
+import { assertWorldModel, createWorldModel, type WorldModel } from './world-model.ts';
 import { WorldSimulation, worldHouseTransferFacts, type WorldSave } from './world.ts';
-import { worldHash, worldInteger, worldRecord, WORLD_LIMITS } from './world-values.ts';
+import { worldHash, worldInteger, worldPosition, worldRecord, WORLD_LIMITS } from './world-values.ts';
+
+import { missionSpatialAudioSourceContext, resolveMissionSpatialAudioInWorld, restoreMissionSpatialAudioWorld, type MissionSpatialAudioTarget } from './mission-spatial-audio-source.ts';
 
 export const MISSION_ACTION_WORLD_POLICY = 'webra2-private-action-world-1' as const;
 /** An opaque one-use handle. Its metadata is not authority when copied. */
@@ -41,32 +43,42 @@ export function createMissionActionWorldContext(input: Readonly<{
   const r = worldRecord(input, ['world', 'bindings', 'checkpoint', 'missionNextTick']);
   if (!isMissionBindingAuthority(r.bindings)) fail('authority');
   const bindings = r.bindings, model = r.world as WorldModel; assertWorldModel(model);
-  const house = missionProgramHouseSource(bindings.program);
-  if (!house || model.ownership !== house || house.bindingsSha256 !== bindings.catalogSha256 ||
-    house.baseWorldSha256 !== bindings.worldSha256) fail('source');
-  const source = missionHouseSourceContext(house).bindings;
+  const house = missionProgramHouseSource(bindings.program), spatial = missionProgramSpatialAudioSource(bindings.program);
+  if ((!house && !spatial) || (model.ownership ?? null) !== house ||
+    (house && (house.bindingsSha256 !== bindings.catalogSha256 || house.baseWorldSha256 !== bindings.worldSha256)) ||
+    (spatial && (spatial.bindingsSha256 !== bindings.catalogSha256 || spatial.baseWorldSha256 !== bindings.worldSha256))) fail('source');
+  const source = house ? missionHouseSourceContext(house).bindings : missionSpatialAudioSourceContext(spatial!).bindings;
+  if (spatial && missionSpatialAudioSourceContext(spatial).bindings !== source) fail('source');
   const original = missionBindingSourceContext(source);
   const limit = worldInteger(workLimit, 0, 16_777_216);
-  const initialWork = house.instructions.length * (source.triggers.length + original.houses.length + house.houses.length + 1) + model.entities.length;
+  const initialWork = (house ? house.instructions.length * (source.triggers.length + original.houses.length + house.houses.length + 1) : 0) + model.entities.length +
+    (spatial ? spatial.instructions.length + model.footprints.reduce((n, p) => n + p.cells.length + 1, 0) : 0);
   if (initialWork > limit) fail('work-limit');
+  if (spatial) {
+    const base = createWorldModel({ contentIdentity: model.contentIdentity, sourceSha256: model.sourceSha256, definitionsSha256: model.definitionsSha256,
+      entities: model.entities, navigation: model.navigation, blocked: model.blocked.map(worldPosition),
+      footprints: model.footprints.map(p => ({ entityId: p.entityId, cells: p.cells.map(worldPosition) })) });
+    if (base.sha256 !== spatial.baseWorldSha256) fail('world-join');
+  }
   const sourceHouses = new Map<string, number>();
-  for (const instruction of house.instructions) if (instruction.kind === 'action') {
+  for (const instruction of house?.instructions ?? []) if (instruction.kind === 'action') {
     // SourceHouse is the first house of Trigger.Type's owner country. It is
     // separate from YR's nullable, event-derived Trigger.House used by8997.
     const trigger = source.triggers.find(t => t.id === instruction.triggerId);
     const first = trigger ? original.houses.find(h => h.country.index === trigger.countryIndex) : undefined;
-    const player = first ? house.houses.find(h => h.houseId === first.id) : undefined;
+    const player = first ? house!.houses.find(h => h.houseId === first.id) : undefined;
     if (!player || instruction.selector.kind === 'current-trigger-house') fail('trigger-house');
     sourceHouses.set(instruction.triggerId, player.playerId);
   }
   const tick = worldInteger(r.missionNextTick, 0, WORLD_LIMITS.tick - 1);
-  const world = WorldSimulation.restore(model, r.checkpoint);
+  const restored = spatial ? restoreMissionSpatialAudioWorld(spatial, model, r.checkpoint as WorldSave, Math.min(8_388_608, limit - initialWork)) : null;
+  const world = restored?.world ?? WorldSimulation.restore(model, r.checkpoint);
   if (world.nextTick !== tick + 1) fail('clock');
   const checkpoint = world.save();
-  const owners = new Map(checkpoint.state.entities.map(e => [e.id, e.owner!]));
+  const owners = new Map(checkpoint.state.entities.map((e, i) => [e.id, house ? e.owner! : model.entities[i]!.owner]));
   const result = Object.freeze({ policy: MISSION_ACTION_WORLD_POLICY, programSha256: bindings.program.sha256,
     worldSha256: model.sha256, fromStateSha256: worldHash(checkpoint), missionNextTick: tick });
-  const data: Owned = { bindings, model, sourceHouses, owners, limit, work: initialWork, state: 'fresh', world };
+  const data: Owned = { bindings, model, sourceHouses, owners, limit, work: initialWork + (restored?.work ?? 0), state: 'fresh', world };
   contexts.set(result, data); return result;
 }
 
@@ -100,6 +112,22 @@ export function missionActionTransfer(context: MissionActionWorldContext, progra
     if (!data.owners.has(entityId)) fail('actor-owner');
     data.owners.set(entityId, result.destinationHouse);
   }
+}
+/** Target selection belongs to the actual action boundary. The returned target
+ * is source/world component data, never a caller-minted trigger invocation. */
+export function missionActionSpatialTarget(context: MissionActionWorldContext, program: MissionProgram,
+  instructionId: string, bindingId: string, triggerId: string): MissionSpatialAudioTarget {
+  const data = owned(context, program, 'running'), spatial = missionProgramSpatialAudioSource(program);
+  if (!spatial) fail('spatial-source');
+  const source = missionSpatialAudioSourceContext(spatial).bindings;
+  charge(data, spatial.instructions.length + data.bindings.bindings.length + source.tags.length + 1);
+  const instruction = spatial.instructions.find(i => i.instructionId === instructionId);
+  const binding = data.bindings.bindings.find(b => b.id === bindingId), tag = source.tags.find(t => t.tagId === binding?.tagId);
+  charge(data, tag?.runtimeChain.length ?? 0);
+  if (!instruction || instruction.triggerId !== triggerId || instruction.status !== 'supported-initial-source' ||
+    !tag?.runtimeChain.includes(triggerId)) fail('spatial-invocation');
+  const resolved = resolveMissionSpatialAudioInWorld(spatial, data.world!, instructionId, Math.min(8_388_608, data.limit - data.work));
+  charge(data, resolved.work); return resolved.target;
 }
 /** The source row proves actor identity; each predicate reads its current owner
  * here, after any earlier action in this exact private invocation. */

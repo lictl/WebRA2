@@ -23,10 +23,14 @@ development target; other browsers come later. Assets remain on-device/read-only
   supports27/27 RA2 and106/116 YR spatial occurrences;8 ramp and2 overlay YR
   occurrences remain gated. Independent Python audit:3,974 comparisons, including
   1,859 raw packed-map/selected-TMP checks and four rehashed roots. Retained model
-  foundations/audio choices remain explicitly reused. No VM99/116 admission or
-  playback yet. Root owns source/resolver, VM/bindings/private context/compound
-  integration, shared build/licensing and this handoff. Reviewer is checking
-  resolver work accounting with longer world histories before source acceptance.
+  foundations/audio choices remain explicitly reused. Ordered VM99/116 target request dispatch now exists; no browser playback yet.
+  Full composition1,444 +14 tests/types/docs/M0/build79/189 passes before the
+  final controller metadata addition. New native controller ledger:52records/
+  50spans/7,980B, independently rechecked; clock/action ordering remains D03. Root owns source/resolver, VM/bindings/private context/compound
+  integration, shared build/licensing and this handoff. Reviewer reproduced the growing-history work gap. It is corrected with bounded
+  descriptor capture/history reservation before standalone restore and a genuine
+  direct world read per action. Root composed worker read seam e4ae23b as3bfb726.
+  Fresh final source dispatch census and exact-head review are next.
 - `mix_reader`: independent spatial source review in
   `local/reviews/mission-spatial-world-236`, followed by separately scoped dynamic
   team/current-owner integration under [#233](https://github.com/lictl/WebRA2/issues/233).

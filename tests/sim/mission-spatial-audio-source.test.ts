@@ -1,36 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Original source/geometry fixtures. No game executable, native saved state or playback.
 import test from 'node:test';
+import { spatialAudioFixture as fixture } from './mission-spatial-audio-fixture.ts';
 import assert from 'node:assert/strict';
-import { missionBindingsFixture } from './mission-bindings-fixture.ts';
-import { audioFixture, planRoots } from '../content/mission-audio.fixture.ts';
-import { compileMissionBindings } from '../../packages/sim/src/mission-bindings.ts';
-import { compileMissionCues } from '../../packages/content/src/mission-cues.ts';
-import { compileMissionAudioPlan } from '../../packages/content/src/mission-audio.ts';
-import { prepareMissionAudioSamples } from '../../packages/content/src/mission-audio-samples.ts';
-import { compileMissionAudioPolicy } from '../../packages/content/src/mission-audio-policy.ts';
 import { compileMissionSpatialAudioSource, isMissionSpatialAudioSource, resolveMissionSpatialAudioTarget } from '../../packages/sim/src/mission-spatial-audio-source.ts';
 import { WorldSimulation } from '../../packages/sim/src/world.ts';
 import { worldHash } from '../../packages/sim/src/world-model.ts';
 
-async function fixture(profile: 'ra2' | 'yr', options: Parameters<typeof missionBindingsFixture>[0] = {}) {
-  const f = missionBindingsFixture({ profile, ...options, extraMap: `[Triggers]
-Start=Blue,<none>,Spatial,0,1,1,1,0
-[Tags]
-Shared=2,Spatial,Start
-[Events]
-Start=1,8,0,0
-[Actions]
-Start=2,99,7,Alert,0,0,0,0,A,116,0,688,0,0,0,0,A
-${options.extraMap ?? ''}` });
-  const bindings = compileMissionBindings(f), source = audioFixture(profile);
-  const cues = compileMissionCues({ profile, spatialAudio: true, mission: { ...f.mission, path: 'original.map' }, strings: null });
-  const plan = compileMissionAudioPlan({ ...source.input, cues });
-  const samples = await prepareMissionAudioSamples(plan, planRoots(plan, source.roots));
-  const audio = compileMissionAudioPolicy({ cues, audio: samples, initialization: 'fresh-process-audio-load' });
-  const input = { bindings, cues, audio }, spatial = compileMissionSpatialAudioSource(input);
-  return { f, input, spatial, model: f.world.model };
-}
+
 const objects = (health = 256, duplicate = false) => ({
   infantryRows: '', extraRules: '[BuildingTypes]\n0=Hub\n[TerrainTypes]\n0=Tree\n[Hub]\nStrength=100\n[Tree]\nName=Original\n',
   extraArt: '[Hub]\nFoundation=1x1\n[Tree]\nFoundation=1x1\n',
