@@ -129,3 +129,11 @@ The compound adapter supplies actual private requests and publishes the saved
 state with the world. The [controller assessment](../../docs/mission-spatial-controller.md)
 distinguishes inspected native behavior from the chosen resume/update phase.
 No native save bytes, mixer implementation or retail sample is included.
+
+The fixed-actor owned-team compound integration, bounded team restoration/admission
+wrappers, and original integration tests are GPL-3.0-or-later WebRA2 work. They
+compose the previously reviewed ownership, team, event and spatial policies at the
+actual VM action boundary. They add no native semantic finding or imported code.
+The [integration report](../../docs/mission-owned-teams.md) records the D03 phase,
+source gates, atomic publication and saved-state behavior. Unsupported constructors,
+tagged recruitment and source mission-state branches remain explicit requirements.
