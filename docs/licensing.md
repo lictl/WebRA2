@@ -379,3 +379,10 @@ GPL-3.0-or-later. Its [allocation notice](../packages/sim/MISSION_TEAM_ALLOCATIO
 is included byte-for-byte in the code-only development build. It adds no dependency
 and does not grant native AI or campaign execution authority. Native listings,
 retail names and rule/mission rows are absent from the distribution.
+
+The mission sound/EVA typed source-policy catalog and original fixtures are
+GPL-3.0-or-later WebRA2 code. Distribution includes the
+[source-policy notice](../packages/content/MISSION_AUDIO_POLICY_PROVENANCE.md),
+GPL text and corresponding source. It composes existing cue/audio and numeric
+components, adds no dependency, and includes no retail waveform, native listing
+or binary table. Source readiness does not authorize playback or campaign start.
