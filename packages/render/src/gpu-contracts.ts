@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2026 WebRA2 contributors. Presentation-only GPU experiment contracts.
 import type { TerrainViewport } from './terrain-scene.ts';
+import type { SpriteObject } from './sprite-layer.ts';
 
 export const GPU_SCENE_POLICY = 'webra2-gpu-scene-1' as const;
 export const GPU_PREPARE_LIMITS = Object.freeze({ rasters: 8192, rasterPixels: 16 * 1024 * 1024,
@@ -78,4 +79,36 @@ export interface GpuRendererStats {
   readonly requestedGpuBytes: number;
   readonly peakRequestedGpuBytes: number;
   readonly ownedCpuBytes: number;
+}
+
+
+export const GPU_SCENE_TRANSFER_POLICY = 'webra2-gpu-scene-transfer-1' as const;
+export const GPU_TRANSFER_LIMITS = Object.freeze({ ...GPU_PREPARE_LIMITS, objects: 32768,
+  stringBytes: 64 * 1024 * 1024, work: 64 * 1024 * 1024 });
+export type GpuTransferLimits = { -readonly [K in keyof typeof GPU_TRANSFER_LIMITS]: number };
+export interface GpuTerrainGroup {
+  readonly left: number; readonly top: number; readonly right: number; readonly bottom: number;
+  readonly pieces: readonly Readonly<{ x: number; y: number; rasterId: number }>[];
+}
+export interface GpuTerrainPlacement {
+  readonly sourceRecord: number; readonly x: number; readonly y: number; readonly assetId: string; readonly subtile: number;
+  readonly left: number; readonly top: number; readonly groundY: number; readonly group: number;
+}
+export interface GpuSpriteResource {
+  readonly frameId: string; readonly paletteId: string; readonly rowStep: 0 | 1; readonly rasterId: number;
+  readonly assetId: string; readonly frame: number; readonly canvasWidth: number; readonly canvasHeight: number;
+  readonly rectangle: Readonly<{ x: number; y: number; width: number; height: number }>;
+}
+/** Detached structured-clone packet. Validation grants presentation ownership only, never source/gameplay authority. */
+export interface GpuSceneTransfer {
+  readonly schemaVersion: 1;
+  readonly policy: typeof GPU_SCENE_TRANSFER_POLICY;
+  readonly scenePolicy: typeof GPU_SCENE_POLICY;
+  readonly limits: Readonly<GpuPrepareLimits>;
+  readonly spriteObjectLimit: number | null;
+  readonly rasters: readonly GpuRasterData[];
+  readonly terrainGroups: readonly GpuTerrainGroup[];
+  readonly terrain: readonly GpuTerrainPlacement[];
+  readonly spriteResources: readonly GpuSpriteResource[];
+  readonly objects: readonly SpriteObject[];
 }

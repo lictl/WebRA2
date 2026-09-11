@@ -90,6 +90,7 @@ test('verified ready groups draw owned pixels; missing and conditional groups ne
     const f=await fixture(conditional,missing),baseScene:ViewportScene={render(v){return base(v.width,v.height);}};
     const result=createVoxelWorldViewport(baseScene,f.terrain,f.i.objects,f.still.artwork,f.plan,f.preview,null);assert.ok(validVoxelSummary(result.artwork.voxel));
     assert.equal(result.artwork.rendered,conditional||missing?0:1);assert.equal(result.artwork.unavailable,conditional||missing?1:0);
+    assert.equal(result.scene.gpu,undefined);assert.equal(result.scene.gpuRefusal,conditional||missing?'scene-unavailable':'voxel-layer');
     const frame=result.scene.render(view),picks=Array.from({length:view.width*view.height},(_,n)=>frame.pick(n%view.width,Math.floor(n/view.width))).filter(p=>p?.kind==='object');
     assert.equal(picks.length>0,!conditional&&!missing);
     if(!conditional&&!missing){assert.equal(result.artwork.rows[0]!.format,'voxel');assert.equal(result.artwork.rows[0]!.status,'ready');const before=sha(frame.rgba);f.preview.assets.forEach(a=>a.bytes.fill(0));f.preview.palettes.forEach(p=>p.rgba.fill(0));assert.equal(sha(result.scene.render(view).rgba),before);}

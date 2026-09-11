@@ -29,11 +29,11 @@ test('mounted busy controls stay disabled; the canvas Stop refusal stays readabl
     globalThis.document={createElement(){return new Element();},hidden:false,addEventListener(){},removeEventListener(){}};
     globalThis.setInterval=()=>0; // The test explicitly releases every worker tick.
     const {mountWorld}=await import(pathToFileURL(output).href),fixture=await runningFixture();c=fixture.controller;
-    unmount=mountWorld(new Element(),c);const w=fixture.workers[0],canvas=nodes.get('#terrain-canvas'),notice=nodes.get('#world-notice');
+    const viewRoot=new Element();unmount=mountWorld(viewRoot,c);const w=fixture.workers[0],canvas=viewRoot.querySelector('#terrain-canvas'),notice=nodes.get('#world-notice');
     c.setRunning(true);w.holdType='world-step';const pending=c.step();
     for(const id of ['move','stop'])assert.equal(nodes.get('#world-'+id).disabled,true);
     assert.equal(nodes.get('#world-run').disabled,false);assert.equal(nodes.get('#world-x').disabled,false);
-    const sent=w.sent.length;canvas.handlers.keydown({key:'s',target:canvas,ctrlKey:false,metaKey:false,altKey:false,repeat:false,preventDefault(){}});
+    const sent=w.sent.length;viewRoot.handlers.keydown({key:'s',target:canvas,ctrlKey:false,metaKey:false,altKey:false,repeat:false,preventDefault(){}});
     assert.equal(w.sent.length,sent);assert.equal(notice.textContent,worldText('en','worldControlsBusy'));
     w.release();await pending;await c.step();assert.equal(notice.textContent,worldText('en','worldControlsBusy'));
     c.setLocale('zh-Hant');assert.equal(notice.textContent,worldText('zh-Hant','worldControlsBusy'));
