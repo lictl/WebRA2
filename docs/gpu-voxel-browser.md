@@ -234,7 +234,7 @@ paired22.7→17.9ms result is the narrower observed capture improvement.
 
 The controlled4227 instrumented1,024-group medians are8.5ms bounds/count,6.0ms
 capture,4.4ms allowance,2.5ms composition and2.3ms prefix/fill. Independent medians
-must not be summed. Changed-frame cadence using the retained path is the next gate;
+must not be summed. Changed-frame cadence using the retained path is the following gate;
 these preparation samples alone establish neither60FPS nor product readiness.
 
 Private `layout-1/` has manifest SHA
@@ -245,3 +245,42 @@ the same-bundle Node control is
 `18502fa91ec6e3a2c0a7e60bef7c7c345a1131c20e64f895f0aa28354bc7090a`.
 The unchanged4227 native-repeat SHA is
 `5da242b3484076c05905e978b7ec01955c001333a728e439ce0bbbde10daa4d8`.
+
+## Native-selected captured cadence
+
+Source `0cf57255df48e4bab3956eb9a4ece4652e72a3d5` changes the original cadence
+caller to retain the genuine layout and write a reused caller matrix plane. The
+factory still owns a fresh copy; frame preparation is timed including the caller's
+matrix writes. Cold layout/caller storage are recorded separately. The unchanged
+shader45-case checks pass with the same reported differences above. Source/tool
+validation passes26 focused checks, including exact changing-plane values and
+cancellation cleanup. No simulation or user content enters this experiment.
+
+Three short2s/8s probes explicitly verify the native4229 tab and press its native
+Run button. All2,755 issued frame receipts eventually complete, with peak ring2/3/2,
+no skips/disjoint queries and zero owned/requested bytes reported after disposal.
+
+| Groups | Submitted / observed in window | Observed/s | Minimum full-second observed | Gap p95 / p99 ms | Gaps >16.667ms | Prepare median / p95 ms | GPU median ms |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+|64|966 /965|120.625|120|16.1 /16.8|13|1.4 /8.3|1.920|
+|256|908 /906|113.250|112|19.8 /20.9|56|4.7 /16.7|2.856|
+|1,024|337 /336|42.000|41|39.8 /41.0|336|18.8 /37.2|5.818|
+
+The1,024-group workload still fails60FPS under these controlled conditions; long
+failing runs remain deferred. The smaller rows exceed60 observed completions/s in
+these short windows but do not establish sustained performance or every-frame
+deadlines. Exact retained basis/geometry reuse is the next bounded optimization;
+policy, matrices, clips, ordering and error/limit behavior must remain equivalent.
+Fifteen sampled complete packets, including every final frame, equal the scalar
+reference and each recorded allocation ledger. This does not check every timed
+packet or imply exact CPU-f32 shader depth parity.
+
+Private `captured-1/` manifest is
+`6028291f0f592fd9405ae745e3673d1046b605453a6b6e907e291d17dcd82e01`;
+all70 disk/HTTP outputs and16 inputs verify with product headers. Raw probe hashes:
+
+| Groups | SHA256 |
+| --- | --- |
+|64|`9d3ce3b39b292eeeabc4b15c709d60fbd5a96ae5d8e014be3e0ae008332bd09b`|
+|256|`52769225033f2d1b168b7267a54609b6698d409c52719fc5dc9f0bdb741963f8`|
+|1,024|`4efe4319e74c707006fd870f0eb14da321cb8e044a9434542e905e6a029fcc35`|
