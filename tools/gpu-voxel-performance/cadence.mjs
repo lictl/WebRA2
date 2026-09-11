@@ -3,7 +3,7 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import { bytesToHex } from '@noble/hashes/utils.js';
 import { gpuVoxelWorkload } from '../../tests/render/gpu-voxel-fixtures.ts';
-import { createGpuVoxelInstanceLayout, prepareGpuVoxelLayoutFrame } from '../../packages/render/src/gpu-voxel-policy.ts';
+import { createGpuVoxelInstanceLayout, prepareGpuVoxelLayoutFrame, gpuVoxelLayoutStats } from '../../packages/render/src/gpu-voxel-policy.ts';
 import { GpuVoxelRenderer } from '../../packages/render/src/gpu-voxel-renderer.ts';
 import { GpuTiming } from '../gpu-performance/gpu-timing.mjs';
 const hash=a=>bytesToHex(sha256(new Uint8Array(a.buffer,a.byteOffset,a.byteLength)));
@@ -38,6 +38,6 @@ export async function runVoxelCadence({canvas,gl,token,report,check,status,optio
   report.summary=summarizeCadence(frames,completed,measuredStart,measuredEnd,opportunities);report.summary.ringPeak=timing.peak;report.summary.skipped=timing.skipped;report.summary.disjoint=timing.disjoint;report.summary.pendingAtEnd=timing.pending.length;
   const ids=new Set(completed.filter(v=>v.id>0).map(v=>v.id));if(ids.size!==frames.length||frames.some(v=>!ids.has(v.id)))throw Error('Receipt ledger mismatch');
   // Full final planes are deliberately after the measured window and complete fence drain.
-  const pixels=renderer.readback();report.finalHashes={rgba:hash(pixels.rgba),owner:hash(pixels.owner),depth:hash(pixels.depth)};report.finalAllocations=lastFrame.allocations;report.stats=renderer.stats();report.verified=true;
+  const pixels=renderer.readback();report.finalHashes={rgba:hash(pixels.rgba),owner:hash(pixels.owner),depth:hash(pixels.depth)};report.finalAllocations=lastFrame.allocations;report.layoutReuseStats=gpuVoxelLayoutStats(layout);report.stats=renderer.stats();report.verified=true;
  }finally{token.abort=null;if(rafId!==null)cancelAnimationFrame(rafId);timing?.dispose();renderer.dispose();report.disposed=renderer.stats();}
 }
