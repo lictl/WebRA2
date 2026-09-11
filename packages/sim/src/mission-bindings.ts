@@ -4,6 +4,7 @@ import type { MissionAudioPolicyCatalog } from '../../content/src/mission-audio-
 import { isMissionCellEntrySource, missionCellEntrySourceBindings, type MissionCellEntrySource } from './mission-cell-entry-source.ts';
 import { isMissionObjectEventSource, missionObjectEventSourceBindings, type MissionObjectEventSource } from './mission-object-event-source.ts';
 import { isMissionTeamActionSource, missionTeamActionSourceContext, type MissionTeamActionSource } from './mission-team-action-source.ts';
+import { isMissionHouseSource, missionHouseSourceContext, type MissionHouseSource } from './mission-house-source.ts';
 import type { MissionCueCatalog } from '../../content/src/mission-cues.ts';
 import { sha256 } from '@noble/hashes/sha2.js';
 import type { ProfileId } from '../../contracts/src/index.ts';
@@ -227,13 +228,19 @@ export function compileMissionBindings(input:MissionBindingsInput,options:Partia
 }
 
 /** No caller-supplied bindings or flags are promoted to authority. This does not start or step a VM. */
-export async function prepareMissionBindings(catalog:MissionBindingCatalog,cues?:MissionCueCatalog,cells?:MissionCellEntrySource,objects?:MissionObjectEventSource,teams?:MissionTeamActionSource,audio?:MissionAudioPolicyCatalog):Promise<MissionBindingPreparation>{
+export async function prepareMissionBindings(catalog:MissionBindingCatalog,cues?:MissionCueCatalog,cells?:MissionCellEntrySource,objects?:MissionObjectEventSource,teams?:MissionTeamActionSource,audio?:MissionAudioPolicyCatalog,options?:Readonly<{houseSource:MissionHouseSource}>):Promise<MissionBindingPreparation>{
   const state=catalogs.get(catalog);if(!state)fail('catalog');
+  let houseSource:MissionHouseSource|undefined;
+  if(options!==undefined){
+    exact(options,['houseSource']);const descriptor=Object.getOwnPropertyDescriptor(options,'houseSource');
+    if(!descriptor||!('value'in descriptor)||!isMissionHouseSource(descriptor.value)||missionHouseSourceContext(descriptor.value).bindings!==catalog)fail('house-source');
+    houseSource=descriptor.value;
+  }
   if(cells!==undefined&&(!isMissionCellEntrySource(cells)||missionCellEntrySourceBindings(cells)!==catalog))fail('cell-source');
   if(objects!==undefined&&(!isMissionObjectEventSource(objects)||missionObjectEventSourceBindings(objects)!==catalog))fail('object-source');
   if(teams!==undefined&&(!isMissionTeamActionSource(teams)||missionTeamActionSourceContext(teams).bindings!==catalog))fail('team-source');
   let compilation:MissionCompilation|null=null;const diagnostics=catalog.diagnostics.map(d=>`catalog:${d.code}`);
-  try{compilation=await compileMissionProgram(state.logic,{contentIdentity:state.world.model.contentIdentity,difficulty:catalog.difficulty,timingPolicy:MISSION_TIMING_POLICY},async b=>hash(b),cues,cells,objects,teams,audio);}
+  try{compilation=await compileMissionProgram(state.logic,{contentIdentity:state.world.model.contentIdentity,difficulty:catalog.difficulty,timingPolicy:MISSION_TIMING_POLICY,...(houseSource?{houseSource}:{})},async b=>hash(b),cues,cells,objects,teams,audio);}
   catch(e){if(e instanceof MissionLogicError)diagnostics.push(`vm:${e.code}`);else throw e;}
   if(compilation?.diagnostics.length)diagnostics.push('vm:whole-program-unsupported');
   const bindings=catalog.tags.filter(t=>t.allocated).map(t=>({id:t.id,tagId:t.tagId,attachmentIds:t.dispatchAttachmentIds}));

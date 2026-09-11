@@ -386,3 +386,11 @@ GPL-3.0-or-later WebRA2 code. Distribution includes the
 GPL text and corresponding source. It composes existing cue/audio and numeric
 components, adds no dependency, and includes no retail waveform, native listing
 or binary table. Source readiness does not authorize playback or campaign start.
+
+
+The optional current-house ledger and source-ordered mission/world context are
+original GPL-3.0-or-later components. Distribution includes the
+[house notice](../packages/sim/MISSION_HOUSE_PROVENANCE.md), existing mission/world
+notices, corresponding source and build scripts. The
+[dispatch checkpoint](mission-house-dispatch.md) separates native source facts
+from WebRA2 transaction policy; no native listings or original mission data ship.

@@ -8,6 +8,9 @@ import { isMissionCellEntrySource, missionCellEntrySourceBindings, type MissionC
 import { isMissionObjectEventSource, missionObjectEventSourceBindings, type MissionObjectEventSource, type MissionObjectEventOpcode } from './mission-object-event-source.ts';
 import { isMissionTeamActionSource, missionTeamActionSourceContext, type MissionTeamActionSource } from './mission-team-action-source.ts';
 import { missionTeamCellContextData } from './mission-team-cell-context.ts';
+import { isMissionHouseSource, missionHouseSourceContext, type MissionHouseSource } from './mission-house-source.ts';
+import { beginMissionActionWorld, abortMissionActionWorld, finishMissionActionWorld, missionActionPopulation,
+  missionActionTransfer, type MissionActionWorldContext } from './mission-action-world-context.ts';
 import type { MissionTeamCellContext, MissionTeamCellActor } from './mission-team-cell-types.ts';
 import { canonicalHash, canonicalText, parseJson } from './canonical.ts';
 import { identity as contentIdentity } from './validation.ts';
@@ -15,6 +18,7 @@ import type { Digest } from './types.ts';
 
 export const MISSION_LOGIC_POLICY = 'webra2-mission-poll-2' as const;
 export const MISSION_AUDIO_DISPATCH_POLICY = 'webra2-source-audio-dispatch-1' as const;
+export const MISSION_HOUSE_DISPATCH_POLICY = 'webra2-source-house-dispatch-1' as const;
 export const MISSION_CUE_DISPATCH_POLICY = 'webra2-source-cue-dispatch-1' as const;
 export const MISSION_CELL_ENTRY_DISPATCH_POLICY = 'webra2-source-cell-entry-dispatch-1' as const;
 export const MISSION_OBJECT_EVENT_DISPATCH_POLICY = 'webra2-source-object-event-dispatch-1' as const;
@@ -38,6 +42,7 @@ export interface MissionCoverage {
 export interface MissionProgramOptions {
   readonly contentIdentity: ContentIdentity; readonly difficulty: 0 | 1 | 2;
   readonly timingPolicy: typeof MISSION_TIMING_POLICY;
+  readonly houseSource?: MissionHouseSource;
 }
 export interface MissionProgram {
   readonly schemaVersion: 1; readonly policy: typeof MISSION_LOGIC_POLICY;
@@ -45,6 +50,7 @@ export interface MissionProgram {
   readonly contentIdentity: ContentIdentity; readonly source: { readonly id: string; readonly profile: string; readonly sha256: string };
   readonly cueCatalogSha256?: string; readonly cellEntrySourceSha256?: string; readonly objectEventSourceSha256?: string;
   readonly teamActionSourceSha256?: string; readonly audioPolicySha256?: string;
+  readonly houseSourceSha256?: string;
   readonly sha256: string; readonly triggers: readonly Trigger[]; readonly tags: readonly Tag[];
   readonly canStartCampaign: false; readonly nativeBehaviorVerified: false;
 }
@@ -93,6 +99,8 @@ function freeze<T>(value: T): T {
 }
 function digestString(v: unknown): string { if (typeof v !== 'string' || !/^[a-f0-9]{64}$/.test(v)) fail('mission-hash'); return v; }
 const programs = new WeakSet<object>();
+const programHouses = new WeakMap<MissionProgram, MissionHouseSource>();
+export function missionProgramHouseSource(value: MissionProgram): MissionHouseSource | null { program(value); return programHouses.get(value) ?? null; }
 const programAudio = new WeakMap<MissionProgram, MissionAudioPolicyCatalog>();
 export function missionProgramAudioPolicy(value: MissionProgram): MissionAudioPolicyCatalog | null { program(value); return programAudio.get(value) ?? null; }
 const programCues = new WeakMap<MissionProgram, MissionCueCatalog>();
@@ -109,6 +117,8 @@ function program(value: MissionProgram): void { if (!programs.has(value)) fail('
 const eventCodes = new Set([0, 8, 13, 14, 27, 28, 36, 37, 47]);
 const objectEventCodes = new Set([6, 7, 44, 48]);
 const teamActionCodes = new Set([4, 7, 80]);
+const houseEventCodes = new Set([9, 10, 11]);
+const houseActionCodes = new Set([14, 36]);
 const actionCodes = new Set([0, 1, 2, 12, 22, 23, 24, 25, 26, 27, 28, 29, 53, 54, 56, 57]);
 function numberToken(value: string, min: number, max: number): number | null {
   if (!/^-?(?:0|[1-9][0-9]{0,9})$/.test(value)) return null;
@@ -141,13 +151,25 @@ function sameTeamDeclaration(value: unknown, source: unknown): boolean {
 /** Accepts compiler data, not retail execution closure. Caller authenticates its source/content identities. */
 export async function compileMissionProgram(logic: ScenarioLogic, options: MissionProgramOptions, digest: Digest, cues?: MissionCueCatalog, cells?: MissionCellEntrySource, objects?: MissionObjectEventSource, teams?: MissionTeamActionSource, audio?: MissionAudioPolicyCatalog): Promise<MissionCompilation> {
   // Select data through descriptors before any await. Do not clone the compiler's full retained INI/raw payload.
-  const config = exact(clone(options), ['contentIdentity', 'difficulty', 'timingPolicy']);
+  // Retain a genuine optional source without cloning it into caller metadata.
+  // Capture each descriptor once before the asynchronous digest boundary.
+  const optionKeys = Reflect.ownKeys(record(options));
+  const hasHouses = optionKeys.includes('houseSource');
+  const allowedOptions = ['contentIdentity', 'difficulty', 'timingPolicy', ...(hasHouses ? ['houseSource'] : [])];
+  if (optionKeys.length !== allowedOptions.length || optionKeys.some(k => typeof k !== 'string' || !allowedOptions.includes(k))) fail('mission-fields');
+  const ownedOptions = Object.fromEntries(allowedOptions.map(k => [k, field(options, k)]));
+  const houses = hasHouses ? ownedOptions.houseSource as MissionHouseSource : undefined;
+  if (hasHouses && !isMissionHouseSource(houses)) fail('mission-house-source');
+  const config = clone({ contentIdentity: ownedOptions.contentIdentity, difficulty: ownedOptions.difficulty, timingPolicy: ownedOptions.timingPolicy });
   const content = contentIdentity(config.contentIdentity), difficulty = integer(config.difficulty, 0, 2);
   if (config.timingPolicy !== MISSION_TIMING_POLICY || field(logic, 'policy') !== 'webra2-logic-1' || field(logic, 'schemaVersion') !== 1 || field(logic, 'newINIFormat') !== 4) fail('mission-version');
   if (field(logic, 'profile') !== content.profile) fail('mission-profile');
   const inputSource = field(logic, 'source');
   const source = { id: text(field(inputSource, 'id')), profile: text(field(inputSource, 'profile')), sha256: digestString(field(inputSource, 'sha256')) };
   if (source.profile !== content.profile) fail('mission-profile');
+  if (houses && (houses.profile !== source.profile || houses.source.id !== source.id || houses.source.sha256 !== source.sha256 ||
+    canonicalText(missionHouseSourceContext(houses).bindings.rules) !== canonicalText(missionHouseSourceContext(houses).rules.layers))) fail('mission-house-source');
+  const houseInstructions = new Map(houses?.instructions.map(i => [i.instructionId, i])), selectedHouses = new Set<string>();
   if (cues !== undefined && (!isMissionCueCatalog(cues) || cues.profile !== source.profile || cues.source.sha256 !== source.sha256)) fail('mission-cue-source');
   if (cells !== undefined && (!isMissionCellEntrySource(cells) || cells.profile !== source.profile ||
     missionCellEntrySourceBindings(cells).source.sha256 !== source.sha256)) fail('mission-cell-source');
@@ -203,6 +225,14 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
     const predicates: Predicate[] = [];
     for (const e of eventRow?.values ?? []) {
       const p = e.parameters;
+      if (houses && houseEventCodes.has(e.opcode)) {
+        selectedHouses.add(e.id); const reference = houseInstructions.get(e.id);
+        if (!reference || reference.kind !== 'event' || reference.triggerId !== id || reference.opcode !== e.opcode ||
+          reference.status !== 'supported-source' || canonicalText(reference.parameters) !== canonicalText(p)) {
+          diagnostic('unsupported-house-event-source', e.id); continue;
+        }
+        predicates.push({ id: e.id, opcode: e.opcode, argument: 0 }); accepted('event', e.opcode); continue;
+      }
       if (objects && objectEventCodes.has(e.opcode)) {
         selectedObjects.add(e.id); const reference = objectEvents.get(e.id);
         if (!reference || reference.triggerId !== id || reference.opcode !== e.opcode || reference.status !== 'supported' || canonicalText(reference.parameters) !== canonicalText(p)) {
@@ -232,6 +262,16 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
     const effects: Action[] = [];
     for (const a of actionRow?.values ?? []) {
       const p = a.parameters;
+      if (houses && houseActionCodes.has(a.opcode)) {
+        selectedHouses.add(a.id); const reference = houseInstructions.get(a.id);
+        if (!reference || reference.kind !== 'action' || reference.triggerId !== id || reference.opcode !== a.opcode ||
+          reference.status !== 'supported-source' || canonicalText(reference.parameters) !== canonicalText(p)) {
+          diagnostic('unsupported-house-action-source', a.id); continue;
+        }
+        // YR8997 needs saved event-derived Trigger.House state, not the type owner.
+        if (reference.selector.kind === 'current-trigger-house') { diagnostic('unsupported-current-trigger-house', a.id); continue; }
+        effects.push({ id: a.id, opcode: a.opcode, argument: 0, target: null }); accepted('action', a.opcode); continue;
+      }
       if (teams && teamActionCodes.has(a.opcode)) {
         const selected = teamActions.get(a.id); selectedTeams.add(a.id);
         if (!selected || selected.triggerId !== id || selected.opcode !== a.opcode || selected.status !== 'supported-source' ||
@@ -332,6 +372,10 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
   }
   if (cues) for (const cue of cues.instructions) if (!selectedCues.has(cue.id)) diagnostic('unhandled-source-cue', cue.id);
   if (audio) for (const binding of audio.bindings) if (audioCodes.has(binding.opcode) && !selectedAudio.has(binding.instructionId)) diagnostic('unhandled-source-audio', binding.instructionId);
+  if (houses) {
+    for (const instruction of houses.instructions) if (!selectedHouses.has(instruction.instructionId)) diagnostic('unhandled-source-house', instruction.instructionId);
+    if (houses.diagnostics.length || !houses.initialPopulationTypesSupported) diagnostic('unsupported-house-source-catalog', '');
+  }
   const report = { policy: MISSION_LOGIC_POLICY, timingPolicy: MISSION_TIMING_POLICY, source, contentIdentity: content, difficulty,
     canStartCampaign: false as const, nativeBehaviorVerified: false as const,
     coverage: [...coverage.values()].sort((a, b) => compare(a.namespace, b.namespace) || a.opcode - b.opcode), diagnostics };
@@ -341,6 +385,7 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
   const payload = freeze({ schemaVersion: 1 as const, policy: MISSION_LOGIC_POLICY, timingPolicy: MISSION_TIMING_POLICY,
     difficulty, contentIdentity: content, source, triggers, tags, compilerPolicy: 'webra2-logic-1', iniPolicy: 'webra2-ini-1',
     operandRows: { events: eventRows, actions: actionRows },
+    ...(houses ? { houseSourceSha256: houses.sha256, houseDispatchPolicy: MISSION_HOUSE_DISPATCH_POLICY } : {}),
     ...(audio ? { audioPolicySha256: audio.sha256, audioDispatchPolicy: MISSION_AUDIO_DISPATCH_POLICY } : {}),
     ...(cues ? { cueCatalogSha256: cues.sha256, cueDispatchPolicy: MISSION_CUE_DISPATCH_POLICY } : {}),
     ...(cells ? { cellEntrySourceSha256: cells.sha256, cellEntryDispatchPolicy: MISSION_CELL_ENTRY_DISPATCH_POLICY } : {}),
@@ -349,10 +394,12 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
   const sha256 = await canonicalHash(payload, digest);
   const result: MissionProgram = freeze({ schemaVersion: 1, policy: MISSION_LOGIC_POLICY, timingPolicy: MISSION_TIMING_POLICY,
     difficulty, contentIdentity: content, source, sha256, triggers, tags, canStartCampaign: false, nativeBehaviorVerified: false,
+    ...(houses ? { houseSourceSha256: houses.sha256 } : {}),
     ...(audio ? { audioPolicySha256: audio.sha256 } : {}),
     ...(cues ? { cueCatalogSha256: cues.sha256 } : {}), ...(cells ? { cellEntrySourceSha256: cells.sha256 } : {}),
     ...(objects ? { objectEventSourceSha256: objects.sha256 } : {}), ...(teams ? { teamActionSourceSha256: teams.sha256 } : {}) });
   if (audio) programAudio.set(result, audio);
+  if (houses) programHouses.set(result, houses);
   if (teams) programTeams.set(result, teams);
   programs.add(result); if (cells) programCells.set(result, cells); if (objects) programObjects.set(result, objects); if (cues) programCues.set(result, cues); return freeze({ ...report, program: result, canExecuteTriggerSubset: true });
 }
@@ -372,7 +419,7 @@ type TriggerState = { id: string; enabled: boolean; destroyed: boolean; deleted:
 type BindingState = { id: string; tagId: string; attachmentIds: string[]; active: boolean; triggers: TriggerState[] };
 export interface MissionEffect {
   readonly order: number; readonly tick: number; readonly bindingId: string; readonly triggerId: string;
-  readonly instructionId: string; readonly opcode: number; readonly kind: 'action' | 'input' | 'outcome-request' | 'presentation-request' | 'audio-request' | 'team-request';
+  readonly instructionId: string; readonly opcode: number; readonly kind: 'action' | 'input' | 'outcome-request' | 'presentation-request' | 'audio-request' | 'team-request' | 'house-transfer';
   readonly value: number | boolean | null; readonly target: string | null;
 }
 type Outcome = { order: number; tick: number; opcode: 1 | 2; countryIndex: number };
@@ -496,6 +543,17 @@ export class MissionLogic {
     canonicalText(candidate); this.#state = candidate;
   }
   step(ticks = 1): { nextTick: number; effects: MissionEffect[]; work: number } { return this.#step(ticks); }
+  /** One source-ordered poll against an owned private candidate. Both outputs are
+   * rolled back on failure; this does not accept externally fabricated effects. */
+  stepWorldContext(context: MissionActionWorldContext) {
+    const prior = this.#state;
+    try {
+      beginMissionActionWorld(context, this.#program, prior.nextTick);
+      const polled = this.#step(1, undefined, undefined, undefined, context);
+      const result = finishMissionActionWorld(context, this.#program);
+      return { ...polled, world: result.world, worldWork: result.work };
+    } catch (error) { this.#state = prior; abortMissionActionWorld(context, this.#program); throw error; }
+  }
   /** One source-enabled VM tick with explicit data observations, not proof of world movement. */
   stepCellEntries(entries: readonly MissionCellEntryObservation[]): { nextTick: number; effects: MissionEffect[]; work: number } {
     if (!programCells.has(this.#program)) fail('mission-cell-source'); return this.#step(1, entries);
@@ -511,7 +569,8 @@ export class MissionLogic {
   stepObjectEvents(events: readonly MissionObjectEventObservation[], cells: readonly MissionCellEntryObservation[] = []): { nextTick: number; effects: MissionEffect[]; work: number } {
     if (!programObjects.has(this.#program)) fail('mission-object-source'); return this.#step(1, cells, events);
   }
-  #step(ticks = 1, cellObservations?: readonly MissionCellEntryObservation[], objectObservations?: readonly MissionObjectEventObservation[], cellActors?: readonly MissionTeamCellActor[]): { nextTick: number; effects: MissionEffect[]; work: number } {
+  #step(ticks = 1, cellObservations?: readonly MissionCellEntryObservation[], objectObservations?: readonly MissionObjectEventObservation[], cellActors?: readonly MissionTeamCellActor[], worldContext?: MissionActionWorldContext): { nextTick: number; effects: MissionEffect[]; work: number } {
+    if (programHouses.has(this.#program) && !worldContext) fail('mission-world-context-required');
     integer(ticks, 1, C.stepTicks); if (ticks > C.tick - this.#state.nextTick) fail('mission-tick-limit');
     const state = clone(this.#state), p = this.#program, effects: MissionEffect[] = [];
     const definitions = new Map(p.triggers.map(t => [t.id, t])), tags = new Map(p.tags.map(t => [t.id, t]));
@@ -559,6 +618,9 @@ export class MissionLogic {
     function evaluate(e: Predicate, t: TriggerState, entry: Entry | null, callback: Callback | null): boolean {
       visit();
       switch (e.opcode) {
+        case 9: case 10: case 11:
+          if (!worldContext) return fail('mission-world-context-required');
+          return missionActionPopulation(worldContext, p, e.id);
         case 0: return false;
         case 1: {
           const reference = cellEvents.get(e.id); if (!reference) return fail('mission-cell-source');
@@ -602,6 +664,10 @@ export class MissionLogic {
         // Eligibility is checked at entry only. Disable/delete inside an action list does not truncate this retained list.
         const a = definition.actions[frame.at++]!;
         visit(); let value: MissionEffect['value'] = a.argument, target = a.target;
+        if (programHouses.has(p) && houseActionCodes.has(a.opcode)) {
+          if (!worldContext) fail('mission-world-context-required');
+          missionActionTransfer(worldContext, p, a.id, b.id, t.id);
+        }
         if (a.opcode === 28 || a.opcode === 29 || a.opcode === 56 || a.opcode === 57) {
           const kind = a.opcode < 56 ? 'global' : 'local'; value = a.opcode === 28 || a.opcode === 56;
           setFlag(kind, a.argument, value); target = `${kind}:${a.argument}`;
@@ -627,7 +693,7 @@ export class MissionLogic {
           }
           value = timerRemaining(state.timer, state.nextTick);
         }
-        const kind = a.opcode === 1 || a.opcode === 2 ? 'outcome-request' : cueCodes.has(a.opcode) ? 'presentation-request' : audioCodes.has(a.opcode) ? 'audio-request' : teamActionCodes.has(a.opcode) ? 'team-request' : 'action';
+        const kind = a.opcode === 1 || a.opcode === 2 ? 'outcome-request' : programHouses.has(p) && houseActionCodes.has(a.opcode) ? 'house-transfer' : cueCodes.has(a.opcode) ? 'presentation-request' : audioCodes.has(a.opcode) ? 'audio-request' : teamActionCodes.has(a.opcode) ? 'team-request' : 'action';
         const order = emit({ bindingId: b.id, triggerId: t.id, instructionId: a.id, opcode: a.opcode, kind, value, target });
         if (a.opcode === 1 || a.opcode === 2) state.lastOutcomeRequest = { order, tick: state.nextTick, opcode: a.opcode, countryIndex: a.argument };
         if (a.opcode === 22) push({ kind: 'force', targets: targets.get(a.target!) ?? [], at: 0 });
