@@ -1,0 +1,284 @@
+{
+  "schemaVersion": 1,
+  "scope": "Private on-device original source preparation and bounded owned unit construction. No whole mission, native execution, browser or unbounded replay claim.",
+  "runtimeCodeCommit": "6470e2cfc1fe72924ab06745eca1798ce7db2171",
+  "selectedCatalogFiles": 438,
+  "profiles": [
+    {
+      "source": {
+        "profile": "ra2",
+        "missionSha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+        "bindingsSha256": "5e602be74dbff27ae16a2bbb618df3244e2bc80a10cfe658039168016c2f6a60",
+        "sourceSha256": "0435c10a981b90bab1567aa3ef131f61febd80f6af910005461495b30c73beaa",
+        "actions": 75,
+        "supportedActions": 12,
+        "programs": 6,
+        "spawnCatalogs": 1,
+        "recruitmentCatalogs": 13,
+        "declarations": {
+          "teams": {
+            "total": 152,
+            "supported": 0
+          },
+          "scripts": {
+            "total": 90,
+            "supported": 0
+          },
+          "taskForces": {
+            "total": 110,
+            "supported": 0
+          }
+        },
+        "requiredDiagnostics": 1575,
+        "wholeSourceReady": false,
+        "constructorSha256": "d0ae4eca4eb1ab340528c6c8c09f2666470e48e03e8fbf3b4424b4b84bc0ae6b",
+        "constructorActions": {
+          "not-construction": 29,
+          "unsupported": 45,
+          "supported": 1
+        },
+        "constructorTypes": {
+          "supported": 1
+        },
+        "allRequiredConstructorsReady": false,
+        "cellWorldInvariantReady": false
+      },
+      "sourceMembers": [
+        {
+          "role": "rules",
+          "sha256": "fd1e95cea0306ea78049dc81c8cd816e18c28c496872a1ff02edd50bd082062f",
+          "size": 541915,
+          "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914"
+        },
+        {
+          "role": "art",
+          "sha256": "b477f861063a9509e87b7836b78190204c73bea5ea5595a842c456f5920ea223",
+          "size": 245825,
+          "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914"
+        },
+        {
+          "role": "ai",
+          "sha256": "1feac6ddea6886b177ddf7e5f8580b7a99a63f12684f2cbb42831671bb7a8a79",
+          "size": 84972,
+          "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914"
+        },
+        {
+          "role": "mission",
+          "sha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+          "size": 146240,
+          "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74"
+        }
+      ],
+      "runtime": {
+        "profile": "ra2",
+        "ticks": 200,
+        "initialActors": 811,
+        "finalActors": 812,
+        "constructorSha256": "d0ae4eca4eb1ab340528c6c8c09f2666470e48e03e8fbf3b4424b4b84bc0ae6b",
+        "runtimeSha256": "e43c7f620163125fa01452a89c1b7f639f1dc60973fb4803d766e9706a114234",
+        "bindingSha256": "32f3a0e15685778f287d1f1198baa8dd208dcc0cbb246673ce5af1eb32de4dbd",
+        "checkpointSha256": "9ef0d2dccc2e51267adee2058db0b2f354acef270ade8abe87fbb3ce0c958c37",
+        "modelSha256": "479d575152b2d078fc89cf2f4d52fd70c9a8f13dca647ad0ed4c333fb973535a",
+        "historySha256": "fa70e23a58a5f583bdc98bc862b9d40ede83a17f14287227f129eb726f68fad0",
+        "boundarySha256": "e42da74fac16effc985ef3d04ae3c06d29561edc996a92354f200feaa6b43ddd",
+        "traceSha256": "2855402dd1c7c78bc8fa1bee5a614c1456dc1bbacaa2400defb59865199cedf5",
+        "maxWork": 7397832,
+        "replay": {
+          "status": "bounded-rejection",
+          "code": "checkpoint-work"
+        },
+        "phases": [
+          "sleep"
+        ],
+        "births": 1,
+        "release": 0,
+        "wholeSourceReady": false,
+        "allRequiredConstructorsReady": false,
+        "cellWorldInvariantReady": false
+      },
+      "boundedReplay": {
+        "profile": "ra2",
+        "sourceSha256": "d0ae4eca4eb1ab340528c6c8c09f2666470e48e03e8fbf3b4424b4b84bc0ae6b",
+        "runtimeSha256": "e43c7f620163125fa01452a89c1b7f639f1dc60973fb4803d766e9706a114234",
+        "prefix": {
+          "nextTick": 1,
+          "sha256": "a3e16db1165644a9e9a4c5b6481ebefd5ae201b8f8bf8c52922ca8c57688c193",
+          "work": 2861277
+        },
+        "birth": {
+          "nextTick": 2,
+          "sha256": "2ea8968e493bbbcbdb288e4b3b22d91ab5da6d76b48fe75458ed71c4c18b6ec1",
+          "work": 7808901
+        },
+        "resumed": {
+          "fromTick": 200,
+          "nextTick": 201,
+          "sha256": "20b2dd4559c384ecf1a10f135ee62b7d2bff6515a2c7b0aee2da26d4521e7f0f",
+          "work": 2539751
+        },
+        "wholeSourceReady": false
+      }
+    },
+    {
+      "source": {
+        "profile": "yr",
+        "missionSha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+        "bindingsSha256": "e839e63e8b14b22e051188127bc4514ef421537804878797f321b576bd5111af",
+        "sourceSha256": "046835223dd53145501f3a91850c2d3fddecdda1ef208c27e78c08273ad9bd62",
+        "actions": 104,
+        "supportedActions": 9,
+        "programs": 8,
+        "spawnCatalogs": 8,
+        "recruitmentCatalogs": 1,
+        "declarations": {
+          "teams": {
+            "total": 265,
+            "supported": 0
+          },
+          "scripts": {
+            "total": 182,
+            "supported": 0
+          },
+          "taskForces": {
+            "total": 223,
+            "supported": 0
+          }
+        },
+        "requiredDiagnostics": 3096,
+        "wholeSourceReady": false,
+        "constructorSha256": "82478ee7a5f4173ad7f9168700d9483409faba4d9901864d50b8f868f9feecea",
+        "constructorActions": {
+          "not-construction": 21,
+          "unsupported": 81,
+          "supported": 2
+        },
+        "constructorTypes": {
+          "unsupported": 2,
+          "supported": 2
+        },
+        "allRequiredConstructorsReady": false,
+        "cellWorldInvariantReady": false
+      },
+      "sourceMembers": [
+        {
+          "role": "rules",
+          "sha256": "3d341ef8a13a4b5ab24af2eef48ac94931ac2bb87d950fe3330a07e2d25672ef",
+          "size": 743215,
+          "rootSha256": "0c0a64e741bdecdc3843a0beb6bb1f58aa2df5b86eb3bc4a953821ec98f3d6ec"
+        },
+        {
+          "role": "art",
+          "sha256": "e1f0378394313c04ebbd5073f47785ee3e46f1b3c62d65724e8f3c310ee7ba31",
+          "size": 336535,
+          "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d"
+        },
+        {
+          "role": "ai",
+          "sha256": "5df41eaec00a78d0760ef5eecdf27d65ae1cd537309c7eac973318266986f89d",
+          "size": 138538,
+          "rootSha256": "69d886defad9114dd440a013b364c8c004e369b5221d1889957b49d00058559d"
+        },
+        {
+          "role": "mission",
+          "sha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+          "size": 301077,
+          "rootSha256": "6c36a0af05e2e9f86967308c77cf90fae9976d920e320aad8b9e4aa2e99e86a3"
+        }
+      ],
+      "runtime": {
+        "profile": "yr",
+        "ticks": 128,
+        "initialActors": 570,
+        "finalActors": 571,
+        "constructorSha256": "82478ee7a5f4173ad7f9168700d9483409faba4d9901864d50b8f868f9feecea",
+        "runtimeSha256": "e726a3d5071d8f2883d90a681f59f5d9c842699bbf2c956a2cb1d005dfa1bb05",
+        "bindingSha256": "af6c0d13468429a45fa8b1ed49bd18b3a7fba998372f1d579938f420479a1e67",
+        "checkpointSha256": "f1353ab326432aef4caed3c53041f4334ac58234b380c474f70b2691c318e421",
+        "modelSha256": "b63c719760368a40a07442212e2784394d169b6e74da14c4c29d391e88c8275f",
+        "historySha256": "5801f129142f4dd5cbeb94167e493fc7b277aac18cd54d430453a89265ab0f84",
+        "boundarySha256": "b1004f3306da4b05e4d0684e18e5ae336fe4db4a45a56e6bfcac9aa4f5dbb23d",
+        "traceSha256": "4398a1c536319cd5bcf8eff277ecac352fcabc77129b94b00fc83835654ff44c",
+        "maxWork": 5308594,
+        "replay": {
+          "status": "bounded-rejection",
+          "code": "tick-work"
+        },
+        "phases": [
+          "moving"
+        ],
+        "births": 1,
+        "release": 0,
+        "wholeSourceReady": false,
+        "allRequiredConstructorsReady": false,
+        "cellWorldInvariantReady": false
+      },
+      "boundedReplay": {
+        "profile": "yr",
+        "sourceSha256": "82478ee7a5f4173ad7f9168700d9483409faba4d9901864d50b8f868f9feecea",
+        "runtimeSha256": "e726a3d5071d8f2883d90a681f59f5d9c842699bbf2c956a2cb1d005dfa1bb05",
+        "prefix": {
+          "nextTick": 1,
+          "sha256": "95fe007ebdb1a1fa2f2abad279cd2ad01bed1bfa52966451f65d031ff1dcecd1",
+          "work": 1995158
+        },
+        "birth": {
+          "nextTick": 2,
+          "sha256": "de6ceb321a8b822fd5a32821a59b5dc7771f4e53449c3baf174c49c45c2330a5",
+          "work": 5595137
+        },
+        "resumed": {
+          "fromTick": 128,
+          "nextTick": 129,
+          "sha256": "2bfdfde8dc137307214b01d169fbe4570d636244766a0f0aaecb498056c664ad",
+          "work": 1809413
+        },
+        "wholeSourceReady": false
+      }
+    }
+  ],
+  "rawOracle": {
+    "comparisons": 147517,
+    "roots": 5,
+    "members": 8,
+    "profiles": [
+      {
+        "profile": "ra2",
+        "comparisons": 51997,
+        "actions": 75,
+        "archetypes": 1,
+        "births": 1,
+        "actors": 1,
+        "sourceSha256": "d0ae4eca4eb1ab340528c6c8c09f2666470e48e03e8fbf3b4424b4b84bc0ae6b"
+      },
+      {
+        "profile": "yr",
+        "comparisons": 95520,
+        "actions": 104,
+        "archetypes": 4,
+        "births": 1,
+        "actors": 1,
+        "sourceSha256": "82478ee7a5f4173ad7f9168700d9483409faba4d9901864d50b8f868f9feecea"
+      }
+    ],
+    "limitations": "Allocation visits, geometry, genuine compiler statuses and model capability composition are reviewed inputs. Raw rows/fields, taskforce order, complete roots/member identities and resulting born actors/population are independently compared. No native runtime, whole mission or browser claim."
+  },
+  "native": {
+    "rangeCount": 8,
+    "byteCount": 2464,
+    "assertionCount": 26,
+    "rangesSha256": "b59fc046133d7b4436bc139441e404c8a238d1bbe48667fe02ac815491248552"
+  },
+  "legacy": {
+    "models": 16,
+    "ticks": 256,
+    "identities": 608,
+    "sha256": "2a1dc707f59f717596473a45ab24ba269b74d9ee5632bc0b82a8142b9064b60f"
+  },
+  "limitations": [
+    "All source constructors/declarations and cell-entry invariants remain required; both wholeSourceReady values are false.",
+    "Source allocation visits and navigation are existing reviewed inputs to the raw oracle, not independently reconstructed by it.",
+    "Single long replay requests exceed the existing aggregate16,777,216 work limit; separately recorded bounded prefix/birth/resumed replays pass.",
+    "The selected YR actor is still moving at tick128. No invented arrival or finish is reported.",
+    "Private original payloads, actor IDs, positions, saves, traces and listings remain ignored."
+  ]
+}

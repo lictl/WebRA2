@@ -23,6 +23,7 @@ import { assertWorldModel, worldHash, worldRecord, worldInteger, worldPosition, 
 import { WorldSimulation, type WorldState } from './world.ts';
 import { canonicalText } from './canonical.ts';
 import { currentWorldOwner } from './world-ownership.ts';
+import { missionTeamConstructorHistoryData } from './mission-team-constructor-history.ts';
 
 export const ORDINARY_INFANTRY_BRIDGE_POLICY = 'webra2-standing-human-source-combat-1' as const;
 export const ORDINARY_INFANTRY_BRIDGE_LIMITS = Object.freeze({ actors: 2048, types: 16384, weapons: 1024,
@@ -226,7 +227,10 @@ export function compileOrdinaryInfantryBridge(input: OrdinaryInfantryBridgeInput
 
 function joined(bridge: OrdinaryInfantryBridge, model: WorldModel): Private {
   const data = bridges.get(bridge); if (!data) return fail('bridge-factory'); assertWorldModel(model);
-  if (movementHash(model) !== data.movementHash) fail('world-join');
+  // The genuine model factory already proves every original field and each
+  // appended unit. Attack enumeration below still includes all current entities.
+  const movement = model.construction ? missionTeamConstructorHistoryData(model.construction).base : model;
+  if (movementHash(movement) !== data.movementHash) fail('world-join');
   // The root's source-bound combat factory will compare its unbound projection against this exact model.
   if (model.combat && model.combat.sha256 !== bridge.combat?.sha256 && combatSourceBridge(model.combat) !== bridge) fail('combat-join'); return data;
 }

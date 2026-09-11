@@ -405,3 +405,10 @@ dependency or retail content is included.
 The saved spatial-intent component and compound adapter are original
 GPL-3.0-or-later code under the same mission/world notice. Their source-bound
 metadata and original fixtures contain no retail audio or native executable code.
+
+The source-bound ordinary-unit team constructors, complete birth history,
+current-house migration and lazy operation receipts are original GPL-3.0-or-later
+components. The [constructor notice](../packages/sim/MISSION_TEAM_CONSTRUCTOR_PROVENANCE.md)
+is copied into the browser distribution with the existing world/team notices,
+GPL text and corresponding source. Reinforcement source capability does not grant
+new combat, tag or full mission authority. No dependency or retail payload is added.

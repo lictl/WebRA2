@@ -21,7 +21,7 @@ export interface MissionTeamSpawnActor {
 }
 export interface MissionTeamSpawnRecord {
   readonly kind: 'spawned'; readonly ordinal: number; readonly actionId: string; readonly instanceId: string;
-  readonly teamId: string; readonly bornAtTick: number; readonly actors: readonly MissionTeamSpawnActor[];
+  readonly teamId: string; readonly bornAtTick: number; readonly actors: readonly MissionTeamSpawnActor[]; readonly ownershipRevision?: number;
 }
 export interface MissionTeamRecruitRecord {
   readonly kind: 'recruited'; readonly ordinal: number; readonly actionId: string; readonly instanceId: string;
@@ -66,7 +66,8 @@ import { navigationCell } from './navigation.ts';
 import { teamSleepFlow } from './team-sleep-policy.ts';
 import { worldHash, worldInteger, worldList, worldRecord, worldSymbol, WORLD_LIMITS, worldAddress } from './world-values.ts';
 import { missionTeamFail as fail, missionTeamSnapshot } from './mission-team-values.ts';
-import { missionTeamOwnedBindingData, restoreMissionTeamOwnedWorld, type MissionTeamOwnedBinding } from './mission-team-owned-binding.ts';
+import { missionTeamOwnedBindingData, restoreMissionTeamOwnedWorld, missionTeamOwnedConstructionModel, type MissionTeamOwnedBinding } from './mission-team-owned-binding.ts';
+import type { MissionTeamConstructorBirth } from './mission-team-constructor-types.ts';
 import { worldOwnershipAtRevision } from './world-ownership.ts';
 const runtimes = new WeakMap<object, MissionTeamRuntimeData>();
 const contexts = new WeakMap<object, MissionTeamContextData>();
@@ -126,9 +127,22 @@ export function restoreMissionTeamContext(runtime: MissionTeamRuntime, input: un
   const { source, program, baseModel: base, owned } = missionTeamRuntimeData(runtime), cap = runtime.limits;
   const budget = worldInteger(workLimit, 0, cap.tickWork); let work = 0;
   const charge = (n: number) => { if (n > budget - work) fail('context-work'); work += n; };
-  const live = owned ? restoreMissionTeamOwnedWorld(owned, currentWorld, budget) : null;
+  const constructors = owned && missionTeamOwnedBindingData(owned).constructors;
+  let constructed: Readonly<{ model: WorldModel; work: number }> | null = null;
+  let copiedRows: unknown[] | undefined;
+  if (constructors) {
+    copiedRows = worldList(missionTeamSnapshot(input, charge), cap.history);
+    const births = copiedRows.flatMap(raw => {
+      const value = worldRecord(raw, Reflect.ownKeys(raw as object) as string[]);
+      if (value.kind !== 'spawned') return [];
+      const { kind: _kind, ...birth } = worldRecord(raw, ['kind', 'ordinal', 'actionId', 'instanceId', 'teamId', 'bornAtTick', 'actors', 'ownershipRevision']);
+      return [birth as unknown as MissionTeamConstructorBirth];
+    });
+    constructed = missionTeamOwnedConstructionModel(owned!, births, budget - work); charge(constructed.work);
+  }
+  const live = owned ? restoreMissionTeamOwnedWorld(owned, currentWorld, budget - work, constructed?.model) : null;
   if (live) charge(live.work);
-  const sourceData = missionTeamActionSourceContext(source), rows = worldList(missionTeamSnapshot(input, owned ? charge : undefined), cap.history);
+  const sourceData = missionTeamActionSourceContext(source), rows = copiedRows ?? worldList(missionTeamSnapshot(input, owned ? charge : undefined), cap.history);
   const revisionAt = (value: unknown, atTick: number, minimum = 0) => {
     const revision = worldInteger(value, minimum, live!.ownership.transfers.length);
     if (atTick > live!.world.nextTick || (live!.ownership.transfers[revision - 1]?.nextTick ?? 0) > atTick ||
@@ -170,9 +184,9 @@ export function restoreMissionTeamContext(runtime: MissionTeamRuntime, input: un
       const releasedRevision = owned ? revisionAt(r.ownershipRevision, atTick, ownershipRevision) : null;
       if (owned) ownershipRevision = releasedRevision!;
       if (owned) {
-        const record = records.find(r => r.kind === 'recruited' && r.instanceId === claim.id)! as MissionTeamRecruitRecord;
+        const record = records.find(r => r.kind !== 'released' && r.instanceId === claim.id)! as MissionTeamRecruitRecord | MissionTeamSpawnRecord;
         if (releasedRevision! < record.ownershipRevision! || (live!.ownership.transfers[releasedRevision! - 1]?.nextTick ?? 0) > atTick) fail('release-owner-time');
-        for (const id of claim.actorIds) if (worldOwnershipAtRevision(base, live!.ownership, id, releasedRevision!).lastChangeRevision > record.ownershipRevision!) fail('active-owner-change');
+        for (const id of claim.actorIds) if (worldOwnershipAtRevision(live!.model, live!.ownership, id, releasedRevision!).lastChangeRevision > record.ownershipRevision!) fail('active-owner-change');
       }
       for (const id of claim.actorIds) { const state = eligibility.get(id); if (!state || state.claimedBy !== instanceId) fail('release-ownership');
         eligibility.set(id, { ...state, claimedBy: null, releasedMissionUnverified: true }); bindings.delete(id); }
@@ -180,7 +194,7 @@ export function restoreMissionTeamContext(runtime: MissionTeamRuntime, input: un
       records.push({ kind, ordinal, instanceId, atTick, reason: r.reason, ...(owned ? { ownershipRevision: releasedRevision! } : {}) }); continue;
     }
     if (kind !== 'spawned' && kind !== 'recruited') fail('record-kind');
-    const r = worldRecord(raw, ['kind', 'ordinal', 'actionId', 'instanceId', 'teamId', 'bornAtTick', kind === 'spawned' ? 'actors' : 'actorIds', ...(owned && kind === 'recruited' ? ['ownershipRevision'] : [])]);
+    const r = worldRecord(raw, ['kind', 'ordinal', 'actionId', 'instanceId', 'teamId', 'bornAtTick', kind === 'spawned' ? 'actors' : 'actorIds', ...(owned ? ['ownershipRevision'] : [])]);
     const actionId = worldSymbol(r.actionId), selected = missionTeamAction(runtime, actionId), instanceId = `mission-team:${ordinal}`;
     const postTransferReady = !owned || owned.actions.some(a => a.instructionId === actionId && a.postTransferRecruitment === 'stationary-guard-sleep');
     if (r.ordinal !== ordinal || r.instanceId !== instanceId || r.teamId !== selected.action.teamId || (kind === 'spawned') !== !!selected.spawn) fail('record-source');
@@ -213,7 +227,7 @@ export function restoreMissionTeamContext(runtime: MissionTeamRuntime, input: un
         // Constructors do not authenticate recruitment mission/group state. They cannot become placed recruitment candidates.
         eligibility.set(id, { entityId: id, group: null, recruitableB: null, claimedBy: instanceId, releasedMissionUnverified: false });
       }
-      spawned += actors.length; counter.actors += actors.length; records.push({ kind, ordinal, actionId, instanceId, teamId, bornAtTick, actors });
+      spawned += actors.length; counter.actors += actors.length; records.push({ kind, ordinal, actionId, instanceId, teamId, bornAtTick, actors, ...(owned ? { ownershipRevision: revision! } : {}) });
     } else {
       const c = selected.recruitment!, template = c.templates.find(t => t.teamId === teamId)!;
       if (owned) charge(c.actors.length + c.templates.length + t.memberTypeIds.length);
@@ -224,8 +238,8 @@ export function restoreMissionTeamContext(runtime: MissionTeamRuntime, input: un
         const id = worldInteger(values[i], 1, 2147483647), a = sourceActors.get(id), state = eligibility.get(id);
         if (!a || a.status !== 'source-candidate' || !state || seen.has(id) || state.claimedBy !== null || state.releasedMissionUnverified ||
           a.typeId !== template.memberTypeIds[i] || (!owned && (a.houseId !== template.houseId || a.playerId !== template.playerId)) ||
-          (owned && (worldOwnershipAtRevision(base, live!.ownership, id, revision!).owner !== template.playerId ||
-            (worldOwnershipAtRevision(base, live!.ownership, id, revision!).lastChangeRevision > 0 &&
+          (owned && (worldOwnershipAtRevision(live!.model, live!.ownership, id, revision!).owner !== template.playerId ||
+            (worldOwnershipAtRevision(live!.model, live!.ownership, id, revision!).lastChangeRevision > 0 &&
               !postTransferReady))) ||
           !(a.recruitableA || template.autocreate) || (!state.recruitableB && template.autocreate) ||
           (template.group !== -2 && state.group !== template.group && !template.recruiter)) fail('recruit-actor');
@@ -240,12 +254,13 @@ export function restoreMissionTeamContext(runtime: MissionTeamRuntime, input: un
   }
   if (owned) charge(active.size * records.length + memberCount * 12);
   if (owned) for (const claim of active.values()) {
-    const record = records.find(r => r.kind === 'recruited' && r.instanceId === claim.id)! as MissionTeamRecruitRecord;
-    for (const id of claim.actorIds) if (worldOwnershipAtRevision(base, live!.ownership, id, live!.ownership.transfers.length).lastChangeRevision > record.ownershipRevision!) fail('active-owner-change');
+    const record = records.find(r => r.kind !== 'released' && r.instanceId === claim.id)! as MissionTeamRecruitRecord | MissionTeamSpawnRecord;
+    for (const id of claim.actorIds) if (worldOwnershipAtRevision(live!.model, live!.ownership, id, live!.ownership.transfers.length).lastChangeRevision > record.ownershipRevision!) fail('active-owner-change');
   }
-  const model = spawned ? createWorldModel({ contentIdentity: base.contentIdentity, sourceSha256: base.sourceSha256, definitionsSha256: base.definitionsSha256,
+  const model = owned ? live!.model : spawned ? createWorldModel({ contentIdentity: base.contentIdentity, sourceSha256: base.sourceSha256, definitionsSha256: base.definitionsSha256,
     entities, navigation: base.navigation, blocked: base.blocked.map(n => ({ x: n % 512, y: Math.floor(n / 512) })),
     footprints: base.footprints.map(f => ({ entityId: f.entityId, cells: f.cells.map(n => ({ x: n % 512, y: Math.floor(n / 512) })) })) }) : base;
+  if (constructed && worldHash(model.entities) !== worldHash(entities)) fail('owned-constructor-definitions');
   const value = { policy: 'webra2-mission-team-context-1' as const, runtimeSha256: runtime.sha256, recordsSha256: worldHash(records), modelSha256: model.sha256,
     ...(owned ? { ownershipTransfersSha256: worldHash(live!.world.state.ownership!.transfers) } : {}) };
   const context = freeze({ ...value, sha256: worldHash(value) });

@@ -1,0 +1,250 @@
+{
+  "schemaVersion": 1,
+  "scope": "Static paired ordinary null-tag constructor and member insertion; no native execution. Existing source/placement/population proof remains separately linked.",
+  "images": [
+    {
+      "profile": "ra2",
+      "path": "game.exe",
+      "sha256": "73288c03b58d370be268ca6d156b4e33bfdb2066dc980359467d8852ff3b00df"
+    },
+    {
+      "profile": "yr",
+      "path": "gamemd.exe",
+      "sha256": "3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600"
+    }
+  ],
+  "ranges": [
+    {
+      "profile": "ra2",
+      "label": "team-constructor",
+      "kind": "code",
+      "start": "0x6b7430",
+      "endExclusive": "0x6b776d",
+      "offset": 2847792,
+      "size": 829,
+      "sha256": "32a4481fdd5c66b6f0ee295924c9a47d57e3b263fac30ad6b9cc10fb26e8e283",
+      "completeInstructions": true,
+      "completeFunction": true
+    },
+    {
+      "profile": "ra2",
+      "label": "object-constructor-tag-zero-prefix",
+      "kind": "code",
+      "start": "0x5d22e0",
+      "endExclusive": "0x5d232e",
+      "offset": 1909472,
+      "size": 78,
+      "sha256": "4b0ce579783d2326bf5b308136c4626e5a9ce97d837cf571321367e0224ef0b5",
+      "completeInstructions": true,
+      "completeFunction": false
+    },
+    {
+      "profile": "ra2",
+      "label": "team-add-member",
+      "kind": "code",
+      "start": "0x6b8cc0",
+      "endExclusive": "0x6b8dbc",
+      "offset": 2854080,
+      "size": 252,
+      "sha256": "7e9d039ae37c1755c1b3bca86a9918e51866e6421427ce1494a8f1a8e7333ddc",
+      "completeInstructions": true,
+      "completeFunction": true
+    },
+    {
+      "profile": "ra2",
+      "label": "object-replace-tag",
+      "kind": "code",
+      "start": "0x5d4430",
+      "endExclusive": "0x5d4461",
+      "offset": 1918000,
+      "size": 49,
+      "sha256": "90f5946862e43647cc4900addd912da6d022510dabba9be77d4a2fa412b7bb47",
+      "completeInstructions": true,
+      "completeFunction": true
+    },
+    {
+      "profile": "yr",
+      "label": "team-constructor",
+      "kind": "code",
+      "start": "0x6e8a90",
+      "endExclusive": "0x6e8dd1",
+      "offset": 3050128,
+      "size": 833,
+      "sha256": "b83d70f56df02811dd56e47e16a79230cac91845a68675279703fce1b021079c",
+      "completeInstructions": true,
+      "completeFunction": true
+    },
+    {
+      "profile": "yr",
+      "label": "object-constructor-tag-zero-prefix",
+      "kind": "code",
+      "start": "0x5f3900",
+      "endExclusive": "0x5f3975",
+      "offset": 2046208,
+      "size": 117,
+      "sha256": "f72c342d5daf52a0fafd6f9f2a83e390d8d5882bb8a112d448ae91b37889939b",
+      "completeInstructions": true,
+      "completeFunction": false
+    },
+    {
+      "profile": "yr",
+      "label": "team-add-member",
+      "kind": "code",
+      "start": "0x6ea500",
+      "endExclusive": "0x6ea601",
+      "offset": 3056896,
+      "size": 257,
+      "sha256": "ab948a42d096b23655aef7af391f0a89d6dcde31556cfc8b3d1f0468cd9f00bb",
+      "completeInstructions": true,
+      "completeFunction": true
+    },
+    {
+      "profile": "yr",
+      "label": "object-replace-tag",
+      "kind": "code",
+      "start": "0x5f5b50",
+      "endExclusive": "0x5f5b81",
+      "offset": 2054992,
+      "size": 49,
+      "sha256": "90f5946862e43647cc4900addd912da6d022510dabba9be77d4a2fa412b7bb47",
+      "completeInstructions": true,
+      "completeFunction": true
+    }
+  ],
+  "rangeCount": 8,
+  "byteCount": 2464,
+  "assertionCount": 26,
+  "assertions": [
+    {
+      "profile": "ra2",
+      "address": "0x6b7445",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "address": "0x6b748d",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "address": "0x6b770a",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "address": "0x6b7710",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "address": "0x6b772c",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "address": "0x6b7735",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "address": "0x5d22e9",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "address": "0x5d2313",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "address": "0x6b8d3e",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "address": "0x6b8d43",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "address": "0x6b8d6c",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "address": "0x5d443e",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "address": "0x5d444d",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "address": "0x6e8aa5",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "address": "0x6e8aed",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "address": "0x6e8d6e",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "address": "0x6e8d74",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "address": "0x6e8d90",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "address": "0x6e8d99",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "address": "0x5f3909",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "address": "0x5f393f",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "address": "0x6ea582",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "address": "0x6ea587",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "address": "0x6ea5b0",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "address": "0x5f5b5e",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "address": "0x5f5b6d",
+      "passed": true
+    }
+  ],
+  "rangesSha256": "b59fc046133d7b4436bc139441e404c8a238d1bbe48667fe02ac815491248552"
+}

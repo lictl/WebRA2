@@ -6,13 +6,16 @@ import { worldHouseInvocation, type WorldHouseInvocation, type WorldHouseTransfe
 import type { WorldModel } from './world-model.ts';
 import { worldHash, worldInteger, worldList, worldRecord, worldSymbol, worldSourceHash, worldAddress } from './world-values.ts';
 import { teamRuntimeFreeze as freeze } from './team-runtime-program.ts';
-import { bindMissionTeamActors, migrateMissionTeamCheckpoint, createTeamCheckpoint, restoreTeamCheckpoint,
+import { bindMissionTeamActors, migrateMissionTeamCheckpoint, migrateMissionTeamCheckpointWithWork, createTeamCheckpoint, restoreTeamCheckpoint,
   prepareTeamTick, type TeamCheckpoint, type TeamOrder, type TeamEvent } from './team-runtime.ts';
 import { admitTeamWorldCommands, commitTeamTick, teamWorldStep } from './team-runtime-world.ts';
 import { missionTeamActionSourceContext } from './mission-team-action-source.ts';
 import { MISSION_TEAM_RUNTIME_POLICY, missionTeamRuntimeData, missionTeamContextData, restoreMissionTeamContext, missionTeamAction,
   type MissionTeamRuntime, type MissionTeamRecord, type MissionTeamContext } from './mission-team-context.ts';
 import { planMissionTeamClaim } from './mission-team-selection.ts';
+import { combatDyingActorIds } from './combat.ts';
+import { missionTeamOwnedConstructionModel } from './mission-team-owned-binding.ts';
+import type { MissionTeamConstructorBirth } from './mission-team-constructor-types.ts';
 import { missionTeamFail as fail, missionTeamSnapshot } from './mission-team-values.ts';
 export interface MissionTeamReceipt {
   readonly effectOrder: number; readonly emittedAtTick: number; readonly dueTick: number;
@@ -43,6 +46,21 @@ export interface MissionTeamResult {
   readonly worldEvents: readonly WorldTrace[]; readonly work: number;
 }
 const receipts = new WeakMap<object, Readonly<{ model: WorldModel; step: WorldStep }>>();
+const checkpointModels = new WeakMap<object, WorldModel>();
+type ConstructionMigration = ReturnType<typeof WorldSimulation.migrateConstruction>;
+const constructionReceipts = new WeakMap<object, readonly ConstructionMigration[]>();
+/** Reads the already validated committed model. A pending checkpoint retains its
+ * base model; the candidate model becomes current only after a successful commit.
+ * No reconstruction or additional source authority is supplied by this lookup. */
+export function readMissionTeamCheckpointModel(checkpoint: MissionTeamCheckpoint): WorldModel {
+  return checkpointModels.get(checkpoint) ?? fail('checkpoint-model-receipt');
+}
+/** Actual constructor transitions from one successful team tick. Copied results
+ * and replay aggregates do not identify an individual core transition. Details
+ * remain behind the core's bounded readWorldConstructionMigration accessor. */
+export function missionTeamConstructionMigrations(result: MissionTeamResult): readonly ConstructionMigration[] {
+  return constructionReceipts.get(result) ?? fail('construction-receipt');
+}
 /** Internal observation seam: only genuine single-tick results, never copied or replay-aggregated metadata. */
 export function missionTeamWorldStep(result: MissionTeamResult): Readonly<{ model: WorldModel; step: WorldStep }> {
   const receipt = receipts.get(result); if (!receipt) fail('world-step-receipt'); return receipt;
@@ -70,11 +88,12 @@ function baseCheckpoint(runtime: MissionTeamRuntime, input: unknown, workLimit =
   // Historical constructor coordinates are not original map overlap permissions.
   // Only the base world's source actors may retain its initially shared anchors.
   const baseIds = new Set(missionTeamRuntimeData(runtime).baseModel.entities.map(e => e.id));
+  const dying = combatDyingActorIds(team.world.state.combat);
   const counts = new Map<number, number>(), add = (at: number) => counts.set(at, (counts.get(at) ?? 0) + 1);
   for (const at of data.model.blocked) add(at);
   for (let i = 0; i < team.world.state.entities.length; i++) {
     const e = team.world.state.entities[i]!, definition = data.model.entities[i]!;
-    if (e.health !== 0 && definition.blocksCell) { add(worldAddress(e.x, e.y)); if (e.progress > 0) add(e.route[1]!); }
+    if ((e.health !== 0 || dying.has(e.id)) && definition.blocksCell) { add(worldAddress(e.x, e.y)); if (e.progress > 0) add(e.route[1]!); }
   }
   for (const footprint of data.model.footprints) if (entities.get(footprint.entityId)!.health !== 0) for (const at of footprint.cells) add(at);
   for (let i = 0; i < team.world.state.entities.length; i++) {
@@ -119,8 +138,9 @@ function baseCheckpoint(runtime: MissionTeamRuntime, input: unknown, workLimit =
     if (record.bornAtTick === priorBirth && requestId <= priorRequest) fail('history-request-order');
     priorBirth = record.bornAtTick; priorRequest = requestId;
   }
-  return { context, work, checkpoint: freeze({ schemaVersion: 1, policy: MISSION_TEAM_RUNTIME_POLICY, runtimeSha256: runtime.sha256,
-    history: data.records, nextRequestId, lastEffectOrder, requests, team, pending: null }) };
+  const checkpoint = freeze({ schemaVersion: 1 as const, policy: MISSION_TEAM_RUNTIME_POLICY, runtimeSha256: runtime.sha256,
+    history: data.records, nextRequestId, lastEffectOrder, requests, team, pending: null });
+  checkpointModels.set(checkpoint, data.model); return { context, work, checkpoint };
 }
 export function createMissionTeamCheckpoint(runtime: MissionTeamRuntime): MissionTeamCheckpoint {
   const initialWorld = missionTeamRuntimeData(runtime).owned ? WorldSimulation.create(missionTeamRuntimeData(runtime).baseModel).save() : undefined;
@@ -134,7 +154,7 @@ function computeTick(runtime: MissionTeamRuntime, base: MissionTeamCheckpoint, w
   let context = checked.context, team = checked.checkpoint.team, work = checked.work;
   if (work > budget) fail('tick-work');
   const charge = (n = 1) => { if (n > budget - work) fail('tick-work'); work += n; };
-  const requests: MissionTeamRequest[] = [], actionEvents: MissionTeamEvent[] = [];
+  const requests: MissionTeamRequest[] = [], actionEvents: MissionTeamEvent[] = [], constructions: ConstructionMigration[] = [];
   for (const request of base.requests) {
     charge(); if (request.status !== 'queued' || request.nextAttemptTick !== tick) { requests.push(request); continue; }
     const plan = planMissionTeamClaim(context, team.world, request.instructionId, budget - work); charge(plan.work);
@@ -146,15 +166,25 @@ function computeTick(runtime: MissionTeamRuntime, base: MissionTeamCheckpoint, w
       actionEvents.push({ tick, requestId: request.id, instructionId: request.instructionId, kind: exhausted ? 'exhausted' : 'blocked', recordOrdinal: null }); continue;
     }
     const record = plan.record; if (record.kind === 'released') fail('claim-kind');
-    const old = missionTeamContextData(context), next = restoreMissionTeamContext(runtime, [...old.records, record], team.world, budget - work), nextData = missionTeamContextData(next);
-    charge(nextData.work + nextData.worldRestoreWork * 3 + 1 + old.records.length + (record.kind === 'spawned' ? record.actors.length : record.actorIds.length));
+    const old = missionTeamContextData(context), records = [...old.records, record], owned = missionTeamRuntimeData(runtime).owned;
     let nextWorld: WorldSave = team.world;
-    if (record.kind === 'spawned') {
+    if (owned && record.kind === 'spawned') {
+      const births = records.filter((r): r is Extract<MissionTeamRecord, { kind: 'spawned' }> => r.kind === 'spawned')
+        .map(({ kind: _kind, ...birth }) => birth as MissionTeamConstructorBirth);
+      const prepared = missionTeamOwnedConstructionModel(owned, births, budget - work); charge(prepared.work);
+      charge(old.worldRestoreWork);
+      const migrated = WorldSimulation.migrateConstruction(WorldSimulation.restore(old.model, team.world), prepared.model, budget - work);
+      charge(migrated.work); nextWorld = migrated.world.save(); constructions.push(migrated);
+    }
+    const next = restoreMissionTeamContext(runtime, records, nextWorld, budget - work), nextData = missionTeamContextData(next);
+    charge(nextData.work + nextData.worldRestoreWork * 3 + 1 + old.records.length + (record.kind === 'spawned' ? record.actors.length : record.actorIds.length));
+    if (!owned && record.kind === 'spawned') {
       const added = record.actors.map(a => ({ id: a.entityId, x: a.x, y: a.y, health: a.initialHealth, goal: null, route: [], progress: 0, waitTicks: 0 }));
       nextWorld = WorldSimulation.restore(nextData.model, { ...team.world, state: { ...team.world.state, modelSha256: nextData.model.sha256,
         entities: [...team.world.state.entities, ...added] } }).save();
     }
-    team = migrateMissionTeamCheckpoint(context, team, next, nextWorld); context = next;
+    const migration = migrateMissionTeamCheckpointWithWork(context, team, next, nextWorld, budget - work); charge(migration.work);
+    team = migration.checkpoint; context = next;
     requests.push({ ...request, attempts, status: record.kind, nextAttemptTick: null, recordOrdinal: record.ordinal });
     actionEvents.push({ tick, requestId: request.id, instructionId: request.instructionId, kind: record.kind, recordOrdinal: record.ordinal });
   }
@@ -184,7 +214,8 @@ function computeTick(runtime: MissionTeamRuntime, base: MissionTeamCheckpoint, w
   const checkpoint = finalized.checkpoint;
   const value = { policy: MISSION_TEAM_RUNTIME_POLICY, runtimeSha256: runtime.sha256, baseSha256: worldHash(base), tick,
     checkpoint, actionEvents, orders: step.orders, events: step.events, worldEvents: step.worldEvents, work };
-  const plan = freeze({ ...value, sha256: worldHash(value) }); receipts.set(plan, freeze({ model: before.model, step: actualStep })); return plan;
+  const plan = freeze({ ...value, sha256: worldHash(value) }); receipts.set(plan, freeze({ model: before.model, step: actualStep }));
+  constructionReceipts.set(plan, Object.freeze(constructions)); return plan;
 }
 /** Pending plans are recomputed from source and the committed base; saved candidate bytes never grant authority. */
 const restorationWork = new WeakMap<object, number>();
@@ -198,7 +229,8 @@ function restoreWithBudget(runtime: MissionTeamRuntime, input: unknown, budget: 
   if (r.pending === null) { restorationWork.set(base, work); return base; }
   const expected = computeTick(runtime, base, budget - work); if (worldHash(r.pending) !== worldHash(expected)) fail('pending-mismatch');
   if (owned) charge(expected.work);
-  const result = freeze({ ...base, pending: expected }); restorationWork.set(result, work); return result;
+  const result = freeze({ ...base, pending: expected }); restorationWork.set(result, work);
+  checkpointModels.set(result, readMissionTeamCheckpointModel(base)); return result;
 }
 export function restoreMissionTeamCheckpoint(runtime: MissionTeamRuntime, input: unknown): MissionTeamCheckpoint {
   missionTeamRuntimeData(runtime); return restoreWithBudget(runtime, input, runtime.limits.tickWork);
@@ -222,7 +254,7 @@ export function transferMissionTeamOwnership(runtime: MissionTeamRuntime, input:
   if (snapshot?.pending) fail('pending-ownership');
   const checked = baseCheckpoint(runtime, snapshot, budget - snapshotWork), checkpoint = checked.checkpoint, active = missionTeamContextData(checked.context);
   const beforeWork = snapshotWork + checked.work + active.worldRestoreWork; if (beforeWork > budget) fail('ownership-work');
-  const simulation = WorldSimulation.restore(data.baseModel, checkpoint.team.world);
+  const simulation = WorldSimulation.restore(active.model, checkpoint.team.world);
   const result = simulation.transferOwnership(worldHouseInvocation(invocation), budget - beforeWork);
   const claimed = new Set(active.instances.flatMap(i => [...i.actorIds]));
   if (result.changedEntityIds.some(id => claimed.has(id))) fail('active-owner-change');
@@ -268,7 +300,9 @@ export function admitMissionTeamInput(runtime: MissionTeamRuntime, input: unknow
 }
 export function prepareMissionTeamTick(runtime: MissionTeamRuntime, input: unknown): MissionTeamCheckpoint {
   const base = restoreMissionTeamCheckpoint(runtime, input), work = missionTeamRuntimeData(runtime).owned ? restorationWork.get(base)! : 0;
-  return base.pending ? base : freeze({ ...base, pending: computeTick(runtime, base, runtime.limits.tickWork - work) });
+  if (base.pending) return base;
+  const pending = freeze({ ...base, pending: computeTick(runtime, base, runtime.limits.tickWork - work) });
+  checkpointModels.set(pending, readMissionTeamCheckpointModel(base)); return pending;
 }
 /** Exposes the work already charged by admission, preserving legacy identities. */
 export function admitMissionTeamInputWithWork(runtime: MissionTeamRuntime, input: unknown, admission: MissionTeamAdmission, workLimit: number) {
@@ -277,7 +311,8 @@ export function admitMissionTeamInputWithWork(runtime: MissionTeamRuntime, input
 }
 function result(plan: MissionTeamTick, work: number): MissionTeamResult {
   const value = freeze({ checkpoint: plan.checkpoint, actionEvents: plan.actionEvents, orders: plan.orders, events: plan.events, worldEvents: plan.worldEvents, work });
-  const receipt = receipts.get(plan); if (!receipt) fail('missing-tick-receipt'); receipts.set(value, receipt); return value;
+  const receipt = receipts.get(plan); if (!receipt) fail('missing-tick-receipt'); receipts.set(value, receipt);
+  constructionReceipts.set(value, constructionReceipts.get(plan) ?? fail('missing-construction-receipt')); return value;
 }
 export function commitMissionTeamTick(runtime: MissionTeamRuntime, input: unknown): MissionTeamResult {
   const base = restoreMissionTeamCheckpoint(runtime, input); if (!base.pending) fail('missing-pending');

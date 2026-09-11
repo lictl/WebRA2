@@ -9,12 +9,15 @@ import { navigationCell, NAVIGATION_POLICY, type NavigationGrid } from './naviga
 import { infantryPassageBase, type InfantryPassageCatalog } from './infantry-passage-catalog.ts';
 import { ordinaryInfantryCurrentHouseRules } from './ordinary-infantry-bridge.ts';
 import { isMissionHouseSource, type MissionHouseSource } from './mission-house-source.ts';
+import { missionTeamConstructorHistoryData, type MissionTeamConstructorHistory } from './mission-team-constructor-history.ts';
+import { missionTeamConstructorSourceData } from './mission-team-constructor-source.ts';
 
 export const WORLD_MODEL_POLICY = 'webra2-world-model-1' as const;
 export const WORLD_MOTION_POLICY = 'webra2-cell-motion-1' as const;
 export const WORLD_INFANTRY_MOTION_POLICY = 'webra2-cell-motion-2' as const;
 export const WORLD_INFANTRY_ENGINE_VERSION = 'webra2-world-7' as const;
 export const WORLD_ENGINE_VERSION = 'webra2-world-1' as const;
+export const WORLD_CONSTRUCTION_ENGINE_VERSION = 'webra2-world-9' as const;
 export interface WorldEntityDefinition {
   readonly id: number; readonly rowId: string; readonly typeId: string; readonly owner: number | null;
   readonly kind: 'infantry' | 'unit' | 'aircraft' | 'structure' | 'terrain' | 'smudge';
@@ -35,6 +38,8 @@ export interface WorldModelInput {
   readonly infantryPassage?: InfantryPassageCatalog;
   /** Genuine source-bound mutable ownership; omission preserves every previous model/save identity. */
   readonly ownership?: MissionHouseSource;
+  /** Genuine source-derived unit births; runtime insertion remains a separate transaction. */
+  readonly construction?: MissionTeamConstructorHistory;
 }
 export interface WorldModel {
   readonly policy: typeof WORLD_MODEL_POLICY; readonly motionPolicy: typeof WORLD_MOTION_POLICY | typeof WORLD_INFANTRY_MOTION_POLICY;
@@ -46,15 +51,19 @@ export interface WorldModel {
   readonly combat?: CombatModel;
   readonly infantryPassage?: InfantryPassageCatalog;
   readonly ownership?: MissionHouseSource;
+  readonly construction?: MissionTeamConstructorHistory;
 }
 const models = new WeakSet<WorldModel>();
 export function assertWorldModel(model: WorldModel): void { if (!models.has(model)) worldFail('world-model'); }
 
 /** Content adapters supply interpreted health, occupancy and traversal. No art/pixel inference occurs here. */
 export function createWorldModel(input: WorldModelInput): WorldModel {
-  const hasFootprints = !!input && Object.hasOwn(input, 'footprints'), hasCombat = !!input && Object.hasOwn(input, 'combat'), hasPassage = !!input && Object.hasOwn(input, 'infantryPassage'), hasOwnership = !!input && Object.hasOwn(input, 'ownership');
+  const hasFootprints = !!input && Object.hasOwn(input, 'footprints'), hasCombat = !!input && Object.hasOwn(input, 'combat'), hasPassage = !!input && Object.hasOwn(input, 'infantryPassage'), hasOwnership = !!input && Object.hasOwn(input, 'ownership'), hasConstruction = !!input && Object.hasOwn(input, 'construction');
   const r = worldRecord(input, ['contentIdentity', 'sourceSha256', 'definitionsSha256', 'entities', 'navigation', 'blocked',
-    ...(hasFootprints ? ['footprints'] : []), ...(hasCombat ? ['combat'] : []), ...(hasPassage ? ['infantryPassage'] : []), ...(hasOwnership ? ['ownership'] : [])]);
+    ...(hasFootprints ? ['footprints'] : []), ...(hasCombat ? ['combat'] : []), ...(hasPassage ? ['infantryPassage'] : []), ...(hasOwnership ? ['ownership'] : []), ...(hasConstruction ? ['construction'] : [])]);
+  const construction = hasConstruction ? r.construction as MissionTeamConstructorHistory : undefined;
+  const constructed = construction ? missionTeamConstructorHistoryData(construction) : null;
+  if (hasConstruction && !constructed) worldFail('world-construction');
   const contentIdentity = worldContent(r.contentIdentity), sourceSha256 = hash(r.sourceSha256), definitionsSha256 = hash(r.definitionsSha256);
   const classes = new Set<string>(), navigation: WorldNavigationBinding[] = [];
   for (const item of worldList(r.navigation, WORLD_LIMITS.grids)) {
@@ -124,12 +133,17 @@ export function createWorldModel(input: WorldModelInput): WorldModel {
     }
   }
   const common = { policy: WORLD_MODEL_POLICY, motionPolicy: WORLD_MOTION_POLICY, contentIdentity, sourceSha256, definitionsSha256,
-    entities: Object.freeze(entities), blocked: Object.freeze(blocked), footprints: Object.freeze(footprints), initialSharedCells, nativeBehaviorVerified: false as const };
+    entities: Object.freeze(entities), blocked: Object.freeze(blocked), footprints: Object.freeze(footprints),
+    initialSharedCells: constructed?.base.initialSharedCells ?? initialSharedCells, nativeBehaviorVerified: false as const };
   const source = combat ? combatSourceBridge(combat) : undefined;
   const navigationIdentity = navigation.map(b => ({ gridSha256: b.grid.sha256, costScale: b.costScale }));
   // Both independent source authorities must match the complete original unbound model.
   // Adding a passage policy cannot weaken the combat bridge's source/world proof.
-  const baseHash = worldHash({ ...common, navigation: navigationIdentity });
+  const initialProjection = constructed ? { ...common, entities: constructed.base.entities, navigation: navigationIdentity } : null;
+  if (constructed && (worldHash(initialProjection) !== constructed.base.sha256 ||
+    canonicalText(entities) !== canonicalText([...constructed.base.entities, ...constructed.entities]) ||
+    !hasOwnership || r.ownership !== missionTeamConstructorSourceData(constructed.source).houses)) worldFail('world-construction-source');
+  const baseHash = constructed?.base.sha256 ?? worldHash({ ...common, navigation: navigationIdentity });
   if(source && source.baseModelSha256 !== baseHash) worldFail('source-world-join');
   const infantryPassage = hasPassage ? r.infantryPassage as InfantryPassageCatalog : undefined;
   if(hasPassage && infantryPassageBase(infantryPassage!).sha256 !== baseHash) worldFail('world-infantry-join');
@@ -142,8 +156,10 @@ export function createWorldModel(input: WorldModelInput): WorldModel {
   }
   const bound = { ...common, motionPolicy: infantryPassage ? WORLD_INFANTRY_MOTION_POLICY : WORLD_MOTION_POLICY };
   const sha256 = worldHash({ ...bound, ...(combat ? { combatSha256: combat.sha256 } : {}),
-    ...(infantryPassage ? { infantryPassageSha256: infantryPassage.sha256 } : {}), ...(ownership ? { ownershipSha256: ownership.sha256 } : {}), navigation: navigationIdentity });
-  const model = Object.freeze({ ...bound, ...(combat ? { combat } : {}), ...(infantryPassage ? { infantryPassage } : {}), ...(ownership ? { ownership } : {}), navigation: Object.freeze(navigation), sha256 }); models.add(model); return model;
+    ...(infantryPassage ? { infantryPassageSha256: infantryPassage.sha256 } : {}), ...(ownership ? { ownershipSha256: ownership.sha256 } : {}),
+    ...(construction ? { constructionSha256: construction.sha256 } : {}), navigation: navigationIdentity });
+  const model = Object.freeze({ ...bound, ...(combat ? { combat } : {}), ...(infantryPassage ? { infantryPassage } : {}), ...(ownership ? { ownership } : {}),
+    ...(construction ? { construction } : {}), navigation: Object.freeze(navigation), sha256 }); models.add(model); return model;
 }
 
 /** Local adjacency/cost check used to validate persisted routes against the immutable grid policy. */
