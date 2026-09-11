@@ -87,7 +87,7 @@ export class TerrainController{
     const f=this.state.frame;if(f?.type!=='gpu-frame'||this.#fallbackPending)return false;
     this.#gpu?.dispose();this.#gpu=presenter;
     // The importer/presenter owns resident planes now. Do not retain the transient packet in app state.
-    this.#update({frame:{...f,resources:null,objectInfo:null},gpuDisplayedFrameId:0});return true;
+    this.#update({frame:{...f,resources:null,objectInfo:null,...(f.voxel?{voxel:{...f.voxel,resources:null}}:{})},gpuDisplayedFrameId:0});return true;
   }
   gpuDisplayed(presenter:GpuViewport,display:GpuViewportDisplay):void{
     const f=this.state.frame;
@@ -98,7 +98,7 @@ export class TerrainController{
   gpuFailed(presenter:GpuViewport|null,reason:GpuViewportFailure,sceneId?:number):void{
     const f=this.state.frame;if(f?.type!=='gpu-frame'||(presenter!==null&&this.#gpu!==presenter)||(sceneId!==undefined&&f.sceneId!==sceneId))return;
     this.#gpu?.dispose();this.#gpu=null;this.#fallbackPending=true;
-    this.#update({frame:{...f,resources:null,objectInfo:null},gpuDisplayedFrameId:0,selection:null,rendererNotice:reason==='context-lost'?'rendererLost':'rendererUnavailable'});
+    this.#update({frame:{...f,resources:null,objectInfo:null,...(f.voxel?{voxel:{...f.voxel,resources:null}}:{})},gpuDisplayedFrameId:0,selection:null,rendererNotice:reason==='context-lost'?'rendererLost':'rendererUnavailable'});
   }
   async setRenderer(mode:'gpu'|'cpu'):Promise<void>{
     if(this.state.busy||!this.#port||this.state.phase!=='ready'||!this.state.frame)return;

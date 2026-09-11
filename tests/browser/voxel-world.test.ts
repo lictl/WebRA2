@@ -20,6 +20,10 @@ import { validVoxelFrame, validVoxelSummary } from '../../apps/web/src/voxel-pro
 import type { ViewportFrame, ViewportScene } from '../../apps/web/src/terrain-worker-runtime.ts';
 import type { WorldSnapshot } from '../../apps/web/src/world-protocol.ts';
 import { terrainText } from '../../apps/web/src/terrain-i18n.ts';
+import {createTerrainScene} from '../../packages/render/src/terrain-scene.ts';
+import {compileGpuScene} from '../../packages/render/src/gpu-scene.ts';
+import {makeOriginalTerrain} from '../render/gpu-fixtures.ts';
+import {captureGpuVoxelResources,captureGpuVoxelUpdate,retainGpuVoxelMetadata,validateGpuVoxelWorld} from '../../apps/web/src/gpu-voxel-protocol.ts';
 const view={width:120,height:80,cameraX:0,cameraY:-20,zoom:1 as const,backgroundRgba:[2,3,4,255] as const};
 function base(width:number,height:number,depth:number|null=null):ViewportFrame{
   const rgba=new Uint8Array(width*height*4);for(let i=0;i<width*height;i++)rgba.set([2,3,4,255],i*4);
@@ -90,7 +94,7 @@ test('verified ready groups draw owned pixels; missing and conditional groups ne
     const f=await fixture(conditional,missing),baseScene:ViewportScene={render(v){return base(v.width,v.height);}};
     const result=createVoxelWorldViewport(baseScene,f.terrain,f.i.objects,f.still.artwork,f.plan,f.preview,null);assert.ok(validVoxelSummary(result.artwork.voxel));
     assert.equal(result.artwork.rendered,conditional||missing?0:1);assert.equal(result.artwork.unavailable,conditional||missing?1:0);
-    assert.equal(result.scene.gpu,undefined);assert.equal(result.scene.gpuRefusal,conditional||missing?'scene-unavailable':'voxel-layer');
+    assert.equal(result.scene.gpu,undefined);assert.equal(result.scene.gpuRefusal,'scene-unavailable');
     const frame=result.scene.render(view),picks=Array.from({length:view.width*view.height},(_,n)=>frame.pick(n%view.width,Math.floor(n/view.width))).filter(p=>p?.kind==='object');
     assert.equal(picks.length>0,!conditional&&!missing);
     if(!conditional&&!missing){assert.equal(result.artwork.rows[0]!.format,'voxel');assert.equal(result.artwork.rows[0]!.status,'ready');const before=sha(frame.rgba);f.preview.assets.forEach(a=>a.bytes.fill(0));f.preview.palettes.forEach(p=>p.rgba.fill(0));assert.equal(sha(result.scene.render(view).rgba),before);}
@@ -130,4 +134,23 @@ test('multipart voxel retirement counts one prepared object and preserves sprite
   assert(Number.isInteger(n));assert.equal(first.pick(n%view.width,Math.floor(n/view.width))?.kind,'object');assert.equal(last.pick(n%view.width,Math.floor(n/view.width)),null);
   const missing=await fixture(false,true),unavailable=createVoxelWorldViewport(baseScene,missing.terrain,missing.i.objects,missing.still.artwork,missing.plan,missing.preview,joins);
   assert.equal(unavailable.artwork.rendered,0);assert.deepEqual(unavailable.scene.render(view,dead).allocations.retiredObjectIds,['object-9']);
+});
+test('CPU and GPU share complete genuine multipart groups, current source grounds and retirement',async()=>{
+  const f=await fixture(false,false,true),modelHash='a'.repeat(64),joins={modelHash,actors:[{objectId:'object-0',id:1,rowId:f.i.objects.placements[0]!.row.id}]};
+  const baseScene:ViewportScene={render(v){return base(v.width,v.height);},gpu(){return {scene:compileGpuScene(createTerrainScene(makeOriginalTerrain())),objectInfo:[],project(){return {objects:[],retiredObjectIds:[]};}};}};
+  const result=createVoxelWorldViewport(baseScene,f.terrain,f.i.objects,f.still.artwork,f.plan,f.preview,joins),gpu=result.scene.gpu!();
+  assert(gpu.voxel);assert.equal(gpu.voxel.groups.length,1);assert.equal(gpu.voxel.groups[0]!.parts.length,3);assert.equal(gpu.voxel.parts.length,3);
+  const alive={modelHash,actors:[{id:1,x:2,y:2,health:20}]} as WorldSnapshot,summary={modelHash,actors:[{id:1,objectId:'object-0'}]} as never;
+  const exported=captureGpuVoxelResources(structuredClone(gpu.voxel)),resident=retainGpuVoxelMetadata(exported);
+  for(const [x,health] of [[2,20],[3,20],[3,0],[2,20]]){
+    const snapshot=structuredClone(alive);snapshot.actors[0]!.x=x!;snapshot.actors[0]!.health=health!;
+    const state=gpu.project(snapshot),cpu=result.scene.render(view,snapshot),captured=captureGpuVoxelUpdate({version:1,resources:null,placements:state.voxelPlacements});
+    validateGpuVoxelWorld(resident,captured.placements,summary,snapshot);
+    assert.equal(captured.placements.length,health?1:0);assert.equal(cpu.allocations.voxel?.instances??0,health?3:0);
+    assert.deepEqual(state.retiredObjectIds,health?[]:['object-0']);
+    if(health){const p=captured.placements[0]!,cell=f.terrain.cells.find(c=>c.x===p.x&&c.y===p.y)!;assert.deepEqual([p.column,p.row,p.elevation],[cell.projectedColumn,cell.projectedRow,cell.elevation]);}
+  }
+  const state=gpu.project(alive),bad=state.voxelPlacements!.map(p=>({...p,column:p.column+1}));assert.throws(()=>validateGpuVoxelWorld(resident,bad,summary,alive),/gpu-voxel-message/);
+  const prior=result.scene.render(view,alive).rgba.slice();for(const part of exported.parts)part.voxels.fill(0);for(const p of exported.palettes)p.rgba.fill(0);
+  assert.deepEqual(result.scene.render(view,alive).rgba,prior);assert.notDeepEqual(result.scene.gpu!().voxel!.parts[0]!.voxels,exported.parts[0]!.voxels);
 });

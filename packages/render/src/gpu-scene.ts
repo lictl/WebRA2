@@ -157,6 +157,9 @@ export function copyGpuSceneData(scene: GpuScene): GpuSceneData {
   const data = sceneData(scene); return { scene, limits: data.cap,
     rasters: data.rasters.map(r => ({ ...r, rgba: r.rgba.slice(), depth: r.depth.slice() })) };
 }
+/** Authenticate an existing factory-owned value without copying resident or frame planes. */
+export function assertGpuScene(scene: GpuScene): void { sceneData(scene); }
+export function assertGpuFrame(frame: GpuFrame): void { frameData(frame); }
 export function copyGpuFrameData(frame: GpuFrame): GpuFrameData {
   const { packet: p } = frameData(frame); return { ...p, sampleX: p.sampleX.slice(), sampleY: p.sampleY.slice(), draws: p.draws.slice() };
 }

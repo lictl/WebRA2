@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2026 WebRA2 contributors. Experimental bounded unlit voxel layer.
 import { copyGpuVoxelSceneData, copyGpuVoxelFrameData, resolveGpuVoxelOwner, assertGpuVoxelScene, assertGpuVoxelFrame, type GpuVoxelScene, type GpuVoxelFrame, type GpuVoxelHit } from './gpu-voxel-policy.ts';
+import { registerGpuResourceOwner, checkGpuResourceBudget, commitGpuResourceBudget, releaseGpuResourceOwner, type GpuResourceBudget } from './gpu-renderer.ts';
 
 export const GPU_VOXEL_RENDER_LIMITS = Object.freeze({ gpuBytes: 256 * 1024 * 1024, stagingBytes: 256 * 1024 * 1024, textureSide: 2048 });
 export type GpuVoxelRendererLimits = { -readonly [K in keyof typeof GPU_VOXEL_RENDER_LIMITS]: number };
+export interface GpuVoxelLayerReceipt { readonly frame: GpuVoxelFrame; readonly sequence: number; readonly generation: number; readonly width: number; readonly height: number; readonly submitted: true; readonly drawCalls: number; readonly uploadedBytes: number }
 interface Texture { handle: WebGLTexture; width: number; height: number; bytes: number; internal: number; format: number; type: number; components: number }
 interface Program { handle: WebGLProgram; uniforms: Map<string, WebGLUniformLocation> }
 interface Targets { framebuffer: WebGLFramebuffer; color: Texture; hit: Texture; width: number; height: number }
@@ -61,8 +63,12 @@ export class GpuVoxelRenderer {
   #resident: ReturnType<typeof copyGpuVoxelSceneData> | null = null; #frame: GpuVoxelFrame | null = null;
   #textures = new Map<string, Texture>(); #targets: Targets | null = null; #ray: Program | null = null; #composite: Program | null = null; #vao: WebGLVertexArrayObject | null = null;
   #state: 'empty' | 'ready' | 'lost' | 'disposed' = 'empty'; #generation = 0; #sequence = 0; #gpuBytes = 0; #peak = 0; #peakStaging = 0;
-  #lost = (event: Event) => { event.preventDefault(); if (this.#state === 'disposed') return; this.#drop(false); this.#state = 'lost'; this.#frame = null; };
-  constructor(context: WebGL2RenderingContext, lower: Partial<GpuVoxelRendererLimits> = {}) {
+  #layer: GpuVoxelLayerReceipt | null = null;
+  #shared: { budget: GpuResourceBudget; owner: object } | null = null;
+  #syncBudget(): void { if (this.#shared) commitGpuResourceBudget(this.#shared.budget, this.#shared.owner, this.#gpuBytes, this.#residentBytes()); }
+  #sharedCheck(gpu: number, cpu: number): void { if (this.#shared) checkGpuResourceBudget(this.#shared.budget, this.#shared.owner, gpu, cpu); }
+  #lost = (event: Event) => { event.preventDefault(); if (this.#state === 'disposed') return; this.#drop(false); this.#state = 'lost'; this.#frame = null; this.#layer = null; this.#syncBudget(); };
+  constructor(context: WebGL2RenderingContext, lower: Partial<GpuVoxelRendererLimits> = {}, budget?: GpuResourceBudget) {
     const cap: GpuVoxelRendererLimits = { ...GPU_VOXEL_RENDER_LIMITS };
     if (!lower || Object.getPrototypeOf(lower) !== Object.prototype) fail('limits');
     for (const key of Reflect.ownKeys(lower)) { if (typeof key !== 'string' || !Object.hasOwn(cap, key)) fail('limits'); const d = Object.getOwnPropertyDescriptor(lower, key); if (!d || !('value' in d)) fail('limits'); cap[key as keyof GpuVoxelRendererLimits] = capValue(d.value, cap[key as keyof GpuVoxelRendererLimits]); }
@@ -70,6 +76,7 @@ export class GpuVoxelRenderer {
     if (!attributes || !attributes.alpha || attributes.premultipliedAlpha || attributes.antialias) fail('context-attributes');
     this.#cap.textureSide = Math.min(cap.textureSide, context.getParameter(context.MAX_TEXTURE_SIZE) as number);
     if (this.#cap.textureSide < 256) fail('texture-side');
+    if (budget) this.#shared = { budget, owner: registerGpuResourceOwner(budget, context) };
     (context.canvas as EventTarget).addEventListener('webglcontextlost', this.#lost);
   }
   #active(): void { if (this.#state === 'disposed') fail('disposed'); if (this.#state === 'lost' || this.#gl.isContextLost()) fail('context-lost'); }
@@ -117,13 +124,15 @@ export class GpuVoxelRenderer {
     if (scene.allocations.residentBytes > this.#cap.stagingBytes) fail('staging-budget');
     if (frame && (frame.width > this.#cap.textureSide || frame.height > this.#cap.textureSide || frame.allocations.frameBytes * 2 > this.#cap.stagingBytes)) fail('staging-budget');
   }
-  load(scene: GpuVoxelScene): void {
+  load(scene: GpuVoxelScene): void { this.#layer = null; try { this.#load(scene); } finally { this.#syncBudget(); } }
+  #load(scene: GpuVoxelScene): void {
     this.#active(); assertGpuVoxelScene(scene); this.#preflight(scene);
     const [gw, gh] = this.#dimensions(scene.allocations.voxels), required = gw * gh * 8 + 256 * Math.max(1, scene.allocations.palettes) * 4;
     if (this.#gpuBytes + required > this.#cap.gpuBytes) fail('gpu-budget');
     const copyBytes = scene.allocations.voxels * 8 + scene.allocations.palettes * 1024, oldCopy = (this.#resident?.geometry.byteLength ?? 0) + (this.#resident?.rgba.byteLength ?? 0);
     const staging = Math.max(copyBytes, oldCopy) + copyBytes + Math.max(gw * gh * 8, 256 * Math.max(1, scene.allocations.palettes) * 4);
     if (staging > this.#cap.stagingBytes) fail('staging-budget'); this.#peakStaging = Math.max(this.#peakStaging, staging);
+    this.#sharedCheck(this.#gpuBytes + required, staging);
     const resident = copyGpuVoxelSceneData(scene), prior = { textures: this.#textures, targets: this.#targets, ray: this.#ray, composite: this.#composite, vao: this.#vao, gpuBytes: this.#gpuBytes, frame: this.#frame, state: this.#state };
     this.#textures = new Map(); this.#targets = null; this.#ray = null; this.#composite = null; this.#vao = null;
     try { this.#setup(); const gl = this.#gl; this.#upload('geometry', resident.geometry, 2, gl.RG32UI, gl.RG_INTEGER, gl.UNSIGNED_INT); this.#upload('palette', resident.rgba, 4, gl.RGBA8UI, gl.RGBA_INTEGER, gl.UNSIGNED_BYTE, 256); this.#check();
@@ -144,6 +153,19 @@ export class GpuVoxelRenderer {
     return this.#upload('boxes', boxes, 4, gl.RGBA32I, gl.RGBA_INTEGER, gl.INT) + this.#upload('inverse', data.inverses, 4, gl.RGBA32F, gl.RGBA, gl.FLOAT) + this.#upload('bins', bins, 2, gl.RG32UI, gl.RG_INTEGER, gl.UNSIGNED_INT) + this.#upload('candidates', data.candidates, 1, gl.R32UI, gl.RED_INTEGER, gl.UNSIGNED_INT);
   }
   draw(frame: GpuVoxelFrame, backgroundRgba: readonly number[] = [0, 0, 0, 0]) {
+    this.#layer = null; try { return this.#draw(frame, backgroundRgba, true); } finally { this.#syncBudget(); }
+  }
+  drawLayer(frame: GpuVoxelFrame): GpuVoxelLayerReceipt {
+    this.#layer = null;
+    try { const receipt = this.#draw(frame, [0, 0, 0, 0], false); return this.#layer = Object.freeze({ ...receipt, generation: this.#generation, width: frame.width, height: frame.height }); }
+    finally { this.#syncBudget(); }
+  }
+  bindLayer(receipt: GpuVoxelLayerReceipt, context: WebGL2RenderingContext): void {
+    this.#active(); const t = this.#targets;
+    if (context !== this.#gl || !receipt || receipt !== this.#layer || !t || receipt.frame !== this.#frame || receipt.generation !== this.#generation || receipt.sequence !== this.#sequence || this.#gl.drawingBufferWidth !== receipt.width || this.#gl.drawingBufferHeight !== receipt.height || receipt.width !== t.width || receipt.height !== t.height) fail('layer-receipt');
+    const gl = this.#gl; for (const [i, texture] of [t.color, t.hit].entries()) { gl.activeTexture(gl.TEXTURE0 + i + 4); gl.bindSampler(i + 4, null); gl.bindTexture(gl.TEXTURE_2D, texture.handle); }
+  }
+  #draw(frame: GpuVoxelFrame, backgroundRgba: readonly number[], present: boolean) {
     this.#active(); assertGpuVoxelFrame(frame); if (this.#state !== 'ready' || !this.#scene || frame.scene !== this.#scene) fail('scene'); this.#preflight(this.#scene, frame); const bg = background(backgroundRgba);
     if (this.#gl.drawingBufferWidth !== frame.width || this.#gl.drawingBufferHeight !== frame.height) fail('drawing-buffer-size');
     const tileCount = Math.ceil(frame.width / 16) * Math.ceil(frame.height / 16), sizes = [
@@ -154,6 +176,8 @@ export class GpuVoxelRenderer {
     if (this.#gpuBytes + additions > this.#cap.gpuBytes) fail('gpu-budget');
     const staging = this.#residentBytes() + frame.allocations.boxes * 32 + frame.allocations.instances * 48 + (tileCount + 1) * 4 + frame.allocations.binEntries * 4 + tileCount * 8 + paddedPeak;
     if (staging > this.#cap.stagingBytes) fail('staging-budget'); this.#peakStaging = Math.max(this.#peakStaging, staging);
+    if (this.#sequence >= Number.MAX_SAFE_INTEGER) fail('sequence-limit');
+    this.#sharedCheck(this.#gpuBytes + additions, staging);
     const gl = this.#gl; let uploadedBytes = 0; const data = frame === this.#frame ? null : copyGpuVoxelFrameData(frame);
     try {
       this.#allocateTargets(frame.width, frame.height); if (data) uploadedBytes = this.#stage(data);
@@ -161,19 +185,20 @@ export class GpuVoxelRenderer {
       gl.bindFramebuffer(gl.FRAMEBUFFER, this.#targets!.framebuffer); gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]); gl.viewport(0, 0, frame.width, frame.height); gl.useProgram(this.#ray!.handle);
       ['Geometry', 'Palette', 'Bins', 'Candidates', 'Boxes', 'Inverse'].forEach((name, i) => { gl.activeTexture(gl.TEXTURE0 + i); gl.bindTexture(gl.TEXTURE_2D, this.#textures.get(name.toLowerCase())!.handle); gl.uniform1i(this.#ray!.uniforms.get('u' + name)!, i); });
       gl.uniform2i(this.#ray!.uniforms.get('uSize')!, frame.width, frame.height); gl.uniform1i(this.#ray!.uniforms.get('uTilesX')!, data?.tilesX ?? Math.ceil(frame.width / 16)); gl.drawArrays(gl.TRIANGLES, 0, 3);
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.drawBuffers([gl.BACK]); gl.viewport(0, 0, frame.width, frame.height); gl.useProgram(this.#composite!.handle); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, this.#targets!.color.handle); gl.uniform1i(this.#composite!.uniforms.get('uColor')!, 0); gl.uniform4uiv(this.#composite!.uniforms.get('uBackground')!, bg); gl.drawArrays(gl.TRIANGLES, 0, 3);
-      if (this.#state !== 'ready' || gl.isContextLost()) fail('context-lost'); this.#frame = frame; return Object.freeze({ frame, sequence: ++this.#sequence, submitted: true as const, drawCalls: 2, uploadedBytes });
+      if (present) { gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.drawBuffers([gl.BACK]); gl.viewport(0, 0, frame.width, frame.height); gl.useProgram(this.#composite!.handle); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, this.#targets!.color.handle); gl.uniform1i(this.#composite!.uniforms.get('uColor')!, 0); gl.uniform4uiv(this.#composite!.uniforms.get('uBackground')!, bg); gl.drawArrays(gl.TRIANGLES, 0, 3); }
+      if (this.#state !== 'ready' || gl.isContextLost()) fail('context-lost'); this.#frame = frame; return Object.freeze({ frame, sequence: ++this.#sequence, submitted: true as const, drawCalls: present ? 2 : 1, uploadedBytes });
     } catch (error) { this.#frame = null; throw error; }
   }
   #read(x: number, y: number, width: number, height: number, includeColor = true) {
     this.#active(); if (!this.#frame || !this.#targets) fail('no-frame'); const bytes = this.#residentBytes() + width * height * (includeColor ? 32 : 16); if (bytes > this.#cap.stagingBytes) fail('readback-budget'); this.#peakStaging = Math.max(this.#peakStaging, bytes);
+    this.#sharedCheck(this.#gpuBytes, bytes);
     const gl = this.#gl, color = new Uint32Array(includeColor ? width * height * 4 : 0), hits = new Uint32Array(width * height * 4);
     try { gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this.#targets.framebuffer); if (includeColor) { gl.readBuffer(gl.COLOR_ATTACHMENT0); gl.readPixels(x, y, width, height, gl.RGBA_INTEGER, gl.UNSIGNED_INT, color); } gl.readBuffer(gl.COLOR_ATTACHMENT1); gl.readPixels(x, y, width, height, gl.RGBA_INTEGER, gl.UNSIGNED_INT, hits); this.#check(); return { color, hits }; }
     finally { gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null); }
   }
   /** Diagnostic only. Top-left planes, matching the frame's pixel coordinate convention. */
   readback() {
-    if (!this.#frame) return fail('no-frame'); const { width, height } = this.#frame, bytes = this.#residentBytes() + width * height * 44; if (bytes > this.#cap.stagingBytes) fail('readback-budget'); this.#peakStaging = Math.max(this.#peakStaging, bytes); const raw = this.#read(0, 0, width, height), floats = new Float32Array(raw.hits.buffer), rgba = new Uint8Array(width * height * 4), owner = new Uint32Array(width * height), depth = new Float32Array(width * height);
+    if (!this.#frame) return fail('no-frame'); const { width, height } = this.#frame, bytes = this.#residentBytes() + width * height * 44; if (bytes > this.#cap.stagingBytes) fail('readback-budget'); this.#peakStaging = Math.max(this.#peakStaging, bytes); this.#sharedCheck(this.#gpuBytes, bytes); const raw = this.#read(0, 0, width, height), floats = new Float32Array(raw.hits.buffer), rgba = new Uint8Array(width * height * 4), owner = new Uint32Array(width * height), depth = new Float32Array(width * height);
     for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) { const out = y * width + x, source = (height - 1 - y) * width + x; rgba.set(raw.color.subarray(source * 4, source * 4 + 4), out * 4); owner[out] = raw.hits[source * 4]!; depth[out] = owner[out] === NONE ? -Infinity : floats[source * 4 + 1]!; } return { width, height, rgba, owner, depth };
   }
   /** Displayed interaction: one GPU owner/depth pixel, pinned to the caller's submission sequence. */
@@ -192,5 +217,5 @@ export class GpuVoxelRenderer {
     this.#state = 'empty';
     try { this.load(this.#scene); } catch (error) { this.#state = 'lost'; throw error; }
   }
-  dispose(): void { if (this.#state === 'disposed') return; (this.#gl.canvas as EventTarget).removeEventListener('webglcontextlost', this.#lost); this.#drop(!this.#gl.isContextLost()); this.#state = 'disposed'; this.#scene = null; this.#resident = null; this.#frame = null; }
+  dispose(): void { if (this.#state === 'disposed') return; (this.#gl.canvas as EventTarget).removeEventListener('webglcontextlost', this.#lost); this.#drop(!this.#gl.isContextLost()); this.#state = 'disposed'; this.#scene = null; this.#resident = null; this.#frame = null; this.#layer = null; if (this.#shared) { releaseGpuResourceOwner(this.#shared.budget, this.#shared.owner); this.#shared = null; } }
 }
