@@ -53,7 +53,7 @@ export async function buildGpuVoxelPerformance(destination, mode = 'voxel', root
   files.set('index.html', await bounded(resolve(root, 'tools/gpu-voxel-performance/index.html'), 256 * 1024));
   files.set('style.css', await bounded(resolve(root, 'tools/gpu-voxel-performance/style.css'), 256 * 1024));
   // This intentionally carries the broader existing app notice set, not a minimized subset.
-  for (const name of [...noticeSources,'packages/render/GPU_PROVENANCE.md']) {
+  for (const name of [...noticeSources,'packages/render/GPU_PROVENANCE.md','packages/render/GPU_VOXEL_PROVENANCE.md']) {
     const target = name === 'LICENSE' ? 'LICENSE.txt' : name === 'LICENSES/GPL-3.0-or-later.txt' ? name :
       name === 'node_modules/egoroof-blowfish/LICENSE.md' ? 'licenses/blowfish.txt' :
       name === 'node_modules/@noble/hashes/LICENSE' ? 'licenses/noble-hashes.txt' : `licenses/${name.replaceAll('/', '-')}.txt`;
