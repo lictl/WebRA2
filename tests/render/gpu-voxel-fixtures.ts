@@ -18,13 +18,15 @@ function vxl(cells: readonly Cell[], size: readonly number[], scale = 1, bounds:
   view.setUint32(footer + 4, columns * 4, true); view.setUint32(footer + 8, columns * 8, true); view.setFloat32(footer + 12, scale, true); for (const i of [0, 5, 10]) view.setFloat32(footer + 16 + i * 4, 1, true); bounds.forEach((n, i) => view.setFloat32(footer + 64 + i * 4, n, true)); bytes.set([...size, 4], footer + 88); return bytes;
 }
 function hva(m: readonly number[]): Uint8Array { const bytes = new Uint8Array(88), view = new DataView(bytes.buffer); view.setUint32(16, 1, true); view.setUint32(20, 1, true); bytes.set(new TextEncoder().encode('original'), 24); m.forEach((n, i) => view.setFloat32(40 + i * 4, n, true)); return bytes; }
-function prepare(cells: readonly Cell[], size: readonly number[], pose: readonly number[] | null, instances: VoxelFrameInput['instances'], width: number, height: number, bounds?: number[]) {
+function prepare(cells: readonly Cell[], size: readonly number[], pose: readonly number[] | null, instances: VoxelFrameInput['instances'], width: number, height: number, bounds?: number[], contrast = false) {
   const bytes = vxl(cells, size, 1, bounds), animation = pose ? hva(pose) : null;
   const atlas = createVoxelAtlas({ assets: [{ id: 'source', kind: 'vxl', sha256: hash(bytes), bytes }, ...(animation ? [{ id: 'animation', kind: 'hva' as const, sha256: hash(animation), bytes: animation }] : [])], parts: [{ id: 'part', vxlAssetId: 'source', vxlSection: 0, hva: animation ? { assetId: 'animation', layout: 'frame-major', frame: 0, section: 0 } : null, transformPolicy: 'openra-hva-bounds-scale' }] });
   const rgba = new Uint8Array(1024); for (let i = 0; i < 256; i++) rgba.set([i, 255 - i, i * 17 % 256, i % 11 ? 255 : 0], i * 4);
-  const palette = { id: 'palette', rgba, remap: null, transparentIndex: 0 }, scene = createGpuVoxelScene({ parts: [{ id: 'part', voxels: createRuntimeVxl(bytes).decodeSection(0).voxels, modelMatrix: atlas.parts[0]!.modelMatrix }], palettes: [palette] });
+  const palette = { id: 'palette', rgba, remap: null, transparentIndex: 0 }, contrastRgba = rgba.slice();
+  for (let i = 0; i < 256; i++) { contrastRgba[i * 4] = 255 - rgba[i * 4]!; contrastRgba[i * 4 + 1] = rgba[i * 4]!; }
+  const palettes = contrast ? [palette, { ...palette, id: 'contrast', rgba: contrastRgba }] : [palette], scene = createGpuVoxelScene({ parts: [{ id: 'part', voxels: createRuntimeVxl(bytes).decodeSection(0).voxels, modelMatrix: atlas.parts[0]!.modelMatrix }], palettes });
   const frame = prepareGpuVoxelFrame(scene, { instances, width, height });
-  const reference: VoxelFrameInput = { atlas, instances, palettes: [palette], viewport: { width, height, backgroundRgba: [0, 0, 0, 0] }, lighting: 'unlit' };
+  const reference: VoxelFrameInput = { atlas, instances, palettes, viewport: { width, height, backgroundRgba: [0, 0, 0, 0] }, lighting: 'unlit' };
   return { scene, frame, reference };
 }
 const instance = (id: string, modelToView: number[]) => ({ id, partId: 'part', paletteId: 'palette', modelToView });
@@ -41,6 +43,15 @@ export function gpuVoxelOracleCases(): GpuVoxelOracleCase[] {
   for (const scale of [1 / 1024, 1, 1024]) { const pose = [scale, 0, 0, 0, 0, 1 / scale, 0, 0, 0, 0, 1, 0], m = [1 / scale, 0, 0, 8.5, 0, -scale, 0, 8.5, 0, 0, 1, 1048000];
     cases.push({ id: `extreme-${scale}`, ...prepare([[0, 0, 0, 1, 7]], [1, 1, 1], pose, [instance('body', m)], 24, 24) }); }
   return cases;
+}
+/** Additional policy-2 cases; keep the original 43-case cohort identifiable. */
+export function gpuVoxelBoundaryCases(): GpuVoxelOracleCase[] {
+  const a = [4, 0, 0, 10, 0, 4, 0, 10, 0, 0, 1, 10], b = [...a]; b[11] = 10 + 1e-7;
+  return [
+    { id: 'boundary-contrast-near-tie', ...prepare([[0, 0, 0, 1, 7]], [1, 1, 1], null, [instance('body', a), { ...instance('turret', b), paletteId: 'contrast' }], 24, 24, undefined, true) },
+    { id: 'boundary-quantized-inverse-crosses-tile', ...prepare([[0, 0, 0, 1, 7]], [1, 1, 1], null,
+      [instance('body', [1, 0, 0, 15.5000001, 0, 1, 0, 15.5000001, 0, 0, 1, 10])], 32, 32) }
+  ];
 }
 /** Explicit original workload, not a replacement for selected source scenes or campaign actors. */
 export function gpuVoxelWorkload(groups: number, width = 960, height = 640) {

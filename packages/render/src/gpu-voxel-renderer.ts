@@ -176,8 +176,8 @@ export class GpuVoxelRenderer {
     if (!this.#frame) return fail('no-frame'); const { width, height } = this.#frame, bytes = this.#residentBytes() + width * height * 44; if (bytes > this.#cap.stagingBytes) fail('readback-budget'); this.#peakStaging = Math.max(this.#peakStaging, bytes); const raw = this.#read(0, 0, width, height), floats = new Float32Array(raw.hits.buffer), rgba = new Uint8Array(width * height * 4), owner = new Uint32Array(width * height), depth = new Float32Array(width * height);
     for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) { const out = y * width + x, source = (height - 1 - y) * width + x; rgba.set(raw.color.subarray(source * 4, source * 4 + 4), out * 4); owner[out] = raw.hits[source * 4]!; depth[out] = owner[out] === NONE ? -Infinity : floats[source * 4 + 1]!; } return { width, height, rgba, owner, depth };
   }
-  /** Interaction-only fallback: exact GPU owner for the most recent submitted frame, never simulation input. */
-  pick(x: number, y: number, expectedSequence = this.#sequence): GpuVoxelHit | null {
+  /** Displayed interaction: one GPU owner/depth pixel, pinned to the caller's submission sequence. */
+  pick(x: number, y: number, expectedSequence: number): GpuVoxelHit | null {
     this.#active(); if (!this.#frame || expectedSequence !== this.#sequence || !Number.isFinite(x) || !Number.isFinite(y) || x < 0 || y < 0 || x >= this.#frame.width || y >= this.#frame.height) return null;
     const raw = this.#read(Math.floor(x), this.#frame.height - 1 - Math.floor(y), 1, 1, false); return resolveGpuVoxelOwner(this.#frame, raw.hits[0]!, new Float32Array(raw.hits.buffer)[1]!);
   }

@@ -2,7 +2,7 @@
 // Copyright 2026 WebRA2 contributors. Original presentation experiment; no native parity claim.
 import { inverse, multiply } from './voxel-math.ts';
 
-export const GPU_VOXEL_POLICY = 'webra2-voxel-f32-ray-1' as const;
+export const GPU_VOXEL_POLICY = 'webra2-voxel-highp-ray-2' as const;
 export const GPU_VOXEL_LIMITS = Object.freeze({ parts: 256, palettes: 256, voxels: 1048576,
   instances: 4096, instanceVoxels: 1048576, dimension: 2048, pixels: 1280 * 720,
   samples: 64 * 1024 * 1024, candidateTests: 128 * 1024 * 1024, binEntries: 8 * 1024 * 1024, binCandidates: 4096,
@@ -19,7 +19,7 @@ export interface GpuVoxelHit { readonly instanceId: string; readonly partId: str
 interface Part { id: string; start: number; count: number; matrix: number[] }
 interface Placement { id: string; part: Part; palette: number; start: number; end: number; inverse64: number[] }
 interface Resident { cap: GpuVoxelLimits; parts: Part[]; paletteIds: string[]; geometry: Uint32Array; rgba: Uint8Array }
-interface Prepared { cap: GpuVoxelLimits; resident: Resident; placements: Placement[]; inverses: Float32Array; boxes: Int32Array; offsets: Uint32Array; candidates: Uint32Array; tilesX: number }
+interface Prepared { cap: GpuVoxelLimits; resident: Resident; placements: Placement[]; inverses: Float32Array; boxes: Int32Array; oldBounds: Int32Array; offsets: Uint32Array; candidates: Uint32Array; tilesX: number }
 const scenes = new WeakMap<GpuVoxelScene, Resident>(), frames = new WeakMap<GpuVoxelFrame, Prepared>();
 function fail(code: string): never { throw new Error('gpu-voxel-' + code); }
 function integer(value: unknown, min: number, max: number): number { if (!Number.isSafeInteger(value) || Object.is(value, -0) || (value as number) < min || (value as number) > max) fail('integer'); return value as number; }
@@ -70,7 +70,36 @@ export function createGpuVoxelScene(input: { readonly parts: readonly GpuVoxelPa
   scenes.set(scene, { cap, parts, paletteIds, geometry, rgba }); return scene;
 }
 
-/** Binary64 conservative boxes; Float32 inverse coefficients and explicitly rounded slab predicate. */
+// The uploaded inverse, rather than the old forward transform, defines the shader slabs.
+// See docs/gpu-voxel-feasibility.md for the highp error envelope and residual bound.
+function candidateEnvelope(inv: number[], width: number, height: number) {
+  if (inv.some(v => !Number.isFinite(v) || (v !== 0 && Math.abs(v) < 2 ** -126))) fail('numeric-envelope');
+  const error = [0, 4, 8].map(row => {
+    const scale = Math.abs(inv[row]!) * width + Math.abs(inv[row + 1]!) * height + Math.abs(inv[row + 3]!) + 257;
+    const d = Math.abs(inv[row + 2]!);
+    // Avoid overflow in either direct division or reciprocal/multiply lowering.
+    if (d !== 0 && d < scale * 2 ** -100) fail('numeric-envelope');
+    return scale * 2 ** -16;
+  });
+  const forward = inverse(inv);
+  let residual = 0, magnitude = 0;
+  for (let row = 0; row < 3; row++) {
+    let rowError = 0, bound = 0;
+    for (let col = 0; col < 3; col++) {
+      let product = 0, absolute = 0;
+      for (let k = 0; k < 3; k++) { const term = forward[row * 4 + k]! * inv[k * 4 + col]!; product += term; absolute += Math.abs(term); }
+      rowError += Math.abs((row === col ? 1 : 0) - product) + 64 * Number.EPSILON * (1 + absolute);
+      bound += Math.abs(forward[row * 4 + col]!) * (257 + error[col]! + Math.abs(inv[col * 4 + 3]!));
+    }
+    residual = Math.max(residual, rowError); magnitude = Math.max(magnitude, bound);
+  }
+  if (!Number.isFinite(residual) || residual > 1 / 1024) fail('numeric-envelope');
+  const margin = magnitude * (residual / (1 - residual) + 64 * Number.EPSILON);
+  const radii = [0, 4, 8].map(row => margin + [0, 1, 2].reduce((n, col) => n + Math.abs(forward[row + col]!) * (.5 + error[col]!), 0));
+  return { forward, radii };
+}
+
+/** Checked highp candidate envelope; CPU Float32 arithmetic remains a comparison reference. */
 export function prepareGpuVoxelFrame(scene: GpuVoxelScene, input: { readonly instances: readonly GpuVoxelInstance[]; readonly width: number; readonly height: number }, lower?: Partial<GpuVoxelLimits>): GpuVoxelFrame {
   const resident = scenes.get(scene); if (!resident) return fail('scene'); const cap = limits(lower, resident.cap), raw = record(input, ['instances', 'width', 'height']);
   const width = integer(raw.width, 1, cap.dimension), height = integer(raw.height, 1, cap.dimension); if (width * height > cap.pixels) fail('pixel-budget');
@@ -81,17 +110,22 @@ export function prepareGpuVoxelFrame(scene: GpuVoxelScene, input: { readonly ins
     const forward = multiply(p.m, p.part.matrix), inverse64 = inverse(forward); placements.push({ id: p.id, part: p.part, palette: p.palette, start, end: instanceVoxels, inverse64 }); forwards.push(forward); }
   const tilesX = Math.ceil(width / 16), tilesY = Math.ceil(height / 16), tileCount = tilesX * tilesY; let samples = 0, binEntries = 0;
   // Reserve worst-case box storage and the fixed frame arrays before allocation.
-  const initialBytes = instanceVoxels * 32 + placements.length * (48 + 96) + (tileCount * 3 + 1) * 4; if (initialBytes > cap.frameBytes) fail('frame-budget');
-  const counts = new Uint32Array(tileCount), scratch = new Int32Array(instanceVoxels * 8), inverses = new Float32Array(placements.length * 12); let used = 0;
+  const initialBytes = instanceVoxels * 48 + placements.length * (48 + 96) + (tileCount * 3 + 1) * 4; if (initialBytes > cap.frameBytes) fail('frame-budget');
+  const counts = new Uint32Array(tileCount), scratch = new Int32Array(instanceVoxels * 8), oldBounds = new Int32Array(instanceVoxels * 4), inverses = new Float32Array(placements.length * 12); let used = 0;
   placements.forEach((p, pi) => { const m = forwards[pi]!; inverses.set(p.inverse64, pi * 12);
+    const envelope = candidateEnvelope(Array.from(inverses.subarray(pi * 12, pi * 12 + 12)), width, height), em = envelope.forward;
     const rx = (Math.abs(m[0]!) + Math.abs(m[1]!) + Math.abs(m[2]!)) / 2, ry = (Math.abs(m[4]!) + Math.abs(m[5]!) + Math.abs(m[6]!)) / 2;
     for (let i = 0; i < p.part.count; i++) { const word = resident.geometry[(p.part.start + i) * 2]!, x = word & 255, y = word >>> 8 & 255, z = word >>> 16 & 255;
       const cx = m[0]! * (x + .5) + m[1]! * (y + .5) + m[2]! * (z + .5) + m[3]!, cy = m[4]! * (x + .5) + m[5]! * (y + .5) + m[6]! * (z + .5) + m[7]!;
       const cz = m[8]! * (x + .5) + m[9]! * (y + .5) + m[10]! * (z + .5) + m[11]!, rz = (Math.abs(m[8]!) + Math.abs(m[9]!) + Math.abs(m[10]!)) / 2;
       if (![cx - rx, cx + rx, cy - ry, cy + ry, cz - rz, cz + rz].every(n => Number.isFinite(n) && Math.abs(n) <= 1048576)) fail('projection');
-      const x0 = Math.max(0, Math.ceil(cx - rx - .5)), y0 = Math.max(0, Math.ceil(cy - ry - .5)), x1 = Math.min(width, Math.floor(cx + rx - .5) + 1), y1 = Math.min(height, Math.floor(cy + ry - .5) + 1);
+      const ox0 = Math.max(0, Math.ceil(cx - rx - .5)), oy0 = Math.max(0, Math.ceil(cy - ry - .5)), ox1 = Math.min(width, Math.floor(cx + rx - .5) + 1), oy1 = Math.min(height, Math.floor(cy + ry - .5) + 1);
+      const centers = [0, 4, 8].map(row => em[row]! * (x + .5) + em[row + 1]! * (y + .5) + em[row + 2]! * (z + .5) + em[row + 3]!);
+      if (centers.some((n, axis) => !Number.isFinite(n) || Math.abs(n) + envelope.radii[axis]! > 2097152)) fail('numeric-envelope');
+      const x0 = Math.max(0, Math.min(ox0, Math.ceil(centers[0]! - envelope.radii[0]! - .5))), y0 = Math.max(0, Math.min(oy0, Math.ceil(centers[1]! - envelope.radii[1]! - .5))),
+        x1 = Math.min(width, Math.max(ox1, Math.floor(centers[0]! + envelope.radii[0]! - .5) + 1)), y1 = Math.min(height, Math.max(oy1, Math.floor(centers[1]! + envelope.radii[1]! - .5) + 1));
       samples += Math.max(0, x1 - x0) * Math.max(0, y1 - y0); if (samples > cap.samples) fail('sample-budget'); if (x0 >= x1 || y0 >= y1) continue;
-      scratch.set([x0, y0, x1, y1, p.part.start + i, pi, p.start + i, 0], used * 8); used++;
+      scratch.set([x0, y0, x1, y1, p.part.start + i, pi, p.start + i, 0], used * 8); oldBounds.set([ox0, oy0, ox1, oy1], used * 4); used++;
       for (let by = Math.floor(y0 / 16); by <= Math.floor((y1 - 1) / 16); by++) for (let bx = Math.floor(x0 / 16); bx <= Math.floor((x1 - 1) / 16); bx++) { const b = by * tilesX + bx; counts[b] = counts[b]! + 1; if (counts[b]! > cap.binCandidates || ++binEntries > cap.binEntries) fail('candidate-budget'); }
     }
   });
@@ -102,7 +136,7 @@ export function prepareGpuVoxelFrame(scene: GpuVoxelScene, input: { readonly ins
   const candidates = new Uint32Array(binEntries), cursor = offsets.slice(0, -1);
   for (let i = 0; i < used; i++) { const at = i * 8; for (let by = Math.floor(scratch[at + 1]! / 16); by <= Math.floor((scratch[at + 3]! - 1) / 16); by++) for (let bx = Math.floor(scratch[at]! / 16); bx <= Math.floor((scratch[at + 2]! - 1) / 16); bx++) { const b = by * tilesX + bx; candidates[cursor[b]!] = i; cursor[b] = cursor[b]! + 1; } }
   const frame: GpuVoxelFrame = Object.freeze({ policy: GPU_VOXEL_POLICY, scene, width, height, allocations: Object.freeze({ instances: placements.length, instanceVoxels, boxes: used, samples, candidateTests, binEntries, maxBinCandidates: counts.reduce((a, b) => Math.max(a, b), 0), frameBytes }) });
-  frames.set(frame, { cap, resident, placements, inverses, boxes: scratch.subarray(0, used * 8), offsets, candidates, tilesX }); return frame;
+  frames.set(frame, { cap, resident, placements, inverses, boxes: scratch.subarray(0, used * 8), oldBounds: oldBounds.subarray(0, used * 4), offsets, candidates, tilesX }); return frame;
 }
 const f = Math.fround, add = (a: number, b: number) => f(f(a) + f(b)), sub = (a: number, b: number) => f(f(a) - f(b)), mul = (a: number, b: number) => f(f(a) * f(b)), div = (a: number, b: number) => f(f(a) / f(b));
 function ray(p: Prepared, box: number, x: number, y: number, mode: 'float32' | 'float64'): number {
@@ -116,12 +150,13 @@ function ray(p: Prepared, box: number, x: number, y: number, mode: 'float32' | '
   }
   return Number.isFinite(near) ? near : -Infinity;
 }
-/** Shared CPU policy candidate, not a claim of cross-driver GLSL arithmetic parity. */
+/** CPU comparison reference only. Exact displayed interaction uses GpuVoxelRenderer.pick(sequence). */
 export function pickGpuVoxelFrame(frame: GpuVoxelFrame, x: number, y: number, mode: 'float32' | 'float64' = 'float32'): GpuVoxelHit | null {
   const p = frames.get(frame); if (!p) return fail('frame'); if (mode !== 'float32' && mode !== 'float64') fail('numeric-policy');
   if (!Number.isFinite(x) || !Number.isFinite(y) || x < 0 || y < 0 || x >= frame.width || y >= frame.height) return null; x = Math.floor(x); y = Math.floor(y);
   const bin = Math.floor(y / 16) * p.tilesX + Math.floor(x / 16); let depth = -Infinity, winner = -1;
   for (let n = p.offsets[bin]!; n < p.offsets[bin + 1]!; n++) { const b = p.candidates[n]!, at = b * 8; if (x < p.boxes[at]! || y < p.boxes[at + 1]! || x >= p.boxes[at + 2]! || y >= p.boxes[at + 3]!) continue;
+    if (mode === 'float64' && (x < p.oldBounds[b * 4]! || y < p.oldBounds[b * 4 + 1]! || x >= p.oldBounds[b * 4 + 2]! || y >= p.oldBounds[b * 4 + 3]!)) continue;
     const pi = p.boxes[at + 5]!, word = p.resident.geometry[p.boxes[at + 4]! * 2]!, color = word >>> 24;
     if (p.resident.rgba[p.placements[pi]!.palette * 1024 + color * 4 + 3] !== 255) continue;
     const value = ray(p, b, x, y, mode); if (value > depth) { depth = value; winner = b; } }
