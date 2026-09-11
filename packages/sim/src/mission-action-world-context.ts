@@ -17,6 +17,7 @@ export interface MissionActionWorldContext {
 type Owned = {
   readonly bindings: MissionBindingAuthority; readonly model: WorldModel;
   readonly sourceHouses: ReadonlyMap<string, number>;
+  readonly owners: Map<number, number | null>;
   readonly limit: number; work: number;
   state: 'fresh' | 'running' | 'finished' | 'aborted'; world: WorldSimulation | null;
 };
@@ -61,9 +62,11 @@ export function createMissionActionWorldContext(input: Readonly<{
   const tick = worldInteger(r.missionNextTick, 0, WORLD_LIMITS.tick - 1);
   const world = WorldSimulation.restore(model, r.checkpoint);
   if (world.nextTick !== tick + 1) fail('clock');
+  const checkpoint = world.save();
+  const owners = new Map(checkpoint.state.entities.map(e => [e.id, e.owner!]));
   const result = Object.freeze({ policy: MISSION_ACTION_WORLD_POLICY, programSha256: bindings.program.sha256,
-    worldSha256: model.sha256, fromStateSha256: worldHash(world.save()), missionNextTick: tick });
-  const data: Owned = { bindings, model, sourceHouses, limit, work: initialWork, state: 'fresh', world };
+    worldSha256: model.sha256, fromStateSha256: worldHash(checkpoint), missionNextTick: tick });
+  const data: Owned = { bindings, model, sourceHouses, owners, limit, work: initialWork, state: 'fresh', world };
   contexts.set(result, data); return result;
 }
 
@@ -92,7 +95,17 @@ export function missionActionTransfer(context: MissionActionWorldContext, progra
   const receipt = worldHouseTransferFacts(data.model, result);
   if (receipt.instructionId !== instructionId || receipt.sourceSha256 !== source.sha256 ||
     receipt.bindingsSha256 !== data.bindings.catalogSha256 || receipt.nextTick !== context.missionNextTick + 1) fail('receipt');
-  charge(data, result.work);
+  charge(data, result.work + result.changedEntityIds.length);
+  for (const entityId of result.changedEntityIds) {
+    if (!data.owners.has(entityId)) fail('actor-owner');
+    data.owners.set(entityId, result.destinationHouse);
+  }
+}
+/** The source row proves actor identity; each predicate reads its current owner
+ * here, after any earlier action in this exact private invocation. */
+export function missionActionActorOwner(context: MissionActionWorldContext, program: MissionProgram, entityId: number): number | null {
+  const data = owned(context, program, 'running'); charge(data, 1);
+  if (!data.owners.has(entityId)) fail('actor-owner'); return data.owners.get(entityId)!;
 }
 /** Read a detached current candidate, so later action consumers see earlier
  * transfers. This is never a post-poll reconstruction from an effect list. */
@@ -101,9 +114,9 @@ export function missionActionWorldSnapshot(context: MissionActionWorldContext, p
 }
 export function finishMissionActionWorld(context: MissionActionWorldContext, program: MissionProgram): Readonly<{ world: WorldSave; work: number }> {
   const data = owned(context, program, 'running'), world = data.world!.save();
-  data.state = 'finished'; data.world = null; return { world, work: data.work };
+  data.state = 'finished'; data.world = null; data.owners.clear(); return { world, work: data.work };
 }
 export function abortMissionActionWorld(context: MissionActionWorldContext, program: MissionProgram): void {
   const data = contexts.get(context);
-  if (data?.bindings.program === program && data.state !== 'finished') { data.state = 'aborted'; data.world = null; }
+  if (data?.bindings.program === program && data.state !== 'finished') { data.state = 'aborted'; data.world = null; data.owners.clear(); }
 }

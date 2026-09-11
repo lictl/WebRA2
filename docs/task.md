@@ -23,10 +23,14 @@ development target; other browsers come later. Assets remain on-device/read-only
   rollback;40 focused regressions and full1,410 public +14 tool checks pass.
   Build79 outputs/188 inputs includes the new house notice. Root owns
   mission-logic/bindings/world and the new mission-action-world-context, its tests,
-  distribution lists and handoff. Current slice is poll-only: house+cell/object/
-  team composition and YR8997 event-derived trigger house remain explicit gates.
+  distribution lists and handoff. The follow-up initial cell/object composition passes3 new original movement/
+  combat scenarios and48 regressions/types: each predicate sees current ownership
+  after earlier callbacks/transfers. Team composition and YR8997 event-derived
+  trigger house remain explicit gates. Full composed1,419 +14 tests, types,
+  209docs/1,084links, publication/M0 and79-output/188-input build pass. Final
+  source census and independent review follow.
   Commit/review via existing [PR235](https://github.com/lictl/WebRA2/pull/235), then
-  extend current-owner callbacks/dynamic actors without a post-poll transfer list.
+  extend dynamic actors without a post-poll transfer list.
   Spatial99/116 [#236](https://github.com/lictl/WebRA2/issues/236) source checkpoint
   [PR238](https://github.com/lictl/WebRA2/pull/238) is merged as `f09856a7b28cc74478417f7a318e151a6c344c4c`.
   The clean source tree `local/worktrees/spatial-audio` remains at reviewed `5fc6394`.
