@@ -37,3 +37,12 @@ and must include this exact notice before browser distribution.
 Optional team action preparation requires the exact genuine source binding catalog
 and passes its complete declaration/action authority into the VM. A copied catalog
 or a different genuine object with matching metadata cannot substitute this source.
+
+Optional mission audio dispatch is original GPL-3.0-or-later composition. It admits
+sound 19 and EVA 21 only through exact source operands and a genuine complete
+[source-policy catalog](../content/MISSION_AUDIO_POLICY_PROVENANCE.md). The compound
+world alone derives ordered invocation batches; source preparation and public
+traces do not grant that authority. Saved request cursors preserve the existing
+D03 lifecycle while output clocks, queue arbitration and global audio RNG remain
+outside simulation. No native playback timing, new dependency or retail payload
+is included. See the [dispatch report](../../docs/mission-audio-dispatch.md).

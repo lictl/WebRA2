@@ -177,3 +177,12 @@ initial and historical constructed actors. Observations supplied directly to thi
 VM method remain data; only the compound world adapter derives movement authority.
 The existing cell-only entry point, object events and ordinary program identities
 retain their semantics. See [the team-cell report](../../docs/mission-team-cell-dispatch.md).
+
+Optional mission audio dispatch is original GPL-3.0-or-later composition. It admits
+sound 19 and EVA 21 only through exact source operands and a genuine complete
+[source-policy catalog](../content/MISSION_AUDIO_POLICY_PROVENANCE.md). The compound
+world alone derives ordered invocation batches; source preparation and public
+traces do not grant that authority. Saved request cursors preserve the existing
+D03 lifecycle while output clocks, queue arbitration and global audio RNG remain
+outside simulation. No native playback timing, new dependency or retail payload
+is included. See the [dispatch report](../../docs/mission-audio-dispatch.md).
