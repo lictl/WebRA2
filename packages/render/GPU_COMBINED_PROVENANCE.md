@@ -31,3 +31,10 @@ The [focused report](../../docs/gpu-combined-renderer.md) documents interfaces,
 limits, invalid presentation handling, tests and pending hardware acceptance.
 Distribution must retain this notice and the inherited renderer notices alongside
 the source under their existing GPL terms; root integration owns manifest wiring.
+
+The original finite startup modules `gpu-world-selftest.ts` and
+`gpu-world-selftest-fixtures.ts`, authored by browser_feasibility, have the same
+GPL terms. Their hand-authored small scenes contain no retail content or external
+fixture dependency. They screen the actual current context before product display;
+they cannot confer source authority or universal driver correctness. The code-only
+web build includes this notice, both inherited GPU notices and the GPL text.

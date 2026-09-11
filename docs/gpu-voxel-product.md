@@ -51,7 +51,7 @@ component/worker tests. No actual GPU product result or retail performance is cl
 by this checkpoint. Source and artifact publication remain code-only; retail input
 stays under the owner's on-device import.
 
-The remaining backend uses one context, genuine offscreen receipts and a combined
+The composed [backend](gpu-combined-renderer.md) uses one context, genuine offscreen receipts and a combined
 winner target. Display and picking must agree on the actual voxel depth, strict
 base/voxel ordering and ties. A small original startup corpus screens each new
 context before a game frame is published. Failure must invalidate combined picking
@@ -59,3 +59,11 @@ and use the complete CPU renderer at the latest desired camera. A finite corpus
 does not prove universal GLSL arithmetic behavior. Chrome acceptance must measure
 the complete viewport with an independent simulation and preserve explicit late
 frames; the experiment's short74.5/s row is not sustained product evidence.
+
+
+Composition checkpoint: backend03cb40e, finite startup9ef02dd and presenter
+a4d44dc are integrated. The [presenter report](gpu-voxel-presenter.md) specifies
+asynchronous screening, complete group layouts, exact displayed picking and
+failure/recovery behavior. The combined notice and all inherited GPU notices are
+explicit build outputs, with byte-for-byte distribution tests. Actual mounted
+product and sustained Chrome cadence remain pending; this draft is not ready to merge.
