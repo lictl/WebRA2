@@ -46,6 +46,52 @@ export function worldStepCombatObservations(model: WorldModel, step: unknown): W
   return entry.value;
 }
 type LiveSave = { -readonly [K in keyof WorldSave]: WorldSave[K] } & { queuedCommands: CommandEnvelope[]; scheduledWork: []; rngStates: Record<string, never> };
+const worldConstructionToken = Object.freeze({});
+const currentWorldData = new WeakMap<WorldSimulation, () => { model: WorldModel; value: LiveSave }>();
+export interface WorldEntityPresence {
+  readonly entityId: number; readonly x: number; readonly y: number;
+  readonly owner: number | null; readonly health: number | null;
+  readonly dying: boolean; readonly present: boolean;
+}
+/** Owned component data from one current checkpoint. It does not certify a
+ * mission invocation. Work counts selected IDs, model entities and death records;
+ * already validated command/route/ownership history is neither copied nor read. */
+export function readWorldEntityPresence(world: WorldSimulation, entityIds: readonly number[], workLimit: number = C.replayWork): Readonly<{
+  model: WorldModel; nextTick: number; entities: readonly WorldEntityPresence[]; work: number;
+}> {
+  const read = currentWorldData.get(world);
+  if (!read || Object.getPrototypeOf(world) !== WorldSimulation.prototype) worldFail('world-instance');
+  const limit = worldInteger(workLimit, 0, C.replayWork);
+  if (!Array.isArray(entityIds) || Object.getPrototypeOf(entityIds) !== Array.prototype) worldFail('world-array-limit');
+  const length = Object.getOwnPropertyDescriptor(entityIds, 'length');
+  const count = length && 'value' in length ? worldInteger(length.value, 0, C.entities) : worldFail('world-array-limit');
+  if (count > limit) worldFail('world-presence-work');
+  if (Reflect.ownKeys(entityIds).length !== count + 1) worldFail('world-array-limit');
+  const selected = new Set<number>();
+  for (let i = 0; i < count; i++) {
+    const d = Object.getOwnPropertyDescriptor(entityIds, String(i));
+    if (!d || !('value' in d) || !d.enumerable) worldFail('world-array');
+    const id = worldInteger(d.value, 1, 2147483647);
+    if (selected.has(id)) worldFail('world-presence-duplicate'); selected.add(id);
+  }
+  // Finish capturing caller descriptors before taking the current private state.
+  // No public getter, method, iterator or callback runs after this point.
+  if (Object.getPrototypeOf(world) !== WorldSimulation.prototype) worldFail('world-instance');
+  const { model, value } = read(), deaths = value.state.combat?.deaths ?? [];
+  const work = count + model.entities.length + deaths.length;
+  if (work > limit) worldFail('world-presence-work');
+  const dying = combatDyingActorIds(value.state.combat), entities: WorldEntityPresence[] = [];
+  for (let i = 0; i < model.entities.length; i++) {
+    const definition = model.entities[i]!, actor = value.state.entities[i]!;
+    if (!selected.has(definition.id)) continue;
+    const pending = dying.has(actor.id);
+    entities.push(Object.freeze({ entityId: actor.id, x: actor.x, y: actor.y,
+      owner: model.ownership ? actor.owner! : definition.owner, health: actor.health, dying: pending,
+      present: actor.health !== 0 || pending }));
+  }
+  if (entities.length !== count) worldFail('world-presence-entity');
+  return Object.freeze({ model, nextTick: value.nextTick, entities: Object.freeze(entities), work });
+}
 
 const engineVersion = (model: WorldModel) => model.ownership ? WORLD_OWNERSHIP_ENGINE : model.infantryPassage ? WORLD_INFANTRY_ENGINE_VERSION : model.combat?.policy===SOURCE_INFANTRY_COMBAT_POLICY ? SOURCE_INFANTRY_COMBAT_ENGINE_VERSION : model.combat?.policy===INFANTRY_COMBAT_POLICY ? INFANTRY_COMBAT_ENGINE_VERSION : model.combat?.policy===ORDINARY_DEATH_POLICY ? ORDINARY_DEATH_ENGINE_VERSION : model.combat?.policy===ORDINARY_COMBAT_POLICY ? ORDINARY_COMBAT_ENGINE_VERSION : model.combat ? COMBAT_ENGINE_VERSION : WORLD_ENGINE_VERSION;
 const rulesVersion = (model: WorldModel) => [model.combat?.policy ?? WORLD_MOTION_POLICY, ...(model.infantryPassage ? [model.infantryPassage.policy] : []), ...(model.ownership ? [WORLD_OWNERSHIP_POLICY] : [])].join('+');
@@ -176,7 +222,11 @@ function validateSave(model: WorldModel, input: unknown): LiveSave {
 export class WorldSimulation {
   readonly #model: WorldModel;
   #value: LiveSave;
-  private constructor(model: WorldModel, save: LiveSave) { this.#model = model; this.#value = save; }
+  private constructor(model: WorldModel, save: LiveSave, token: unknown) {
+    if (token !== worldConstructionToken || new.target !== WorldSimulation) worldFail('world-instance');
+    this.#model = model; this.#value = save;
+    currentWorldData.set(this, () => ({ model: this.#model, value: this.#value }));
+  }
   static create(model: WorldModel): WorldSimulation {
     assertWorldModel(model);
     return WorldSimulation.restore(model, { schemaVersion: 1, engineVersion: engineVersion(model), simulationRulesVersion: rulesVersion(model),
@@ -187,7 +237,7 @@ export class WorldSimulation {
         entities: model.entities.map(e => ({ id: e.id, x: e.x, y: e.y, health: e.initialHealth, goal: null, route: [], progress: 0, waitTicks: 0, ...(model.ownership ? { owner: e.owner } : {}) })) },
       queuedCommands: [], scheduledWork: [], rngStates: {} });
   }
-  static restore(model: WorldModel, input: unknown): WorldSimulation { return new WorldSimulation(model, validateSave(model, input)); }
+  static restore(model: WorldModel, input: unknown): WorldSimulation { return new WorldSimulation(model, validateSave(model, input), worldConstructionToken); }
   get model(): WorldModel { return this.#model; }
   get nextTick(): number { return this.#value.nextTick; }
   save(): WorldSave { return worldClone(this.#value); }
