@@ -9,7 +9,8 @@ import { SOURCE_INFANTRY_COMBAT_POLICY, SOURCE_INFANTRY_COMBAT_ENGINE_VERSION, I
 import { ORDINARY_COMBAT_ENGINE_VERSION, ORDINARY_COMBAT_POLICY } from './ordinary-combat-rules.ts';
 import { combatDyingActorIds, combatTargetLegal, attackCombat, createCombatState, stepCombat, stopCombat, validateCombatState, validateSourceCombatState, type CombatState, type CombatDamageObservation } from './combat.ts';
 import { WORLD_OWNERSHIP_ENGINE, WORLD_OWNERSHIP_POLICY, currentWorldOwner, createWorldOwnership, restoreWorldOwnership, worldOwnershipLedger,
-  updateWorldOwnershipLifecycle, validateWorldOwnershipLifecycle, prepareWorldHouseTransfer, type WorldOwnershipState, type WorldHouseInvocation, type WorldHouseTransferResult } from './world-ownership.ts';
+  updateWorldOwnershipLifecycle, validateWorldOwnershipLifecycle, prepareWorldHouseTransfer, pruneWorldHouseSharing, worldOwnershipWork,
+  type WorldOwnershipState, type WorldHouseInvocation, type WorldHouseTransferResult } from './world-ownership.ts';
 import { assertWorldModel, worldAddress, worldClone, worldContent, worldEdgeCost, worldFail, worldInteger, worldList, worldPosition,
   worldRecord, worldHash, WORLD_ENGINE_VERSION, WORLD_INFANTRY_ENGINE_VERSION, WORLD_LIMITS as C, WORLD_MOTION_POLICY, type WorldModel, type WorldEntityDefinition } from './world-model.ts';
 import { evaluateMissionHousePopulation } from './mission-house-state.ts';
@@ -52,7 +53,7 @@ function infantryOccupancy(model: WorldModel, state: WorldState): InfantryOccupa
   const dying = combatDyingActorIds(state.combat);
   // Same authoritative release policy as whole-cell occupancy: pending deaths retain claims.
   const retiredEntityIds = state.entities.filter(e => e.health === 0 && !dying.has(e.id)).map(e => e.id);
-  return createInfantryOccupancy(model.infantryPassage!, { entities: state.entities, infantrySlots: state.infantrySlots!, retiredEntityIds });
+  return createInfantryOccupancy(model.infantryPassage!, { entities: state.entities, infantrySlots: state.infantrySlots!, retiredEntityIds },state.ownership);
 }
 function command(value: unknown, combat: boolean): CommandEnvelope {
   const r = worldRecord(value, ['schemaVersion', 'tick', 'playerId', 'sequence', 'kind', 'payload']);
@@ -204,6 +205,20 @@ export class WorldSimulation {
       if (next.state.combat) stopCombat(this.#model, next.state.combat, e.id);
     }
     for (const slot of next.state.infantrySlots ?? []) if (changed.has(slot.entityId)) slot.reservedSubcell = null;
+    if(this.#model.infantryPassage){
+      // A transfer cannot finish a now-hostile incoming edge. Retain all anchors;
+      // clear reservations simultaneously and retry from those anchors later.
+      const catalog=this.#model.infantryPassage, allies=new Set(catalog.alliances.map(p=>`${p.from}:${p.to}`));
+      const allied=(a:number|null|undefined,b:number|null|undefined)=>a!=null&&b!=null&&(a===b||catalog.alliancesComplete&&allies.has(`${a}:${b}`));
+      const claims=new Map<number,WorldEntity[]>(),dying=combatDyingActorIds(next.state.combat);
+      const add=(at:number,e:WorldEntity)=>{const list=claims.get(at)??[];list.push(e);claims.set(at,list);};
+      for(let i=0;i<next.state.entities.length;i++){const e=next.state.entities[i]!;if(!this.#model.entities[i]!.blocksCell||e.health===0&&!dying.has(e.id))continue;
+        add(worldAddress(e.x,e.y),e);if(e.progress)add(e.route[1]!,e);}
+      const cancel=new Set<number>(),closed=new Set(next.state.ownership!.sharing!.map(g=>g.cell));
+      for(const e of next.state.entities)if(e.progress&&(closed.has(e.route[1]!)||(claims.get(e.route[1]!)??[]).some(other=>other.id!==e.id&&!allied(e.owner,other.owner))))cancel.add(e.id);
+      for(const e of next.state.entities)if(cancel.has(e.id)){e.route=[];e.progress=0;e.waitTicks=C.retryTicks;}
+      for(const slot of next.state.infantrySlots!)if(cancel.has(slot.entityId))slot.reservedSubcell=null;
+    }
     if (next.state.combat) {
       for (const a of next.state.combat.actors) if (a.targetId !== null && !combatTargetLegal(this.#model,next.state.entities,a.entityId,a.targetId)) stopCombat(this.#model,next.state.combat,a.entityId);
       next.state.combat.impacts = next.state.combat.impacts.filter(p => !changed.has(p.sourceId) && combatTargetLegal(this.#model,next.state.entities,p.sourceId,p.targetId));
@@ -232,6 +247,9 @@ export class WorldSimulation {
     worldInteger(ticks, 1, C.stepTicks); if (ticks > C.tick - this.nextTick) worldFail('world-tick-overflow');
     worldInteger(workLimit, 0, C.replayWork);
     const save = worldClone(this.#value), events: WorldTrace[] = [], definitions = new Map(this.#model.entities.map(e => [e.id, e]));
+    // The source-owned immutable history can be shared until a transaction replaces
+    // it. Each occupancy index still owns/checks all mutable entity and slot fields.
+    if(this.#model.ownership)save.state.ownership=this.#value.state.ownership!;
     const fromNextTick = save.nextTick, damage: CombatDamageObservation[] = [];
     const bindings = new Map(this.#model.navigation.map(b => [b.grid.movementClass, b]));
     const work = { entityVisits: 0, navigationExpansions: 0, transitions: 0 };
@@ -344,6 +362,7 @@ export class WorldSimulation {
           if (d.blocksCell) remove(from);
           Object.assign(e, worldPosition(next)); e.route = e.route.slice(1); e.progress = 0; emit('movement', 'moved', e.id, next);
           if (slot) { if (slot.reservedSubcell === null) worldFail('world-infantry-reservation'); slot.subcell = slot.reservedSubcell; slot.reservedSubcell = null; }
+          if(this.#model.ownership&&this.#model.infantryPassage)chargePassage(pruneWorldHouseSharing(this.#model,state));
           if (next === e.goal) { e.route = []; e.goal = null; emit('movement', 'arrived', e.id, next); }
           else if (e.route.length === 1) { e.route = []; break; }
         }
@@ -368,7 +387,14 @@ export class WorldSimulation {
         }
       }
       for (const slot of slots.values()) if (byId.get(slot.entityId)!.progress === 0) slot.reservedSubcell = null;
-      if (this.#model.ownership) work.entityVisits += updateWorldOwnershipLifecycle(this.#model, state, save.nextTick + 1);
+      if (this.#model.ownership) {
+        const lifecycleWork=updateWorldOwnershipLifecycle(this.#model,state,save.nextTick+1);work.entityVisits+=lifecycleWork;
+        if(lifecycleWork&&this.#model.infantryPassage){
+          work.entityVisits+=pruneWorldHouseSharing(this.#model,state);
+          state.ownership=restoreWorldOwnership(this.#model,state.ownership,state.entities,save.nextTick+1);
+          work.entityVisits+=worldOwnershipWork(state.ownership);
+        }
+      }
       // Logical work accounting; not CPU timings or exhaustive validation/allocation operations.
       work.entityVisits += 3 * state.entities.length;
       if (work.entityVisits + work.navigationExpansions + work.transitions > workLimit) worldFail('world-work-limit');

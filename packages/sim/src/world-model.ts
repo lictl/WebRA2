@@ -138,9 +138,6 @@ export function createWorldModel(input: WorldModelInput): WorldModel {
     if (!isMissionHouseSource(ownership) || ownership.baseWorldSha256 !== baseHash || ownership.profile !== contentIdentity.profile ||
       !ownership.initialPopulationTypesSupported ||
       entities.some(e => ['infantry', 'unit', 'structure', 'aircraft'].includes(e.kind) && e.initialHealth === null)) worldFail('world-ownership-source');
-    // Next coordinated increments supply current-house numerical factors and
-    // retained captured subcell claims. Never admit their initial-owner behavior.
-    if (infantryPassage) worldFail('world-ownership-consumer-pending');
     if (source) ordinaryInfantryCurrentHouseRules(source);
   }
   const bound = { ...common, motionPolicy: infantryPassage ? WORLD_INFANTRY_MOTION_POLICY : WORLD_MOTION_POLICY };

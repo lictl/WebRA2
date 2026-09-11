@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "issue": 233,
+  "scope": "Source preparation and independent raw projection only; no original mission execution. All records are aggregate factual metadata or identities.",
+  "catalogFileCount": 438,
+  "profiles": [
+    {
+      "profile": "ra2",
+      "files": 438,
+      "sourceSha256": "bc71514e991175cc350f3f3e9bf82dcad907a7bbf439b31b4868d8c177266c56",
+      "missionSha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+      "bindingsSha256": "5e602be74dbff27ae16a2bbb618df3244e2bc80a10cfe658039168016c2f6a60",
+      "actions": 8,
+      "events": 4,
+      "unsupportedInstructions": 0,
+      "types": 531,
+      "placedTypes": 120,
+      "sourceDiagnostics": 0,
+      "initialPopulationTypesSupported": true,
+      "beforeHouseRequired": 197,
+      "afterHouseRequired": 185,
+      "wholeMissionAuthority": false,
+      "nativeExecution": false,
+      "browserExecution": false,
+      "unsupportedPlacedTypeCount": 0,
+      "asymmetricTypeCount": 0,
+      "initialActorCount": 811,
+      "rawOracleAssertions": 25045
+    },
+    {
+      "profile": "yr",
+      "files": 438,
+      "sourceSha256": "664302ef55842e4846c4efee20a3409636c4197abff7a3d1edff93e94e053da2",
+      "missionSha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+      "bindingsSha256": "e839e63e8b14b22e051188127bc4514ef421537804878797f321b576bd5111af",
+      "actions": 26,
+      "events": 12,
+      "unsupportedInstructions": 0,
+      "types": 691,
+      "placedTypes": 143,
+      "sourceDiagnostics": 0,
+      "initialPopulationTypesSupported": true,
+      "beforeHouseRequired": 437,
+      "afterHouseRequired": 399,
+      "wholeMissionAuthority": false,
+      "nativeExecution": false,
+      "browserExecution": false,
+      "unsupportedPlacedTypeCount": 0,
+      "asymmetricTypeCount": 0,
+      "initialActorCount": 570,
+      "rawOracleAssertions": 33113
+    }
+  ],
+  "oracle": {
+    "schemaVersion": 1,
+    "assertions": 58158,
+    "roots": 5,
+    "members": 8,
+    "profiles": [
+      {
+        "profile": "ra2",
+        "assertions": 25045,
+        "types": 531,
+        "initialActors": 811,
+        "instructions": 12,
+        "beforeHouseRequired": 197,
+        "afterHouseRequired": 185
+      },
+      {
+        "profile": "yr",
+        "assertions": 33113,
+        "types": 691,
+        "initialActors": 570,
+        "instructions": 38,
+        "beforeHouseRequired": 437,
+        "afterHouseRequired": 399
+      }
+    ],
+    "scope": "Independent raw fields/defaults/history/categories/selectors/initial owners/instruction joins and exact preflight delta; prior reviewed type construction visits, foundation dimensions, source tag allocation and world row ordering are inputs, not independently reconstructed here. No retail execution."
+  },
+  "native": {
+    "rangeCount": 91,
+    "codeRangeCount": 60,
+    "byteCount": 24134,
+    "assertionCount": 80,
+    "rangesSha256": "12c5e633ab54b9428361b1e538c2589ede850e3bfbe10594c5becb03e4e7285a"
+  },
+  "limitations": [
+    "Typed construction visit origins, foundation dimensions, tag allocation and world row ordering are previously reviewed inputs to the raw oracle; they are not independently reconstructed by this oracle.",
+    "Complete mission authorities remain null and unrelated diagnostics remain required.",
+    "Dynamic team ownership, YR8997 event-derived trigger-house persistence and browser ownership integration are deferred.",
+    "Private source files, actors, coordinates, listings and runtime state are excluded from this publication."
+  ]
+}

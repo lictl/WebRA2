@@ -10,5 +10,5 @@ export function bindInfantryPassageWorld(catalog: InfantryPassageCatalog, base: 
   return createWorldModel({ contentIdentity: base.contentIdentity, sourceSha256: base.sourceSha256, definitionsSha256: base.definitionsSha256,
     entities: base.entities, navigation: base.navigation, blocked: base.blocked.map(worldPosition),
     footprints: base.footprints.map(p => ({ entityId: p.entityId, cells: p.cells.map(worldPosition) })),
-    ...(base.combat ? { combat: base.combat } : {}), infantryPassage: catalog });
+    ...(base.combat ? { combat: base.combat } : {}), ...(base.ownership ? { ownership: base.ownership } : {}), infantryPassage: catalog });
 }

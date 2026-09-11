@@ -4,6 +4,7 @@ import { findNavigationPath, navigationCell, NAVIGATION_LIMITS } from './navigat
 import { combatDyingActorIds } from './combat.ts';
 import { createInfantryOccupancy, type InfantryOccupancy } from './infantry-passage-occupancy.ts';
 import { WorldSimulation, type WorldSave } from './world.ts';
+import { restoreWorldOwnership, worldOwnershipWork, type WorldOwnershipState } from './world-ownership.ts';
 import { assertWorldModel, type WorldModel } from './world-model.ts';
 import { worldAddress, worldHash, worldInteger, worldList, worldPosition, worldRecord } from './world-values.ts';
 
@@ -54,8 +55,12 @@ export function planTeamDestinations(input: { readonly model: WorldModel; readon
   if (model.infantryPassage && selected.some(row => slots.has(row.e.id))) {
     if (!charge(checkpoint.state.entities.length * 4 + checkpoint.state.entities.reduce((n, e) => n + e.route.length, 0) +
       model.blocked.length + model.footprints.reduce((n, p) => n + p.cells.length, 0) + slots.size * 2)) return result('budget-exhausted', 'occupancy-work');
+    let owned:WorldOwnershipState|undefined;
+    if(model.ownership)try{owned=restoreWorldOwnership(model,checkpoint.state.ownership,checkpoint.state.entities,checkpoint.nextTick,Math.min(cap.work-work.visits,remaining()));}
+    catch(error){if(error instanceof Error&&error.message==='world-ownership-work')return result('budget-exhausted','occupancy-work');throw error;}
+    if(owned&&!charge(worldOwnershipWork(owned)))return result('budget-exhausted','occupancy-work');
     passage = createInfantryOccupancy(model.infantryPassage, { entities: checkpoint.state.entities, infantrySlots: checkpoint.state.infantrySlots!,
-      retiredEntityIds: checkpoint.state.entities.filter(e => e.health === 0 && !dying.has(e.id)).map(e => e.id) });
+      retiredEntityIds: checkpoint.state.entities.filter(e => e.health === 0 && !dying.has(e.id)).map(e => e.id) },owned);
   }
   const passageBlocked = (id: number, at: number) => {
     const choice = passage!.choose(id, at);

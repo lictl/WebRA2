@@ -1,10 +1,11 @@
 # Mission house source and population ledger provenance
 
 The original TypeScript source in `src/mission-house-*.ts` and original tests are
-licensed GPL-3.0-or-later. This is a source/helper checkpoint for
+licensed GPL-3.0-or-later. This is a source and ordinary world checkpoint for
 [issue233](https://github.com/lictl/WebRA2/issues/233), not a complete native house
 implementation. Its opt-in engine composition is described below; the browser
-and compound mission runtime are not yet connected.
+remains unconnected; ordered compound VM adoption is covered by the
+[dispatch record](../../docs/mission-house-dispatch.md).
 
 The implementation reuses the already reviewed source/identity components in
 [entity definitions](../content/ENTITY_DEFINITIONS_PROVENANCE.md),
@@ -25,8 +26,11 @@ and YR gamemd.exe
 The installation build label remains unverified. Native executables were not run.
 
 The ranges below are half-open inspected instruction blocks, not assertions about
-complete function extents. The final machine-readable range ledger and independent
-raw-field oracle remain acceptance work at this checkpoint.
+complete function extents. The [machine-readable ledger](../../docs/analysis/mission-house-native.json)
+pins 91 code/data records (60 complete instruction spans and 31 data spans),
+24,134 summed bytes and 80 explicit key/store/pointer assertions. Range hashes
+include overlapping inspected context where necessary; the byte sum is not a
+unique-byte census. Both complete source images are rehashed before decoding.
 
 | Evidence | RA2 virtual address | YR virtual address | Interpretation |
 | --- | --- | --- | --- |
@@ -83,15 +87,17 @@ The native ownership selectors and counter predicates above motivate this
 composition; its transaction order and health lifecycle are explicit WebRA2 D03
 policy. A pending human death remains registered/present until logical sequence
 completion. Its damage-time owners stay recorded after later transfers. Current
-command authority and hostility change atomically with the counter transition;
-shared infantry claims remain factory-gated until that consumer is implemented. Native limbo, technician conversion, capture
+command authority and hostility change atomically with the counter transition.
+Shared infantry uses the current-house policy described below. Native limbo, technician conversion, capture
 side effects and imported counter history are not implied.
 
 The exact-result receipt proves a completed component transaction and its source,
 model and before/after saves. It does not prove that a mission trigger executed;
 the compound VM must authenticate instruction emission and caller house context.
 Eight new original world cases plus legacy checks pass 61 focused tests and
-type checking. Final native/raw ledgers and full independent review remain due.
+type checking. The final static ledger accompanies this checkpoint; the focused report records
+the separate raw projection and composed validation. Independent review remains
+a merge gate.
 
 
 Current-house numerical composition reuses the genuine retained bridge table and
@@ -125,3 +131,29 @@ observed object's virtual owning house. This source context requires independent
 saved event/trigger state; a caller label or initial house is not equivalent.
 The nullable world invocation preserves that absence. The bounded transfer helper
 rejects a null8997 target instead of fabricating a target house.
+
+## Current ownership and retained infantry slots
+
+The independently reviewed [infantry passage evidence](INFANTRY_PASSAGE_PROVENANCE.md)
+establishes ordinary subcells and directed mover-house admission. The ownership
+consumer above supplies the mutable actor house; initial catalog ownership remains
+source metadata. Current queries, group planning and generated team commands read
+the validated current owner. This does not establish native team membership after
+capture; that separate source/runtime integration remains pending.
+
+Capture preserves settled anchors and cancels newly hostile incoming edges. A
+group rendered hostile by capture receives a bounded saved claim referencing the
+exact source transfer, a compatible pre-transfer owner order (or exact initial
+source sharing) and distinct ordinary
+subcells. Only surviving members at those cells/slots remain covered. Claims are
+checked with full current occupancy and cannot replace static blockers or grant
+retirement. Restoration checks structural possible history, not authenticated
+historical execution; full replay provides the separate execution comparison.
+
+The group is closed to new arrivals until it becomes allied or members separate.
+Even a third house allied to each member cannot join while it remains closed.
+This is a conservative D03 rule, not a claim about native mixed-owner cell-house
+bookkeeping. Initial shared cohorts captured in place retain the same closed
+marker; restoration rejects omission of that marker. Eight original tests cover
+capture, reservations, group preflight,
+pending/completed death, strict save rejection and replay in both profiles.

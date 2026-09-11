@@ -1,0 +1,1415 @@
+{
+  "schemaVersion": 1,
+  "description": "Inspected complete instruction spans, not universal function-extent claims; static-only analysis, no native execution.",
+  "images": [
+    {
+      "profile": "ra2",
+      "file": "game.exe",
+      "sha256": "73288c03b58d370be268ca6d156b4e33bfdb2066dc980359467d8852ff3b00df"
+    },
+    {
+      "profile": "yr",
+      "file": "gamemd.exe",
+      "sha256": "3e81a61775d2745d1dabe397325ef663cd994ffc194da4e998e3bf5d2d308600"
+    }
+  ],
+  "ranges": [
+    {
+      "profile": "ra2",
+      "id": "trigger-fire-actions-house",
+      "kind": "code",
+      "start": "0x6ed830",
+      "end": "0x6ed896",
+      "fileOffset": 3070000,
+      "byteLength": 102,
+      "sha256": "d5911645b84939f5ab43a1b29b756a2b16519fd7aeab6bba5347b85e2773cc4f"
+    },
+    {
+      "profile": "ra2",
+      "id": "trigger-constructor",
+      "kind": "code",
+      "start": "0x6ed220",
+      "end": "0x6ed3b2",
+      "fileOffset": 3068448,
+      "byteLength": 402,
+      "sha256": "de97665ce824d6ac2bfa8175fade6bee1f4615c3eaead0724e26230515f4e1e9"
+    },
+    {
+      "profile": "ra2",
+      "id": "action-dispatch",
+      "kind": "code",
+      "start": "0x6adae0",
+      "end": "0x6adb18",
+      "fileOffset": 2808544,
+      "byteLength": 56,
+      "sha256": "5fc5216e2013d7d51bbca53a0dbfef9ac834d1183b06de8e5d88c929f7814fac"
+    },
+    {
+      "profile": "ra2",
+      "id": "building-owner",
+      "kind": "code",
+      "start": "0x444660",
+      "end": "0x44537f",
+      "fileOffset": 280160,
+      "byteLength": 3359,
+      "sha256": "bd1cea9858347f9c26ea7138351073943a1248667057ed3541e23cde1e20b4a2"
+    },
+    {
+      "profile": "ra2",
+      "id": "action14",
+      "kind": "code",
+      "start": "0x6ae239",
+      "end": "0x6ae2aa",
+      "fileOffset": 2810425,
+      "byteLength": 113,
+      "sha256": "618ddec5cd8542fdd8b3932fe2ffa8c1b04d1b2e7e68979691e1ad14cebba7d7"
+    },
+    {
+      "profile": "ra2",
+      "id": "action36",
+      "kind": "code",
+      "start": "0x6ae2aa",
+      "end": "0x6ae2ff",
+      "fileOffset": 2810538,
+      "byteLength": 85,
+      "sha256": "8021cf738294f95c49b3aa615ada19e6602e031eb18ee1845abd507ebf1834cb"
+    },
+    {
+      "profile": "ra2",
+      "id": "first-country-house",
+      "kind": "code",
+      "start": "0x4ed760",
+      "end": "0x4ed790",
+      "fileOffset": 972640,
+      "byteLength": 48,
+      "sha256": "7b617a014fcb8b1d4aae496ec63f00c295a4d3a250de883060a5fd52cf492593"
+    },
+    {
+      "profile": "ra2",
+      "id": "tag-chain-membership",
+      "kind": "code",
+      "start": "0x6b3dd0",
+      "end": "0x6b3df0",
+      "fileOffset": 2833872,
+      "byteLength": 32,
+      "sha256": "908ccfbbe1763af2492f0130afc4a064b208e3dcf85e358afa911adb3de6b436"
+    },
+    {
+      "profile": "ra2",
+      "id": "events9-11",
+      "kind": "code",
+      "start": "0x6e6619",
+      "end": "0x6e6705",
+      "fileOffset": 3040793,
+      "byteLength": 236,
+      "sha256": "12d6f201e2606c9a43bac1b6a087bb3063144fcb935ade1525495d8e96e1469d"
+    },
+    {
+      "profile": "ra2",
+      "id": "registered-gain",
+      "kind": "code",
+      "start": "0x4ea970",
+      "end": "0x4eaae7",
+      "fileOffset": 960880,
+      "byteLength": 375,
+      "sha256": "12e537d67ca626e91d985119315ef21157bec8e98f4aa837019fa2849c3489dd"
+    },
+    {
+      "profile": "ra2",
+      "id": "registered-loss",
+      "kind": "code",
+      "start": "0x4ea800",
+      "end": "0x4ea93d",
+      "fileOffset": 960512,
+      "byteLength": 317,
+      "sha256": "688517fc405dca1ab4a329a7792df956af589d912292dc1c9b6ab418fdd5ddd3"
+    },
+    {
+      "profile": "ra2",
+      "id": "building-category",
+      "kind": "code",
+      "start": "0x4527e0",
+      "end": "0x4527ff",
+      "fileOffset": 337888,
+      "byteLength": 31,
+      "sha256": "42dee66fb88b3d21ddd41631e7443f9f2265d44ea3703476ad26eb1c78ab041b"
+    },
+    {
+      "profile": "ra2",
+      "id": "foot-owner-wrapper",
+      "kind": "code",
+      "start": "0x4ca7d0",
+      "end": "0x4ca811",
+      "fileOffset": 829392,
+      "byteLength": 65,
+      "sha256": "19718a6d61fa2e3a43fc352c62bd8eb7e5448ec7683825c25974f5bdd6f39bc9"
+    },
+    {
+      "profile": "ra2",
+      "id": "techno-current-owner",
+      "kind": "code",
+      "start": "0x6cd940",
+      "end": "0x6cdbe0",
+      "fileOffset": 2939200,
+      "byteLength": 672,
+      "sha256": "29df93f8f8c53c4cef40c486e9f1634f59fb0fa1a697b420ff662847f5d59a9d"
+    },
+    {
+      "profile": "ra2",
+      "id": "object-type-constructor",
+      "kind": "code",
+      "start": "0x5d57f0",
+      "end": "0x5d59d7",
+      "fileOffset": 1923056,
+      "byteLength": 487,
+      "sha256": "a8664353d80a13fd27f4e2d93cf2e80c8e1ae95393e9087899b124ed50ba9303"
+    },
+    {
+      "profile": "ra2",
+      "id": "insignificant-load",
+      "kind": "code",
+      "start": "0x5d7810",
+      "end": "0x5d7a55",
+      "fileOffset": 1931280,
+      "byteLength": 581,
+      "sha256": "e1b718184623aa7d7a1498d0a2c75df83a60cd04ad99048475b150c6826a7077"
+    },
+    {
+      "profile": "ra2",
+      "id": "techno-type-constructor-prefix",
+      "kind": "code",
+      "start": "0x6d9b40",
+      "end": "0x6d9db9",
+      "fileOffset": 2988864,
+      "byteLength": 633,
+      "sha256": "73cf8e232bf5856326269030a7d27df2dffc9da8370dedd02d171b571f49c7fd"
+    },
+    {
+      "profile": "ra2",
+      "id": "undeploy-selector",
+      "kind": "code",
+      "start": "0x6dbf9d",
+      "end": "0x6dbfe2",
+      "fileOffset": 2998173,
+      "byteLength": 69,
+      "sha256": "4fcf216ac71c13e594f27b17893ce086c0097c612747917b31a59d95680e9255"
+    },
+    {
+      "profile": "ra2",
+      "id": "undeploy-allocation",
+      "kind": "code",
+      "start": "0x70b540",
+      "end": "0x70b5c3",
+      "fileOffset": 3192128,
+      "byteLength": 131,
+      "sha256": "505f3ee1954738303fd2510340ecf53f4682f78417b9acf2398f4668ac6c8187"
+    },
+    {
+      "profile": "ra2",
+      "id": "building-type-constructor-prefix",
+      "kind": "code",
+      "start": "0x457ac0",
+      "end": "0x457de6",
+      "fileOffset": 359104,
+      "byteLength": 806,
+      "sha256": "524753dedcd6625fa6399ea678dd29eb898db70c21dc13299a9e38abafde34b6"
+    },
+    {
+      "profile": "ra2",
+      "id": "construction-yard-load",
+      "kind": "code",
+      "start": "0x45a2e4",
+      "end": "0x45a2fe",
+      "fileOffset": 369380,
+      "byteLength": 26,
+      "sha256": "132b7cfbbe06f68df03f9d291f08df510bcd8b779075eef8dc6473687f6948a2"
+    },
+    {
+      "profile": "yr",
+      "id": "trigger-fire-actions-house",
+      "kind": "code",
+      "start": "0x7265c0",
+      "end": "0x726626",
+      "fileOffset": 3302848,
+      "byteLength": 102,
+      "sha256": "d7f0feb1450735f9a30e3e8e13c886731e0dc6fdb549bc3c5f1ccf2091634f35"
+    },
+    {
+      "profile": "yr",
+      "id": "trigger-constructor",
+      "kind": "code",
+      "start": "0x725fa0",
+      "end": "0x726133",
+      "fileOffset": 3301280,
+      "byteLength": 403,
+      "sha256": "99d8d9fe4a125aab123566b5e5d2ca5b082c7d5b73aca8445042cfdc3208a34b"
+    },
+    {
+      "profile": "yr",
+      "id": "action-dispatch",
+      "kind": "code",
+      "start": "0x6dd8b0",
+      "end": "0x6dd8ee",
+      "fileOffset": 3004592,
+      "byteLength": 62,
+      "sha256": "1ca5f0ea2f71687b8c44779f82f912bde7a722986102d9ae905b6c678d61714d"
+    },
+    {
+      "profile": "yr",
+      "id": "building-owner",
+      "kind": "code",
+      "start": "0x448260",
+      "end": "0x449406",
+      "fileOffset": 295520,
+      "byteLength": 4518,
+      "sha256": "5c92ce26b4498143877db885bc869731826194013981a4b1e78c2d47aee84c3e"
+    },
+    {
+      "profile": "yr",
+      "id": "trigger-register-event-house",
+      "kind": "code",
+      "start": "0x7264c0",
+      "end": "0x7265bb",
+      "fileOffset": 3302592,
+      "byteLength": 251,
+      "sha256": "3269457973bf7d6a0fc70856578f47a77820e777a21a3ae61f58858fda407138"
+    },
+    {
+      "profile": "yr",
+      "id": "trigger-detach-house",
+      "kind": "code",
+      "start": "0x726690",
+      "end": "0x7266be",
+      "fileOffset": 3303056,
+      "byteLength": 46,
+      "sha256": "ce1ffc27285b7f910215c33bb36473935d4fa8622017955a3794e05d36dd0eee"
+    },
+    {
+      "profile": "yr",
+      "id": "event-house-get",
+      "kind": "code",
+      "start": "0x71fa30",
+      "end": "0x71fa34",
+      "fileOffset": 3275312,
+      "byteLength": 4,
+      "sha256": "9c8eb3adab3133652cdccbd58b010e59bcef792f39806367b4a21f5a9815fbf5"
+    },
+    {
+      "profile": "yr",
+      "id": "event-house-set",
+      "kind": "code",
+      "start": "0x71fa40",
+      "end": "0x71fa4a",
+      "fileOffset": 3275328,
+      "byteLength": 10,
+      "sha256": "49bb7f2f8522e1a0bd46f53380d1a613b2c47c88f89f94c70b52b59d35e889ef"
+    },
+    {
+      "profile": "yr",
+      "id": "event-house-dispatch",
+      "kind": "code",
+      "start": "0x71ecaf",
+      "end": "0x71ecdc",
+      "fileOffset": 3271855,
+      "byteLength": 45,
+      "sha256": "1ea9cdcc96e56bb04da4d9cde68aeb05d6b8d9c6e67f0da295df88e9e91fca2a"
+    },
+    {
+      "profile": "yr",
+      "id": "event-house-result",
+      "kind": "code",
+      "start": "0x71f1bd",
+      "end": "0x71f218",
+      "fileOffset": 3273149,
+      "byteLength": 91,
+      "sha256": "d421e1743772d2bd4c3ec0fd439c22266c11b63b04190a85abedc32af4dfd7c8"
+    },
+    {
+      "profile": "yr",
+      "id": "action14-dispatch-call",
+      "kind": "code",
+      "start": "0x6de04e",
+      "end": "0x6de07b",
+      "fileOffset": 3006542,
+      "byteLength": 45,
+      "sha256": "07899b8d4048a2ebfd4466d99e31829a8e74d4cccc8c316d747afecc55e6fcea"
+    },
+    {
+      "profile": "yr",
+      "id": "action36-dispatch-call",
+      "kind": "code",
+      "start": "0x6de07b",
+      "end": "0x6de0a8",
+      "fileOffset": 3006587,
+      "byteLength": 45,
+      "sha256": "abf1b264ca4b9f4d3c8efa73d085547ba235be6e79d7735cc3878c4fd734ce3f"
+    },
+    {
+      "profile": "yr",
+      "id": "action14",
+      "kind": "code",
+      "start": "0x6e0aa0",
+      "end": "0x6e0b53",
+      "fileOffset": 3017376,
+      "byteLength": 179,
+      "sha256": "be1ee762102ee65b68540e24ab51f02f276d8ac7ffc4e2b97a2e5a4e17de1981"
+    },
+    {
+      "profile": "yr",
+      "id": "action36",
+      "kind": "code",
+      "start": "0x6e0b60",
+      "end": "0x6e0c94",
+      "fileOffset": 3017568,
+      "byteLength": 308,
+      "sha256": "f81020c27ee3ca7b5c664d881ebfd3989b9f258613657d9f17b106e27b885f01"
+    },
+    {
+      "profile": "yr",
+      "id": "first-country-house",
+      "kind": "code",
+      "start": "0x502d30",
+      "end": "0x502d60",
+      "fileOffset": 1060144,
+      "byteLength": 48,
+      "sha256": "6cdcedafe10869296cf621f6fd1d427d3f6d4c8fb3c7c9e470a00799079a3d57"
+    },
+    {
+      "profile": "yr",
+      "id": "tag-chain-membership",
+      "kind": "code",
+      "start": "0x6e5380",
+      "end": "0x6e53a0",
+      "fileOffset": 3036032,
+      "byteLength": 32,
+      "sha256": "908ccfbbe1763af2492f0130afc4a064b208e3dcf85e358afa911adb3de6b436"
+    },
+    {
+      "profile": "yr",
+      "id": "current-trigger-house",
+      "kind": "code",
+      "start": "0x726910",
+      "end": "0x726914",
+      "fileOffset": 3303696,
+      "byteLength": 4,
+      "sha256": "4d8bbabf4078fb522f1b7e5fa9e993af5e9c941d53117c673ecfde3a5feca5c7"
+    },
+    {
+      "profile": "yr",
+      "id": "events9-11",
+      "kind": "code",
+      "start": "0x71f069",
+      "end": "0x71f218",
+      "fileOffset": 3272809,
+      "byteLength": 431,
+      "sha256": "a80be751d253ce70bfab5af11ddc372861626dc80810fb14faaf155fe9813df9"
+    },
+    {
+      "profile": "yr",
+      "id": "registered-gain",
+      "kind": "code",
+      "start": "0x4ff700",
+      "end": "0x4ff8cc",
+      "fileOffset": 1046272,
+      "byteLength": 460,
+      "sha256": "e87435c0c6621ff12887c2640e11a398fdcc5bd695b83ce29ea9100a1703599a"
+    },
+    {
+      "profile": "yr",
+      "id": "registered-loss",
+      "kind": "code",
+      "start": "0x4ff550",
+      "end": "0x4ff6d3",
+      "fileOffset": 1045840,
+      "byteLength": 387,
+      "sha256": "1f2a36f971fef51265431dd91c2fd4ba8dbed0fd7f8fd939762d053743b7bdd6"
+    },
+    {
+      "profile": "yr",
+      "id": "building-category-wrapper",
+      "kind": "code",
+      "start": "0x457620",
+      "end": "0x45762b",
+      "fileOffset": 357920,
+      "byteLength": 11,
+      "sha256": "8069f3b09709e159d4e7bf5100faff6474c413c21cddc8ae4896cfefe4a23ca3"
+    },
+    {
+      "profile": "yr",
+      "id": "building-category",
+      "kind": "code",
+      "start": "0x465d40",
+      "end": "0x465d6e",
+      "fileOffset": 417088,
+      "byteLength": 46,
+      "sha256": "ad6c88a7b0bbc0aa8a5e7166084c2f2fe77086777c9a44cec718280a10fde7a2"
+    },
+    {
+      "profile": "yr",
+      "id": "foot-owner-wrapper",
+      "kind": "code",
+      "start": "0x4dbed0",
+      "end": "0x4dbfc5",
+      "fileOffset": 900816,
+      "byteLength": 245,
+      "sha256": "47453826254745f71e314f92f8c48da3ea8e07f28a226825750f3affa97e9917"
+    },
+    {
+      "profile": "yr",
+      "id": "techno-current-owner",
+      "kind": "code",
+      "start": "0x7014a0",
+      "end": "0x701896",
+      "fileOffset": 3151008,
+      "byteLength": 1014,
+      "sha256": "824bc97f297b97c59d4575d727c35ce86662e8f78a06ff5a3734433dd6d786e0"
+    },
+    {
+      "profile": "yr",
+      "id": "present-gain",
+      "kind": "code",
+      "start": "0x502a80",
+      "end": "0x502d0c",
+      "fileOffset": 1059456,
+      "byteLength": 652,
+      "sha256": "aee8c8d33fe403b8e9ecaad116e634affb668f8283c6096ad23d26c3d447fad8"
+    },
+    {
+      "profile": "yr",
+      "id": "present-loss",
+      "kind": "code",
+      "start": "0x5025f0",
+      "end": "0x502a55",
+      "fileOffset": 1058288,
+      "byteLength": 1125,
+      "sha256": "e1db49e458ffb50d12ddf7c4dbc8e8193f4f87f35dbd8f9903c8eb3c1bb188e7"
+    },
+    {
+      "profile": "yr",
+      "id": "counter-increment",
+      "kind": "code",
+      "start": "0x49fa00",
+      "end": "0x49fa64",
+      "fileOffset": 653824,
+      "byteLength": 100,
+      "sha256": "846cfe72d80ca7ba49d0fc7b433a317d6d097910bf1b7074e312c83376e2c5d7"
+    },
+    {
+      "profile": "yr",
+      "id": "counter-decrement",
+      "kind": "code",
+      "start": "0x49fa70",
+      "end": "0x49fad4",
+      "fileOffset": 653936,
+      "byteLength": 100,
+      "sha256": "aa8c961291e92759614be0007b87dc6468813aedecc9ba054c8929a32258fd04"
+    },
+    {
+      "profile": "yr",
+      "id": "counter-total",
+      "kind": "code",
+      "start": "0x49fb60",
+      "end": "0x49fb64",
+      "fileOffset": 654176,
+      "byteLength": 4,
+      "sha256": "74032ad0e931f3c4730df99da43479f9f5315cc898c7c8614278631cb2c16a62"
+    },
+    {
+      "profile": "yr",
+      "id": "object-type-constructor",
+      "kind": "code",
+      "start": "0x5f7090",
+      "end": "0x5f7277",
+      "fileOffset": 2060432,
+      "byteLength": 487,
+      "sha256": "2784f80070eb3b38f75b0f92ca65d12a5353f51eb393802919a64147de5f49a6"
+    },
+    {
+      "profile": "yr",
+      "id": "insignificant-load",
+      "kind": "code",
+      "start": "0x5f92d0",
+      "end": "0x5f9521",
+      "fileOffset": 2069200,
+      "byteLength": 593,
+      "sha256": "6a0064ea18c947341813c64c09154c7ad2834109386051729ff0e06217b55a7c"
+    },
+    {
+      "profile": "yr",
+      "id": "techno-type-constructor-prefix",
+      "kind": "code",
+      "start": "0x710af0",
+      "end": "0x7113fc",
+      "fileOffset": 3214064,
+      "byteLength": 2316,
+      "sha256": "ffb5b2a1a4532869e975e2726b5ddef02a6ec15c57f233001265e77f32d29674"
+    },
+    {
+      "profile": "yr",
+      "id": "dont-score-load",
+      "kind": "code",
+      "start": "0x713f44",
+      "end": "0x713f5e",
+      "fileOffset": 3227460,
+      "byteLength": 26,
+      "sha256": "a26d8be47c3ad05454571a0dec0a9484e46ab3fcab566308b2f79bf1e69131c2"
+    },
+    {
+      "profile": "yr",
+      "id": "undeploy-selector",
+      "kind": "code",
+      "start": "0x71329d",
+      "end": "0x7132ea",
+      "fileOffset": 3224221,
+      "byteLength": 77,
+      "sha256": "351fdf688b6488f1a8f6fdc9b77ae8b2ed9373dad2cf8d2574af729a9362c827"
+    },
+    {
+      "profile": "yr",
+      "id": "undeploy-allocation",
+      "kind": "code",
+      "start": "0x7480d0",
+      "end": "0x748153",
+      "fileOffset": 3440848,
+      "byteLength": 131,
+      "sha256": "e2ed4ce412f8d357a7f05509066ec0f04f7d38b07a1e0aa2d6ec4c889c92c7ff"
+    },
+    {
+      "profile": "yr",
+      "id": "resource-gatherer-load",
+      "kind": "code",
+      "start": "0x7143d0",
+      "end": "0x7143ea",
+      "fileOffset": 3228624,
+      "byteLength": 26,
+      "sha256": "7373d6cfad212b2976f343d37da528a56aade92328309b93fea0cb8c68d41372"
+    },
+    {
+      "profile": "yr",
+      "id": "building-type-constructor-prefix",
+      "kind": "code",
+      "start": "0x45dd90",
+      "end": "0x45e057",
+      "fileOffset": 384400,
+      "byteLength": 711,
+      "sha256": "b756351f8cad3c5b3395e2a2d9fe6649878eb021ce6d8655eae78ff1beecbb40"
+    },
+    {
+      "profile": "yr",
+      "id": "powered-controls-load",
+      "kind": "code",
+      "start": "0x45ffe1",
+      "end": "0x460015",
+      "fileOffset": 393185,
+      "byteLength": 52,
+      "sha256": "fe3a35e41e7dcf9704627b304f3cb6242ddf6db8823aeda95d441a62e7933494"
+    },
+    {
+      "profile": "yr",
+      "id": "infantry-technician-default-prefix",
+      "kind": "code",
+      "start": "0x517a50",
+      "end": "0x517acc",
+      "fileOffset": 1145424,
+      "byteLength": 124,
+      "sha256": "283680d8e3ad2ec4c487f865cf840507e6d4c84a743dcd05cb55ab327b7f0267"
+    },
+    {
+      "profile": "ra2",
+      "id": "insignificant-key",
+      "kind": "data",
+      "start": "0x7e8188",
+      "end": "0x7e8196",
+      "fileOffset": 4096392,
+      "byteLength": 14,
+      "sha256": "2e6baf56bb0c6ef812a5105b05eac64ab2526068ce717d974c4c8d5b1d94ba49"
+    },
+    {
+      "profile": "ra2",
+      "id": "undeploy-key",
+      "kind": "data",
+      "start": "0x7f7d5c",
+      "end": "0x7f7d6a",
+      "fileOffset": 4160860,
+      "byteLength": 14,
+      "sha256": "265dfce6f8cb72f67cf24393bba6f6330307cd678c14e71b88444a14253bf934"
+    },
+    {
+      "profile": "ra2",
+      "id": "construction-yard-key",
+      "kind": "data",
+      "start": "0x7d0e9c",
+      "end": "0x7d0ead",
+      "fileOffset": 4001436,
+      "byteLength": 17,
+      "sha256": "5ea08421d5460c60800034cd9dda6821703091629495a7db7af485ed362ab9ba"
+    },
+    {
+      "profile": "ra2",
+      "id": "angle-none-selector",
+      "kind": "data",
+      "start": "0x7cdecc",
+      "end": "0x7cded3",
+      "fileOffset": 3989196,
+      "byteLength": 7,
+      "sha256": "79a7c6fa7c79856dbc88957993460ae055c3ffc065c632a95c9efe3852df9ee4"
+    },
+    {
+      "profile": "ra2",
+      "id": "none-selector",
+      "kind": "data",
+      "start": "0x7ce0ec",
+      "end": "0x7ce0f1",
+      "fileOffset": 3989740,
+      "byteLength": 5,
+      "sha256": "fdbb9db68f1db204d7823d5cbd2ff3eee530677fc945b6304356e1c6658b9ca2"
+    },
+    {
+      "profile": "ra2",
+      "id": "building-category-vtable",
+      "kind": "data",
+      "start": "0x79cc38",
+      "end": "0x79cc3c",
+      "fileOffset": 3787832,
+      "byteLength": 4,
+      "sha256": "10f341a39a1f0371b076d35072c8e9c490f9e4753c379a74a8d0452b274c119a"
+    },
+    {
+      "profile": "ra2",
+      "id": "building-owner-vtable",
+      "kind": "data",
+      "start": "0x79cf34",
+      "end": "0x79cf38",
+      "fileOffset": 3788596,
+      "byteLength": 4,
+      "sha256": "ab69023b436356244fac6e91f1dcff00c428b71dbcd35bf0e5a236baab6b919f"
+    },
+    {
+      "profile": "ra2",
+      "id": "action14-table",
+      "kind": "data",
+      "start": "0x6af788",
+      "end": "0x6af78c",
+      "fileOffset": 2815880,
+      "byteLength": 4,
+      "sha256": "5984a89c7b8386a140cd59aa11b934e9b639afd53e8d12fa51a3ffb5363eafe3"
+    },
+    {
+      "profile": "ra2",
+      "id": "action36-table",
+      "kind": "data",
+      "start": "0x6af7e0",
+      "end": "0x6af7e4",
+      "fileOffset": 2815968,
+      "byteLength": 4,
+      "sha256": "3dd1c8aeb1fd924c9623c46fa60cf5389c7e7e136a1d50bb05ec4a1f45828abf"
+    },
+    {
+      "profile": "yr",
+      "id": "insignificant-key",
+      "kind": "data",
+      "start": "0x832b60",
+      "end": "0x832b6e",
+      "fileOffset": 4402016,
+      "byteLength": 14,
+      "sha256": "2e6baf56bb0c6ef812a5105b05eac64ab2526068ce717d974c4c8d5b1d94ba49"
+    },
+    {
+      "profile": "yr",
+      "id": "undeploy-key",
+      "kind": "data",
+      "start": "0x844170",
+      "end": "0x84417e",
+      "fileOffset": 4473200,
+      "byteLength": 14,
+      "sha256": "265dfce6f8cb72f67cf24393bba6f6330307cd678c14e71b88444a14253bf934"
+    },
+    {
+      "profile": "yr",
+      "id": "dont-score-key",
+      "kind": "data",
+      "start": "0x843ec0",
+      "end": "0x843eca",
+      "fileOffset": 4472512,
+      "byteLength": 10,
+      "sha256": "d1719b8c08b0218988134c0f9efe92060bb781e20e36848232155bb637c2d28e"
+    },
+    {
+      "profile": "yr",
+      "id": "resource-gatherer-key",
+      "kind": "data",
+      "start": "0x843cb8",
+      "end": "0x843cc9",
+      "fileOffset": 4471992,
+      "byteLength": 17,
+      "sha256": "c6143c060da6ffb5cbccf46a8f0182800f529af350005628a715b4c94c04c940"
+    },
+    {
+      "profile": "yr",
+      "id": "powered-key",
+      "kind": "data",
+      "start": "0x81ae2c",
+      "end": "0x81ae34",
+      "fileOffset": 4304428,
+      "byteLength": 8,
+      "sha256": "0f3119c14ddc2fa86f639bb3e74343b1b5ef7429ffcf77c1d50d221df999f14c"
+    },
+    {
+      "profile": "yr",
+      "id": "powered-special-key",
+      "kind": "data",
+      "start": "0x81ae1c",
+      "end": "0x81ae2b",
+      "fileOffset": 4304412,
+      "byteLength": 15,
+      "sha256": "79fcabffac8749c575fca48589acec56423ca7027a69ff3faad90b756ee466a3"
+    },
+    {
+      "profile": "yr",
+      "id": "building-category-vtable",
+      "kind": "data",
+      "start": "0x7e3f3c",
+      "end": "0x7e3f40",
+      "fileOffset": 4079420,
+      "byteLength": 4,
+      "sha256": "d834e2bfc5955dc90d36cbbcca5bb1e30127c015d5db1ebeffb2ccc461658742"
+    },
+    {
+      "profile": "yr",
+      "id": "building-owner-vtable",
+      "kind": "data",
+      "start": "0x7e4290",
+      "end": "0x7e4294",
+      "fileOffset": 4080272,
+      "byteLength": 4,
+      "sha256": "8b13671fa1895e49444f3416a23c8eaf2059b45d04487cba9b8270975165edfd"
+    },
+    {
+      "profile": "yr",
+      "id": "action14-table",
+      "kind": "data",
+      "start": "0x6dfe20",
+      "end": "0x6dfe24",
+      "fileOffset": 3014176,
+      "byteLength": 4,
+      "sha256": "da0b360b969a741fa276c9fa17dedb68ceb9c913b0bc80b07a1cfaf2220d9df7"
+    },
+    {
+      "profile": "yr",
+      "id": "action36-table",
+      "kind": "data",
+      "start": "0x6dfe78",
+      "end": "0x6dfe7c",
+      "fileOffset": 3014264,
+      "byteLength": 4,
+      "sha256": "f09ff1f883a6d4cc3fd69b1c7bbdcf661beab6126925623a1a179f2ff0956abb"
+    },
+    {
+      "profile": "ra2",
+      "id": "event9-selector",
+      "kind": "data",
+      "start": "0x6e6876",
+      "end": "0x6e6877",
+      "fileOffset": 3041398,
+      "byteLength": 1,
+      "sha256": "dbc1b4c900ffe48d575b5da5c638040125f65db0fe3e24494b76ea986457d986"
+    },
+    {
+      "profile": "ra2",
+      "id": "event9-dispatch-target",
+      "kind": "data",
+      "start": "0x6e6854",
+      "end": "0x6e6858",
+      "fileOffset": 3041364,
+      "byteLength": 4,
+      "sha256": "cff48df01b6e99687b850c39fdbe48cba5ff87fc8b1fb6a2886e20d30e390db2"
+    },
+    {
+      "profile": "ra2",
+      "id": "event10-selector",
+      "kind": "data",
+      "start": "0x6e6877",
+      "end": "0x6e6878",
+      "fileOffset": 3041399,
+      "byteLength": 1,
+      "sha256": "084fed08b978af4d7d196a7446a86b58009e636b611db16211b65a9aadff29c5"
+    },
+    {
+      "profile": "ra2",
+      "id": "event10-dispatch-target",
+      "kind": "data",
+      "start": "0x6e6858",
+      "end": "0x6e685c",
+      "fileOffset": 3041368,
+      "byteLength": 4,
+      "sha256": "b4a7b6ab1c47077fbe148a8f1724c0cc81be15754cbcb8301fa544b7ae233f44"
+    },
+    {
+      "profile": "ra2",
+      "id": "event11-selector",
+      "kind": "data",
+      "start": "0x6e6878",
+      "end": "0x6e6879",
+      "fileOffset": 3041400,
+      "byteLength": 1,
+      "sha256": "e52d9c508c502347344d8c07ad91cbd6068afc75ff6292f062a09ca381c89e71"
+    },
+    {
+      "profile": "ra2",
+      "id": "event11-dispatch-target",
+      "kind": "data",
+      "start": "0x6e685c",
+      "end": "0x6e6860",
+      "fileOffset": 3041372,
+      "byteLength": 4,
+      "sha256": "3ca4876d61f8375f7a577b62fc921d204dfaa69cc07e26f756f9c942bdc317db"
+    },
+    {
+      "profile": "yr",
+      "id": "event9-selector",
+      "kind": "data",
+      "start": "0x71f356",
+      "end": "0x71f357",
+      "fileOffset": 3273558,
+      "byteLength": 1,
+      "sha256": "dbc1b4c900ffe48d575b5da5c638040125f65db0fe3e24494b76ea986457d986"
+    },
+    {
+      "profile": "yr",
+      "id": "event9-dispatch-target",
+      "kind": "data",
+      "start": "0x71f330",
+      "end": "0x71f334",
+      "fileOffset": 3273520,
+      "byteLength": 4,
+      "sha256": "da9b639075ed8638d8319f8612a9ddfa8cce22f0c1012c840e8048bfb9a85865"
+    },
+    {
+      "profile": "yr",
+      "id": "event10-selector",
+      "kind": "data",
+      "start": "0x71f357",
+      "end": "0x71f358",
+      "fileOffset": 3273559,
+      "byteLength": 1,
+      "sha256": "084fed08b978af4d7d196a7446a86b58009e636b611db16211b65a9aadff29c5"
+    },
+    {
+      "profile": "yr",
+      "id": "event10-dispatch-target",
+      "kind": "data",
+      "start": "0x71f334",
+      "end": "0x71f338",
+      "fileOffset": 3273524,
+      "byteLength": 4,
+      "sha256": "69e5bf72ccfbcf1031b7db54f48252d9840b7d17c176ffc672ea272d87cc5818"
+    },
+    {
+      "profile": "yr",
+      "id": "event11-selector",
+      "kind": "data",
+      "start": "0x71f358",
+      "end": "0x71f359",
+      "fileOffset": 3273560,
+      "byteLength": 1,
+      "sha256": "e52d9c508c502347344d8c07ad91cbd6068afc75ff6292f062a09ca381c89e71"
+    },
+    {
+      "profile": "yr",
+      "id": "event11-dispatch-target",
+      "kind": "data",
+      "start": "0x71f338",
+      "end": "0x71f33c",
+      "fileOffset": 3273528,
+      "byteLength": 4,
+      "sha256": "7d3206c1abae2bee645935e0869a1220297f6058a639ccd7660f23b2f17520b9"
+    }
+  ],
+  "rangeCount": 91,
+  "codeRangeCount": 60,
+  "assertionCount": 80,
+  "assertions": [
+    {
+      "profile": "ra2",
+      "id": "insignificant-key",
+      "kind": "data-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "undeploy-key",
+      "kind": "data-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "construction-yard-key",
+      "kind": "data-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "angle-none-selector",
+      "kind": "data-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "none-selector",
+      "kind": "data-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "building-category-vtable",
+      "kind": "data-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "building-owner-vtable",
+      "kind": "data-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "action14-table",
+      "kind": "data-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "action36-table",
+      "kind": "data-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "insignificant-key",
+      "kind": "data-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "undeploy-key",
+      "kind": "data-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "dont-score-key",
+      "kind": "data-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "resource-gatherer-key",
+      "kind": "data-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "powered-key",
+      "kind": "data-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "powered-special-key",
+      "kind": "data-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "building-category-vtable",
+      "kind": "data-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "building-owner-vtable",
+      "kind": "data-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "action14-table",
+      "kind": "data-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "action36-table",
+      "kind": "data-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "event9-dispatch-join",
+      "kind": "operand-dispatch-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "event10-dispatch-join",
+      "kind": "operand-dispatch-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "event11-dispatch-join",
+      "kind": "operand-dispatch-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "event9-dispatch-join",
+      "kind": "operand-dispatch-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "event10-dispatch-join",
+      "kind": "operand-dispatch-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "event11-dispatch-join",
+      "kind": "operand-dispatch-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "instruction-5d5801",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "instruction-5d58e8",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "instruction-5d7a3e",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "instruction-5d7a4f",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "instruction-6d9b55",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "instruction-6d9db3",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "instruction-6dbf9d",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "instruction-6dbfb8",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "instruction-6dbfcd",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "instruction-6dbfdc",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "instruction-457ac7",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "instruction-457de0",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "instruction-45a2eb",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "instruction-45a2f8",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "instruction-6cdad0",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "instruction-6cd9c0",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "instruction-6cd9c8",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "instruction-4ca7da",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "ra2",
+      "id": "instruction-6adb11",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-5f70a1",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-5f7188",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-5f950a",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-5f951b",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-710b00",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-710d67",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-710ff0",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-7113f6",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-71329d",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-7132b2",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-7132c7",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-7132e4",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-713f4b",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-713f58",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-7143d7",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-7143e4",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-45dd9a",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-45e04b",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-45e051",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-45ffe8",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-45fff5",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-460002",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-46000f",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-517a7a",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-517a98",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-725fad",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-725fb5",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-726561",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-701735",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-7015de",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-7015e6",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-70178e",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-4dbf0a",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-6dd8e7",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-6de069",
+      "kind": "instruction-identity",
+      "passed": true
+    },
+    {
+      "profile": "yr",
+      "id": "instruction-6de096",
+      "kind": "instruction-identity",
+      "passed": true
+    }
+  ],
+  "byteCount": 24134,
+  "rangesSha256": "12c5e633ab54b9428361b1e538c2589ede850e3bfbe10594c5becb03e4e7285a"
+}
