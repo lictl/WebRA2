@@ -33,3 +33,10 @@ coordinator must add the retained GPL notice/distribution mapping when integrati
 it into a distributed runtime. The earlier browser checkpoint failed exact CPU/GPU Float32 depth equality. Revised
 coverage, independent review and sustained cadence remain pending; the report
 preserves the measured differences and their scope.
+
+The bounded reuse candidate is original WebRA2 implementation work under the same
+GPL-3.0-or-later notice. It retains exact checked affine terms and immutable bin
+plans from this module's existing numeric policy; no new native-game behavior,
+shader precision guarantee, third-party code or source asset is introduced. Its
+resource reservations, zero-reuse reference, independent packet comparisons and
+pending actual-browser gate are described in the focused feasibility report.

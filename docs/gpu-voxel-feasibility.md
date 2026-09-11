@@ -281,16 +281,16 @@ still required. A public six-frame multipart regression pins the earlier complet
 packet digest and checks previous-frame ownership across successful and failed
 preparation.
 
-### Retained instance layout checkpoint
+### Retained instance layout checkpoint (16a26cb)
 
-The next optional path captures the static instance IDs, part/palette joins and
+That checkpoint introduced an optional path that captures the static instance IDs, part/palette joins and
 caller-order to sorted-owner mapping once, using
 `createGpuVoxelInstanceLayout(scene, instances, lowerLayoutLimits?)`. Each later
 `prepareGpuVoxelLayoutFrame(layout, { matrices, width, height }, lowerFrameLimits?)`
 receives a `Float64Array` with 12 coefficients per instance in the **original caller
 order**. It owns a fixed-length copy, validates every matrix and runs the same frame
 preparation as the existing record-based API. The original API remains available.
-There is no transform, inverse, envelope, box or bin cache in this checkpoint.
+At that revision there was no transform, inverse, envelope, box or bin cache.
 
 The genuine layout binds its exact scene. Caller edits, detached exports, forged
 layouts and a copied scene cannot change that binding. Top-level accessor properties
@@ -309,5 +309,68 @@ All matrices and derived numeric arrays still use the original bounds and arithm
 Public comparisons cover all 45 oracle packets/allocations and 153,088 old-Float64
 picks, plus 64 changing-linear/rounding-boundary frames, caller-order ownership,
 byte/storage limits, successful/failed retries and input mutation. This checkpoint
-has no new browser timing result; the browser worker will compare it against the
-same recorded inputs and bundle before any performance conclusion.
+was subsequently measured with the same recorded inputs and bundle; the
+[browser report](gpu-voxel-browser.md) preserves the captured-only result and
+the earlier condition-sensitive measurements.
+
+### Bounded exact reuse candidate
+
+The subsequent candidate keeps the `16a26cb` captured path available with
+`{ reuseBytes: 0 }` in the layout limits. The default reuse allowance is 32 MiB,
+lowerable only. It does not change `GPU_VOXEL_POLICY`, shader arithmetic, source
+admission, public frame allocation counters or the record-based entrypoint.
+
+An owned layout may retain a temporary matrix workspace, exact linear bases and
+one bin plan. A basis is keyed by the immutable part identity and all nine caller
+linear coefficients, distinguishing signed zero. It retains the checked linear
+inverse terms, quantized-envelope linear inverse and residual, and six binary64
+pre-translation center terms per resident voxel. Each frame still owns its input
+plane and validates every value. All translations, translated inverse bounds,
+Float32 translation quantization, viewport-dependent error scales/margins/radii,
+old Float64 pixel bounds and expanded clipping are recalculated with the existing
+arithmetic grouping. Changing an animation matrix cannot reuse a mismatched basis.
+A different part or palette requires a different captured layout, as before.
+
+Bin reuse requires the same viewport and limits plus equal ordered voxel-owner
+and integer tile ranges for every compact box. It never infers equal boxes from
+an equal aggregate count. The first different box rebuilds the previously matched
+prefix and resumes the original ordered budget checks. A removed trailing box
+also prevents reuse. The immutable offsets/candidates can be shared by frames;
+every diagnostic export still returns owned copies. No earlier frame or cache
+array is overwritten. Failed preparation leaves the last committed cache and
+frames unchanged; internal scratch values are rewritten on retry.
+
+`gpuVoxelLayoutStats(layout)` reports logical bytes for the last **successful**
+preparation, not JavaScript heap, allocator or driver measurements. The reuse cap
+charges the persistent workspace, complete basis arrays/strings/metadata, compact
+bin membership, and the full backing bytes of retained offsets/candidates. It
+also reserves old plus candidate data and 2,048 bytes of temporary key/math
+metadata before reuse allocations. Shared old/candidate planes are conservatively
+charged again. A workspace reserves 128 logical bytes per instance; transient
+inverse references are cleared even after failed validation. Capacity exhaustion
+falls back to ordinary computation and retains the last committed cache; it does
+not reject a frame that the existing frame limits admit.
+
+The separate working reservation includes the existing `frameBytes`, 288 bytes
+per instance for the owned input plane and additional matrix/validation scratch,
+and 2,048 bytes of bounded numeric metadata. `lastCombinedPeakBytes` adds that to
+the peak reuse reservation. Existing frame and renderer limits still apply. These
+counters do not bound frames or detached copies intentionally retained by external
+callers. A cache alias is charged for its complete backing plane, not merely a
+reference, and no pool recycles storage while an earlier frame can observe it.
+
+Original checks compare zero-reuse and retained paths across every linear
+coefficient, signed zero, near ties, viewport changes, clipping, all frame-budget
+boundaries, source part/palette selection, caller mutation, and failed retries.
+The private preserved-`16a` comparison reproduced 129 complete packets/allocation
+projections (45 oracle cases plus 84 recorded original diagnostic inputs) and
+306,176 comparison picks. Another generated check matched 1,728 successful frames,
+2,112 errors and 255,872 picks, retaining eight earlier frames through later work.
+
+An exploratory alternating Node run of the bounded candidate measured 15.87 ms
+versus 10.69 ms median preparation at 1,024 groups over 80 measured recorded inputs;
+p95 was 36.02 ms versus 38.11 ms. The earlier unbounded private prototype was faster
+in a separate run and is not the public implementation. Hashing/comparison stayed
+outside the timed interval. The candidate has no Chrome timing or 60 FPS result
+yet; the captured-only 42 FPS failure and all prior driver/coverage limitations in
+the [browser report](gpu-voxel-browser.md) remain applicable evidence.

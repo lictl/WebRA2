@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2026 WebRA2 contributors. Original presentation experiment; no native parity claim.
-import { inverse, multiply } from './voxel-math.ts';
+import { inverse, multiply, finite } from './voxel-math.ts';
 
 export const GPU_VOXEL_POLICY = 'webra2-voxel-highp-clipped-ray-3' as const;
 export const GPU_VOXEL_LIMITS = Object.freeze({ parts: 256, palettes: 256, voxels: 1048576,
@@ -8,12 +8,13 @@ export const GPU_VOXEL_LIMITS = Object.freeze({ parts: 256, palettes: 256, voxel
   samples: 64 * 1024 * 1024, candidateTests: 128 * 1024 * 1024, binEntries: 8 * 1024 * 1024, binCandidates: 4096,
   residentBytes: 128 * 1024 * 1024, frameBytes: 128 * 1024 * 1024 });
 export type GpuVoxelLimits = { -readonly [K in keyof typeof GPU_VOXEL_LIMITS]: number };
-export const GPU_VOXEL_LAYOUT_LIMITS = Object.freeze({ capturedBytes: 4 * 1024 * 1024, matrixBytes: 4096 * 12 * 8 });
+export const GPU_VOXEL_LAYOUT_LIMITS = Object.freeze({ capturedBytes: 4 * 1024 * 1024, matrixBytes: 4096 * 12 * 8, reuseBytes: 32 * 1024 * 1024 });
 export type GpuVoxelLayoutLimits = { -readonly [K in keyof typeof GPU_VOXEL_LAYOUT_LIMITS]: number };
 export interface GpuVoxelPartInput { readonly id: string; readonly voxels: Uint8Array; readonly modelMatrix: readonly number[] }
 export interface GpuVoxelPaletteInput { readonly id: string; readonly rgba: Uint8Array; readonly remap: Uint8Array | null; readonly transparentIndex: number | null }
 export interface GpuVoxelInstance { readonly id: string; readonly partId: string; readonly paletteId: string; readonly modelToView: readonly number[] }
 export interface GpuVoxelScene { readonly policy: typeof GPU_VOXEL_POLICY; readonly allocations: Readonly<{ parts: number; palettes: number; voxels: number; residentBytes: number }> }
+export interface GpuVoxelLayoutStats { readonly retainedReuseBytes: number; readonly lastPeakReuseBytes: number; readonly lastFrameWorkingBytes: number; readonly lastCombinedPeakBytes: number; readonly workspaceBytes: number; readonly basisEntries: number; readonly binBytes: number; readonly cacheUpdated: boolean }
 export interface GpuVoxelInstanceLayout { readonly policy: typeof GPU_VOXEL_POLICY; readonly scene: GpuVoxelScene;
   readonly allocations: Readonly<{ instances: number; capturedBytes: number; matrixBytes: number }> }
 export interface GpuVoxelFrame { readonly policy: typeof GPU_VOXEL_POLICY; readonly scene: GpuVoxelScene; readonly width: number; readonly height: number;
@@ -21,13 +22,54 @@ export interface GpuVoxelFrame { readonly policy: typeof GPU_VOXEL_POLICY; reado
 export interface GpuVoxelHit { readonly instanceId: string; readonly partId: string; readonly voxelOrdinal: number; readonly x: number; readonly y: number; readonly z: number;
   readonly colorIndex: number; readonly normalIndex: number; readonly depth: number; readonly owner: number }
 interface Part { id: string; start: number; count: number; matrix: number[] }
-interface Selection { id: string; part: Part; palette: number; m: number[]; inputIndex: number }
-interface Layout { scene: GpuVoxelScene; resident: Resident; cap: GpuVoxelLayoutLimits; bindings: Omit<Selection, 'm'>[] }
+interface Selection { reuse?: Basis | undefined; inputInverse?: number[] | undefined; id: string; part: Part; palette: number; m: number[]; inputIndex: number }
+interface Layout { scene: GpuVoxelScene; resident: Resident; cap: GpuVoxelLayoutLimits; bindings: Omit<Selection, 'm'>[]; workspace?: Workspace; cache?: ReuseCache; stats: GpuVoxelLayoutStats }
 interface Placement { id: string; part: Part; palette: number; start: number; end: number; inverse64: number[] }
 interface Resident { cap: GpuVoxelLimits; parts: Part[]; paletteIds: string[]; geometry: Uint32Array; rgba: Uint8Array }
 interface Prepared { cap: GpuVoxelLimits; resident: Resident; placements: Placement[]; inverses: Float32Array; boxes: Int32Array; oldBounds: Int32Array; offsets: Uint32Array; candidates: Uint32Array; tilesX: number }
 const scenes = new WeakMap<GpuVoxelScene, Resident>(), frames = new WeakMap<GpuVoxelFrame, Prepared>();
 const layouts = new WeakMap<GpuVoxelInstanceLayout, Layout>();
+interface Basis { readonly part: Part; readonly key: string; readonly bytes: number; readonly input: number[]; readonly inputInverse: number[]; readonly forward: number[]; readonly inverse: number[]; readonly envelopeForward: number[]; readonly residual: number; readonly centers: Float64Array }
+interface BinPlan { readonly membership: Uint32Array; readonly offsets: Uint32Array; readonly candidates: Uint32Array; readonly cap: GpuVoxelLimits; readonly width: number; readonly height: number; readonly bytes: number; readonly candidateTests: number; readonly maxBinCandidates: number }
+interface ReuseCache { readonly slots: readonly (Basis | undefined)[]; readonly entries: ReadonlyMap<string, Basis>; readonly bins: BinPlan | undefined; readonly bytes: number }
+interface Workspace { readonly selected: Selection[]; readonly bytes: number }
+interface ReuseAttempt { readonly owned: Layout; readonly workspace: Workspace; readonly previous: ReuseCache | undefined; readonly slots: (Basis | undefined)[]; readonly entries: Map<string, Basis>; readonly baseBytes: number; candidateBytes: number; peakBytes: number; retain: boolean; bins: BinPlan | undefined }
+const linear = [0, 1, 2, 4, 5, 6, 8, 9, 10] as const;
+function matches(basis: Basis, part: Part, m: number[]): boolean { if (basis.part !== part) return false; for (const i of linear) if (!Object.is(basis.input[i], m[i])) return false; return true; }
+function translatedInverse(basis: number[], m: number[]): number[] { const out = basis.slice(); for (let r = 0; r < 12; r += 4) { out[r + 3] = -(out[r]! * m[3]! + out[r + 1]! * m[7]! + out[r + 2]! * m[11]!); finite(out[r + 3]!); } return out; }
+function translatedForward(basis: number[], m: number[], part: number[]): number[] { const out = basis.slice(); for (let r = 0; r < 12; r += 4) { let value = m[r + 3]!; for (let k = 0; k < 3; k++) value += m[r + k]! * part[k * 4 + 3]!; finite(value); out[r + 3] = value; } return out; }
+function retainedBytes(owned: Layout): number { return (owned.workspace?.bytes ?? 0) + (owned.cache?.bytes ?? 0); }
+function beginReuse(owned: Layout): ReuseAttempt | undefined {
+  const count = owned.bindings.length, workspaceBytes = count * 128, slotsBytes = count * 8;
+  // Includes bounded temporary key/math metadata; JavaScript allocator overhead is not measured.
+  const baseBytes = retainedBytes(owned) + (owned.workspace ? 0 : workspaceBytes) + 2048;
+  if (baseBytes + slotsBytes > owned.cap.reuseBytes) return undefined;
+  const workspace = owned.workspace ?? { selected: owned.bindings.map(binding => ({ ...binding, m: new Array<number>(12), reuse: undefined, inputInverse: undefined })), bytes: workspaceBytes };
+  return { owned, workspace, previous: owned.cache, slots: new Array<Basis | undefined>(count), entries: new Map(), baseBytes, candidateBytes: slotsBytes, peakBytes: baseBytes + slotsBytes, retain: true, bins: undefined };
+}
+function reserveReuse(attempt: ReuseAttempt, bytes: number): boolean {
+  if (!attempt.retain || attempt.baseBytes + attempt.candidateBytes + bytes > attempt.owned.cap.reuseBytes) { attempt.retain = false; return false; }
+  attempt.candidateBytes += bytes; attempt.peakBytes = Math.max(attempt.peakBytes, attempt.baseBytes + attempt.candidateBytes); return true;
+}
+function keepBasis(attempt: ReuseAttempt, basis: Basis, index: number): void {
+  if (!attempt.retain) return;
+  if (!attempt.entries.has(basis.key)) { if (!reserveReuse(attempt, basis.bytes)) return; attempt.entries.set(basis.key, basis); }
+  attempt.slots[index] = basis;
+}
+function completeReuse(attempt: ReuseAttempt | undefined, owned: Layout | undefined, frame: GpuVoxelFrame): void {
+  if (!owned) return;
+  if (attempt?.retain) {
+    owned.workspace = attempt.workspace;
+    owned.cache = { slots: attempt.slots, entries: attempt.entries, bins: attempt.bins, bytes: attempt.candidateBytes };
+  }
+  // Frame reservation already includes its scratch/output planes; forward matrices and the
+  // owned input plane are additional numeric working storage. External copies are caller-owned.
+  const workingBytes = frame.allocations.frameBytes + frame.allocations.instances * 288 + 2048;
+  owned.stats = Object.freeze({ retainedReuseBytes: retainedBytes(owned), lastPeakReuseBytes: attempt?.peakBytes ?? retainedBytes(owned), lastFrameWorkingBytes: workingBytes,
+    lastCombinedPeakBytes: (attempt?.peakBytes ?? retainedBytes(owned)) + workingBytes, workspaceBytes: owned.workspace?.bytes ?? 0, basisEntries: owned.cache?.entries.size ?? 0, binBytes: owned.cache?.bins?.bytes ?? 0, cacheUpdated: attempt?.retain ?? false });
+}
+/** Logical bytes for the last successful preparation, not heap/driver measurements. */
+export function gpuVoxelLayoutStats(layout: GpuVoxelInstanceLayout): GpuVoxelLayoutStats { const owned = layouts.get(layout); if (!owned) return fail('layout'); return owned.stats; }
 function fail(code: string): never { throw new Error('gpu-voxel-' + code); }
 function projectionBound(value: number): boolean { return Number.isFinite(value) && Math.abs(value) <= 1048576; }
 function integer(value: unknown, min: number, max: number): number { if (!Number.isSafeInteger(value) || Object.is(value, -0) || (value as number) < min || (value as number) > max) fail('integer'); return value as number; }
@@ -87,7 +129,7 @@ export function createGpuVoxelInstanceLayout(scene: GpuVoxelScene, instances: re
   let instanceVoxels = 0; for (const p of selected) { instanceVoxels += p.part.count; if (instanceVoxels > resident.cap.instanceVoxels) fail('instance-budget'); }
   const bindings = selected.map(({ m: _matrix, ...binding }) => binding);
   const layout: GpuVoxelInstanceLayout = Object.freeze({ policy: GPU_VOXEL_POLICY, scene, allocations: Object.freeze({ instances: bindings.length, capturedBytes, matrixBytes }) });
-  layouts.set(layout, { scene, resident, cap, bindings }); return layout;
+  layouts.set(layout, { scene, resident, cap, bindings, stats: Object.freeze({ retainedReuseBytes: 0, lastPeakReuseBytes: 0, lastFrameWorkingBytes: 0, lastCombinedPeakBytes: 0, workspaceBytes: 0, basisEntries: 0, binBytes: 0, cacheUpdated: false }) }); return layout;
 }
 
 function matrixPlane(value: unknown, expectedBytes: number, maximumBytes: number): Float64Array {
@@ -106,11 +148,26 @@ export function prepareGpuVoxelLayoutFrame(layout: GpuVoxelInstanceLayout, input
   const width = integer(raw.width, 1, cap.dimension), height = integer(raw.height, 1, cap.dimension); if (width * height > cap.pixels) fail('pixel-budget');
   if (owned.bindings.length > cap.instances) fail('instance-budget');
   const plane = matrixPlane(raw.matrices, owned.bindings.length * 12 * 8, owned.cap.matrixBytes);
-  const selected = owned.bindings.map(binding => {
-    const m: number[] = []; for (let i = 0; i < 12; i++) { const n = plane[binding.inputIndex * 12 + i]!; if (!Number.isFinite(n) || Math.abs(n) > 1048576) fail('matrix'); m.push(n); }
-    inverse(m); return { ...binding, m };
-  });
-  return prepareSelectedFrame(owned.scene, owned.resident, cap, width, height, selected);
+  const attempt = owned.cap.reuseBytes === 0 ? undefined : beginReuse(owned);
+  let selected: Selection[];
+  try {
+    if (!attempt) selected = owned.bindings.map(binding => {
+      const m: number[] = []; for (let i = 0; i < 12; i++) { const n = plane[binding.inputIndex * 12 + i]!; if (!Number.isFinite(n) || Math.abs(n) > 1048576) fail('matrix'); m.push(n); }
+      inverse(m); return { ...binding, m };
+    });
+    else {
+      selected = attempt.workspace.selected;
+      for (let index = 0; index < selected.length; index++) {
+        const entry = selected[index]!, m = entry.m;
+        for (let i = 0; i < 12; i++) { const n = plane[entry.inputIndex * 12 + i]!; if (!Number.isFinite(n) || Math.abs(n) > 1048576) fail('matrix'); m[i] = n; }
+        const prior = attempt.previous?.slots[index], reuse = prior && matches(prior, entry.part, m) ? prior : undefined;
+        if (reuse) { const inv = reuse.inputInverse; for (let r = 0; r < 12; r += 4) finite(-(inv[r]! * m[3]! + inv[r + 1]! * m[7]! + inv[r + 2]! * m[11]!)); entry.inputInverse = inv; }
+        else entry.inputInverse = inverse(m);
+        entry.reuse = reuse;
+      }
+    }
+    return prepareSelectedFrame(owned.scene, owned.resident, cap, width, height, selected, owned, attempt);
+  } finally { if (attempt) for (const entry of attempt.workspace.selected) { entry.reuse = undefined; entry.inputInverse = undefined; } }
 }
 
 /** Own already decoded sparse geometry. This experimental factory does not authenticate a game source. */
@@ -137,7 +194,7 @@ export function createGpuVoxelScene(input: { readonly parts: readonly GpuVoxelPa
 // Bounded candidate clipping is part of this experimental presentation policy.
 // The allowance covers ordinary mul/add/FMA/division evaluations, not every legal GLSL
 // rewrite (notably repeated addition). See the report and retained counterexample.
-function candidateAllowance(inv: number[], width: number, height: number) {
+function candidateAllowance(inv: number[], width: number, height: number, basis?: Basis) {
   if (inv.some(v => !Number.isFinite(v) || (v !== 0 && Math.abs(v) < 2 ** -126))) fail('candidate-numeric-context');
   const error = [0, 4, 8].map(row => {
     const scale = Math.abs(inv[row]!) * width + Math.abs(inv[row + 1]!) * height + Math.abs(inv[row + 3]!) + 257;
@@ -146,14 +203,14 @@ function candidateAllowance(inv: number[], width: number, height: number) {
     if (d !== 0 && d < scale * 2 ** -100) fail('candidate-numeric-context');
     return scale * 2 ** -16;
   });
-  const forward = inverse(inv);
-  let residual = 0, magnitude = 0;
+  const forward = basis ? translatedInverse(basis.envelopeForward, inv) : inverse(inv);
+  let residual = basis?.residual ?? 0, magnitude = 0;
   for (let row = 0; row < 3; row++) {
     let rowError = 0, bound = 0;
     for (let col = 0; col < 3; col++) {
-      let product = 0, absolute = 0;
+      if (!basis) { let product = 0, absolute = 0;
       for (let k = 0; k < 3; k++) { const term = forward[row * 4 + k]! * inv[k * 4 + col]!; product += term; absolute += Math.abs(term); }
-      rowError += Math.abs((row === col ? 1 : 0) - product) + 64 * Number.EPSILON * (1 + absolute);
+      rowError += Math.abs((row === col ? 1 : 0) - product) + 64 * Number.EPSILON * (1 + absolute);}
       bound += Math.abs(forward[row * 4 + col]!) * (257 + error[col]! + Math.abs(inv[col * 4 + 3]!));
     }
     residual = Math.max(residual, rowError); magnitude = Math.max(magnitude, bound);
@@ -161,7 +218,7 @@ function candidateAllowance(inv: number[], width: number, height: number) {
   if (!Number.isFinite(residual) || residual > 1 / 1024) fail('candidate-numeric-context');
   const margin = magnitude * (residual / (1 - residual) + 64 * Number.EPSILON);
   const radii = [0, 4, 8].map(row => margin + [0, 1, 2].reduce((n, col) => n + Math.abs(forward[row + col]!) * (.5 + error[col]!), 0));
-  return { forward, radii };
+  return { forward, radii, residual };
 }
 
 /** Bounded candidate-clipped highp experiment; CPU Float32 remains a comparison reference. */
@@ -170,28 +227,55 @@ export function prepareGpuVoxelFrame(scene: GpuVoxelScene, input: { readonly ins
   const width = integer(raw.width, 1, cap.dimension), height = integer(raw.height, 1, cap.dimension); if (width * height > cap.pixels) fail('pixel-budget');
   return prepareSelectedFrame(scene, resident, cap, width, height, selectInstances(resident, raw.instances, cap));
 }
-function prepareSelectedFrame(scene: GpuVoxelScene, resident: Resident, cap: GpuVoxelLimits, width: number, height: number, selected: Selection[]): GpuVoxelFrame {
+function rebuildMatchedPrefix(scratch: Int32Array, used: number, counts: Uint32Array, tilesX: number): number {
+  let entries = 0;
+  for (let i = 0; i < used; i++) { const at = i * 8;
+    for (let by = scratch[at + 1]! >>> 4; by <= ((scratch[at + 3]! - 1) >>> 4); by++) for (let bx = scratch[at]! >>> 4; bx <= ((scratch[at + 2]! - 1) >>> 4); bx++) {
+      const bin = by * tilesX + bx; counts[bin] = counts[bin]! + 1; entries++;
+    }
+  }
+  return entries;
+}
+function prepareSelectedFrame(scene: GpuVoxelScene, resident: Resident, cap: GpuVoxelLimits, width: number, height: number, selected: Selection[], cacheOwner?: Layout, attempt?: ReuseAttempt): GpuVoxelFrame {
+  const previous = attempt?.previous?.bins;
+  const prior = previous && previous.width === width && previous.height === height && Object.keys(cap).every(k => cap[k as keyof GpuVoxelLimits] === previous.cap[k as keyof GpuVoxelLimits]) ? previous : undefined;
+  let counting = !prior;
   const placements: Placement[] = [], forwards: number[][] = [];
   let instanceVoxels = 0; for (const p of selected) { const start = instanceVoxels; instanceVoxels += p.part.count; if (instanceVoxels > cap.instanceVoxels) fail('instance-budget');
-    const forward = multiply(p.m, p.part.matrix), inverse64 = inverse(forward); placements.push({ id: p.id, part: p.part, palette: p.palette, start, end: instanceVoxels, inverse64 }); forwards.push(forward); }
+    const forward = p.reuse ? translatedForward(p.reuse.forward, p.m, p.part.matrix) : multiply(p.m, p.part.matrix), inverse64 = p.reuse ? translatedInverse(p.reuse.inverse, forward) : inverse(forward); placements.push({ id: p.id, part: p.part, palette: p.palette, start, end: instanceVoxels, inverse64 }); forwards.push(forward); }
   const tilesX = Math.ceil(width / 16), tilesY = Math.ceil(height / 16), tileCount = tilesX * tilesY; let samples = 0, binEntries = 0;
   // Reserve worst-case box storage and the fixed frame arrays before allocation.
   const initialBytes = instanceVoxels * 48 + placements.length * (48 + 96) + (tileCount * 3 + 1) * 4; if (initialBytes > cap.frameBytes) fail('frame-budget');
   const counts = new Uint32Array(tileCount), scratch = new Int32Array(instanceVoxels * 8), oldBounds = new Int32Array(instanceVoxels * 4), inverses = new Float32Array(placements.length * 12); let used = 0;
   placements.forEach((p, pi) => { const m = forwards[pi]!; inverses.set(p.inverse64, pi * 12);
-    const envelope = candidateAllowance(Array.from(inverses.subarray(pi * 12, pi * 12 + 12)), width, height), em = envelope.forward;
+    let basis = selected[pi]!.reuse, key = '';
+    if (attempt && !basis) { key = p.part.id + ':' + linear.map(i => Object.is(selected[pi]!.m[i], -0) ? '-0' : selected[pi]!.m[i]).join(','); basis = attempt.entries.get(key) ?? attempt.previous?.entries.get(key); }
+    const envelope = candidateAllowance(Array.from(inverses.subarray(pi * 12, pi * 12 + 12)), width, height, basis), em = envelope.forward;
+    if (attempt && !basis && attempt.retain) {
+      const bytes = p.part.count * 48 + 5 * 96 + key.length * 2 + 64;
+      if (reserveReuse(attempt, bytes)) {
+        const centers = new Float64Array(p.part.count * 6);
+        for (let i = 0; i < p.part.count; i++) { const w = resident.geometry[(p.part.start + i) * 2]!, x = (w & 255) + .5, y = (w >>> 8 & 255) + .5, z = (w >>> 16 & 255) + .5;
+          for (let r = 0; r < 3; r++) { centers[i * 6 + r] = m[r * 4]! * x + m[r * 4 + 1]! * y + m[r * 4 + 2]! * z; centers[i * 6 + r + 3] = em[r * 4]! * x + em[r * 4 + 1]! * y + em[r * 4 + 2]! * z; }
+        }
+        basis = { part: p.part, key, bytes, input: selected[pi]!.m.slice(), inputInverse: selected[pi]!.inputInverse!.slice(), forward: m.slice(), inverse: p.inverse64.slice(), envelopeForward: em.slice(), residual: envelope.residual, centers };
+        attempt.entries.set(key, basis);
+      }
+    }
+    if (attempt && basis) keepBasis(attempt, basis, pi);
+    const centers = basis?.centers;
     const rx = (Math.abs(m[0]!) + Math.abs(m[1]!) + Math.abs(m[2]!)) / 2, ry = (Math.abs(m[4]!) + Math.abs(m[5]!) + Math.abs(m[6]!)) / 2,
       rz = (Math.abs(m[8]!) + Math.abs(m[9]!) + Math.abs(m[10]!)) / 2,
       erx = envelope.radii[0]!, ery = envelope.radii[1]!, erz = envelope.radii[2]!;
     for (let i = 0; i < p.part.count; i++) { const word = resident.geometry[(p.part.start + i) * 2]!, x = word & 255, y = word >>> 8 & 255, z = word >>> 16 & 255;
-      const cx = m[0]! * (x + .5) + m[1]! * (y + .5) + m[2]! * (z + .5) + m[3]!, cy = m[4]! * (x + .5) + m[5]! * (y + .5) + m[6]! * (z + .5) + m[7]!;
-      const cz = m[8]! * (x + .5) + m[9]! * (y + .5) + m[10]! * (z + .5) + m[11]!;
+      const cx = (centers ? centers[i * 6 + 0]! : m[0]! * (x + .5) + m[1]! * (y + .5) + m[2]! * (z + .5)) + m[3]!, cy = (centers ? centers[i * 6 + 1]! : m[4]! * (x + .5) + m[5]! * (y + .5) + m[6]! * (z + .5)) + m[7]!;
+      const cz = (centers ? centers[i * 6 + 2]! : m[8]! * (x + .5) + m[9]! * (y + .5) + m[10]! * (z + .5)) + m[11]!;
       // Keep the same binary64 arithmetic and bounds without transient arrays per voxel.
       if (!projectionBound(cx - rx) || !projectionBound(cx + rx) || !projectionBound(cy - ry) || !projectionBound(cy + ry) || !projectionBound(cz - rz) || !projectionBound(cz + rz)) fail('projection');
       const ox0 = Math.max(0, Math.ceil(cx - rx - .5)), oy0 = Math.max(0, Math.ceil(cy - ry - .5)), ox1 = Math.min(width, Math.floor(cx + rx - .5) + 1), oy1 = Math.min(height, Math.floor(cy + ry - .5) + 1);
-      const ecx = em[0]! * (x + .5) + em[1]! * (y + .5) + em[2]! * (z + .5) + em[3]!,
-        ecy = em[4]! * (x + .5) + em[5]! * (y + .5) + em[6]! * (z + .5) + em[7]!,
-        ecz = em[8]! * (x + .5) + em[9]! * (y + .5) + em[10]! * (z + .5) + em[11]!;
+      const ecx = (centers ? centers[i * 6 + 3]! : em[0]! * (x + .5) + em[1]! * (y + .5) + em[2]! * (z + .5)) + em[3]!,
+        ecy = (centers ? centers[i * 6 + 4]! : em[4]! * (x + .5) + em[5]! * (y + .5) + em[6]! * (z + .5)) + em[7]!,
+        ecz = (centers ? centers[i * 6 + 5]! : em[8]! * (x + .5) + em[9]! * (y + .5) + em[10]! * (z + .5)) + em[11]!;
       if (!Number.isFinite(ecx) || Math.abs(ecx) + erx > 2097152 || !Number.isFinite(ecy) || Math.abs(ecy) + ery > 2097152 || !Number.isFinite(ecz) || Math.abs(ecz) + erz > 2097152) fail('candidate-numeric-context');
       const x0 = Math.max(0, Math.min(ox0, Math.ceil(ecx - erx - .5))), y0 = Math.max(0, Math.min(oy0, Math.ceil(ecy - ery - .5))),
         x1 = Math.min(width, Math.max(ox1, Math.floor(ecx + erx - .5) + 1)), y1 = Math.min(height, Math.max(oy1, Math.floor(ecy + ery - .5) + 1));
@@ -200,16 +284,46 @@ function prepareSelectedFrame(scene: GpuVoxelScene, resident: Resident, cap: Gpu
       scratch[at] = x0; scratch[at + 1] = y0; scratch[at + 2] = x1; scratch[at + 3] = y1;
       scratch[at + 4] = p.part.start + i; scratch[at + 5] = pi; scratch[at + 6] = p.start + i;
       oldBounds[oldAt] = ox0; oldBounds[oldAt + 1] = oy0; oldBounds[oldAt + 2] = ox1; oldBounds[oldAt + 3] = oy1; used++;
-      for (let by = Math.floor(y0 / 16); by <= Math.floor((y1 - 1) / 16); by++) for (let bx = Math.floor(x0 / 16); bx <= Math.floor((x1 - 1) / 16); bx++) { const b = by * tilesX + bx; counts[b] = counts[b]! + 1; if (counts[b]! > cap.binCandidates || ++binEntries > cap.binEntries) fail('candidate-budget'); }
+      // Clipped nonempty boxes have nonnegative integer coordinates <=2048: shift is
+      // exactly floor(coordinate/16). No numeric clipping or admission gate is relaxed.
+      const bx0 = x0 >>> 4, bx1 = (x1 - 1) >>> 4, by0 = y0 >>> 4, by1 = (y1 - 1) >>> 4, member = (used - 1) * 5;
+      if (!counting && (member >= prior!.membership.length || prior!.membership[member + 4] !== p.start + i || prior!.membership[member] !== bx0 || prior!.membership[member + 2] !== bx1 || prior!.membership[member + 1] !== by0 || prior!.membership[member + 3] !== by1)) {
+        // Until this first difference the prefix is identical to an already admitted
+        // plan under identical limits. Rebuild it, then resume the original gate order.
+        counting = true; binEntries = rebuildMatchedPrefix(scratch, used - 1, counts, tilesX);
+      }
+      if (counting) for (let by = by0; by <= by1; by++) for (let bx = bx0; bx <= bx1; bx++) {
+        const bin = by * tilesX + bx; counts[bin] = counts[bin]! + 1;
+        if (counts[bin]! > cap.binCandidates || ++binEntries > cap.binEntries) fail('candidate-budget');
+      }
     }
   });
-  let candidateTests = 0; for (let i = 0; i < counts.length; i++) candidateTests += counts[i]! * Math.min(16, width - i % tilesX * 16) * Math.min(16, height - Math.floor(i / tilesX) * 16);
+  if (!counting && used * 5 !== prior!.membership.length) { counting = true; binEntries = rebuildMatchedPrefix(scratch, used, counts, tilesX); }
+  if (!counting) binEntries = prior!.candidates.length;
+  let candidateTests = counting ? 0 : prior!.candidateTests;
+  if (counting) for (let i = 0; i < counts.length; i++) candidateTests += counts[i]! * Math.min(16, width - i % tilesX * 16) * Math.min(16, height - Math.floor(i / tilesX) * 16);
   if (candidateTests > cap.candidateTests) fail('candidate-work-budget');
   const frameBytes = initialBytes + binEntries * 4; if (frameBytes > cap.frameBytes) fail('frame-budget');
-  const offsets = new Uint32Array(counts.length + 1); for (let i = 0; i < counts.length; i++) offsets[i + 1] = offsets[i]! + counts[i]!;
-  const candidates = new Uint32Array(binEntries), cursor = offsets.slice(0, -1);
-  for (let i = 0; i < used; i++) { const at = i * 8; for (let by = Math.floor(scratch[at + 1]! / 16); by <= Math.floor((scratch[at + 3]! - 1) / 16); by++) for (let bx = Math.floor(scratch[at]! / 16); bx <= Math.floor((scratch[at + 2]! - 1) / 16); bx++) { const b = by * tilesX + bx; candidates[cursor[b]!] = i; cursor[b] = cursor[b]! + 1; } }
-  const frame: GpuVoxelFrame = Object.freeze({ policy: GPU_VOXEL_POLICY, scene, width, height, allocations: Object.freeze({ instances: placements.length, instanceVoxels, boxes: used, samples, candidateTests, binEntries, maxBinCandidates: counts.reduce((a, b) => Math.max(a, b), 0), frameBytes }) });
+  const offsets = counting ? new Uint32Array(counts.length + 1) : prior!.offsets;
+  if (counting) for (let i = 0; i < counts.length; i++) offsets[i + 1] = offsets[i]! + counts[i]!;
+  const candidates = counting ? new Uint32Array(binEntries) : prior!.candidates;
+  if (counting) { const cursor = offsets.slice(0, -1);
+    for (let i = 0; i < used; i++) { const at = i * 8;
+      for (let by = scratch[at + 1]! >>> 4; by <= ((scratch[at + 3]! - 1) >>> 4); by++) for (let bx = scratch[at]! >>> 4; bx <= ((scratch[at + 2]! - 1) >>> 4); bx++) {
+        const bin = by * tilesX + bx; candidates[cursor[bin]!] = i; cursor[bin] = cursor[bin]! + 1;
+      }
+    }
+  }
+  const frame: GpuVoxelFrame = Object.freeze({ policy: GPU_VOXEL_POLICY, scene, width, height, allocations: Object.freeze({ instances: placements.length, instanceVoxels, boxes: used, samples, candidateTests, binEntries, maxBinCandidates: counting ? counts.reduce((a, b) => Math.max(a, b), 0) : prior!.maxBinCandidates, frameBytes }) });
+  if (attempt?.retain) {
+    const bytes = used * 20 + offsets.byteLength + candidates.byteLength + Object.keys(cap).length * 8 + 64;
+    if (reserveReuse(attempt, bytes)) {
+      if (!counting) attempt.bins = prior;
+      else { const membership = new Uint32Array(used * 5); for (let i = 0; i < used; i++) { const at = i * 8, to = i * 5; membership[to] = scratch[at]! >>> 4; membership[to + 1] = scratch[at + 1]! >>> 4; membership[to + 2] = (scratch[at + 2]! - 1) >>> 4; membership[to + 3] = (scratch[at + 3]! - 1) >>> 4; membership[to + 4] = scratch[at + 6]!; }
+        attempt.bins = { membership, offsets, candidates, cap, width, height, bytes, candidateTests, maxBinCandidates: frame.allocations.maxBinCandidates }; }
+    }
+  }
+  completeReuse(attempt, cacheOwner, frame);
   frames.set(frame, { cap, resident, placements, inverses, boxes: scratch.subarray(0, used * 8), oldBounds: oldBounds.subarray(0, used * 4), offsets, candidates, tilesX }); return frame;
 }
 const f = Math.fround, add = (a: number, b: number) => f(f(a) + f(b)), sub = (a: number, b: number) => f(f(a) - f(b)), mul = (a: number, b: number) => f(f(a) * f(b)), div = (a: number, b: number) => f(f(a) / f(b));
