@@ -6,6 +6,7 @@ import { GpuVoxelRenderer } from '../../packages/render/src/gpu-voxel-renderer.t
 import { GPU_VOXEL_POLICY, pickGpuVoxelFrame, copyGpuVoxelSceneData, copyGpuVoxelFrameData } from '../../packages/render/src/gpu-voxel-policy.ts';
 import { renderVoxelFrame } from '../../packages/render/src/voxel-render.ts';
 import { gpuVoxelOracleCases } from '../../tests/render/gpu-voxel-fixtures.ts';
+import { runVoxelCadence, cadenceOptions } from './cadence.mjs';
 import { checkBinCoverage } from './coverage.mjs';
 import { ReportStore } from '../gpu-performance/report-store.mjs';
 const $=id=>document.getElementById(id), canvas=document.querySelector('canvas');
@@ -62,5 +63,6 @@ async function lifecycle(token,report){context();const c=gpuVoxelOracleCases()[0
 }
 async function refresh(token,report){const rows=[];let start=null;await new Promise((resolve,reject)=>{let handle=null;const fail=()=>{if(handle!==null)cancelAnimationFrame(handle);token.abort=null;reject(Error(token.reason??'cancelled'));};token.abort=fail;function frame(now){try{check(token);start??=now;rows.push(now);if(now-start>=22000){token.abort=null;resolve();}else handle=requestAnimationFrame(frame);}catch(e){token.abort=null;reject(e);}}handle=requestAnimationFrame(frame);});const kept=rows.filter(t=>t>=rows[0]+2000),gaps=kept.slice(1).map((t,i)=>t-kept[i]).sort((a,b)=>a-b);report.timestamps=kept;report.summary={opportunities:kept.length-1,elapsedMs:kept.at(-1)-kept[0],rate:(kept.length-1)*1000/(kept.at(-1)-kept[0]),p95:gaps[Math.ceil(gaps.length*.95)-1],p99:gaps[Math.ceil(gaps.length*.99)-1],maximum:gaps.at(-1)};report.verified=true;}
 async function run(kind,fn){if(active)return;cleanup();const token={cancelled:false};active=token;const report={schema:1,kind,environment:environment(),startedAt:new Date().toISOString(),cases:[]};store.clear();try{await fn(token,report);check(token);}catch(e){report.error=String(e?.stack??e);report.verified=false;}finally{cleanup();report.completedAt=new Date().toISOString();report.finalEnvironment=environment();active=null;if(token.detached)return;store.show(report);$('status').textContent=report.verified?'Completed. Full JSON is available for local download.':'Completed with differences or failure. Download the full evidence.';}}
+$('run').onclick=()=>run('voxel-cadence',(token,report)=>runVoxelCadence({canvas,gl:context(),token,report,check,status:$('status'),options:cadenceOptions(Number($('groups').value),Number($('viewport').value),$('duration').value)}));
 $('correctness').onclick=()=>run('voxel-correctness',correctness);$('lifecycle').onclick=()=>run('voxel-lifecycle',lifecycle);$('refresh').onclick=()=>run('voxel-refresh',refresh);$('cancel').onclick=()=>cancel();
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='visible')cancel('hidden');});window.addEventListener('pagehide',()=>{cancel('pagehide');store.clear();});

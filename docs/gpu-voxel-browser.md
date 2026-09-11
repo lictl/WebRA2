@@ -26,8 +26,31 @@ and uses product CSP/non-isolated headers by default. An optional `isolated`
 argument is a separately labeled environment. Reports remain out of the DOM and
 are available through a bounded, revoked local Blob URL.
 
-Actual shader results, exact builds and bounded cadence results will be recorded
-after the first correctness run. Any shader/CPU discrepancy blocks a parity claim;
+The first actual Chrome run at frozen `22b7c719c3d698b8f1ef2e629cce5288dc961f94`,
+port4223, completes43cases/151,488pixels. GPU mask/owner/color and default
+framebuffer color match the CPU-f32 reference at every pixel. There are6,283
+depth differences, maximum absolute1.9073486328125e-5, so the exact-f32 gate
+fails. A driver-evaluated highp presentation policy is being recorded explicitly;
+GPU depth and current-sequence owner govern displayed interaction only. The
+independent old Float64 oracle matches its prior implementation; the CPU-f32
+policy changes16owners and14,410depths with zero mask/color differences.
+
+The same frozen run passes lost-context draw refusal, native context restoration
+with equal colors, old-sequence pick refusal, double disposal and fresh renderer
+restart. Private original JSON is in `local/voxel234/oracle-2/`; no retail data
+is present. Future updated harness runs verify candidate-bin membership/order
+independently and retain exact build identities.
+
+The cadence controls use16/64/256/1,024 original three-part groups. Short probes
+use2s warmup/8s measurement; sustained rows use10s/60s. Every submitted frame
+changes matrices and includes preparation, detached staging and GPU submission.
+Simulation is absent in this isolated renderer experiment. Idle RAF opportunities,
+issued/observed frame rates, p95/p99 gaps/misses, bounded fence/query resources and
+post-window final plane hashes remain separate. Fence times are poll-start
+timestamps associated with a successful zero-timeout check, not scanout times or
+strict completion upper bounds. No sustained timing result is yet claimed.
+
+ Any shader/CPU discrepancy blocks a parity claim;
 Float64 differences are an explicit experimental policy change, not tolerated
 silently as matching output. GPU memory counters describe requested/accounted
 resources, not browser-process RSS or guaranteed reclamation.
