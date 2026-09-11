@@ -5,7 +5,7 @@ import { bytesToHex } from '@noble/hashes/utils.js';
 import { GpuVoxelRenderer } from '../../packages/render/src/gpu-voxel-renderer.ts';
 import { GPU_VOXEL_POLICY, resolveGpuVoxelOwner, pickGpuVoxelFrame, copyGpuVoxelSceneData, copyGpuVoxelFrameData } from '../../packages/render/src/gpu-voxel-policy.ts';
 import { renderVoxelFrame } from '../../packages/render/src/voxel-render.ts';
-import { gpuVoxelOracleCases } from '../../tests/render/gpu-voxel-fixtures.ts';
+import { gpuVoxelOracleCases, gpuVoxelBoundaryCases } from '../../tests/render/gpu-voxel-fixtures.ts';
 import { runVoxelCadence, cadenceOptions } from './cadence.mjs';
 import { checkBinCoverage } from './coverage.mjs';
 import { ReportStore } from '../gpu-performance/report-store.mjs';
@@ -26,14 +26,14 @@ function presentation(frame){const pixels=new Uint8Array(frame.width*frame.heigh
 function identity(p){return p?`${p.instanceId}/${p.partId}/${p.voxelOrdinal}`:null;}
 function sumCases(cases){const keys=['pixels','gpuMaskDifferences','gpuOwnerDifferences','gpuDepthDifferences','gpuRgbaDifferences','defaultRgbaDifferences','defaultGpuPlaneDifferences','gpuOldMaskDifferences','gpuOldOwnerDifferences','gpuOldDepthDifferences','gpuOldRgbaDifferences','oldMaskDifferences','oldOwnerDifferences','oldDepthDifferences','oldRgbaDifferences','float64OracleDifferences','interactionDifferences'];return Object.fromEntries(keys.map(k=>[k,cases.reduce((n,c)=>n+c[k],0)]));}
 async function correctness(token,report){
- const cases=gpuVoxelOracleCases();report.cases=[];report.policy=GPU_VOXEL_POLICY;context();report.contextAttributes=gl.getContextAttributes();report.gl={version:gl.getParameter(gl.VERSION),renderer:gl.getParameter(gl.RENDERER),vendor:gl.getParameter(gl.VENDOR)};
+ const cases=[...gpuVoxelOracleCases().map(c=>({...c,cohort:'original-43'})),...gpuVoxelBoundaryCases().map(c=>({...c,cohort:'boundary-2'}))];report.cases=[];report.policy=GPU_VOXEL_POLICY;context();report.contextAttributes=gl.getContextAttributes();report.gl={version:gl.getParameter(gl.VERSION),renderer:gl.getParameter(gl.RENDERER),vendor:gl.getParameter(gl.VENDOR)};
  for(const c of cases){check(token);$('status').textContent=`Checking ${report.cases.length+1}/${cases.length}: ${c.id}`;await pause();
   cleanup();canvas.width=c.frame.width;canvas.height=c.frame.height;renderer=new GpuVoxelRenderer(gl);
   const start=performance.now();renderer.load(c.frame.scene);const loaded=performance.now();const receipt=renderer.draw(c.frame,[17,31,47,37]);const drawn=performance.now();
   const shown=presentation(c.frame),gpu=renderer.readback();assert(gl.getError()===gl.NO_ERROR,'diagnostic GL error');
   const old=renderVoxelFrame(c.reference),resident=copyGpuVoxelSceneData(c.frame.scene),packet=copyGpuVoxelFrameData(c.frame);
   const expected=new Uint8Array(gpu.rgba.length),expectedOwner=new Uint32Array(gpu.owner.length),expectedDepth=new Float32Array(gpu.depth.length);expectedOwner.fill(0xffffffff);expectedDepth.fill(-Infinity);
-  const row={id:c.id,width:c.frame.width,height:c.frame.height,pixels:gpu.owner.length,gpuMaskDifferences:0,gpuOwnerDifferences:0,gpuDepthDifferences:0,gpuRgbaDifferences:0,defaultRgbaDifferences:0,defaultGpuPlaneDifferences:0,gpuOldMaskDifferences:0,gpuOldOwnerDifferences:0,gpuOldDepthDifferences:0,gpuOldRgbaDifferences:0,oldMaskDifferences:0,oldOwnerDifferences:0,oldDepthDifferences:0,oldRgbaDifferences:0,float64OracleDifferences:0,interactionDifferences:0,maxGpuDepthError:0,firstDifferences:[],picks:[],loadSubmitMs:loaded-start,firstDrawSubmitMs:drawn-loaded,allocations:c.frame.allocations};
+  const row={id:c.id,cohort:c.cohort,width:c.frame.width,height:c.frame.height,pixels:gpu.owner.length,gpuMaskDifferences:0,gpuOwnerDifferences:0,gpuDepthDifferences:0,gpuRgbaDifferences:0,defaultRgbaDifferences:0,defaultGpuPlaneDifferences:0,gpuOldMaskDifferences:0,gpuOldOwnerDifferences:0,gpuOldDepthDifferences:0,gpuOldRgbaDifferences:0,oldMaskDifferences:0,oldOwnerDifferences:0,oldDepthDifferences:0,oldRgbaDifferences:0,float64OracleDifferences:0,interactionDifferences:0,maxGpuDepthError:0,firstDifferences:[],picks:[],loadSubmitMs:loaded-start,firstDrawSubmitMs:drawn-loaded,allocations:c.frame.allocations};
   const probes=[];let hits=0,empty=0;
   for(let y=0;y<c.frame.height;y++)for(let x=0;x<c.frame.width;x++){
    const i=y*c.frame.width+x,p=pickGpuVoxelFrame(c.frame,x,y),fp64=pickGpuVoxelFrame(c.frame,x,y,'float64'),prior=old.pick(x,y);const priorDepth=prior?.depth??-Infinity;const gpuHit=resolveGpuVoxelOwner(c.frame,gpu.owner[i],gpu.depth[i]);
