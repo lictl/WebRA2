@@ -93,6 +93,110 @@ export function readWorldEntityPresence(world: WorldSimulation, entityIds: reado
   return Object.freeze({ model, nextTick: value.nextTick, entities: Object.freeze(entities), work });
 }
 
+/** Narrow optional provenance for #247. Records retain the already owned core
+ * checkpoints, not caller saves. No actor scan, copying or hash occurs unless a
+ * stationary witness explicitly requests an observation. */
+declare const worldStationaryBoundaryBrand: unique symbol;
+export interface WorldStationaryBoundary { readonly [worldStationaryBoundaryBrand]: true }
+export type WorldStationaryOperationInput =
+  | Readonly<{ kind: 'commands'; commands: readonly CommandEnvelope[] }>
+  | Readonly<{ kind: 'step'; ticks: number; workLimit: number }>
+  | Readonly<{ kind: 'transfer'; invocation: WorldHouseInvocation; workLimit: number }>;
+type StationaryReceipt = { model: WorldModel; before: LiveSave; after: LiveSave; input: WorldStationaryOperationInput };
+const stationaryReceipts = new WeakMap<object, StationaryReceipt>();
+const stationaryTokens = new WeakMap<object, WorldStationaryBoundary>();
+const stationaryBoundaries = new WeakMap<object, { model: WorldModel; value: LiveSave; hash?: string; hashWork?: number }>();
+function stationaryToken(model: WorldModel, value: LiveSave): WorldStationaryBoundary {
+  let token = stationaryTokens.get(value);
+  if (!token) { token = Object.freeze({}) as WorldStationaryBoundary;
+    stationaryTokens.set(value, token); stationaryBoundaries.set(token, { model, value }); }
+  return token;
+}
+function stationaryBudget(limit: number) {
+  worldInteger(limit, 0, C.replayWork); let work = 0;
+  return { charge(n = 1) { if (n > limit - work) worldFail('world-stationary-work'); work += n; }, get work() { return work; } };
+}
+/** An opaque same-realm boundary permits a cheap exact join on uninterrupted
+ * instances. Restored forks instead request the separately charged digest. */
+export function readWorldStationaryBoundary(world: WorldSimulation): Readonly<{
+  model: WorldModel; boundary: WorldStationaryBoundary; nextTick: number;
+}> {
+  const read = currentWorldData.get(world); if (!read || Object.getPrototypeOf(world) !== WorldSimulation.prototype) worldFail('world-instance');
+  const { model, value } = read();
+  return Object.freeze({ model, boundary: stationaryToken(model, value), nextTick: value.nextTick });
+}
+/** Deterministic work is charged even when a successful earlier query cached the
+ * digest. The stored graph is private, validated and stable across later commits. */
+export function worldStationaryBoundaryHash(model: WorldModel, boundary: WorldStationaryBoundary, workLimit: number = C.replayWork): Readonly<{ sha256: string; work: number }> {
+  assertWorldModel(model); const item = stationaryBoundaries.get(boundary), meter = stationaryBudget(workLimit);
+  if (!item || item.model !== model) worldFail('world-stationary-boundary');
+  if (item.hashWork === undefined) {
+    const visit = (v: unknown): void => {
+      meter.charge(2);
+      if (typeof v === 'string') meter.charge(v.length * 2);
+      else if (v && typeof v === 'object') for (const key of Object.keys(v)) { meter.charge(key.length * 2 + 2); visit((v as Record<string, unknown>)[key]); }
+    };
+    visit(item.value);
+    const hash = worldHash(item.value); item.hashWork = meter.work; item.hash = hash;
+  } else meter.charge(item.hashWork);
+  return Object.freeze({ sha256: item.hash!, work: meter.work });
+}
+export interface WorldStationaryOperation {
+  readonly model: WorldModel; readonly input: WorldStationaryOperationInput;
+  readonly fromBoundary: WorldStationaryBoundary; readonly toBoundary: WorldStationaryBoundary;
+  readonly fromNextTick: number; readonly toNextTick: number;
+  readonly invalidated: readonly Readonly<{ entityId: number; reason: 'command' | 'movement' | 'combat' | 'state' }>[];
+  readonly transferred: readonly Readonly<{ entityId: number; revision: number }>[];
+  readonly work: number;
+}
+export function readWorldStationaryOperation(model: WorldModel, result: unknown, workLimit: number = C.replayWork): WorldStationaryOperation {
+  assertWorldModel(model); const record = result && typeof result === 'object' ? stationaryReceipts.get(result) : undefined;
+  if (!record || record.model !== model) worldFail('world-stationary-receipt');
+  const meter = stationaryBudget(workLimit), invalidated = new Map<number, WorldStationaryOperation['invalidated'][number]['reason']>();
+  const transferred: { entityId: number; revision: number }[] = [];
+  const invalidate = (id: number, reason: WorldStationaryOperation['invalidated'][number]['reason']) => { meter.charge(); if (!invalidated.has(id)) invalidated.set(id, reason); };
+  let input: WorldStationaryOperationInput;
+  if (record.input.kind === 'commands') {
+    // Canonical operation data was owned by admitCommands before publication.
+    meter.charge(record.input.commands.length * 256 + 1);
+    const commands = worldClone(record.input.commands);
+    for (const command of commands) { Object.freeze(command.payload); Object.freeze(command);
+      const p = command.payload as Record<string, number>; invalidate(p.entityId!, 'command');
+      if (command.kind === 'attack') invalidate(p.targetId!, 'command'); }
+    input = Object.freeze({ kind: 'commands', commands: Object.freeze(commands) });
+  } else if (record.input.kind === 'step') {
+    meter.charge(); input = record.input;
+  } else {
+    meter.charge(record.input.invocation.instructionId.length + 8); input = record.input;
+    const revision = record.after.state.ownership!.transfers.length;
+    for (let i = 0; i < record.after.state.entities.length; i++) {
+      meter.charge(); const a = record.before.state.entities[i]!, b = record.after.state.entities[i]!;
+      if (a.owner !== b.owner) transferred.push(Object.freeze({ entityId: a.id, revision }));
+    }
+  }
+  // Conservative D03 invalidation includes either boundary's unsettled state.
+  // Accepted command history prevents a completed out-and-back route from
+  // recovering certification, even if its final geometry equals the initial one.
+  for (let i = 0; i < record.after.state.entities.length; i++) {
+    meter.charge(2); const a = record.before.state.entities[i]!, b = record.after.state.entities[i]!;
+    if (a.x !== b.x || a.y !== b.y || a.goal !== null || b.goal !== null || a.route.length || b.route.length || a.progress || b.progress) invalidate(a.id, 'movement');
+    if (a.health !== b.health || a.health === 0 || b.health === 0) invalidate(a.id, 'state');
+  }
+  for (const save of [record.before, record.after]) if (save.state.combat) {
+    for (const a of save.state.combat.actors) { meter.charge(); if (a.targetId !== null || a.weaponId !== null || a.burstRemaining) invalidate(a.entityId, 'combat'); }
+    for (const impact of save.state.combat.impacts) { invalidate(impact.sourceId, 'combat'); invalidate(impact.targetId, 'combat'); }
+    for (const death of save.state.combat.deaths ?? []) { invalidate(death.entityId, 'combat'); invalidate(death.sourceId, 'combat'); }
+  }
+  if (record.input.kind === 'step') for (const damage of stepCombatObservations.get(result as object)!.value.damage) {
+    invalidate(damage.sourceId, 'combat'); invalidate(damage.targetId, 'combat');
+  }
+  const rows = [...invalidated].sort((a, b) => a[0] - b[0]).map(([entityId, reason]) => Object.freeze({ entityId, reason }));
+  return Object.freeze({ model, input, fromBoundary: stationaryToken(model, record.before), toBoundary: stationaryToken(model, record.after),
+    fromNextTick: record.before.nextTick, toNextTick: record.after.nextTick, invalidated: Object.freeze(rows),
+    transferred: Object.freeze(transferred), work: meter.work });
+}
+
+
 const engineVersion = (model: WorldModel) => model.ownership ? WORLD_OWNERSHIP_ENGINE : model.infantryPassage ? WORLD_INFANTRY_ENGINE_VERSION : model.combat?.policy===SOURCE_INFANTRY_COMBAT_POLICY ? SOURCE_INFANTRY_COMBAT_ENGINE_VERSION : model.combat?.policy===INFANTRY_COMBAT_POLICY ? INFANTRY_COMBAT_ENGINE_VERSION : model.combat?.policy===ORDINARY_DEATH_POLICY ? ORDINARY_DEATH_ENGINE_VERSION : model.combat?.policy===ORDINARY_COMBAT_POLICY ? ORDINARY_COMBAT_ENGINE_VERSION : model.combat ? COMBAT_ENGINE_VERSION : WORLD_ENGINE_VERSION;
 const rulesVersion = (model: WorldModel) => [model.combat?.policy ?? WORLD_MOTION_POLICY, ...(model.infantryPassage ? [model.infantryPassage.policy] : []), ...(model.ownership ? [WORLD_OWNERSHIP_POLICY] : [])].join('+');
 function infantryOccupancy(model: WorldModel, state: WorldState): InfantryOccupancy {
@@ -277,7 +381,11 @@ export class WorldSimulation {
     const facts = Object.freeze({ sourceSha256: this.#model.ownership!.sha256, bindingsSha256: this.#model.ownership!.bindingsSha256,
       fromStateSha256: worldHash(this.#value), toStateSha256: worldHash(validated), nextTick: this.nextTick,
       instructionId: result.instructionId, sourceHouse: result.sourceHouse, triggerHouse: next.state.ownership!.transfers.at(-1)!.triggerHouse });
-    houseTransfers.set(result, { model: this.#model, value: facts }); this.#value = validated; return result;
+    houseTransfers.set(result, { model: this.#model, value: facts });
+    const transfer = validated.state.ownership!.transfers.at(-1)!;
+    stationaryReceipts.set(result, { model: this.#model, before: this.#value, after: validated, input: Object.freeze({ kind: 'transfer',
+      invocation: Object.freeze({ instructionId: transfer.instructionId, sourceHouse: transfer.sourceHouse, triggerHouse: transfer.triggerHouse }), workLimit }) });
+    this.#value = validated; return result;
   }
   admitCommands(input: readonly unknown[]): CommandEnvelope[] {
     const inputs = worldList(worldClone(input), C.commands); if (inputs.length > C.commands - this.#value.queuedCommands.length) worldFail('world-command-queue');
@@ -290,7 +398,10 @@ export class WorldSimulation {
     }
     const next = worldClone(this.#value);
     next.state.admissionCursors = [...cursors].sort((a, b) => a[0] - b[0]).map(([playerId, sequence]) => ({ playerId, sequence }));
-    next.queuedCommands = orderCommands([...next.queuedCommands, ...commands]); this.#value = validateSave(this.#model, next); return worldClone(commands);
+    next.queuedCommands = orderCommands([...next.queuedCommands, ...commands]);
+    const validated = validateSave(this.#model, next), result = worldClone(commands);
+    if (this.#model.ownership) stationaryReceipts.set(result, { model: this.#model, before: this.#value, after: validated, input: { kind: 'commands', commands } });
+    this.#value = validated; return result;
   }
   /** All requested ticks commit together. Fatal transition/trace/state limits leave the prior checkpoint intact. */
   step(ticks = 1, workLimit: number = C.replayWork): WorldStep {
@@ -450,11 +561,14 @@ export class WorldSimulation {
       if (work.entityVisits + work.navigationExpansions + work.transitions > workLimit) worldFail('world-work-limit');
       save.nextTick++;
     }
+    const before = this.#value;
     this.#value = validateSave(this.#model, save);
     const result = { nextTick: this.nextTick, events, work };
     const value = Object.freeze({ modelSha256: this.#model.sha256, fromNextTick, toNextTick: this.nextTick,
       damage: Object.freeze(damage) });
     stepCombatObservations.set(result, { model: this.#model, value });
+    if (this.#model.ownership) stationaryReceipts.set(result, { model: this.#model, before, after: this.#value,
+      input: Object.freeze({ kind: 'step', ticks, workLimit }) });
     return result;
   }
 }
