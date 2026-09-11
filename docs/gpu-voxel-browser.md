@@ -1,13 +1,14 @@
 # Original voxel GPU browser diagnostic
 
 State: WORKING, [issue234](https://github.com/lictl/WebRA2/issues/234).
-This original-only experiment checks the explicit Float32 ray policy against actual
-WebGL2 output, separately retaining changes from the existing Float64 renderer.
+This original-only experiment checks driver-evaluated highp ray arithmetic within
+explicit bounded candidate clips, separately comparing CPU Float32 and the existing
+Float64 renderer. The current policy is `webra2-voxel-highp-clipped-ray-3`.
 No product voxel composition, retail GPU performance or native render equivalence
 is claimed. Renderer/policy source remains in the component author's scope.
 
 The [harness](../tools/gpu-voxel-performance/main.mjs) compares all pixels in the
-43 original fixtures, integer GPU owner/depth/color planes and immediate default
+43 original fixtures plus two separate boundary cases, integer GPU owner/depth/color planes and immediate default
 framebuffer RGBA (background alpha37). It also checks a bounded set of one-pixel
 interaction reads, obsolete picks, context loss/restoration/disposal and idle RAF.
 Readbacks belong to correctness and interaction diagnostics, never warmed cadence.
@@ -54,3 +55,12 @@ strict completion upper bounds. No sustained timing result is yet claimed.
 Float64 differences are an explicit experimental policy change, not tolerated
 silently as matching output. GPU memory counters describe requested/accounted
 resources, not browser-process RSS or guaranteed reclamation.
+
+The clipping allowance is scoped to ordinary mul/add/FMA/division evaluations.
+Independent review found a standards-permitted repeated-addition evaluation that
+would hit outside the prepared clip. The source tests retain that original
+counterexample; this is not an observed Chrome lowering. The D03 disposition accepts
+a measured, bounded clipping experiment, not universal conforming-highp coverage.
+See [the policy derivation and limitation](gpu-voxel-feasibility.md). Future product
+integration requires bounded startup correctness checks and CPU fallback; no such
+product gate is implemented by this diagnostic.
