@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Original bounded compound transactions. See ../MISSION_WORLD_PROVENANCE.md.
+import type { MissionAudioPolicyCatalog, MissionAudioPolicyBinding } from '../../content/src/mission-audio-policy.ts';
 import type { CommandEnvelope } from '../../contracts/src/index.ts';
 import { canonicalText, parseJson } from './canonical.ts';
 import { isMissionBindingAuthority, type MissionBindingAuthority } from './mission-bindings.ts';
 import { isMissionInitialFlags, type MissionInitialFlags } from './mission-initial-flags.ts';
-import { missionProgramTeamActions, missionProgramCues, missionProgramCellEntry, missionProgramObjectEvents, MISSION_LOGIC_LIMITS, MISSION_CUE_DISPATCH_POLICY, MissionLogic, type MissionEffect, type MissionInput, type MissionSave, type MissionObjectEventObservation } from './mission-logic.ts';
+import { missionProgramAudioPolicy, MISSION_AUDIO_DISPATCH_POLICY, missionProgramTeamActions, missionProgramCues, missionProgramCellEntry, missionProgramObjectEvents, MISSION_LOGIC_LIMITS, MISSION_CUE_DISPATCH_POLICY, MissionLogic, type MissionEffect, type MissionInput, type MissionSave, type MissionObjectEventObservation } from './mission-logic.ts';
 import { assertWorldModel, createWorldModel, type WorldModel } from './world-model.ts';
 import { combatSourceBridge } from './combat-model.ts';
 import { WorldSimulation, worldStepCombatObservations, type WorldSave, type WorldTrace } from './world.ts';
@@ -34,17 +35,77 @@ export interface MissionWorldModel {
   readonly teamCellSourceSha256?: string; readonly teamCellPhasePolicy?: typeof MISSION_WORLD_TEAM_CELL_PHASE_POLICY;
   readonly cellEntrySourceSha256?: string; readonly cellEntryPhasePolicy?: typeof MISSION_WORLD_CELL_PHASE_POLICY;
   readonly objectEventSourceSha256?: string; readonly objectEventPhasePolicy?: typeof MISSION_WORLD_OBJECT_PHASE_POLICY;
+  readonly audioPolicySha256?: string; readonly audioDispatchPolicy?: typeof MISSION_AUDIO_DISPATCH_POLICY;
   readonly cueCatalogSha256?: string; readonly cueDispatchPolicy?: typeof MISSION_CUE_DISPATCH_POLICY;
   readonly bindingsSha256: string; readonly programSha256: string; readonly flagsSha256: string;
   readonly canStartCampaign: false; readonly nativeBehaviorVerified: false;
 }
 export interface MissionWorldCheckpoint {
   readonly schemaVersion: 1; readonly policy: typeof MISSION_WORLD_POLICY; readonly modelSha256: string;
-  readonly world: WorldSave; readonly mission: MissionSave; readonly teams?: MissionTeamCheckpoint; readonly presentation?: MissionCueState;
+  readonly world: WorldSave; readonly mission: MissionSave; readonly teams?: MissionTeamCheckpoint; readonly presentation?: MissionCueState; readonly audio?: MissionWorldAudioState;
 }
 export interface MissionWorldResult {
   readonly teams?: MissionWorldTeamEvents; readonly checkpoint: MissionWorldCheckpoint; readonly effects: readonly MissionEffect[];
-  readonly worldEvents: readonly WorldTrace[]; readonly work: number; readonly presentation?: MissionWorldPresentation;
+  readonly worldEvents: readonly WorldTrace[]; readonly work: number; readonly presentation?: MissionWorldPresentation; readonly audio?: MissionWorldAudio;
+}
+export interface MissionWorldAudioState {
+  readonly policy: typeof MISSION_AUDIO_DISPATCH_POLICY; readonly policyCatalogSha256: string;
+  readonly tick: number; readonly nextSequence: number;
+}
+export interface MissionWorldAudioRequest {
+  readonly sequence: number; readonly tick: number; readonly vmOrder: number;
+  readonly bindingId: string; readonly triggerId: string; readonly instructionId: string;
+  readonly opcode: 19 | 21; readonly playbackAuthorized: false;
+}
+export interface MissionWorldAudio {
+  readonly policy: typeof MISSION_AUDIO_DISPATCH_POLICY; readonly modelSha256: string;
+  readonly policyCatalogSha256: string; readonly audioCatalogSha256: string; readonly missionSha256: string;
+  readonly profile: 'ra2' | 'yr'; readonly side: 0 | 1 | 2;
+  readonly fromNextTick: number; readonly toNextTick: number; readonly stateSha256: string;
+  readonly sourceDispatchVerified: true; readonly nativePlaybackVerified: false;
+  readonly requests: readonly MissionWorldAudioRequest[];
+}
+const audioBatches = new WeakMap<object, MissionWorldModel>();
+export function isMissionWorldAudio(model: MissionWorldModel, value: unknown): value is MissionWorldAudio {
+  source(model); return !!value && typeof value === 'object' && audioBatches.get(value) === model;
+}
+/** This reference joins a consumer to its model; only a genuine batch proves source invocation. */
+export function missionWorldAudioPolicy(model: MissionWorldModel): MissionAudioPolicyCatalog | null { return source(model).audio; }
+function audioBatch(model: MissionWorldModel, from: number, checkpoint: MissionWorldCheckpoint, requests: MissionWorldAudioRequest[]): MissionWorldAudio {
+  const audio = source(model).audio; if (!audio) fail('audio-source');
+  const batch = freeze({ policy: MISSION_AUDIO_DISPATCH_POLICY, modelSha256: model.sha256,
+    policyCatalogSha256: audio.sha256, audioCatalogSha256: audio.audioSha256, missionSha256: audio.missionSha256,
+    profile: audio.profile, side: audio.side, fromNextTick: from, toNextTick: checkpoint.world.nextTick,
+    stateSha256: worldHash(checkpoint), sourceDispatchVerified: true as const, nativePlaybackVerified: false as const, requests });
+  audioBatches.set(batch, model); return batch;
+}
+function audioRequestUnits(requests: readonly MissionWorldAudioRequest[]): number {
+  return requests.reduce((n, r) => n + r.instructionId.length + r.bindingId.length + r.triggerId.length, 0);
+}
+function restoreAudioState(audio: MissionAudioPolicyCatalog, value: unknown): MissionWorldAudioState {
+  const r = worldRecord(value, ['policy', 'policyCatalogSha256', 'tick', 'nextSequence']);
+  if (r.policy !== MISSION_AUDIO_DISPATCH_POLICY || r.policyCatalogSha256 !== audio.sha256) fail('audio-cursor-identity');
+  return freeze({ policy: MISSION_AUDIO_DISPATCH_POLICY, policyCatalogSha256: audio.sha256,
+    tick: worldInteger(r.tick, 0, MISSION_LOGIC_LIMITS.tick), nextSequence: worldInteger(r.nextSequence, 0, 1_000_000) });
+}
+/** Private effects only; no caller-facing append function can claim source invocation. */
+function appendAudio(s: Source, cursor: MissionWorldAudioState, effects: readonly MissionEffect[], tick: number, remainingUnits: number) {
+  if (!s.audio || cursor.policyCatalogSha256 !== s.audio.sha256 || tick < cursor.tick) fail('audio-source');
+  const selected = effects.filter(e => e.kind === 'audio-request');
+  if (selected.length > 1024 || selected.length > 1_000_000 - cursor.nextSequence) fail('audio-request-limit');
+  let units = 0;
+  for (const effect of selected) {
+    const binding = s.audioByInstruction.get(effect.instructionId);
+    if (!binding || binding.status !== 'supported-source' || binding.instruction.triggerId !== effect.triggerId ||
+      binding.opcode !== effect.opcode || (effect.opcode !== 19 && effect.opcode !== 21) || effect.tick !== tick) fail('audio-effect');
+    units += effect.instructionId.length + effect.bindingId.length + effect.triggerId.length;
+    if (units > remainingUnits) fail('audio-payload-limit');
+  }
+  const requests: MissionWorldAudioRequest[] = selected.map((e, i) => ({ sequence: cursor.nextSequence + i, tick,
+    vmOrder: e.order, instructionId: e.instructionId, bindingId: e.bindingId, triggerId: e.triggerId,
+    opcode: e.opcode as 19 | 21, playbackAuthorized: false }));
+  return { requests, units, work: effects.length + requests.length + units,
+    state: restoreAudioState(s.audio, { ...cursor, tick, nextSequence: cursor.nextSequence + requests.length }) };
 }
 export interface MissionWorldTeamEvents {
   readonly actions: readonly MissionTeamEvent[]; readonly orders: readonly TeamOrder[];
@@ -82,6 +143,7 @@ function freeze<T>(v: T): T {
   if (v && typeof v === 'object' && !Object.isFrozen(v)) { for (const c of Object.values(v)) freeze(c); Object.freeze(v); } return v;
 }
 type Source = { world: WorldModel; bindings: MissionBindingAuthority; flags: MissionInitialFlags; initial: MissionSave; cues: MissionCueCatalog | null;
+  audio: MissionAudioPolicyCatalog | null; audioByInstruction: ReadonlyMap<string, MissionAudioPolicyBinding>;
   teams: MissionTeamRuntime | null; teamCells: MissionTeamCellSource | null; cells: MissionCellEntrySource | null; cellByAddress: ReadonlyMap<number, string>;
   objects: MissionObjectEventSource | null; objectActors: ReadonlyMap<number, MissionObjectEventActor> };
 const sources = new WeakMap<MissionWorldModel, Source>();
@@ -105,16 +167,18 @@ export function compileMissionWorld(input: {
     definitionsSha256: world.definitionsSha256, entities: world.entities, navigation: world.navigation,
     blocked: world.blocked.map(worldPosition), footprints: world.footprints.map(p => ({ entityId: p.entityId, cells: p.cells.map(worldPosition) })) });
   if (base.sha256 !== bindings.worldSha256 || (world.combat && !combatSourceBridge(world.combat))) fail('world-join');
-  const teamSource = missionProgramTeamActions(bindings.program);
+  const teamSource = missionProgramTeamActions(bindings.program), audio = missionProgramAudioPolicy(bindings.program);
   for (const trigger of bindings.program.triggers) {
     for (const event of trigger.events) if ((event.opcode === 36 || event.opcode === 37) && event.argument >= flags.localCapacity) fail('local-capacity');
     for (const action of trigger.actions) {
-      if (!actions.has(action.opcode) && !(teamSource && [4, 7, 80].includes(action.opcode)) && !(missionProgramCues(bindings.program) && [11, 48, 55].includes(action.opcode))) fail('unimplemented-effect');
+      if (!actions.has(action.opcode) && !(teamSource && [4, 7, 80].includes(action.opcode)) && !(missionProgramCues(bindings.program) && [11, 48, 55].includes(action.opcode)) && !(audio && [19, 21].includes(action.opcode))) fail('unimplemented-effect');
       if ((action.opcode === 56 || action.opcode === 57) && action.argument >= flags.localCapacity) fail('local-capacity');
     }
   }
   const cues = missionProgramCues(bindings.program);
   if (cues && (cues.source.sha256 !== world.sourceSha256 || cues.profile !== world.contentIdentity.profile)) fail('cue-source');
+  if (audio && (audio.missionSha256 !== world.sourceSha256 || audio.profile !== world.contentIdentity.profile || audio.cuesSha256 !== cues?.sha256)) fail('audio-source');
+  const audioByInstruction = new Map(audio?.bindings.map(b => [b.instructionId, b]));
   const cells = missionProgramCellEntry(bindings.program), cellByAddress = new Map<number, string>();
   if (cells) {
     if (missionCellEntrySourceBindings(cells).fingerprint !== bindings.catalogSha256) fail('cell-source');
@@ -153,10 +217,11 @@ export function compileMissionWorld(input: {
     programSha256: bindings.program.sha256, flagsSha256: flags.sha256, canStartCampaign: false as const, nativeBehaviorVerified: false as const,
     ...(teams ? { teamActionSourceSha256: teamSource!.sha256, teamRuntimeSha256: teams.sha256, teamPhasePolicy: MISSION_WORLD_TEAM_PHASE_POLICY } : {}),
     ...(teamCells ? { teamCellSourceSha256: teamCells.sha256, teamCellPhasePolicy: MISSION_WORLD_TEAM_CELL_PHASE_POLICY } : {}),
+    ...(audio ? { audioPolicySha256: audio.sha256, audioDispatchPolicy: MISSION_AUDIO_DISPATCH_POLICY } : {}),
     ...(cues ? { cueCatalogSha256: cues.sha256, cueDispatchPolicy: MISSION_CUE_DISPATCH_POLICY } : {}),
     ...(cells ? { cellEntrySourceSha256: cells.sha256, cellEntryPhasePolicy: MISSION_WORLD_CELL_PHASE_POLICY } : {}),
     ...(objects ? { objectEventSourceSha256: objects.sha256, objectEventPhasePolicy: MISSION_WORLD_OBJECT_PHASE_POLICY } : {}) };
-  const model = freeze({ ...data, sha256: worldHash(data) }); sources.set(model, { world, bindings, flags, initial, cues, teams, teamCells, cells, cellByAddress, objects, objectActors }); return model;
+  const model = freeze({ ...data, sha256: worldHash(data) }); sources.set(model, { world, bindings, flags, initial, cues, audio, audioByInstruction, teams, teamCells, cells, cellByAddress, objects, objectActors }); return model;
 }
 function checkFlags(s: Source, mission: MissionSave): void {
   if (mission.locals.slice(s.flags.localCapacity).some(Boolean) || mission.pending.some(i => i.kind === 'local' && i.index >= s.flags.localCapacity)) fail('local-capacity');
@@ -166,7 +231,7 @@ function checkFlags(s: Source, mission: MissionSave): void {
 }
 export function restoreMissionWorld(model: MissionWorldModel, value: unknown): MissionWorldCheckpoint {
   const s = source(model), raw = typeof value === 'string' || value instanceof Uint8Array ? parseJson(value) : value;
-  const r = worldRecord(worldClone(raw), ['schemaVersion', 'policy', 'modelSha256', 'world', 'mission', ...(s.teams ? ['teams'] : []), ...(s.cues ? ['presentation'] : [])]);
+  const r = worldRecord(worldClone(raw), ['schemaVersion', 'policy', 'modelSha256', 'world', 'mission', ...(s.teams ? ['teams'] : []), ...(s.cues ? ['presentation'] : []), ...(s.audio ? ['audio'] : [])]);
   if (r.schemaVersion !== 1 || r.policy !== MISSION_WORLD_POLICY || r.modelSha256 !== model.sha256) fail('checkpoint-identity');
   if (s.teams && (r.teams as MissionTeamCheckpoint | null)?.pending !== null) fail('team-world');
   const teams = s.teams ? restoreMissionTeamCheckpoint(s.teams, r.teams) : null;
@@ -181,15 +246,20 @@ export function restoreMissionWorld(model: MissionWorldModel, value: unknown): M
   const cursor = s.cues ? restoreMissionCueState(s.cues, r.presentation) : null;
   if (cursor && (cursor.tick !== Math.max(0, world.nextTick - 1) || cursor.nextSequence > mission.nextEffectOrder - 1 ||
     (world.nextTick === 0 && cursor.nextSequence !== 0))) fail('cue-cursor');
+  const audioCursor = s.audio ? restoreAudioState(s.audio, r.audio) : null;
+  if (audioCursor && (audioCursor.tick !== Math.max(0, world.nextTick - 1) ||
+    audioCursor.nextSequence + (cursor?.nextSequence ?? 0) > mission.nextEffectOrder - 1 ||
+    (world.nextTick === 0 && audioCursor.nextSequence !== 0))) fail('audio-cursor');
   return freeze({ schemaVersion: 1, policy: MISSION_WORLD_POLICY, modelSha256: model.sha256, world, mission, ...(teams ? { teams } : {}),
-    ...(cursor ? { presentation: cursor } : {}) });
+    ...(cursor ? { presentation: cursor } : {}), ...(audioCursor ? { audio: audioCursor } : {}) });
 }
 export function createMissionWorld(model: MissionWorldModel): MissionWorldCheckpoint {
   const s = source(model);
   return restoreMissionWorld(model, { schemaVersion: 1, policy: MISSION_WORLD_POLICY, modelSha256: model.sha256,
     world: WorldSimulation.create(s.world).save(), mission: s.initial,
     ...(s.teams ? { teams: createMissionTeamCheckpoint(s.teams) } : {}),
-    ...(s.cues ? { presentation: createMissionCueState(s.cues) } : {}) });
+    ...(s.cues ? { presentation: createMissionCueState(s.cues) } : {}),
+    ...(s.audio ? { audio: { policy: MISSION_AUDIO_DISPATCH_POLICY, policyCatalogSha256: s.audio.sha256, tick: 0, nextSequence: 0 } } : {}) });
 }
 export interface MissionWorldAdmission {
   readonly commands: readonly CommandEnvelope[]; readonly flags: readonly MissionInput[];
@@ -215,7 +285,8 @@ export function stepMissionWorld(model: MissionWorldModel, value: unknown, ticks
   if (s.teams) return stepMissionTeams(model, checkpoint, ticks, workLimit);
   const world = WorldSimulation.restore(s.world, checkpoint.world), mission = MissionLogic.restore(s.bindings.program, checkpoint.mission);
   const effects: MissionEffect[] = [], worldEvents: WorldTrace[] = [], requests: MissionWorldPresentationRequest[] = []; let work = 0, units = 0;
-  let cursor = checkpoint.presentation;
+  const audioRequests: MissionWorldAudioRequest[] = [];
+  let cursor = checkpoint.presentation, audioCursor = checkpoint.audio;
   for (let at = 0; at < ticks; at++) {
     const advanced = s.cells || s.objects ? world.step(1, workLimit - work) : null;
     if (advanced) work += advanced.work.entityVisits + advanced.work.navigationExpansions + advanced.work.transitions;
@@ -259,6 +330,12 @@ export function stepMissionWorld(model: MissionWorldModel, value: unknown, ticks
       if (emitted.length > MISSION_WORLD_LIMITS.trace - requests.length) fail('cue-trace-limit');
       requests.push(...emitted); cursor = appended.state;
     }
+    if (s.audio && audioCursor) {
+      const appended = appendAudio(s, audioCursor, polled.effects, polled.nextTick - 1, MISSION_WORLD_LIMITS.presentationUnits - units);
+      units += appended.units; work += appended.work;
+      if (appended.requests.length > MISSION_WORLD_LIMITS.trace - audioRequests.length) fail('audio-trace-limit');
+      audioRequests.push(...appended.requests); audioCursor = appended.state;
+    }
     if (work > workLimit) fail('work-limit');
     const moved = advanced ?? world.step(1, workLimit - work);
     if (!advanced) work += moved.work.entityVisits + moved.work.navigationExpansions + moved.work.transitions;
@@ -269,16 +346,17 @@ export function stepMissionWorld(model: MissionWorldModel, value: unknown, ticks
     // this policy never resolves victory, playback, teams or native attachment mutation.
     effects.push(...polled.effects); worldEvents.push(...moved.events);
   }
-  const next = restoreMissionWorld(model, { ...checkpoint, world: world.save(), mission: mission.save(), ...(cursor ? { presentation: cursor } : {}) });
+  const next = restoreMissionWorld(model, { ...checkpoint, world: world.save(), mission: mission.save(), ...(cursor ? { presentation: cursor } : {}), ...(audioCursor ? { audio: audioCursor } : {}) });
   return freeze({ checkpoint: next, effects, worldEvents, work,
-    ...(s.cues ? { presentation: presentation(model, checkpoint.world.nextTick, next, requests) } : {}) });
+    ...(s.cues ? { presentation: presentation(model, checkpoint.world.nextTick, next, requests) } : {}),
+    ...(s.audio ? { audio: audioBatch(model, checkpoint.world.nextTick, next, audioRequests) } : {}) });
 }
 /** D03: one world tick, optional genuine team-cell entries, then poll and next-tick requests. */
 function stepMissionTeams(model: MissionWorldModel, checkpoint: MissionWorldCheckpoint, ticks: number, workLimit: number): MissionWorldResult {
   const s = source(model), runtime = s.teams!, mission = MissionLogic.restore(s.bindings.program, checkpoint.mission);
-  let teams = checkpoint.teams!, cursor = checkpoint.presentation, work = 0, units = 0;
+  let teams = checkpoint.teams!, cursor = checkpoint.presentation, audioCursor = checkpoint.audio, work = 0, units = 0;
   const effects: MissionEffect[] = [], worldEvents: WorldTrace[] = [], actions: MissionTeamEvent[] = [], orders: TeamOrder[] = [], events: (TeamEvent & { tick: number })[] = [];
-  const requests: MissionWorldPresentationRequest[] = [];
+  const requests: MissionWorldPresentationRequest[] = [], audioRequests: MissionWorldAudioRequest[] = [];
   const charge = (n: number) => { if (n > workLimit - work) fail('work-limit'); work += n; };
   for (let at = 0; at < ticks; at++) {
     const advanced = stepMissionTeamWorld(runtime, teams, Math.min(runtime.limits.tickWork, workLimit - work)); charge(advanced.work);
@@ -324,13 +402,20 @@ function stepMissionTeams(model: MissionWorldModel, checkpoint: MissionWorldChec
       if (emitted.length > MISSION_WORLD_LIMITS.trace - requests.length) fail('cue-trace-limit');
       requests.push(...emitted); cursor = appended.state;
     }
+    if (s.audio && audioCursor) {
+      const appended = appendAudio(s, audioCursor, polled.effects, polled.nextTick - 1, MISSION_WORLD_LIMITS.presentationUnits - units);
+      units += appended.units; charge(appended.work);
+      if (appended.requests.length > MISSION_WORLD_LIMITS.trace - audioRequests.length) fail('audio-trace-limit');
+      audioRequests.push(...appended.requests); audioCursor = appended.state;
+    }
     const size = polled.effects.length + advanced.worldEvents.length + advanced.actionEvents.length + advanced.orders.length + advanced.events.length;
     if (size > MISSION_WORLD_LIMITS.trace - effects.length - worldEvents.length - actions.length - orders.length - events.length) fail('trace-limit');
     effects.push(...polled.effects); worldEvents.push(...advanced.worldEvents); actions.push(...advanced.actionEvents); orders.push(...advanced.orders); events.push(...advanced.events);
   }
-  const next = restoreMissionWorld(model, { ...checkpoint, teams, world: teams.team.world, mission: mission.save(), ...(cursor ? { presentation: cursor } : {}) });
+  const next = restoreMissionWorld(model, { ...checkpoint, teams, world: teams.team.world, mission: mission.save(), ...(cursor ? { presentation: cursor } : {}), ...(audioCursor ? { audio: audioCursor } : {}) });
   return freeze({ checkpoint: next, effects, worldEvents, work, teams: { actions, orders, events },
-    ...(s.cues ? { presentation: presentation(model, checkpoint.world.nextTick, next, requests) } : {}) });
+    ...(s.cues ? { presentation: presentation(model, checkpoint.world.nextTick, next, requests) } : {}),
+    ...(s.audio ? { audio: audioBatch(model, checkpoint.world.nextTick, next, audioRequests) } : {}) });
 }
 export interface MissionWorldReplay {
   readonly schemaVersion: 1; readonly modelSha256: string; readonly initialCheckpoint: MissionWorldCheckpoint;
@@ -354,6 +439,7 @@ export function replayMissionWorld(model: MissionWorldModel, value: unknown): Mi
   });
   const effects: MissionEffect[] = [], worldEvents: WorldTrace[] = [], requests: MissionWorldPresentationRequest[] = [];
   const actions: MissionTeamEvent[] = [], orders: TeamOrder[] = [], events: (TeamEvent & { tick: number })[] = [];
+  const audioRequests: MissionWorldAudioRequest[] = [];
   const start = checkpoint.world.nextTick; let units = 0;
   function advance(tick: number): void {
     while (checkpoint.world.nextTick < tick) {
@@ -367,11 +453,18 @@ export function replayMissionWorld(model: MissionWorldModel, value: unknown): Mi
         if (step.presentation.requests.length > MISSION_WORLD_LIMITS.trace - requests.length) fail('replay-cue-trace-limit');
         requests.push(...step.presentation.requests);
       }
+      if (step.audio) {
+        units += audioRequestUnits(step.audio.requests);
+        if (units > MISSION_WORLD_LIMITS.presentationUnits) fail('replay-audio-payload-limit');
+        if (step.audio.requests.length > MISSION_WORLD_LIMITS.trace - audioRequests.length) fail('replay-audio-trace-limit');
+        audioRequests.push(...step.audio.requests);
+      }
       checkpoint = step.checkpoint; effects.push(...step.effects); worldEvents.push(...step.worldEvents);
     }
   }
   for (const a of admissions) { advance(a.nextTick); checkpoint = admitMissionWorld(model, checkpoint, a.input); }
   advance(end); if (worldHash(checkpoint) !== r.finalStateSha256) fail('replay-final-hash');
   return freeze({ checkpoint, effects, worldEvents, work, ...(s.teams ? { teams: { actions, orders, events } } : {}),
-    ...(s.cues ? { presentation: presentation(model, start, checkpoint, requests) } : {}) });
+    ...(s.cues ? { presentation: presentation(model, start, checkpoint, requests) } : {}),
+    ...(s.audio ? { audio: audioBatch(model, start, checkpoint, audioRequests) } : {}) });
 }
