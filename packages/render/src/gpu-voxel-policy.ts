@@ -2,7 +2,7 @@
 // Copyright 2026 WebRA2 contributors. Original presentation experiment; no native parity claim.
 import { inverse, multiply } from './voxel-math.ts';
 
-export const GPU_VOXEL_POLICY = 'webra2-voxel-highp-ray-2' as const;
+export const GPU_VOXEL_POLICY = 'webra2-voxel-highp-clipped-ray-3' as const;
 export const GPU_VOXEL_LIMITS = Object.freeze({ parts: 256, palettes: 256, voxels: 1048576,
   instances: 4096, instanceVoxels: 1048576, dimension: 2048, pixels: 1280 * 720,
   samples: 64 * 1024 * 1024, candidateTests: 128 * 1024 * 1024, binEntries: 8 * 1024 * 1024, binCandidates: 4096,
@@ -70,15 +70,16 @@ export function createGpuVoxelScene(input: { readonly parts: readonly GpuVoxelPa
   scenes.set(scene, { cap, parts, paletteIds, geometry, rgba }); return scene;
 }
 
-// The uploaded inverse, rather than the old forward transform, defines the shader slabs.
-// See docs/gpu-voxel-feasibility.md for the highp error envelope and residual bound.
-function candidateEnvelope(inv: number[], width: number, height: number) {
-  if (inv.some(v => !Number.isFinite(v) || (v !== 0 && Math.abs(v) < 2 ** -126))) fail('numeric-envelope');
+// Bounded candidate clipping is part of this experimental presentation policy.
+// The allowance covers ordinary mul/add/FMA/division evaluations, not every legal GLSL
+// rewrite (notably repeated addition). See the report and retained counterexample.
+function candidateAllowance(inv: number[], width: number, height: number) {
+  if (inv.some(v => !Number.isFinite(v) || (v !== 0 && Math.abs(v) < 2 ** -126))) fail('candidate-numeric-context');
   const error = [0, 4, 8].map(row => {
     const scale = Math.abs(inv[row]!) * width + Math.abs(inv[row + 1]!) * height + Math.abs(inv[row + 3]!) + 257;
     const d = Math.abs(inv[row + 2]!);
     // Avoid overflow in either direct division or reciprocal/multiply lowering.
-    if (d !== 0 && d < scale * 2 ** -100) fail('numeric-envelope');
+    if (d !== 0 && d < scale * 2 ** -100) fail('candidate-numeric-context');
     return scale * 2 ** -16;
   });
   const forward = inverse(inv);
@@ -93,13 +94,13 @@ function candidateEnvelope(inv: number[], width: number, height: number) {
     }
     residual = Math.max(residual, rowError); magnitude = Math.max(magnitude, bound);
   }
-  if (!Number.isFinite(residual) || residual > 1 / 1024) fail('numeric-envelope');
+  if (!Number.isFinite(residual) || residual > 1 / 1024) fail('candidate-numeric-context');
   const margin = magnitude * (residual / (1 - residual) + 64 * Number.EPSILON);
   const radii = [0, 4, 8].map(row => margin + [0, 1, 2].reduce((n, col) => n + Math.abs(forward[row + col]!) * (.5 + error[col]!), 0));
   return { forward, radii };
 }
 
-/** Checked highp candidate envelope; CPU Float32 arithmetic remains a comparison reference. */
+/** Bounded candidate-clipped highp experiment; CPU Float32 remains a comparison reference. */
 export function prepareGpuVoxelFrame(scene: GpuVoxelScene, input: { readonly instances: readonly GpuVoxelInstance[]; readonly width: number; readonly height: number }, lower?: Partial<GpuVoxelLimits>): GpuVoxelFrame {
   const resident = scenes.get(scene); if (!resident) return fail('scene'); const cap = limits(lower, resident.cap), raw = record(input, ['instances', 'width', 'height']);
   const width = integer(raw.width, 1, cap.dimension), height = integer(raw.height, 1, cap.dimension); if (width * height > cap.pixels) fail('pixel-budget');
@@ -113,7 +114,7 @@ export function prepareGpuVoxelFrame(scene: GpuVoxelScene, input: { readonly ins
   const initialBytes = instanceVoxels * 48 + placements.length * (48 + 96) + (tileCount * 3 + 1) * 4; if (initialBytes > cap.frameBytes) fail('frame-budget');
   const counts = new Uint32Array(tileCount), scratch = new Int32Array(instanceVoxels * 8), oldBounds = new Int32Array(instanceVoxels * 4), inverses = new Float32Array(placements.length * 12); let used = 0;
   placements.forEach((p, pi) => { const m = forwards[pi]!; inverses.set(p.inverse64, pi * 12);
-    const envelope = candidateEnvelope(Array.from(inverses.subarray(pi * 12, pi * 12 + 12)), width, height), em = envelope.forward;
+    const envelope = candidateAllowance(Array.from(inverses.subarray(pi * 12, pi * 12 + 12)), width, height), em = envelope.forward;
     const rx = (Math.abs(m[0]!) + Math.abs(m[1]!) + Math.abs(m[2]!)) / 2, ry = (Math.abs(m[4]!) + Math.abs(m[5]!) + Math.abs(m[6]!)) / 2;
     for (let i = 0; i < p.part.count; i++) { const word = resident.geometry[(p.part.start + i) * 2]!, x = word & 255, y = word >>> 8 & 255, z = word >>> 16 & 255;
       const cx = m[0]! * (x + .5) + m[1]! * (y + .5) + m[2]! * (z + .5) + m[3]!, cy = m[4]! * (x + .5) + m[5]! * (y + .5) + m[6]! * (z + .5) + m[7]!;
@@ -121,7 +122,7 @@ export function prepareGpuVoxelFrame(scene: GpuVoxelScene, input: { readonly ins
       if (![cx - rx, cx + rx, cy - ry, cy + ry, cz - rz, cz + rz].every(n => Number.isFinite(n) && Math.abs(n) <= 1048576)) fail('projection');
       const ox0 = Math.max(0, Math.ceil(cx - rx - .5)), oy0 = Math.max(0, Math.ceil(cy - ry - .5)), ox1 = Math.min(width, Math.floor(cx + rx - .5) + 1), oy1 = Math.min(height, Math.floor(cy + ry - .5) + 1);
       const centers = [0, 4, 8].map(row => em[row]! * (x + .5) + em[row + 1]! * (y + .5) + em[row + 2]! * (z + .5) + em[row + 3]!);
-      if (centers.some((n, axis) => !Number.isFinite(n) || Math.abs(n) + envelope.radii[axis]! > 2097152)) fail('numeric-envelope');
+      if (centers.some((n, axis) => !Number.isFinite(n) || Math.abs(n) + envelope.radii[axis]! > 2097152)) fail('candidate-numeric-context');
       const x0 = Math.max(0, Math.min(ox0, Math.ceil(centers[0]! - envelope.radii[0]! - .5))), y0 = Math.max(0, Math.min(oy0, Math.ceil(centers[1]! - envelope.radii[1]! - .5))),
         x1 = Math.min(width, Math.max(ox1, Math.floor(centers[0]! + envelope.radii[0]! - .5) + 1)), y1 = Math.min(height, Math.max(oy1, Math.floor(centers[1]! + envelope.radii[1]! - .5) + 1));
       samples += Math.max(0, x1 - x0) * Math.max(0, y1 - y0); if (samples > cap.samples) fail('sample-budget'); if (x0 >= x1 || y0 >= y1) continue;

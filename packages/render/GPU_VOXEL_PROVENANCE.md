@@ -9,12 +9,14 @@ No external shader implementation, new dependency, native executable listing or
 retail asset is included in this experiment.
 
 The current presentation policy uploads Float32 inverse coefficients and uses
-driver-evaluated GLSL highp slab arithmetic. Explicit per-operation CPU Float32
+driver-evaluated GLSL highp slab arithmetic within explicit bounded candidate clips. Explicit per-operation CPU Float32
 rounding remains a comparison reference; it is not the displayed-pixel authority.
 The optional Float64 diagnostic retains the old CPU clipping and arithmetic. Both
 precision changes and driver evaluation can change depth, mask and near-tie ownership.
-The original candidate-envelope derivation and its numeric guards are documented
-in the report; no external implementation was copied. The
+The candidate allowance covers a stated ordinary arithmetic family, not all legal
+GLSL rewrites. A permitted repeated-addition counterexample is retained in the report
+and original tests; future product use requires bounded startup checks and CPU fallback.
+The allowance derivation and its numeric guards are documented in the report; no external implementation was copied. The
 factory accepts owned decoded presentation data, not authenticated source authority.
 See [the experiment report](../../docs/gpu-voxel-feasibility.md) for the current
 bounds, tested counts and incomplete GPU/performance gates.
