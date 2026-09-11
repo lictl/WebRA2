@@ -77,6 +77,7 @@ export function mountTerrain(root:HTMLElement,controller:TerrainController,optio
     const t=(key:string)=>options.campaign&&['title','intro','nav'].includes(key)?campaignText(state.locale,key==='title'?'missionTitle':key==='intro'?'missionIntro':'nav'):terrainText(state.locale,key);if(back){back.textContent=campaignText(state.locale,'back');back.disabled=state.busy;}
     if(drag&&(state.phase!=='ready'||drag.epoch!==state.interactionEpoch||drag.revision!==(state.frame?.world?.revision??0)||drag.mode==='select'&&drag.frameId!==controller.presentationToken()))releaseGesture();
     const uiInputs=[state.phase,state.locale,state.profile,state.files,state.bytes,state.busy,state.notice,state.progress,state.error,state.rendererNotice,state.frame?.type,state.frame?.frameId,state.selection,state.selectedEntities.join(','),state.interacting,state.interactionEpoch];
+    canvas.style.visibility=state.frame?.type==='gpu-frame'&&state.gpuDisplayedFrameId===0?'hidden':'';
     const cameraOnly=state.frame?.type==='gpu-frame'&&uiInputs.length===previousUi.length&&uiInputs.every((value,index)=>value===previousUi[index]);previousUi=uiInputs;
     if(cameraOnly){get<HTMLSelectElement>('zoom').value=String(state.frame!.camera.zoom);updateMarkers(state);return;}
     if(lastLocale!==state.locale){lastLocale=state.locale;document.documentElement.lang=state.locale;for(const element of root.querySelectorAll<HTMLElement>('[data-terrain]'))element.textContent=t(element.dataset.terrain!);root.querySelector('nav')!.setAttribute('aria-label',t('workspace'));root.querySelector('.terrain-pan')!.setAttribute('aria-label',t('pan'));canvas.setAttribute('aria-label',t('canvas'));root.querySelector('.terrain-artwork-table-wrap')!.setAttribute('aria-label',t('artworkDetails'));for(const id of ['left','right','up','down','zoom-in','zoom-out'])get(id).setAttribute('aria-label',t(id==='zoom-in'?'zoomIn':id==='zoom-out'?'zoomOut':id));}
@@ -100,13 +101,13 @@ export function mountTerrain(root:HTMLElement,controller:TerrainController,optio
             gpu?.dispose();gpu=null;replaceCanvas('gpu');
             if(!frame.objectInfo)throw new Error('gpu-metadata');
             const scene=importGpuScene(frame.resources);
-            const made=createGpuViewport({canvas,scene,objectInfo:frame.objectInfo,worldSummary:frame.summary.world,
+            const made=createGpuViewport({canvas,scene,objectInfo:frame.objectInfo,worldSummary:frame.summary.world,...(frame.voxel?.resources?{voxel:frame.voxel.resources}:{}),
               onDisplayed:display=>controller.gpuDisplayed(made,display),
               onFallback:reason=>queueMicrotask(()=>{if(gpu===made)controller.gpuFailed(made,reason,frame.sceneId);})});
             gpu=made;gpuSceneId=frame.sceneId;if(!controller.attachGpu(made))throw new Error('gpu-replaced');
           }
           if(!gpu||gpuSceneId!==frame.sceneId)throw new Error('gpu-resources');
-          gpu.update({frameId:frame.frameId,camera:controller.camera()??frame.camera,objects:frame.objects,retiredObjectIds:frame.retiredObjectIds,world:frame.world});
+          gpu.update({frameId:frame.frameId,camera:controller.camera()??frame.camera,objects:frame.objects,retiredObjectIds:frame.retiredObjectIds,world:frame.world,...(frame.voxel?{voxelPlacements:frame.voxel.placements}:{})});
         }catch{gpu?.dispose();gpu=null;queueMicrotask(()=>controller.gpuFailed(null,'unavailable',frame.sceneId));}
       }
     }else if(!frame&&lastFrame){lastFrame=0;gpu?.dispose();gpu=null;gpuSceneId=0;if(!context)replaceCanvas('cpu');context?.clearRect(0,0,canvas.width,canvas.height);}
