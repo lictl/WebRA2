@@ -41,7 +41,7 @@ export function mountWorld(root: HTMLElement, controller: TerrainController): ()
       urls.set(url, setTimeout(() => { URL.revokeObjectURL(url); urls.delete(url); }, 30_000));
     }); });
   }
-  const canvas = root.querySelector<HTMLCanvasElement>('#terrain-canvas')!;
+  const canvas = () => root.querySelector<HTMLCanvasElement>('#terrain-canvas')!;
   const releasePanels = mountBattlefieldPanels(panel, canvas, () => controller.setRunning(false));
   const sourceDetails = root.querySelector<HTMLElement>('.terrain-details');
   const cameraHelp = root.querySelector<HTMLElement>('#terrain-controls');
@@ -50,13 +50,13 @@ export function mountWorld(root: HTMLElement, controller: TerrainController): ()
   const sourceHome = root.querySelector<HTMLElement>('#terrain-static-details');
   const place = (parent: Element | null, child: Element | null) => { if (parent && child && child.parentElement !== parent) parent.append(child); };
   const key = (event: KeyboardEvent) => {
-    const state=controller.state,group=controlGroupShortcut(event,event.target===canvas&&document.activeElement===canvas&&!canvas.isContentEditable,state.phase==='ready'&&!state.busy&&!state.verifyingReplay);
+    const current=canvas(),state=controller.state,group=controlGroupShortcut(event,event.target===current&&document.activeElement===current&&!current.isContentEditable,state.phase==='ready'&&!state.busy&&!state.verifyingReplay);
     if(group&&controller.controlGroup(group.slot,group.assign)){event.preventDefault();return;}
-    const action = worldShortcut(event.key, event.target === canvas, event); if (!action || event.repeat) return;
+    const action = worldShortcut(event.key, event.target === current, event); if (!action || event.repeat) return;
     event.preventDefault(); controller.cancelInteraction();
     if (action === 'run') toggleRunning(); else if (action === 'stop') void controller.order(); else if (action === 'clear') controller.clearSelection(); else movePicked();
   };
-  canvas.addEventListener('keydown', key);
+  root.addEventListener('keydown', key);
   const option = (value: string, text: string) => { const o = document.createElement('option'); o.value = value; o.textContent = text; return o; };
   const details = (element: HTMLElement, values: [string, string][]) => { element.replaceChildren(); for (const [name, value] of values) { const dt = document.createElement('dt'), dd = document.createElement('dd'); dt.textContent = name; dd.textContent = value; element.append(dt, dd); } };
   let locale = '', selectKey = '', priorEntity = -1, priorPick: object|null = null;
@@ -121,5 +121,5 @@ export function mountWorld(root: HTMLElement, controller: TerrainController): ()
   });
   const schedule = new WorldTickSchedule(), timer = setInterval(() => { const state = controller.state, ticks = schedule.advance(performance.now(), state.running && !document.hidden, state.busy || state.interacting); if (ticks) void controller.step(ticks); }, 1000 / 15);
   const hidden = () => { if (document.hidden) controller.hidden(); }; document.addEventListener('visibilitychange', hidden); hidden();
-  return () => { mounted = false; releasePanels(); clearInterval(timer); unsubscribe(); canvas.removeEventListener('keydown', key); document.removeEventListener('visibilitychange', hidden); for (const [url, timer] of urls) { clearTimeout(timer); URL.revokeObjectURL(url); } urls.clear(); panel.remove(); };
+  return () => { mounted = false; releasePanels(); clearInterval(timer); unsubscribe(); root.removeEventListener('keydown', key); document.removeEventListener('visibilitychange', hidden); for (const [url, timer] of urls) { clearTimeout(timer); URL.revokeObjectURL(url); } urls.clear(); panel.remove(); };
 }

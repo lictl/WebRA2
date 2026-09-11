@@ -31,8 +31,8 @@ test('mounted group keys require canvas focus, preserve forms/browser combinatio
   const session=new WorldSession(originalWorld());
   controller=new TerrainController('en');
   controller.state={...controller.state,phase:'ready',playerId:0,selectedEntity:1,selectedEntities:[1],selection:{kind:'object',object:{id:'object-1'}},frame:{summary:{world:session.summary},world:session.snapshot()}};
-  unmount=mountWorld(new Element(),controller);const canvas=nodes.get('#terrain-canvas');canvas.focus();
-  const send=(extra={})=>{let prevented=false;canvas.handlers.keydown({key:'1',target:canvas,ctrlKey:false,metaKey:false,altKey:false,shiftKey:false,repeat:false,isComposing:false,preventDefault(){prevented=true;},...extra});return prevented;};
+  const viewRoot=new Element();unmount=mountWorld(viewRoot,controller);const canvas=viewRoot.querySelector('#terrain-canvas');canvas.focus();
+  const send=(extra={})=>{let prevented=false;viewRoot.handlers.keydown({key:'1',target:canvas,ctrlKey:false,metaKey:false,altKey:false,shiftKey:false,repeat:false,isComposing:false,preventDefault(){prevented=true;},...extra});return prevented;};
   const initial=session.act({type:'world-replay-export'}).text;
   assert(send({ctrlKey:true}));assert.match(nodes.get('#world-group-notice').textContent,/Group 1: assigned 1/);
   controller.clearSelection();assert(send());assert.deepEqual(controller.state.selectedEntities,[1]);assert.match(nodes.get('#world-group-notice').textContent,/selected 1/);
@@ -45,6 +45,12 @@ test('mounted group keys require canvas focus, preserve forms/browser combinatio
   controller.state={...controller.state,busy:true,verifyingReplay:true,worldNotice:'worldVerifying'};controller.setLocale('en');
   assert(!send());assert(!send({ctrlKey:true}));assert.equal(nodes.get('#world-cancel-replay').hidden,false);assert.match(nodes.get('#world-notice').textContent,/Verifying/);
   nodes.get('#world-open-diagnostics').handlers.click();nodes.get('#world-return-diagnostics').handlers.click();assert(!send());assert.equal(nodes.get('#world-cancel-replay').hidden,false);
+  // A GPU/CPU switch replaces the canvas. Delegation and panel Return must resolve the new element.
+  controller.state={...controller.state,busy:false,verifyingReplay:false};
+  const replacement=new Element();nodes.set('#terrain-canvas',replacement);replacement.focus();
+  assert(!send());assert(send({target:replacement}));
+  nodes.get('#world-open-diagnostics').handlers.click();nodes.get('#world-return-diagnostics').handlers.click();
+  assert.equal(globalThis.document.activeElement,replacement);
   assert.equal(session.act({type:'world-replay-export'}).text,initial);
  }finally{unmount?.();controller?.dispose();if(priorDocument===undefined)delete globalThis.document;else globalThis.document=priorDocument;await rm(directory,{recursive:true,force:true});}
 });
