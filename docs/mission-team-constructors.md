@@ -72,15 +72,57 @@ and no binary listings or original mission payloads are published. The
 [license notice](../packages/sim/MISSION_TEAM_CONSTRUCTOR_PROVENANCE.md) records
 source and distribution obligations.
 
-The composed checkpoint passes 1,508 public tests plus14 tool tests, types,
-218 documents/1,135 links,810 publication paths and M0 metadata; the product build
-contains79 code/license outputs from193 approved inputs. These are public original
-fixtures, not retail execution. Six new common-runtime suites cover action7/80 movement, Flash/release and Sleep; same-tick births and ownership
-revisions; preserved combat/slots; queued future IDs; exact work limits; source
-substitution; atomic active-capture refusal; and settled/pending save/replay.
-The eight-range paired tag ledger reproduces independently from the pinned
-images. Fresh private opening source/runtime and raw-oracle results remain a
-separate evidence update before final review. A full private RA2 run already
-reaches200ticks with one constructed unit and held Sleep; its single long replay
-exceeds the existing aggregate work cap and is recorded as rejected, not passing. No browser, spawned-combat, dynamic trigger attachment, general constructor
-or full-campaign claim follows from these tests.
+The original fixtures cover action7/80 movement, Flash/release and Sleep;
+same-tick births and ownership revisions; retained combat/slots; actual pending-death
+anchor reservation; queued future IDs; exact work limits; source substitution;
+atomic active-capture refusal; later births after release/transfer; and settled,
+pending and full replay. Seven common-runtime suites complement the constructor,
+world migration and original ownership regressions. The composed public validation
+and final independent review are recorded below.
+
+The [private census](analysis/mission-team-constructors-census.json) records two fresh
+438-file selections. Each profile retains all source declarations: RA2 has75 team
+action occurrences with1 constructor occurrence supported; YR has104 with2 supported.
+Each exercised path constructs one ordinary unit. RA2 retains811 original actors,
+reaches812 and enters Sleep by200ticks. YR retains570 original actors, reaches571
+and is still moving at128ticks. All settled boundary restores and every16th pending
+restore match. No initial actor is removed or repositioned by this probe.
+
+The independent Python oracle reparses source bytes and compares147,517 items over
+five complete verified roots/eight source members. It checks origins/history, raw
+action operands, TaskForce expansion/order, type guards, count classification,
+constructor identities, initial actor conservation and born ownership/population.
+Reviewed allocation visits, navigation and prior factory admission statuses are
+explicit inputs, not independently rediscovered native behavior. The paired
+additional tag ledger reproduces8 spans/2,464bytes/26 assertions.
+
+Both single long replay requests exceed the existing aggregate16,777,216 work cap:
+RA2 rejects with `checkpoint-work` and YR with `tick-work`. They do not pass the
+long replay gate. Fresh genuine factories separately replay the initial request
+boundary, the actual birth boundary and a resumed boundary after200/128ticks;
+all six bounded cases match exact checkpoints. Maximum replay work among those
+cases is7,808,901. The public original eight-tick paths also replay in full. A
+future larger mission replay must address the aggregate resource policy explicitly;
+this component does not bypass it.
+
+Private reproducible scripts are `local/probe-constructor245-runtime.mjs`,
+`local/add-construction245.mjs`, `local/oracle245.py`,
+`local/probe-constructor245-replay.mjs` and `local/native245/ledger245.py` in the
+constructor author worktree. Their source imports are relative to that checkout;
+raw game paths are read-only absolute paths. The native script uses the retained
+Capstone Python environment and writes only ignored local listings/metadata. Public
+census and ledger files contain hashes/counts/addresses rather than source payloads.
+
+The preceding6470 runtime checkpoint passed1,508 public +14 tool tests, types,
+218docs/1,135links,810publication paths,M0 and79code/license outputs/193inputs.
+Sixteen legacy scenarios/256ticks retain all608 prior identities exactly. The final
+evidence checkpoint composes coordinator-authored lazy stationary/construction
+receipts and adds the pending-death regression. Its complete check passes1,512
+public +14 tool tests, types,218docs/1,136links,812publication paths,M0 and
+79code/license outputs/193inputs. The receipt is an opaque core transition, not a
+mission invocation.
+
+No browser, spawned-combat, dynamic trigger attachment, general constructor or
+full-campaign claim follows from these tests. Current stationary Guard witnesses
+remain fixed-model capabilities until the separately coordinated explicit migration
+policy preserves initial actors' invalidation history and excludes every born unit.

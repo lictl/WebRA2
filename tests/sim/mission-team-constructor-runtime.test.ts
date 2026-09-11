@@ -10,18 +10,22 @@ import { createWorldModel, worldPosition, worldHash } from '../../packages/sim/s
 import { createMissionTeamCheckpoint, admitMissionTeamInput, stepMissionTeamWorld, prepareMissionTeamTick,
   restoreMissionTeamCheckpoint, replayMissionTeamWorld, transferMissionTeamOwnership } from '../../packages/sim/src/mission-team-runtime.ts';
 import { WorldSimulation } from '../../packages/sim/src/world.ts';
+import { createOrdinaryCombatRules } from '../../packages/sim/src/ordinary-combat-rules.ts';
+import { createOrdinaryDeathRules } from '../../packages/sim/src/ordinary-death-rules.ts';
 import { createCombatModel, combatFactor } from '../../packages/sim/src/combat-model.ts';
 import { compileCombatActors } from '../../packages/content/src/combat-actors.ts';
 import { compileInfantryPassageCatalog } from '../../packages/sim/src/infantry-passage-catalog.ts';
 import { createInfantryOccupancy } from '../../packages/sim/src/infantry-passage-occupancy.ts';
 import { restoreWorldOwnership } from '../../packages/sim/src/world-ownership.ts';
 const profiles = ['ra2', 'yr'] as const;
-function fixture(profile: 'ra2' | 'yr', script?: string, capabilities = false) {
-  const f = constructorFixture(profile, '', script, false, { transfers: true, subcells: capabilities }), b = f.world.model;
-  const combat = capabilities ? createCombatModel({ allies: [], weapons: [{ id: 'original:gun', damage: 1, range: 2048, minimumRange: 0,
+function fixture(profile: 'ra2' | 'yr', script?: string, capabilities: boolean | 'death' = false) {
+  const f = constructorFixture(profile, '', script, false, { transfers: true, subcells: capabilities === true, ...(capabilities === 'death' ? { infantryRows: '0=Commander,Walker,256,3,3,2,Guard,0,None,0,-1,0,1,1\n1=Rival,Walker,256,2,3,3,Guard,0,None,0,-1,0,1,1' } : {}) }), b = f.world.model;
+  const actors = b.entities.map(e => ({ entityId: e.id, armor: 0, layer: 'ground' as const, weapons: ['original:gun'], initialAmmo: -1 }));
+  const ordinary = capabilities === 'death' ? createOrdinaryCombatRules({ seed: 0, actors: actors.map(a => ({ entityId: a.entityId, houseFirepower: 1, actorFirepower: 1, veteranCombat: 1, countryArmor: 1, actorArmor: 1, veteranArmor: 1, houseRof: 1, veteranRof: 1 })), weapons: [{ weaponId: 'original:gun', maxDamage: 1000 }] }) : undefined;
+  const combat = capabilities ? createCombatModel({ ...(ordinary ? { ordinary, ordinaryDeath: createOrdinaryDeathRules({ actors: actors.map(a => ({ entityId: a.entityId, corpseAnimationIds: ['original:corpse'], sequence11Ticks: 5, sequence12Ticks: 5 })), weapons: [{ weaponId: 'original:gun', infDeath: 1 }] }) } : {}), allies: [], weapons: [{ id: 'original:gun', damage: capabilities === 'death' ? 200 : 1, range: 2048, minimumRange: 0,
     reloadTicks: 2, burst: 1, burstDelayTicks: 1, delivery: 'instant', speed: 0, ground: true, air: false,
     verses: Array.from({ length: 11 }, () => combatFactor(1)) }],
-    actors: b.entities.map(e => ({ entityId: e.id, armor: 0, layer: 'ground', weapons: ['original:gun'], initialAmmo: -1 })) }) : undefined;
+    actors }) : undefined;
   const infantryPassage = capabilities ? compileInfantryPassageCatalog({ world: f.world, definitions: f.definitions,
     actors: compileCombatActors({ definitions: f.definitions, rules: f.rules, mission: f.mission }), rules: f.rules, mission: f.mission }) : undefined;
   const model = createWorldModel({ contentIdentity: b.contentIdentity, sourceSha256: b.sourceSha256, definitionsSha256: b.definitionsSha256,
@@ -165,5 +169,21 @@ test('a later birth follows releases and transfers without reusing IDs or rewrit
     assert.deepEqual(replayMissionTeamWorld(f.runtime, { schemaVersion: 1, runtimeSha256: f.runtime.sha256, initialCheckpoint: initial,
       admissions: [{ nextTick: 0, ...first }, { nextTick: 4, requests: [], commands: [], ownershipTransfers: [f.transfer] },
         { nextTick: 4, ...second }], finalNextTick: 8, finalStateSha256: worldHash(current) }).checkpoint, current);
+  }
+});
+
+test('a pending ordinary corpse keeps its anchor reserved when the source constructor becomes due', () => {
+  for (const profile of profiles) {
+    const f = fixture(profile, undefined, 'death'), initial = createMissionTeamCheckpoint(f.runtime);
+    const admission = { requests: [f.receipt(1, 0)], commands: [{ schemaVersion: 1 as const, tick: 0, playerId: 1, sequence: 0, kind: 'attack', payload: { entityId: 2, targetId: 1 } }] };
+    const killed = stepMissionTeamWorld(f.runtime, admitMissionTeamInput(f.runtime, initial, admission));
+    assert(killed.worldEvents.some(e => e.kind === 'dying' && e.entityId === 1));
+    assert.equal(killed.checkpoint.team.world.state.entities[0]!.health, 0);
+    const born = stepMissionTeamWorld(f.runtime, killed.checkpoint), birth = born.checkpoint.history[0]!;
+    assert.equal(birth.kind, 'spawned'); assert.equal(born.checkpoint.team.world.state.combat!.deaths![0]!.corpseIndex, null);
+    assert.notDeepEqual([born.checkpoint.team.world.state.entities[2]!.x, born.checkpoint.team.world.state.entities[2]!.y], [3, 3]);
+    assert.deepEqual(restoreMissionTeamCheckpoint(f.runtime, born.checkpoint), born.checkpoint);
+    assert.deepEqual(replayMissionTeamWorld(f.runtime, { schemaVersion: 1, runtimeSha256: f.runtime.sha256, initialCheckpoint: initial,
+      admissions: [{ nextTick: 0, ...admission }], finalNextTick: 2, finalStateSha256: worldHash(born.checkpoint) }).checkpoint, born.checkpoint);
   }
 });
