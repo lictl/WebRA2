@@ -148,3 +148,50 @@ is an opportunity for exact reuse, not permission to retain stale boxes/inverses
 The first proposed core change removes per-voxel temporary arrays and hoists
 invariant scalar calculations while preserving operation order and every packet
 byte. Fresh Chrome measurements must establish any improvement.
+
+## Scalar allocation correction and browser attribution
+
+The first correction removes temporary per-voxel arrays, preserving arithmetic
+order and all packet bytes. Frozen source `3f3e9370ef6cb264ecd0e1b48d765fab5d94861b`
+contains component commit7202860; private `scalar-1/`, port4226, manifest
+`f58e3c1bb8e340d81ef5de5763dd94a4b4b57dfeaea205921df8b5a774dbced4`.
+All70 outputs/16inputs verify. All45 actual oracle case hashes and44 independent
+moving-frame packet/allocation projections equal the previous implementation.
+
+| Groups | Observed/s | Prepare median / p95 ms | GPU median ms | Gaps >16.667ms | Raw SHA256 |
+| --- | --- | --- | --- | --- | --- |
+|64|54.875|9.8 /44.0|1.802|124|`60734d2fd9cc929135321aca790af8432178ac1a62accb546c6220af1129e58f`|
+|256|15.500|43.5 /206.9|3.572|124|`3f195d4ee4037ec806f9faf19dfcb024b2f602fbde1c9879cb37242ea8650cdb`|
+|1,024|3.875|186.7 /385.3|8.157|30|`124f3571143aff9a70c6bfddc63405dfeea3309d8aa9b1754b36fb43981f1485`|
+
+These single2s/8s probes improve preparation but still fail60FPS. All issued work
+drains with no skips/disjoint queries; long failing repetitions remain deferred.
+Separate native Cancel during active4225 work reports explicit failure and zero
+owned CPU/requested GPU bytes; restart then passes the lifecycle checks. Incomplete
+cancelled receipts are retained, never counted as a successful cadence result.
+
+A private paired stage diagnostic on4227 removes GL entirely and uses the exact
+recorded scalar-1 inputs. Both genuine factories receive the same matrices; one
+only adds stage clocks. Three warmups and11 samples at each of64/1,024groups
+produce22 equal complete packets and allocation records. The actual Chrome
+1,024-group medians remain191.0ms pristine and191.1ms instrumented: bounds/count79.0,
+capture/validation/sort43.2, allowance32.1, prefix/fill16.3 and composition/inverse15.8ms.
+Thus GPU work alone does not explain the slow preparation.
+
+Running the **byte-identical minified script** in Node24 with a collection-only
+DOM shim preserves all22 inputs/outputs, but gives39.76ms pristine at1,024groups
+and1.96ms at64groups; Chrome gives191.0/16.9ms respectively. The earlier20.77ms
+Node scalar result used a different unminified single-factory harness and must not
+be treated as the same experimental context. The remaining observed runtime gap
+is unresolved: these stages do not identify compiler, scheduling, GC or OS causes.
+No browser settings changed; no unsupported profiling API was used.
+
+The preparation-only Chrome raw SHA is
+`851944aef8b9a2ff4e0b52fdd9128436473fcc4bc50de40e8022b5afd3eeb6e8`;
+its Node control SHA is
+`ecc33b34bc730ca7aa181fa2320042d609c98db3f2eef7000291a51767143eb4`.
+Private `stages-1/` records exact driver/instrumented-source hashes and13 actual
+bundler inputs; it is a distinct diagnostic build, not the frozen cadence artifact.
+Bounded retained instance/geometry work may reduce repeated validation and
+projection, but needs an explicit source-owned API and fresh byte/performance proof.
+These observations do not independently select WASM or establish product readiness.
