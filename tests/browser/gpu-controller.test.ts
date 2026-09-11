@@ -14,8 +14,8 @@ class Worker extends GpuOriginalWorker {
   override postMessage(value:unknown){const message=value as {action:TerrainAction};this.actions.push(message.action);if(message.action.type===this.hold){this.held=value;return;}super.postMessage(value);}
   release(){const value=this.held;this.held=null;this.hold=null;if(value)super.postMessage(value);}
 }
-async function setup(refusal?:'voxel-layer'|'scene-unavailable'|'scene-budget'){
-  const worker=new Worker(refusal),slots=new Map<number,string>();
+async function setup(refusal?:'voxel-layer'|'scene-unavailable'|'scene-budget',withSprite=false){
+  const worker=new Worker(refusal,withSprite),slots=new Map<number,string>();
   const c=new TerrainController('en',()=>new TerrainBridge(worker),{async read(s){return slots.get(s)??null;},async write(s,text){slots.set(s,text);},async remove(s){slots.delete(s);}});
   c.resize(120,80);c.select([new File(['original'],'original.mix')]);await c.load();return {worker,c};
 }
@@ -60,6 +60,19 @@ test('context-loss fallback waits for an outstanding tick and restores the lates
   assert.deepEqual(c.state.frame!.camera,desired);assert.equal(c.state.frame!.world!.nextTick,2);assert.equal(c.state.frame!.world!.revision,1);
   assert.deepEqual(worker.actions.slice(-2).map(a=>a.type),['render','renderer-mode']);assert.equal(worker.terminated,0);assert.equal(c.state.files,1);
   assert.equal(t.disposed(),1);assert.equal(c.state.rendererNotice,'rendererRestored');t.off();c.dispose();
+});
+
+test('resident SHP picks follow the displayed actor position without sending a worker pick or losing selection',async()=>{
+  const {c,worker}=await setup(undefined,true);await c.setRenderer('gpu');const t=present(c);t.flush();
+  let f=c.state.frame!,point=f.controlPoints.find(p=>p.entityId===1)!;
+  const before=worker.actions.length;const first=await c.pick(point.x,point.y);assert.equal(first?.kind,'object');
+  if(first?.kind==='object')assert.deepEqual([first.object.id,first.object.x,first.object.y],['object-0',1,3]);
+  assert.equal(worker.actions.length,before);assert.deepEqual(c.state.selectedEntities,[1]);
+  await c.order(6,3);await c.step(4);assert(!canPick(c.state,point.x,point.y));t.flush();
+  f=c.state.frame!;point=f.controlPoints.find(p=>p.entityId===1)!;
+  const moved=await c.pick(point.x,point.y);assert.equal(moved?.kind,'object');
+  if(moved?.kind==='object')assert.deepEqual([moved.object.x,moved.object.y],[f.world!.actors[0]!.x,f.world!.actors[0]!.y]);
+  assert.equal(worker.actions.filter(a=>a.type==='pick').length,0);assert.equal(worker.cpuRenders,1);t.off();c.dispose();
 });
 
 test('GPU saves/replay/Stop preserve CPU command semantics, with explicit refusal and replacement cleanup',async()=>{
