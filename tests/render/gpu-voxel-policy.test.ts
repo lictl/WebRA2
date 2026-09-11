@@ -192,12 +192,18 @@ test('retained layout preserves changed linear transforms and exact rounding-bou
 test('retained layout rejects foreign mutable storage and captures intrinsic data without invoking shadows',()=>{
  const f=fixture(),layout=createGpuVoxelInstanceLayout(f.scene,[instance()]),matrices=planeOf([instance()]);let gets=0;
  for(const key of ['buffer','byteOffset','byteLength','length'])Object.defineProperty(matrices,key,{get(){gets++;throw Error('shadow');}});
+ Object.defineProperty(matrices,Symbol.toStringTag,{get(){gets++;throw Error('shadow tag');}});
  const input=new Proxy({matrices,width:24,height:24},{get(){gets++;throw Error('raw input');}});
  assert(prepareGpuVoxelLayoutFrame(layout,input));assert.equal(gets,0);
  const bad={matrices,width:24,height:24};Object.defineProperty(bad,'width',{get(){gets++;return 24;}});assert.throws(()=>prepareGpuVoxelLayoutFrame(layout,bad),/record/);assert.equal(gets,0);
  class Subclass extends Float64Array{};
  const detached=new Float64Array(12);structuredClone(detached,{transfer:[detached.buffer]});
  for(const rejected of [new Proxy(new Float64Array(12),{}),new Subclass(12),new Float64Array(new SharedArrayBuffer(96)),new Float64Array(Reflect.construct(ArrayBuffer,[96,{maxByteLength:192}])),detached,new Float32Array(12),new Float64Array(11),new Float64Array(13)])assert.throws(()=>prepareGpuVoxelLayoutFrame(layout,{matrices:rejected as Float64Array,width:24,height:24}),/matrix-plane/);
+ for(const storage of [new Uint8Array(planeOf([instance()]).buffer),new Float32Array(planeOf([instance()]).buffer)]){
+  Object.setPrototypeOf(storage,Float64Array.prototype);Object.defineProperty(storage,Symbol.toStringTag,{get(){gets++;throw Error('forged tag');}});
+  assert.throws(()=>prepareGpuVoxelLayoutFrame(layout,{matrices:storage as unknown as Float64Array,width:24,height:24}),/matrix-plane/);
+ }
+ assert.equal(gets,0);
  const larger=new Float64Array(14);larger.set(planeOf([instance()]),1);assert(prepareGpuVoxelLayoutFrame(layout,{matrices:larger.subarray(1,13),width:24,height:24}));
 });
 test('retained layout applies exact byte caps, frame limits and atomic failed preparation',()=>{
