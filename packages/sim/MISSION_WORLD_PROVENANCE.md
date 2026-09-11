@@ -92,3 +92,9 @@ the distinct source-country versus event-derived trigger-house values. The
 world/VM composition, original fixtures and its remaining callback/team gates.
 Default callers retain their prior model and save policies. No native listing,
 retail fixture or new third-party dependency is incorporated.
+
+The follow-up initial-actor callback composition reads current ownership for each
+cell-entry/event44 predicate from the private candidate after preceding transfers.
+It preserves the source actor/type/tag and ordinary damage-family joins. The
+explicit D03 compound phase is documented in the same dispatch report; source
+rows alone do not grant dynamic team, hijacker or native reentrant callback scope.

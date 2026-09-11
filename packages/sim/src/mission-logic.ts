@@ -9,7 +9,7 @@ import { isMissionObjectEventSource, missionObjectEventSourceBindings, type Miss
 import { isMissionTeamActionSource, missionTeamActionSourceContext, type MissionTeamActionSource } from './mission-team-action-source.ts';
 import { missionTeamCellContextData } from './mission-team-cell-context.ts';
 import { isMissionHouseSource, missionHouseSourceContext, type MissionHouseSource } from './mission-house-source.ts';
-import { beginMissionActionWorld, abortMissionActionWorld, finishMissionActionWorld, missionActionPopulation,
+import { beginMissionActionWorld, abortMissionActionWorld, finishMissionActionWorld, missionActionActorOwner, missionActionPopulation,
   missionActionTransfer, type MissionActionWorldContext } from './mission-action-world-context.ts';
 import type { MissionTeamCellContext, MissionTeamCellActor } from './mission-team-cell-types.ts';
 import { canonicalHash, canonicalText, parseJson } from './canonical.ts';
@@ -545,11 +545,12 @@ export class MissionLogic {
   step(ticks = 1): { nextTick: number; effects: MissionEffect[]; work: number } { return this.#step(ticks); }
   /** One source-ordered poll against an owned private candidate. Both outputs are
    * rolled back on failure; this does not accept externally fabricated effects. */
-  stepWorldContext(context: MissionActionWorldContext) {
+  stepWorldContext(context: MissionActionWorldContext,
+    cells: readonly MissionCellEntryObservation[] = [], objects: readonly MissionObjectEventObservation[] = []) {
     const prior = this.#state;
     try {
       beginMissionActionWorld(context, this.#program, prior.nextTick);
-      const polled = this.#step(1, undefined, undefined, undefined, context);
+      const polled = this.#step(1, cells, objects, undefined, context);
       const result = finishMissionActionWorld(context, this.#program);
       return { ...polled, world: result.world, worldWork: result.work };
     } catch (error) { this.#state = prior; abortMissionActionWorld(context, this.#program); throw error; }
@@ -624,12 +625,13 @@ export class MissionLogic {
         case 0: return false;
         case 1: {
           const reference = cellEvents.get(e.id); if (!reference) return fail('mission-cell-source');
-          return !!entry && (reference.selector.kind === 'any' || reference.selector.kind === 'first-country-house' && reference.selector.playerId === entry.actor.playerId);
+          return !!entry && (reference.selector.kind === 'any' || reference.selector.kind === 'first-country-house' && reference.selector.playerId === (worldContext ? missionActionActorOwner(worldContext, p, entry.actor.entityId) : entry.actor.playerId));
         }
         case 6: case 7: case 44: case 48: {
           const reference = objectEvents.get(e.id); if (!reference) return fail('mission-object-source');
           return !!callback && callback.opcode === e.opcode && (reference.selector.kind === 'any' ||
-            reference.selector.kind === 'literal-house' && callback.sourceActor?.playerId === reference.selector.playerId);
+            reference.selector.kind === 'literal-house' && callback.sourceActor != null &&
+            (worldContext ? missionActionActorOwner(worldContext, p, callback.sourceActor.entityId) : callback.sourceActor.playerId) === reference.selector.playerId);
         }
         case 8: return true;
         case 13: return state.nextTick >= t.elapsedDue!;

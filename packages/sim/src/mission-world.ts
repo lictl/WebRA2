@@ -29,6 +29,7 @@ import { worldClone, worldHash, worldInteger, worldList, worldPosition, worldRec
 export const MISSION_WORLD_POLICY = 'webra2-mission-world-poll-1' as const;
 export const MISSION_WORLD_CELL_PHASE_POLICY = 'webra2-world-cell-events-before-scenario-poll-1' as const;
 export const MISSION_WORLD_OBJECT_PHASE_POLICY = 'webra2-world-health-callbacks-before-scenario-poll-1' as const;
+export const MISSION_WORLD_HOUSE_CALLBACK_POLICY = 'webra2-current-house-callbacks-before-poll-1' as const;
 export const MISSION_WORLD_TEAM_PHASE_POLICY = 'webra2-world-team-actions-next-tick-1' as const;
 export const MISSION_WORLD_TEAM_CELL_PHASE_POLICY = 'webra2-world-team-cell-events-before-scenario-poll-1' as const;
 export const MISSION_WORLD_LIMITS = Object.freeze({ ticks: 128, work: 16_777_216, trace: 32768, replayTicks: 10000, admissions: 1024, presentationUnits: 1_048_576 });
@@ -41,6 +42,7 @@ export interface MissionWorldModel {
   readonly audioPolicySha256?: string; readonly audioDispatchPolicy?: typeof MISSION_AUDIO_DISPATCH_POLICY;
   readonly houseSourceSha256?: string; readonly houseDispatchPolicy?: typeof MISSION_HOUSE_DISPATCH_POLICY;
   readonly actionWorldPolicy?: typeof MISSION_ACTION_WORLD_POLICY;
+  readonly houseCallbackPolicy?: typeof MISSION_WORLD_HOUSE_CALLBACK_POLICY;
   readonly cueCatalogSha256?: string; readonly cueDispatchPolicy?: typeof MISSION_CUE_DISPATCH_POLICY;
   readonly bindingsSha256: string; readonly programSha256: string; readonly flagsSha256: string;
   readonly canStartCampaign: false; readonly nativeBehaviorVerified: false;
@@ -205,9 +207,9 @@ export function compileMissionWorld(input: {
     for (const actor of bridge?.actors ?? []) if (actor.role !== 'movement-only' && objectActors.get(actor.entityId)?.status !== 'supported') fail('object-combat-context');
   }
   const teams = teamSource ? compileMissionTeamRuntime(teamSource) : null;
-  // Fixed initial actors and scenario polling only until current-owner callback
-  // and dynamic-team observations have their own genuine context adapters.
-  if (houses && (teams || cells || objects)) fail('house-callback-context');
+  // Initial source actors can read current owners from the private candidate.
+  // Dynamically constructed team actors still require their own ownership join.
+  if (houses && teams) fail('house-team-context');
   let teamCells: MissionTeamCellSource | null = null;
   if (hasTeamCells) {
     if (!teams || !cells || !isMissionTeamCellSource(r.teamCells)) fail('team-cell-source');
@@ -226,6 +228,7 @@ export function compileMissionWorld(input: {
   const initial = MissionLogic.create(bindings.program, { bindings: bindings.bindings, globals: flags.globals, locals: flags.locals }).save();
   const data = { policy: MISSION_WORLD_POLICY, worldSha256: world.sha256, bindingsSha256: bindings.catalogSha256,
     programSha256: bindings.program.sha256, flagsSha256: flags.sha256, canStartCampaign: false as const, nativeBehaviorVerified: false as const,
+    ...(houses && (cells || objects) ? { houseCallbackPolicy: MISSION_WORLD_HOUSE_CALLBACK_POLICY } : {}),
     ...(houses ? { houseSourceSha256: houses.sha256, houseDispatchPolicy: MISSION_HOUSE_DISPATCH_POLICY, actionWorldPolicy: MISSION_ACTION_WORLD_POLICY } : {}),
     ...(teams ? { teamActionSourceSha256: teamSource!.sha256, teamRuntimeSha256: teams.sha256, teamPhasePolicy: MISSION_WORLD_TEAM_PHASE_POLICY } : {}),
     ...(teamCells ? { teamCellSourceSha256: teamCells.sha256, teamCellPhasePolicy: MISSION_WORLD_TEAM_CELL_PHASE_POLICY } : {}),
@@ -333,7 +336,7 @@ export function stepMissionWorld(model: MissionWorldModel, value: unknown, ticks
       checkpoint: world.save(), missionNextTick: checkpoint.mission.nextTick + at }, workLimit - work) : null;
     let polled: ReturnType<MissionLogic['step']>;
     if (context) {
-      const transaction = mission.stepWorldContext(context); polled = transaction;
+      const transaction = mission.stepWorldContext(context, entries, callbacks); polled = transaction;
       work += transaction.worldWork; world = WorldSimulation.restore(s.world, transaction.world);
     } else polled = s.objects ? mission.stepObjectEvents(callbacks, entries) : s.cells ? mission.stepCellEntries(entries) : mission.step();
     work += polled.work;

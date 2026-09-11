@@ -3,8 +3,8 @@
 Status: **WORKING** under [issue233](https://github.com/lictl/WebRA2/issues/233),
 part of the [first playable mission](first-mission-closure.md). The current
 checkpoint covers source-bound ownership actions14/36 and population events9/10/11
-for fixed initial actors during scenario polling. Cell/object callback and dynamic
-team composition remain explicit gates. It is not a completed original mission.
+for initial actors during scenario polling and genuine movement/health callbacks.
+Dynamic team composition remains an explicit gate. It is not a completed original mission.
 
 `MissionProgramOptions.houseSource` optionally retains the genuine source catalog.
 The final optional argument to `prepareMissionBindings` binds that same source to
@@ -15,7 +15,8 @@ that omit the option preserve their previous source/model/save shapes and hashes
 
 The compound model requires the matching genuine world-8 ownership binding and
 the complete original base-world identity. This mode advances the world once,
-then polls the mission using an opaque, one-use candidate-world context. A transfer
+then delivers cell entries, ordered health callbacks and scenario polling using
+an opaque, one-use candidate-world context. A transfer
 applies immediately: a later action or population predicate in that same poll sees
 its new owners and counters. Returned effect lists are observations of this
 execution; the engine does not apply ownership by replaying caller-supplied effects
@@ -36,14 +37,39 @@ ownership policy. This does not claim all native capture animation, power,
 factory, limbo, dynamic tag attachment or house defeat side effects. Those remain
 part of the wider issue and mission integration work.
 
+The optional compound policy `webra2-current-house-callbacks-before-poll-1`
+joins the initial cell/object source catalogs to world-8 current ownership.
+Source rows still prove actor/type/tag identity and supported callback families.
+Every owner-dependent predicate reads the private candidate at its own invocation:
+a capture in an earlier cell tag-chain action or health callback affects later
+entrant/attacker-house checks in the same tick. The recipient house never replaces
+the attacker's house. The private owner index is seeded from the restored world
+and updated only from successful core transfer results; it is released with the
+context. No extra ownership table enters saved mission state.
+
+Movement and positive-health-loss observations still come only from the compound
+adapter's private world step. Generic VM observation methods remain test/data
+interfaces, and cannot produce a genuine compound result. This extends the
+source catalogs' fixed-owner default under an explicit compound policy; their
+standalone contracts remain unchanged. World-first, cells-before-health ordering
+is a D03 engine phase choice, not an assertion of native reentrant timing or YR
+explicit attacker-credit semantics. Dynamic tags, hijacking and team births still
+require their own proof.
+
 Five original miniature mission tests cover both profiles, same-poll transfer and
 population, tagged actor selection, every restored/replayed boundary used in the
 fixtures, exact aggregate-work rollback, copied/consumed contexts and the8997 gate.
-The focused regression across mission logic, compound world, audio dispatch and
-these tests passes40 cases plus type checking. The complete local check passes
+Three additional original scenarios (both profiles) use actual movement/combat
+to prove same-crossing capture/owner selection, commands by the new owner,
+attacker capture before event44, recipient capture with retained tag/source,
+save/replay equivalence and exact aggregate rollback. The current focused
+regression passes48 cases plus type checking. The prior poll-only regression
+passes40 cases. The prior poll-only complete local check passes
 1,410 public +14 tool tests, types,208 documents/1,076 links, publication/M0 guards
-and79 code/license outputs from188 approved inputs. Fresh retail source census
-and independent review remain pending. No retail executable
+and79 code/license outputs from188 approved inputs. The callback composition
+with spatial-source main passes1,419 public +14 tool tests, types,209 documents/
+1,084 links, publication/M0 guards and the same79-output/188-input build. Fresh
+retail source census and final independent review remain pending. No retail executable
 was run, no retail payload is in the fixtures, and no audible/browser-playability
 claim follows from these component results.
 
