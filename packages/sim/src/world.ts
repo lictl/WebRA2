@@ -107,6 +107,7 @@ type StationaryReceipt = { model: WorldModel; before: LiveSave; after: LiveSave;
 const stationaryReceipts = new WeakMap<object, StationaryReceipt>();
 const stationaryTokens = new WeakMap<object, WorldStationaryBoundary>();
 const stationaryBoundaries = new WeakMap<object, { model: WorldModel; value: LiveSave; hash?: string; hashWork?: number }>();
+const constructionMigrations = new WeakMap<object, { previousModel: WorldModel; model: WorldModel; before: LiveSave; after: LiveSave }>();
 function stationaryToken(model: WorldModel, value: LiveSave): WorldStationaryBoundary {
   let token = stationaryTokens.get(value);
   if (!token) { token = Object.freeze({}) as WorldStationaryBoundary;
@@ -141,6 +142,22 @@ export function worldStationaryBoundaryHash(model: WorldModel, boundary: WorldSt
     const hash = worldHash(item.value); item.hashWork = meter.work; item.hash = hash;
   } else meter.charge(item.hashWork);
   return Object.freeze({ sha256: item.hash!, work: meter.work });
+}
+/** Lazy provenance for an actual successful constructor transaction. The retained
+ * checkpoints cannot change when the returned world later advances. A witness
+ * must still authenticate its own previous boundary and source policy. */
+export function readWorldConstructionMigration(result: unknown, workLimit: number = C.replayWork) {
+  const record = result && typeof result === 'object' ? constructionMigrations.get(result) : undefined;
+  if (!record) worldFail('world-construction-receipt');
+  const limit = worldInteger(workLimit, 0, C.replayWork);
+  const before = missionTeamConstructorHistoryData(record.previousModel.construction!);
+  const after = missionTeamConstructorHistoryData(record.model.construction!);
+  const count = after.births.length - before.births.length, work = count + 2;
+  if (work > limit) worldFail('world-construction-work');
+  return Object.freeze({ previousModel: record.previousModel, model: record.model,
+    source: after.source, history: record.model.construction!, births: Object.freeze(after.births.slice(before.births.length)),
+    fromBoundary: stationaryToken(record.previousModel, record.before), toBoundary: stationaryToken(record.model, record.after),
+    fromNextTick: record.before.nextTick, toNextTick: record.after.nextTick, work });
 }
 export interface WorldStationaryOperation {
   readonly model: WorldModel; readonly input: WorldStationaryOperationInput;
@@ -396,8 +413,10 @@ export class WorldSimulation {
     charge(nextModel.entities.length * 32 + nextModel.blocked.length * 4 +
       nextModel.footprints.reduce((n, f) => n + f.cells.length * 4 + 4, 0) +
       (nextModel.infantryPassage?.alliances.length ?? 0) * 4);
-    const world = new WorldSimulation(nextModel, validateSave(nextModel, candidate), worldConstructionToken);
-    return Object.freeze({ world, work });
+    const validated = validateSave(nextModel, candidate), world = new WorldSimulation(nextModel, validated, worldConstructionToken);
+    const result = Object.freeze({ world, work });
+    constructionMigrations.set(result, { previousModel: model, model: nextModel, before: value, after: validated });
+    return result;
   }
   get model(): WorldModel { return this.#model; }
   get nextTick(): number { return this.#value.nextTick; }

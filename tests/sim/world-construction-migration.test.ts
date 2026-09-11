@@ -6,7 +6,7 @@ import { constructorFixture, constructorBirths } from './mission-team-constructo
 import { createMissionTeamCheckpoint, admitMissionTeamInput, stepMissionTeamWorld } from '../../packages/sim/src/mission-team-runtime.ts';
 import { restoreMissionTeamConstructorHistory, missionTeamConstructorHistoryData } from '../../packages/sim/src/mission-team-constructor-history.ts';
 import { createWorldModel, worldPosition } from '../../packages/sim/src/world-model.ts';
-import { WorldSimulation } from '../../packages/sim/src/world.ts';
+import { WorldSimulation, readWorldConstructionMigration, readWorldStationaryBoundary, worldStationaryBoundaryHash } from '../../packages/sim/src/world.ts';
 import type { MissionTeamConstructorBirth } from '../../packages/sim/src/mission-team-constructor-types.ts';
 import { createCombatModel, combatFactor } from '../../packages/sim/src/combat-model.ts';
 import { compileCombatActors } from '../../packages/content/src/combat-actors.ts';
@@ -111,5 +111,29 @@ test('appended units participate in the full passage index without receiving sou
     const restored = WorldSimulation.restore(next, migrated.save());
     for (let n = 0; n < 4; n++) { assert.deepEqual(restored.step(), migrated.step()); assert.equal(restored.saveText(), migrated.saveText()); }
     assert.equal(migrated.save().state.entities[2]!.x, 4);
+  }
+});
+
+test('only genuine migrations expose stable source histories and lazy before/after boundaries', () => {
+  for (const profile of ['ra2', 'yr'] as const) {
+    const f = fixture(profile), initial = createWorldModel(f.input()), next = createWorldModel(f.input([f.birth]));
+    const world = WorldSimulation.create(initial); world.step();
+    const before = readWorldStationaryBoundary(world), beforeHash = worldStationaryBoundaryHash(initial, before.boundary);
+    const result = WorldSimulation.migrateConstruction(world, next), after = readWorldStationaryBoundary(result.world);
+    const afterHash = worldStationaryBoundaryHash(next, after.boundary), facts = readWorldConstructionMigration(result);
+    assert.equal(facts.previousModel, initial); assert.equal(facts.model, next);
+    assert.equal(facts.fromBoundary, before.boundary); assert.equal(facts.toBoundary, after.boundary);
+    assert.equal(facts.source, f.catalog); assert.equal(facts.history, next.construction);
+    assert.deepEqual(facts.births, [f.birth]); assert.equal(facts.fromNextTick, 1); assert.equal(facts.toNextTick, 1);
+    assert(Object.isFrozen(facts)); assert(Object.isFrozen(facts.births)); assert(Object.isFrozen(facts.births[0]!.actors));
+    assert.deepEqual(readWorldConstructionMigration(result, facts.work), facts);
+    assert.throws(() => readWorldConstructionMigration(result, facts.work - 1), /construction-work/);
+    for (const fake of [{ ...result }, { world: result.world, work: result.work }, new Proxy(result, {})])
+      assert.throws(() => readWorldConstructionMigration(fake), /construction-receipt/);
+    world.step(); result.world.step(2);
+    assert.deepEqual(readWorldConstructionMigration(result), facts);
+    assert.deepEqual(worldStationaryBoundaryHash(initial, facts.fromBoundary), beforeHash);
+    assert.deepEqual(worldStationaryBoundaryHash(next, facts.toBoundary), afterHash);
+    assert.throws(() => worldStationaryBoundaryHash(next, facts.fromBoundary), /stationary-boundary/);
   }
 });
