@@ -67,7 +67,7 @@ product gate is implemented by this diagnostic.
 
 ## Frozen scale checkpoint
 
-The current diagnostic freeze is `8f10c8f7ae56bf011003ff0df4c70145c4300d4e`,
+The initial scale freeze is `8f10c8f7ae56bf011003ff0df4c70145c4300d4e`,
 port4225, private `local/voxel234/final-1/`. Manifest SHA256 is
 `e07f02b4c5c4b07a59333dfb068ddb9ec9225ca02aa846cd9f79d8d7da7d0d5a`.
 All70 disk/HTTP code/license outputs and16 source/dependency inputs match.
@@ -104,7 +104,9 @@ simulation, terrain/SHP compositor or user-content preparation in these rows.
 |1,024 /3,072|24 /24|3.000|2|450 /500|23|290.7|8.022|
 
 All issued receipts eventually drained; peak pending ring2, no skips or disjoint
-queries. The64+ workloads **fail the60FPS gate**. The16-group mean does not
+queries. The64+ workloads **fail60FPS in these recorded conditions**. The later
+native-tab-controlled repeat below shows that document visibility alone did not
+establish a comparable foreground condition. The16-group mean does not
 establish sustained performance or every-frame deadlines. Long failing-scale
 repetitions are deferred while preparation is optimized. The renderer's reported
 resource counters reach zero after disposal; its peak staging includes the final
@@ -164,7 +166,7 @@ moving-frame packet/allocation projections equal the previous implementation.
 |256|15.500|43.5 /206.9|3.572|124|`3f195d4ee4037ec806f9faf19dfcb024b2f602fbde1c9879cb37242ea8650cdb`|
 |1,024|3.875|186.7 /385.3|8.157|30|`124f3571143aff9a70c6bfddc63405dfeea3309d8aa9b1754b36fb43981f1485`|
 
-These single2s/8s probes improve preparation but still fail60FPS. All issued work
+These single2s/8s probes report lower preparation times but still fail60FPS. All issued work
 drains with no skips/disjoint queries; long failing repetitions remain deferred.
 Separate native Cancel during active4225 work reports explicit failure and zero
 owned CPU/requested GPU bytes; restart then passes the lifecycle checks. Incomplete
@@ -182,8 +184,8 @@ Running the **byte-identical minified script** in Node24 with a collection-only
 DOM shim preserves all22 inputs/outputs, but gives39.76ms pristine at1,024groups
 and1.96ms at64groups; Chrome gives191.0/16.9ms respectively. The earlier20.77ms
 Node scalar result used a different unminified single-factory harness and must not
-be treated as the same experimental context. The remaining observed runtime gap
-is unresolved: these stages do not identify compiler, scheduling, GC or OS causes.
+be treated as the same experimental context. These initial stages alone do not
+identify compiler, scheduling, GC or OS causes.
 No browser settings changed; no unsupported profiling API was used.
 
 The preparation-only Chrome raw SHA is
@@ -192,6 +194,54 @@ its Node control SHA is
 `ecc33b34bc730ca7aa181fa2320042d609c98db3f2eef7000291a51767143eb4`.
 Private `stages-1/` records exact driver/instrumented-source hashes and13 actual
 bundler inputs; it is a distinct diagnostic build, not the frozen cadence artifact.
-Bounded retained instance/geometry work may reduce repeated validation and
-projection, but needs an explicit source-owned API and fresh byte/performance proof.
-These observations do not independently select WASM or establish product readiness.
+The native-tab-controlled repeat below supersedes a language-bottleneck inference
+from this initial comparison. Every original result remains preserved.
+
+## Retained layout and controlled foreground comparison
+
+Component commits `b10066c` and `16a26cb` capture scene-bound instance IDs, part and
+palette joins once. Each frame still copies and validates a bounded Float64 matrix
+plane, then recomputes all transforms, boxes and bins. Independent review corrected
+a forged typed-array prototype case by checking the intrinsic element type. An
+independent reversed-caller-order comparison against scalar source `3f3e937` passes
+89 complete packets/allocation projections and306,176 Float32/Float64 picks. No
+shader or numeric-policy change is involved.
+
+A paired minified diagnostic at source `098011d03de43a4f27974234f11a0d3c8ec5893a`,
+port4228, records native Chrome's selected tab before pressing its native Compare
+button. It uses the same22 recorded input frames as4227, three warmups per scale,
+rotating original/captured call order, and complete packet comparison after timing.
+All22 projections also equal the earlier scalar outputs. GL and simulation are absent.
+
+| Groups | Chrome original / retained median ms | Same-bundle Node original / retained ms | Cold Chrome layout ms |
+| --- | --- | --- | --- |
+|64|1.9 /1.7|1.43 /1.21|0.9|
+|1,024|22.7 /17.9|27.30 /19.62|7.2|
+
+The1,024-group layout accounts190,464 captured bytes and294,912 matrix bytes;
+these are bounded data counters, not total JavaScript heap measurements. The caller
+reuses its matrix plane; the frame factory owns a fresh copy. Input construction,
+detached output copying and cold capture are recorded separately from preparation.
+
+An additional native-tab/button repeat of the **unchanged4227 bundle** gives
+1.5/1.7ms pristine/instrumented at64groups and22.5/23.9ms at1,024groups, versus
+the earlier16.9/15.6 and191.0/191.1ms. All22 input/output projections still match.
+Earlier runs recorded a visible document but did not independently establish the
+native selected tab under debugging. This large change without a code update
+demonstrates condition sensitivity; it does not establish the exact browser/OS
+cause. It must not be attributed to retained capture, TypeScript or WASM. The actual
+paired22.7→17.9ms result is the narrower observed capture improvement.
+
+The controlled4227 instrumented1,024-group medians are8.5ms bounds/count,6.0ms
+capture,4.4ms allowance,2.5ms composition and2.3ms prefix/fill. Independent medians
+must not be summed. Changed-frame cadence using the retained path is the next gate;
+these preparation samples alone establish neither60FPS nor product readiness.
+
+Private `layout-1/` has manifest SHA
+`e68f3560e5852f1698d8df22317b43172d61823cf71dc3f0cf86192512eca6f3`:
+all70 disk/HTTP outputs,13 actual inputs and product headers verify. Chrome raw SHA
+is `12527026bac8ea0bf5e4551104659e05f0c783685b42d9bc2db8ab2c3738aae2`;
+the same-bundle Node control is
+`18502fa91ec6e3a2c0a7e60bef7c7c345a1131c20e64f895f0aa28354bc7090a`.
+The unchanged4227 native-repeat SHA is
+`5da242b3484076c05905e978b7ec01955c001333a728e439ce0bbbde10daa4d8`.
