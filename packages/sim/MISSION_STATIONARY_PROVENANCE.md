@@ -7,7 +7,8 @@ licensed GPL-3.0-or-later. They compose the existing GPL team/source components;
 they contain no retail bytes, disassembly or extracted mission rows.
 
 This is an intermediate #247 source checkpoint. The paired native ledger, private
-source census and serialized core witness are still in progress. It must not be
+source census are still in progress. The serialized core witness is implemented,
+but the optional root runtime integration and independent review remain. It must not be
 used to admit a mission or to replace the current ownership/recruitment gate yet.
 
 Static observations on the pinned RA2/YR images distinguish the current mission
@@ -27,8 +28,8 @@ the existing rules-table byte authentication boundary; matching pins alone do
 not prove arbitrary caller tables came from those bytes. Original mission bytes
 are owned and rehashed by the upstream factories.
 
-The intended D03 policy will invalidate certification on actual command admission,
+The explicit D03 policy invalidates certification on actual command admission,
 movement, combat or any team history, even when an actor later returns to rest.
-It will preserve source Sleep and unresolved Unit/constructor/capture gates.
+It preserves source Sleep and unresolved Unit/constructor/capture gates.
 Native autonomous target acquisition and full MissionClass scheduling are outside
 this bounded stationary certificate.

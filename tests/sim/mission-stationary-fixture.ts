@@ -18,7 +18,7 @@ export function stationaryFixture(profile: 'ra2' | 'yr', options: { rules?: stri
   const model = createWorldModel({ contentIdentity: base.contentIdentity, sourceSha256: base.sourceSha256,
     definitionsSha256: base.definitionsSha256, entities: base.entities, navigation: base.navigation,
     blocked: base.blocked.map(worldPosition), footprints: base.footprints.map(p => ({ entityId: p.entityId, cells: p.cells.map(worldPosition) })), ownership: houses });
-  const binding = compileMissionTeamOwnedBinding({ source: f.source, world: model }), stationary = compileMissionStationarySource({ binding });
+  const binding = compileMissionTeamOwnedBinding({ source: f.source, world: model }), stationary = compileMissionStationarySource({ binding, initialization: 'fresh-campaign' });
   const transfer = { instructionId: houses.instructions.find(i => i.kind === 'action')!.instructionId, sourceHouse: 1, triggerHouse: null };
   return { ...f, houses, model, binding, stationary, transfer };
 }

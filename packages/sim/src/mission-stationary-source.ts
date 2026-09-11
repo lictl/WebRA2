@@ -24,6 +24,7 @@ export interface MissionStationaryCatalog {
 }
 export interface MissionStationarySource {
   readonly policy: typeof MISSION_STATIONARY_SOURCE_POLICY; readonly profile: 'ra2' | 'yr';
+  readonly initialization: 'fresh-campaign';
   readonly bindingSha256: string; readonly sourceSha256: string; readonly modelSha256: string;
   readonly houseSourceSha256: string;
   readonly catalogs: readonly MissionStationaryCatalog[];
@@ -64,9 +65,10 @@ function limits(input: Partial<MissionStationarySourceLimits>): MissionStationar
 /** This catalog identifies a conditional invariant, not a new recruitment grant.
  * Only a replay-derived live witness may establish its ordinary idle boundary.
  * The complete genuine upstream source remains available through the accessor. */
-export function compileMissionStationarySource(input: Readonly<{ binding: MissionTeamOwnedBinding }>,
+export function compileMissionStationarySource(input: Readonly<{ binding: MissionTeamOwnedBinding; initialization: 'fresh-campaign' }>,
   lowerLimits: Partial<MissionStationarySourceLimits> = {}): MissionStationarySource {
-  const r = worldRecord(input, ['binding']), binding = r.binding as MissionTeamOwnedBinding;
+  const r = worldRecord(input, ['binding', 'initialization']), binding = r.binding as MissionTeamOwnedBinding;
+  if (r.initialization !== 'fresh-campaign') fail('initialization');
   const { source, model } = missionTeamOwnedBindingData(binding), data = missionTeamActionSourceContext(source), cap = limits(lowerLimits);
   if (source.actions.length > cap.actions || data.recruitmentCatalogs.length > cap.catalogs) fail('source-limit');
   let work = 0, rows = 0, characters = 0;
@@ -98,7 +100,7 @@ export function compileMissionStationarySource(input: Readonly<{ binding: Missio
     return { instructionId: action.instructionId, opcode: action.opcode, catalogSha256: action.catalogSha256,
       status: reasons.length ? 'unsupported' as const : 'supported-source' as const, reasons, guardEntityIds };
   });
-  const value = { policy: MISSION_STATIONARY_SOURCE_POLICY, profile: source.profile,
+  const value = { policy: MISSION_STATIONARY_SOURCE_POLICY, profile: source.profile, initialization: 'fresh-campaign' as const,
     bindingSha256: binding.sha256, sourceSha256: source.sha256, modelSha256: model.sha256, houseSourceSha256: binding.houseSourceSha256,
     catalogs, actions, requirements: ['exact-source-initial-mission', 'uninterrupted-core-operation-journal',
       'no-prior-command-movement-or-combat', 'no-active-or-historical-team-claim', 'ordinary-infantry-idle-boundary',

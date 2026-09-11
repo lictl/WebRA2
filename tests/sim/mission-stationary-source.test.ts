@@ -49,13 +49,13 @@ test('source identity is same-realm, owned and descriptor-captured once', () => 
   for (const p of ['ra2', 'yr'] as const) {
     const f = stationaryFixture(p);
     for (const b of [{ ...f.binding }, structuredClone(f.binding), new Proxy(f.binding, {})])
-      assert.throws(() => compileMissionStationarySource({ binding: b }), /owned-binding/);
+      assert.throws(() => compileMissionStationarySource({ binding: b, initialization: 'fresh-campaign' }), /owned-binding/);
     assert.equal(isMissionStationarySource({ ...f.stationary }), false);
     assert.throws(() => missionStationarySourceData({ ...f.stationary }), /source-brand/);
     let gets = 0;
-    const input = new Proxy({ binding: f.binding }, { get() { gets++; throw new Error('must not read'); } });
+    const input = new Proxy({ binding: f.binding, initialization: 'fresh-campaign' as const }, { get() { gets++; throw new Error('must not read'); } });
     assert.deepEqual(compileMissionStationarySource(input), f.stationary); assert.equal(gets, 0);
-    assert.throws(() => compileMissionStationarySource({ get binding(): never { throw new Error('must not read'); } }), /fields/);
+    assert.throws(() => compileMissionStationarySource({ get binding(): never { throw new Error('must not read'); }, initialization: 'fresh-campaign' }), /fields/);
     assert.throws(() => { (f.stationary.actions[0]!.guardEntityIds as number[]).push(99); });
   }
 });
@@ -63,11 +63,11 @@ test('source identity is same-realm, owned and descriptor-captured once', () => 
 test('aggregate source work and output caps reject exactly below required work', () => {
   for (const p of ['ra2', 'yr'] as const) {
     const f = stationaryFixture(p), work = missionStationarySourceData(f.stationary).work;
-    assert.deepEqual(compileMissionStationarySource({ binding: f.binding }, { work }), f.stationary);
-    assert.throws(() => compileMissionStationarySource({ binding: f.binding }, { work: work - 1 }), /source-work/);
+    assert.deepEqual(compileMissionStationarySource({ binding: f.binding, initialization: 'fresh-campaign' as const }, { work }), f.stationary);
+    assert.throws(() => compileMissionStationarySource({ binding: f.binding, initialization: 'fresh-campaign' as const }, { work: work - 1 }), /source-work/);
     for (const cap of [{ actions: 0 }, { catalogs: 0 }, { actorRows: 1 }, { characters: 1 }, { serializedBytes: 1 }])
-      assert.throws(() => compileMissionStationarySource({ binding: f.binding }, cap));
-    assert.throws(() => compileMissionStationarySource({ binding: f.binding }, { work: -0 }));
-    assert.deepEqual(compileMissionStationarySource({ binding: f.binding }), f.stationary);
+      assert.throws(() => compileMissionStationarySource({ binding: f.binding, initialization: 'fresh-campaign' as const }, cap));
+    assert.throws(() => compileMissionStationarySource({ binding: f.binding, initialization: 'fresh-campaign' as const }, { work: -0 }));
+    assert.deepEqual(compileMissionStationarySource({ binding: f.binding, initialization: 'fresh-campaign' as const }), f.stationary);
   }
 });
