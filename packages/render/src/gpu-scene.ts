@@ -137,6 +137,25 @@ export function copyGpuFrameData(frame: GpuFrame): GpuFrameData {
   const { packet: p } = frameData(frame); return { ...p, sampleX: p.sampleX.slice(), sampleY: p.sampleY.slice(), draws: p.draws.slice() };
 }
 
+/** Visit one pixel's candidate texels in source order without exposing or copying owned planes. */
+export function visitGpuFramePixel(frame: GpuFrame, viewX: number, viewY: number,
+  visit: (rasterId: number, texelIndex: number, depthBase: number, owner: number, kind: 1 | 2, front: boolean) => void,
+  maxDraws: number = GPU_PREPARE_LIMITS.draws): boolean {
+  const { packet } = frameData(frame), scene = sceneData(packet.scene), v = packet.viewport;
+  integer(maxDraws, 0, GPU_PREPARE_LIMITS.draws, 'gpu-pick-draw-limit');
+  if (packet.draws.length / GPU_DRAW_STRIDE > maxDraws) fail('gpu-pick-draw-budget');
+  if (typeof visit !== 'function') fail('gpu-pick-visitor');
+  if (!Number.isFinite(viewX) || !Number.isFinite(viewY) || viewX < 0 || viewY < 0 || viewX >= v.width || viewY >= v.height) return false;
+  const x = Math.floor(viewX), y = Math.floor(viewY), worldX = packet.sampleX[x]!, worldY = packet.sampleY[y]!, d = packet.draws;
+  for (let i = 0; i < d.length; i += GPU_DRAW_STRIDE) {
+    if (x < d[i]! || y < d[i + 1]! || x >= d[i + 2]! || y >= d[i + 3]!) continue;
+    const rasterId = d[i + 6]!, raster = scene.rasters[rasterId]!, u = worldX - d[i + 4]!, w = worldY - d[i + 5]!;
+    if (u < 0 || w < 0 || u >= raster.width || w >= raster.height) continue;
+    visit(rasterId, w * raster.width + u, d[i + 7]!, d[i + 8]!, d[i + 9]! as 1 | 2, d[i + 10] === 1);
+  }
+  return true;
+}
+
 /** Map a diagnostic GPU owner/depth sample using the exact submitted frame, never the latest mutable objects. */
 export function pickGpuFrame(frame: GpuFrame, sample: Readonly<{ kind: number; owner: number; depth: number }>, viewX: number, viewY: number): (TerrainPick & { readonly kind: 'terrain' }) | SpritePick | null {
   const data = frameData(frame), scene = sceneData(frame.scene), v = frame.viewport;
