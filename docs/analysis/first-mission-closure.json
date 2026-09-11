@@ -1,0 +1,685 @@
+{
+  "schemaVersion": 1,
+  "issue": 230,
+  "sourceRevision": "28ed58273164ad8556c378b5d9b75da9f8645d5e",
+  "scope": "first RA2 Allied source mission closure audit; no new execution admission",
+  "sourceFilesVerified": 438,
+  "nativeExecution": false,
+  "browserExecution": false,
+  "newRuntimeCode": false,
+  "ra2": {
+    "missionSha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+    "sourceInputs": [
+      {
+        "role": "rules",
+        "path": "rules.ini",
+        "rootPath": "ra2.mix",
+        "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+        "size": 541915,
+        "sha256": "fd1e95cea0306ea78049dc81c8cd816e18c28c496872a1ff02edd50bd082062f"
+      },
+      {
+        "role": "art",
+        "path": "art.ini",
+        "rootPath": "ra2.mix",
+        "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+        "size": 245825,
+        "sha256": "b477f861063a9509e87b7836b78190204c73bea5ea5595a842c456f5920ea223"
+      },
+      {
+        "role": "ai",
+        "path": "ai.ini",
+        "rootPath": "ra2.mix",
+        "rootSha256": "896a8b64f9f1bb8ad5e0bc64fc0b8ea8c84112494761ea1a43478d10c5ef9914",
+        "size": 84972,
+        "sha256": "1feac6ddea6886b177ddf7e5f8580b7a99a63f12684f2cbb42831671bb7a8a79"
+      },
+      {
+        "role": "mission",
+        "path": "all01t.map",
+        "rootPath": "maps01.mix",
+        "rootSha256": "b9093c9ef7efc1d24c6259196fbe90c8b78a15d0af27c93c12e1c755e5196d74",
+        "size": 146240,
+        "sha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c"
+      }
+    ],
+    "bindingsSha256": "5e602be74dbff27ae16a2bbb618df3244e2bc80a10cfe658039168016c2f6a60",
+    "teamActionSourceSha256": "0435c10a981b90bab1567aa3ef131f61febd80f6af910005461495b30c73beaa",
+    "allocationSha256": "e18e1391488d5d0f4b8d4c14a5fabfe46f57d4a29c0e07e9e996e6d5e46e32b1",
+    "teamCellSourceSha256": "fd37716f96f725b1b6b978838e5f59dc672fde29b775b652e102227ca21f55e7",
+    "worldPreparation": "flat traversal; source/team baseline, not current browser ground/combat/infantry model",
+    "placements": 811,
+    "triggers": 130,
+    "tags": 128,
+    "diagnostics": {
+      "unsupported-action-opcode": 168,
+      "unsupported-action-team-source": 63,
+      "unsupported-event-opcode": 22,
+      "unsupported-team-source-catalog": 1
+    },
+    "diagnosticCount": 254,
+    "bindingDiagnostics": 0,
+    "logicDiagnostics": 0,
+    "coverage": [
+      {
+        "namespace": "action",
+        "opcode": 1,
+        "occurrences": 1,
+        "supported": 1,
+        "effectOnly": true
+      },
+      {
+        "namespace": "action",
+        "opcode": 2,
+        "occurrences": 1,
+        "supported": 1,
+        "effectOnly": true
+      },
+      {
+        "namespace": "action",
+        "opcode": 3,
+        "occurrences": 1,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "action",
+        "opcode": 4,
+        "occurrences": 29,
+        "supported": 11,
+        "effectOnly": true
+      },
+      {
+        "namespace": "action",
+        "opcode": 5,
+        "occurrences": 2,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "action",
+        "opcode": 7,
+        "occurrences": 25,
+        "supported": 1,
+        "effectOnly": true
+      },
+      {
+        "namespace": "action",
+        "opcode": 11,
+        "occurrences": 33,
+        "supported": 33,
+        "effectOnly": true
+      },
+      {
+        "namespace": "action",
+        "opcode": 12,
+        "occurrences": 1,
+        "supported": 1,
+        "effectOnly": false
+      },
+      {
+        "namespace": "action",
+        "opcode": 14,
+        "occurrences": 7,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "action",
+        "opcode": 17,
+        "occurrences": 27,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "action",
+        "opcode": 19,
+        "occurrences": 39,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "action",
+        "opcode": 21,
+        "occurrences": 18,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "action",
+        "opcode": 36,
+        "occurrences": 1,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "action",
+        "opcode": 41,
+        "occurrences": 2,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "action",
+        "opcode": 46,
+        "occurrences": 2,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "action",
+        "opcode": 47,
+        "occurrences": 1,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "action",
+        "opcode": 48,
+        "occurrences": 2,
+        "supported": 2,
+        "effectOnly": true
+      },
+      {
+        "namespace": "action",
+        "opcode": 53,
+        "occurrences": 88,
+        "supported": 88,
+        "effectOnly": false
+      },
+      {
+        "namespace": "action",
+        "opcode": 54,
+        "occurrences": 26,
+        "supported": 26,
+        "effectOnly": false
+      },
+      {
+        "namespace": "action",
+        "opcode": 55,
+        "occurrences": 40,
+        "supported": 40,
+        "effectOnly": true
+      },
+      {
+        "namespace": "action",
+        "opcode": 63,
+        "occurrences": 10,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "action",
+        "opcode": 74,
+        "occurrences": 1,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "action",
+        "opcode": 80,
+        "occurrences": 21,
+        "supported": 0,
+        "effectOnly": true
+      },
+      {
+        "namespace": "action",
+        "opcode": 99,
+        "occurrences": 26,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "action",
+        "opcode": 100,
+        "occurrences": 3,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "action",
+        "opcode": 101,
+        "occurrences": 1,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "action",
+        "opcode": 104,
+        "occurrences": 8,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "action",
+        "opcode": 108,
+        "occurrences": 9,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "action",
+        "opcode": 113,
+        "occurrences": 1,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "action",
+        "opcode": 114,
+        "occurrences": 4,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "action",
+        "opcode": 115,
+        "occurrences": 4,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "action",
+        "opcode": 116,
+        "occurrences": 1,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "event",
+        "opcode": 1,
+        "occurrences": 18,
+        "supported": 18,
+        "effectOnly": false
+      },
+      {
+        "namespace": "event",
+        "opcode": 4,
+        "occurrences": 2,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "event",
+        "opcode": 6,
+        "occurrences": 2,
+        "supported": 2,
+        "effectOnly": false
+      },
+      {
+        "namespace": "event",
+        "opcode": 9,
+        "occurrences": 1,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "event",
+        "opcode": 10,
+        "occurrences": 1,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "event",
+        "opcode": 11,
+        "occurrences": 2,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "event",
+        "opcode": 13,
+        "occurrences": 84,
+        "supported": 84,
+        "effectOnly": false
+      },
+      {
+        "namespace": "event",
+        "opcode": 20,
+        "occurrences": 1,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "event",
+        "opcode": 21,
+        "occurrences": 1,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "event",
+        "opcode": 32,
+        "occurrences": 4,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "event",
+        "opcode": 33,
+        "occurrences": 7,
+        "supported": 0,
+        "effectOnly": false
+      },
+      {
+        "namespace": "event",
+        "opcode": 36,
+        "occurrences": 2,
+        "supported": 2,
+        "effectOnly": false
+      },
+      {
+        "namespace": "event",
+        "opcode": 48,
+        "occurrences": 4,
+        "supported": 4,
+        "effectOnly": false
+      },
+      {
+        "namespace": "event",
+        "opcode": 57,
+        "occurrences": 3,
+        "supported": 0,
+        "effectOnly": false
+      }
+    ],
+    "declarations": {
+      "teams": 49,
+      "scripts": 38,
+      "taskForces": 29
+    },
+    "loadedDeclarations": {
+      "teams": 152,
+      "scripts": 90,
+      "taskForces": 110
+    },
+    "directTeamActions": {
+      "teams": 33,
+      "scripts": 28,
+      "taskForces": 19,
+      "scriptOpcodes": {
+        "0": 12,
+        "1": 4,
+        "11": 2,
+        "20": 1,
+        "3": 26,
+        "37": 9,
+        "39": 2,
+        "46": 1,
+        "5": 3,
+        "50": 2,
+        "6": 2,
+        "8": 2
+      },
+      "admittedPrograms": 4,
+      "programReasons": {
+        "guard-acquisition": 4,
+        "tag-lifecycle": 4,
+        "team-behavior": 31,
+        "unsupported-operand": 37
+      }
+    },
+    "localTeamDeclarations": {
+      "teams": 49,
+      "scripts": 37,
+      "taskForces": 28,
+      "scriptOpcodes": {
+        "0": 14,
+        "1": 5,
+        "11": 4,
+        "19": 1,
+        "20": 1,
+        "3": 32,
+        "37": 10,
+        "39": 2,
+        "46": 4,
+        "49": 1,
+        "5": 3,
+        "50": 3,
+        "6": 4,
+        "8": 2
+      },
+      "admittedPrograms": 6,
+      "programReasons": {
+        "guard-acquisition": 7,
+        "tag-lifecycle": 5,
+        "team-behavior": 45,
+        "unsupported-operand": 54
+      }
+    },
+    "localScriptRows": 88,
+    "allocation": {
+      "roots": {
+        "ai-trigger:conditional": 2,
+        "ai-trigger:proven-excluded-initial": 111,
+        "automatic-template:required": 77,
+        "explicit-action:required": 75,
+        "native-unmodeled:required": 3
+      },
+      "aiInitialConditions": {
+        "conditional": 2,
+        "proven-excluded": 111
+      },
+      "resolvedNameDiagnostics": 352,
+      "nativeGaps": {
+        "house-ai-activation-and-runtime-state": 1,
+        "secondary-team-replacement-callers": 1,
+        "unmodeled-external-allocation-paths": 1
+      }
+    },
+    "teamCellCoverage": {
+      "representedSpawnActions": 1,
+      "representedSpawnArchetypes": 1,
+      "unsupportedSpawnArchetypes": 0,
+      "allRequiredConstructorsReady": false,
+      "supportedWorldInvariantReady": false
+    },
+    "teamCellDiagnostics": {
+      "catalog:recruitment-anchor": 2,
+      "catalog:waypoint:index-not-initially-loaded": 2,
+      "initial-context:unsupported-entry-locomotor": 4,
+      "missing-family-catalog": 61,
+      "native-recruitment-unimplemented": 16,
+      "unsupported-team-action": 63
+    },
+    "outcomes": [
+      {
+        "opcode": 1,
+        "initiallyDisabled": true,
+        "syntacticEnableAncestorsIncludingRequest": 2,
+        "layers": [
+          {
+            "triggerCount": 1,
+            "events": {
+              "13": 1
+            },
+            "actions": {
+              "1": 1
+            }
+          },
+          {
+            "triggerCount": 1,
+            "events": {
+              "10": 1
+            },
+            "actions": {
+              "21": 1,
+              "53": 2,
+              "54": 7
+            }
+          }
+        ]
+      },
+      {
+        "opcode": 2,
+        "initiallyDisabled": true,
+        "syntacticEnableAncestorsIncludingRequest": 6,
+        "layers": [
+          {
+            "triggerCount": 1,
+            "events": {
+              "13": 1
+            },
+            "actions": {
+              "2": 1
+            }
+          },
+          {
+            "triggerCount": 3,
+            "events": {
+              "11": 1,
+              "13": 1,
+              "48": 1
+            },
+            "actions": {
+              "11": 1,
+              "19": 1,
+              "21": 1,
+              "46": 1,
+              "48": 1,
+              "53": 3,
+              "55": 1
+            }
+          },
+          {
+            "triggerCount": 2,
+            "events": {
+              "1": 1,
+              "48": 1
+            },
+            "actions": {
+              "11": 1,
+              "19": 1,
+              "21": 1,
+              "53": 2,
+              "54": 3
+            }
+          }
+        ]
+      }
+    ],
+    "syntacticTriggerGraph": {
+      "initialEnabledNormal": 51,
+      "enableForceClosureIgnoringEventTruthAndTargetDifficulty": 129,
+      "notInOverapproximation": 1,
+      "authority": false
+    }
+  },
+  "unsupportedActionGroups": [
+    {
+      "group": "audio",
+      "opcodeOccurrences": {
+        "19": 39,
+        "21": 18,
+        "99": 26,
+        "116": 1
+      },
+      "total": 84,
+      "semantics": "named research family; missing operand/runtime consumers require native proof"
+    },
+    {
+      "group": "shroud",
+      "opcodeOccurrences": {
+        "17": 27,
+        "101": 1
+      },
+      "total": 28,
+      "semantics": "named research family; missing operand/runtime consumers require native proof"
+    },
+    {
+      "group": "ui-and-team-emphasis",
+      "opcodeOccurrences": {
+        "46": 2,
+        "47": 1,
+        "104": 8,
+        "113": 1,
+        "114": 4,
+        "115": 4
+      },
+      "total": 20,
+      "semantics": "named research family; missing operand/runtime consumers require native proof"
+    },
+    {
+      "group": "ownership-and-team-lifecycle",
+      "opcodeOccurrences": {
+        "5": 2,
+        "14": 7,
+        "36": 1
+      },
+      "total": 10,
+      "semantics": "named research family; missing operand/runtime consumers require native proof"
+    },
+    {
+      "group": "scripted-damage",
+      "opcodeOccurrences": {
+        "63": 10
+      },
+      "total": 10,
+      "semantics": "named research family; missing operand/runtime consumers require native proof"
+    },
+    {
+      "group": "crates",
+      "opcodeOccurrences": {
+        "108": 9
+      },
+      "total": 9,
+      "semantics": "named research family; missing operand/runtime consumers require native proof"
+    },
+    {
+      "group": "in-game-cinematics",
+      "opcodeOccurrences": {
+        "100": 3
+      },
+      "total": 3,
+      "semantics": "named research family; missing operand/runtime consumers require native proof"
+    },
+    {
+      "group": "production-and-ai-enable",
+      "opcodeOccurrences": {
+        "3": 1,
+        "74": 1
+      },
+      "total": 2,
+      "semantics": "named research family; missing operand/runtime consumers require native proof"
+    },
+    {
+      "group": "world-animation",
+      "opcodeOccurrences": {
+        "41": 2
+      },
+      "total": 2,
+      "semantics": "named research family; missing operand/runtime consumers require native proof"
+    }
+  ],
+  "yrRegression": {
+    "missionSha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+    "diagnosticCount": 461,
+    "diagnostics": {
+      "unsupported-action-opcode": 275,
+      "unsupported-action-team-source": 95,
+      "unsupported-event-opcode": 90,
+      "unsupported-team-source-catalog": 1
+    },
+    "bindingsSha256": "e839e63e8b14b22e051188127bc4514ef421537804878797f321b576bd5111af",
+    "teamActionSourceSha256": "046835223dd53145501f3a91850c2d3fddecdda1ef208c27e78c08273ad9bd62",
+    "allocationSha256": "c0f54fcf27be605e68dc88d27f4fbb07dfb63e00bf439ad413b6e92b7d311d6c",
+    "teamCellSourceSha256": "3e2f26e3d6997dcde1e11e41481730c97af8a5cfd791fd25236c6ca1415f789a"
+  },
+  "independentRawOracle": {
+    "comparisons": 6954,
+    "ra2InstructionFrames": 567,
+    "yrInstructionFrames": 1595,
+    "ra2MissionDeclaredScriptRows": 88,
+    "yrMissionDeclaredScriptRows": 375,
+    "coverage": "mission member/INI sizes and SHA256; exact raw action/event framing, operands, row origins; all mission-declared effective script slots/opcodes/operands/origins; coverage totals",
+    "limitations": [
+      "The fresh catalog authenticates archive roots; this separate oracle rehashes extracted source members, not a second independent MIX catalog.",
+      "Reviewed typed fields, native consumers, navigation and root source ordering are reused, not independently reimplemented here.",
+      "Syntactic graphs overapproximate possible activation; they cannot authorize exclusion or execution."
+    ],
+    "probeSha256": "8661bd9c94900c58ff936de50af6b0cdeaadcb742b48301d3dba1a14390006f5",
+    "oracleSha256": "0835cb15b3f6ca520dc8d2df7be5bc3cd60d98e0d94ea3945798c81218901bb1",
+    "privateAuditSha256": "a99a4cdc3d80429464e03bb1202d3201e56fa71f72b930ad2fcf0073833c2c92"
+  }
+}

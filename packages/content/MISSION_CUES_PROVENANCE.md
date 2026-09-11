@@ -72,3 +72,10 @@ Shared build/licensing integration belongs to the coordinator.
 The exact source-operand accessor retains immutable compiler-owned parameters for
 the subsequent [authenticated VM join](../../docs/mission-cue-dispatch.md). It
 does not change reference catalog fingerprints or authorize arbitrary invocation.
+
+The optional [spatial audio source slice](../../docs/mission-spatial-audio.md)
+adds99/116 using the paired native dispatch/loader/controller ledger and existing
+initial-waypoint source gate. The default catalog remains unchanged. New location
+metadata does not grant VM invocation or output authority. Pinned YRpp ObjectClass
+and CellClass declarations supplied layout leads; selected behavior is checked
+against both executable images and no header implementation is copied.

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "scope": "independent raw source and typed policy comparison; not native execution or audio output",
+  "checks": 9887,
+  "controls": 1638,
+  "histories": 4032,
+  "profiles": [
+    {
+      "profile": "ra2",
+      "side": 0,
+      "bindings": 57,
+      "controls": 561,
+      "histories": 1395,
+      "status": {
+        "supported-source": 57
+      },
+      "policySha256": "d3f37dec3663c1d815bac79c2601e9a8858f7de79766ca42a16d2cd803a14a2f"
+    },
+    {
+      "profile": "ra2",
+      "side": 1,
+      "bindings": 57,
+      "controls": 561,
+      "histories": 1395,
+      "status": {
+        "supported-source": 57
+      },
+      "policySha256": "483c77e3738d562c5a600c7a2482327ad8c3baf48785686a5a8fddb41a8ddccd"
+    },
+    {
+      "profile": "yr",
+      "side": 0,
+      "bindings": 24,
+      "controls": 172,
+      "histories": 414,
+      "status": {
+        "supported-source": 24
+      },
+      "policySha256": "44da0b17ca79816fce49f3afc2a3a63a2cd3976fb02744500400461ad183f58d"
+    },
+    {
+      "profile": "yr",
+      "side": 1,
+      "bindings": 24,
+      "controls": 172,
+      "histories": 414,
+      "status": {
+        "supported-source": 24
+      },
+      "policySha256": "8c97b477a8e26f9fd6cc30d1362b4c25524aad6311ba3e8981e42a061a3630df"
+    },
+    {
+      "profile": "yr",
+      "side": 2,
+      "bindings": 24,
+      "controls": 172,
+      "histories": 414,
+      "status": {
+        "unsupported": 9,
+        "supported-source": 15
+      },
+      "policySha256": "a2b999e9f68b2ce44bffaf7574fbc9e1aba2d9fd161dc49b44149ff2b74a0886"
+    }
+  ],
+  "nativeLedger": {
+    "records": 68,
+    "codeRanges": 58,
+    "bytes": 17151,
+    "checks": 186,
+    "sha256": "a7414731174e1b09ef0d383f5c62195b75d1518564aa3e54cf951614c4d33915"
+  },
+  "authority": {
+    "runtimeAuthority": false,
+    "nativeExecutionVerified": false,
+    "playbackReady": false,
+    "canStartCampaign": false
+  }
+}
