@@ -24,9 +24,11 @@ animation, shadow, voxel, lighting or effect rendering.
 Aggregate resource counts, expanded pixels and bytes pass before expanded raster
 allocation. Defaults cap 8,192 rasters, 16 Mi pixels and 128 MiB of RGBA plus signed
 depth planes. Each resource costs eight bytes per texel. Existing CPU source/decode
-limits remain effective. Compilation retains the original bounded CPU scene/atlas
-as well as the expanded resources; expanded bytes are not total application memory.
-Backend upload copies, padding and driver allocations require separate accounting.
+limits remain effective. Compilation retains canonical metadata and expanded resources, releasing its original
+CPU scene/atlas callbacks and decoder references. A caller can retain the CPU fallback
+separately. Expanded bytes are not total application memory; backend upload copies,
+padding and driver allocations require separate accounting. See the
+[resident transfer policy](gpu-transfer.md) for cross-worker ownership.
 
 ## Exact sparse composition
 

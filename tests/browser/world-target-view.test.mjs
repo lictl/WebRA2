@@ -33,7 +33,7 @@ test('manual target choice survives subscription updates until a new enemy inspe
   const session=new WorldSession({...f.world,model:bindOrdinaryInfantryWorld(bridge,f.world.model)});
   controller=new TerrainController('en');
   controller.state={...controller.state,phase:'ready',playerId:0,selectedEntity:1,selectedEntities:[1],selection:{kind:'object',object:{id:'object-1'}},frame:{summary:{world:session.summary},world:session.snapshot()}};
-  unmount=mountWorld(new Element(),controller);const target=nodes.get('#world-attack-target');assert.equal(target.value,'2');
+  const viewRoot=new Element();unmount=mountWorld(viewRoot,controller);const target=nodes.get('#world-attack-target');assert.equal(target.value,'2');
   target.value='3';target.handlers.change();assert.equal(target.value,'3');assert.deepEqual(controller.state.selectedEntities,[1]);
   controller.selectEntities([1]);assert.equal(target.value,'3');
   controller.selectEntities([1],'toggle');assert.deepEqual(controller.state.selectedEntities,[]);assert.equal(controller.state.worldNotice,'worldSelectionCleared');
@@ -49,7 +49,7 @@ test('manual target choice survives subscription updates until a new enemy inspe
   controller.selectEntities([1]);controller.state={...controller.state,busy:true,verifyingReplay:true,worldNotice:'worldVerifying'};controller.setLocale('zh-Hant');assert.equal(cancel.hidden,false);
   nodes.get('#world-open-saves').handlers.click();nodes.get('#world-open-diagnostics').handlers.click();nodes.get('#world-return-diagnostics').handlers.click();assert.equal(cancel.hidden,false);assert.match(nodes.get('#world-notice').textContent,/驗證重播/);
   nodes.get('#world-clear').handlers.click();assert.equal(cancel.hidden,false);
-  const canvas=nodes.get('#terrain-canvas');for(const key of [' ','s','Escape']){canvas.handlers.keydown({key,target:canvas,altKey:false,ctrlKey:false,metaKey:false,repeat:false,preventDefault(){}});assert.equal(cancel.hidden,false);assert.match(nodes.get('#world-notice').textContent,/驗證重播/);}
+  const canvas=viewRoot.querySelector('#terrain-canvas');for(const key of [' ','s','Escape']){viewRoot.handlers.keydown({key,target:canvas,altKey:false,ctrlKey:false,metaKey:false,repeat:false,preventDefault(){}});assert.equal(cancel.hidden,false);assert.match(nodes.get('#world-notice').textContent,/驗證重播/);}
   cancel.handlers.click();assert.equal(controller.state.phase,'cancelled');assert.equal(controller.state.frame,null);assert.equal(controller.state.busy,false);
  }finally{unmount?.();controller?.dispose();if(priorDocument===undefined)delete globalThis.document;else globalThis.document=priorDocument;await rm(directory,{recursive:true,force:true});}
 });

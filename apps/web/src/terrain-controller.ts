@@ -2,28 +2,33 @@
 // Copyright 2026 WebRA2 contributors. DOM-independent viewport job state.
 import type { CampaignLaunchPlan, CampaignFaction } from './campaign-protocol.ts';
 import { TerrainBridge,type TerrainPort } from './terrain-bridge.ts';
-import { centered,VIEW_LIMIT,validCamera,type Camera,type FrameResult,type TerrainProfile,type TerrainProgress,type ViewportPick,type Zoom } from './terrain-protocol.ts';
+import { centered,VIEW_LIMIT,validCamera,type Camera,type DisplayFrame,type TerrainProfile,type TerrainProgress,type ViewportPick,type Zoom } from './terrain-protocol.ts';
+import type { GpuViewport, GpuViewportDisplay, GpuViewportFailure } from './gpu-viewport.ts';
 import { actorsInBox, controllable, selectWorldActors, type SelectionBox, type SelectionMode } from './world-selection.ts';
 import type { Locale } from './i18n.ts';
 import { WorldControlGroups, type ControlGroupContext, type ControlGroupFeedback } from './world-control-groups.ts';
 import { WORLD_UI, worldDocumentText, type WorldAction, type WorldDocument } from './world-protocol.ts';
 import { LocalWorldStorage, type WorldStorage, type SaveSlot } from './world-storage.ts';
-export type TerrainState={locale:Locale;profile:TerrainProfile;phase:'empty'|'selected'|'loading'|'choosing'|'ready'|'cancelled'|'failed';campaign:CampaignLaunchPlan|null;files:number;bytes:number;busy:boolean;verifyingReplay:boolean;progress:TerrainProgress|null;frame:FrameResult|null;selection:ViewportPick;notice:string;error:string|null;running:boolean;playerId:number|null;selectedEntity:number|null;selectedEntities:number[];interactionEpoch:number;interacting:boolean;slot:SaveSlot;controlGroupFeedback:ControlGroupFeedback|null;worldNotice:string;replayHash:string|null};
-export function canPick(state:TerrainState,x:number,y:number):boolean {const f=state.frame;return !!f && !state.busy && state.phase==='ready' && Number.isInteger(x) && Number.isInteger(y) && x>=0 && y>=0 && x<f.camera.width && y<f.camera.height;}
+export type TerrainState={locale:Locale;profile:TerrainProfile;phase:'empty'|'selected'|'loading'|'choosing'|'ready'|'cancelled'|'failed';campaign:CampaignLaunchPlan|null;files:number;bytes:number;busy:boolean;verifyingReplay:boolean;progress:TerrainProgress|null;frame:DisplayFrame|null;selection:ViewportPick;notice:string;error:string|null;running:boolean;playerId:number|null;selectedEntity:number|null;selectedEntities:number[];interactionEpoch:number;interacting:boolean;slot:SaveSlot;controlGroupFeedback:ControlGroupFeedback|null;worldNotice:string;replayHash:string|null;rendererNotice:string;presentationSequence:number;gpuDisplayedFrameId:number};
+export function canPick(state:TerrainState,x:number,y:number):boolean {const f=state.frame;return !!f && (f.type==='frame'||state.gpuDisplayedFrameId===f.frameId) && !state.busy && state.phase==='ready' && Number.isInteger(x) && Number.isInteger(y) && x>=0 && y>=0 && x<f.camera.width && y<f.camera.height;}
 export class TerrainController{
   #files:File[]=[];#port:TerrainPort|null=null;#active:AbortController|null=null;#generation=0;#desired:Camera|null=null;#listeners=new Set<(s:TerrainState)=>void>();#width=960;#height=640;
   #controlGroups=new WorldControlGroups();
+  #gpu:GpuViewport|null=null;#fallbackPending=false;#fallbackScheduled=false;
   state:TerrainState;
-  constructor(locale:Locale='en',private factory:()=>TerrainPort=()=>new TerrainBridge(),private storage:WorldStorage=new LocalWorldStorage()){this.state={locale,profile:'ra2',phase:'empty',campaign:null,files:0,bytes:0,busy:false,verifyingReplay:false,progress:null,frame:null,selection:null,notice:'choose',error:null,running:false,playerId:null,selectedEntity:null,selectedEntities:[],interactionEpoch:0,interacting:false,slot:1,controlGroupFeedback:null,worldNotice:'worldPaused',replayHash:null};}
+  constructor(locale:Locale='en',private factory:()=>TerrainPort=()=>new TerrainBridge(),private storage:WorldStorage=new LocalWorldStorage()){this.state={locale,profile:'ra2',phase:'empty',campaign:null,files:0,bytes:0,busy:false,verifyingReplay:false,progress:null,frame:null,selection:null,notice:'choose',error:null,running:false,playerId:null,selectedEntity:null,selectedEntities:[],interactionEpoch:0,interacting:false,slot:1,controlGroupFeedback:null,worldNotice:'worldPaused',replayHash:null,rendererNotice:'rendererCpu',presentationSequence:0,gpuDisplayedFrameId:0};}
   subscribe(fn:(s:TerrainState)=>void):()=>void{this.#listeners.add(fn);fn(this.state);return()=>this.#listeners.delete(fn);}
   #update(p:Partial<TerrainState>):void{
+    if(Object.hasOwn(p,'frame')&&p.frame?.type!=='gpu-frame'){this.#gpu?.dispose();this.#gpu=null;this.#fallbackPending=false;p={...p,gpuDisplayedFrameId:0,presentationSequence:0};}
+    if(p.frame?.type==='gpu-frame'&&p.frame.frameId!==this.state.frame?.frameId)p={...p,gpuDisplayedFrameId:0};
     this.state={...this.state,...p};
     if(Object.hasOwn(p,'frame')){const f=this.state.frame;const ids=this.state.selectedEntities.filter(id=>controllable(f?.summary.world,f?.world,this.state.playerId,id));this.state={...this.state,selectedEntities:ids,selectedEntity:ids[0]??null};}
     if(this.#controlGroups.sync(this.#groupContext()))this.state={...this.state,controlGroupFeedback:null};
     for(const fn of this.#listeners)fn(this.state);
+    if(this.#fallbackPending&&!this.state.busy&&!this.#fallbackScheduled){this.#fallbackScheduled=true;queueMicrotask(()=>{this.#fallbackScheduled=false;if(this.#fallbackPending)void this.setRenderer('cpu');});}
   }
   #groupContext():ControlGroupContext|null{const f=this.state.frame;return this.state.phase==='ready'&&f?.summary.world&&f.world?{scene:this.#generation,summary:f.summary.world,snapshot:f.world,playerId:this.state.playerId}:null;}
-  #stop():void{this.#controlGroups.clear();this.#generation++;this.#active?.abort();this.#active=null;this.#port?.dispose();this.#port=null;this.#desired=null;this.state={...this.state,campaign:null,verifyingReplay:false,running:false,playerId:null,selectedEntity:null,selectedEntities:[],interactionEpoch:this.state.interactionEpoch+1,interacting:false,replayHash:null,controlGroupFeedback:null,worldNotice:'worldPaused'};}
+  #stop():void{this.#gpu?.dispose();this.#gpu=null;this.#fallbackPending=false;this.#controlGroups.clear();this.#generation++;this.#active?.abort();this.#active=null;this.#port?.dispose();this.#port=null;this.#desired=null;this.state={...this.state,campaign:null,verifyingReplay:false,running:false,playerId:null,selectedEntity:null,selectedEntities:[],interactionEpoch:this.state.interactionEpoch+1,interacting:false,replayHash:null,controlGroupFeedback:null,worldNotice:'worldPaused',rendererNotice:'rendererCpu',presentationSequence:0,gpuDisplayedFrameId:0};}
   select(files:ArrayLike<File>):void{
     this.#stop();if(!Number.isSafeInteger(files.length) || files.length<0 || files.length>VIEW_LIMIT.files){this.#files=[];this.#update({phase:'failed',files:0,bytes:0,busy:false,progress:null,frame:null,selection:null,notice:'tooMany',error:null});return;}
     this.#files=Array.from(files);this.#update({phase:files.length?'selected':'empty',files:files.length,bytes:this.#files.reduce((n,f)=>n+f.size,0),busy:false,progress:null,frame:null,selection:null,notice:files.length?'selected':'choose',error:null});
@@ -76,6 +81,43 @@ export class TerrainController{
     }catch(e){this.#failure(e,generation);}
   }
   #failure(e:unknown,generation:number):void{if(generation!==this.#generation)return;this.#stop();this.#update({phase:'failed',busy:false,progress:null,frame:null,selection:null,notice:'failure',error:e instanceof Error?e.message:'unavailable'});}
+  camera():Camera|null{return this.#desired?{...this.#desired}:null;}
+  presentationToken():number{return this.state.frame?.type==='gpu-frame'?this.state.presentationSequence:this.state.frame?.frameId??0;}
+  attachGpu(presenter:GpuViewport):boolean{
+    const f=this.state.frame;if(f?.type!=='gpu-frame'||this.#fallbackPending)return false;
+    this.#gpu?.dispose();this.#gpu=presenter;
+    // The importer/presenter owns resident planes now. Do not retain the transient packet in app state.
+    this.#update({frame:{...f,resources:null,objectInfo:null},gpuDisplayedFrameId:0});return true;
+  }
+  gpuDisplayed(presenter:GpuViewport,display:GpuViewportDisplay):void{
+    const f=this.state.frame;
+    if(this.#gpu!==presenter||f?.type!=='gpu-frame'||f.frameId!==display.frameId||f.world?.revision!==display.world?.revision||f.world?.stateHash!==display.world?.stateHash)return;
+    const camera={...display.camera},controlPoints=f.worldPoints.flatMap(p=>{const x=Math.floor((p.x-camera.cameraX)*camera.zoom),y=Math.floor((p.y-camera.cameraY)*camera.zoom);return x>=0&&y>=0&&x<camera.width&&y<camera.height?[{entityId:p.entityId,x,y}]:[];});
+    this.#update({frame:{...f,camera,controlPoints},gpuDisplayedFrameId:f.frameId,presentationSequence:display.sequence});
+  }
+  gpuFailed(presenter:GpuViewport|null,reason:GpuViewportFailure,sceneId?:number):void{
+    const f=this.state.frame;if(f?.type!=='gpu-frame'||(presenter!==null&&this.#gpu!==presenter)||(sceneId!==undefined&&f.sceneId!==sceneId))return;
+    this.#gpu?.dispose();this.#gpu=null;this.#fallbackPending=true;
+    this.#update({frame:{...f,resources:null,objectInfo:null},gpuDisplayedFrameId:0,selection:null,rendererNotice:reason==='context-lost'?'rendererLost':'rendererUnavailable'});
+  }
+  async setRenderer(mode:'gpu'|'cpu'):Promise<void>{
+    if(this.state.busy||!this.#port||this.state.phase!=='ready'||!this.state.frame)return;
+    if(mode==='gpu'&&this.state.frame.type==='gpu-frame'||mode==='cpu'&&this.state.frame.type==='frame'){this.#fallbackPending=false;return;}
+    const generation=this.#generation,port=this.#port,active=new AbortController(),fallback=this.#fallbackPending;this.#active=active;this.#fallbackPending=false;
+    this.cancelInteraction();this.#update({busy:true,selection:null,...(fallback?{}:{rendererNotice:mode==='gpu'?'rendererPreparing':'rendererCpu'})});
+    try{
+      // Worker camera may lag local RAF pans. Synchronize without advancing the world before CPU fallback.
+      if(mode==='cpu'&&this.#desired){await port.request({type:'render',camera:{...this.#desired}},active.signal);if(generation!==this.#generation)return;}
+      const result=await port.request({type:'renderer-mode',mode},active.signal);if(generation!==this.#generation)return;
+      this.#active=null;
+      if(result.type==='renderer-refusal'){this.#update({busy:false,rendererNotice:result.reason==='voxel-layer'?'rendererVoxel':'rendererUnavailable'});return;}
+      if(mode==='gpu'?result.type!=='gpu-frame'||!result.resources:result.type!=='frame')throw new Error('invalid');
+      if(result.type!=='frame'&&result.type!=='gpu-frame')throw new Error('invalid');
+      if(mode==='cpu'){this.#gpu?.dispose();this.#gpu=null;}
+      this.#update({frame:result,busy:false,gpuDisplayedFrameId:0,presentationSequence:0,notice:'ready',rendererNotice:fallback?'rendererRestored':mode==='gpu'?'rendererGpu':'rendererCpu'});
+      if(mode==='cpu'&&this.#desired&&Object.entries(result.camera).some(([k,v])=>this.#desired![k as keyof Camera]!==v))void this.#render();
+    }catch(e){this.#failure(e,generation);}
+  }
   resize(width:number,height:number):void{
     if(!Number.isSafeInteger(width)||!Number.isSafeInteger(height))return;this.#width=Math.max(1,Math.min(VIEW_LIMIT.width,width));this.#height=Math.max(1,Math.min(VIEW_LIMIT.height,height));
     const old=this.#desired;if(!old || (old.width===this.#width&&old.height===this.#height))return;
@@ -84,9 +126,9 @@ export class TerrainController{
   pan(dx:number,dy:number):void{const c=this.#desired;if(c && Number.isFinite(dx)&&Number.isFinite(dy))this.#camera({...c,cameraX:c.cameraX+dx/c.zoom,cameraY:c.cameraY+dy/c.zoom});}
   zoom(zoom:Zoom):void{const c=this.#desired;if(c && [0.5,1,2,4].includes(zoom))this.#camera({...c,cameraX:c.cameraX+c.width/c.zoom/2-c.width/zoom/2,cameraY:c.cameraY+c.height/c.zoom/2-c.height/zoom/2,zoom});}
   reset():void{const f=this.state.frame;if(f)this.#camera(centered(f.summary,this.#width,this.#height));}
-  #camera(camera:Camera):void{if(!validCamera(camera))return;this.#desired=camera;this.#update({selection:null});void this.#render();}
+  #camera(camera:Camera):void{if(!validCamera(camera))return;this.#desired=camera;this.#update({selection:null,...(this.state.frame?.type==='gpu-frame'?{gpuDisplayedFrameId:0}:{})});if(this.state.frame?.type==='gpu-frame'){try{this.#gpu?.setCamera(camera);}catch{this.gpuFailed(this.#gpu,'draw-failed');}}else void this.#render();}
   async #render():Promise<void>{
-    if(this.state.busy || !this.#desired || !this.#port || this.state.phase!=='ready')return;
+    if(this.state.busy || !this.#desired || !this.#port || this.state.phase!=='ready'||this.state.frame?.type==='gpu-frame')return;
     const camera={...this.#desired},generation=this.#generation,active=new AbortController();this.#active=active;this.#update({busy:true,notice:'rendering'});
     try{
       const result=await this.#port.request({type:'render',camera},active.signal);if(generation!==this.#generation)return;if(result.type!=='frame')throw new Error('invalid');
@@ -96,6 +138,12 @@ export class TerrainController{
   }
   async pick(x:number,y:number,mode:SelectionMode|'inspect'='replace'):Promise<ViewportPick|undefined>{
     const frame=this.state.frame;if(!frame||!this.#port||!canPick(this.state,x,y))return;
+    if(frame.type==='gpu-frame'){
+      if(!this.#gpu)return;const picked=this.#gpu.pick(x,y,this.state.presentationSequence);
+      this.#update({selection:picked,notice:picked?'picked':'background'});
+      if(mode!=='inspect'){const actor=picked?.kind==='object'?frame.summary.world?.actors.find(a=>a.objectId===picked.object.id):null;if(actor)this.selectEntities([actor.id],mode);else if(mode==='replace')this.clearSelection(false);}
+      return picked;
+    }
     const generation=this.#generation,epoch=this.state.interactionEpoch,active=new AbortController();this.#active=active;this.#update({busy:true,notice:'picking'});
     try{
       const result=await this.#port.request({type:'pick',frameId:frame.frameId,x,y},active.signal);if(generation!==this.#generation)return;if(result.type!=='pick'||result.frameId!==this.state.frame?.frameId)throw new Error('invalid');
@@ -109,7 +157,7 @@ export class TerrainController{
       return cameraCurrent?result.selection:undefined;
     }catch(e){this.#failure(e,generation);}
   }
-  setInteracting(active:boolean):boolean{if(active&&(this.state.busy||this.state.phase!=='ready'||!this.state.frame))return false;this.#update({interacting:active});return true;}
+  setInteracting(active:boolean):boolean{if(active&&(this.state.busy||this.state.phase!=='ready'||!this.state.frame||this.state.frame.type==='gpu-frame'&&this.state.gpuDisplayedFrameId!==this.state.frame.frameId))return false;this.#update({interacting:active});return true;}
   cancelInteraction():void{this.#update({interacting:false,interactionEpoch:this.state.interactionEpoch+1});}
   clearSelection(clearInspection=true):void{this.#update({selectedEntities:[],selectedEntity:null,interacting:false,interactionEpoch:this.state.interactionEpoch+1,...(clearInspection?{selection:null}:{}),worldNotice:'worldSelectionCleared'});}
   selectEntities(ids:readonly number[],mode:SelectionMode='replace'):boolean{
@@ -127,13 +175,13 @@ export class TerrainController{
   }
   selectEntity(id:number):void{this.selectEntities([id]);}
   selectBox(frameId:number,box:SelectionBox,additive=false):boolean{
-    const frame=this.state.frame;if(!frame||frame.frameId!==frameId||!canPick(this.state,box.left,box.top)||!canPick(this.state,box.right,box.bottom)||box.left>box.right||box.top>box.bottom)return false;
+    const frame=this.state.frame;if(!frame||this.presentationToken()!==frameId||!canPick(this.state,box.left,box.top)||!canPick(this.state,box.right,box.bottom)||box.left>box.right||box.top>box.bottom)return false;
     return this.selectEntities(actorsInBox(frame.controlPoints,box),additive?'add':'replace');
   }
   async moveAt(x:number,y:number):Promise<void>{
-    const frame=this.state.frame,epoch=this.state.interactionEpoch;if(!this.canOrder()||!frame){this.#update({worldNotice:this.state.busy?'worldControlsBusy':'worldCannotOrder'});return;}
+    const frame=this.state.frame,epoch=this.state.interactionEpoch,presentation=this.presentationToken();if(!this.canOrder()||!frame){this.#update({worldNotice:this.state.busy?'worldControlsBusy':'worldCannotOrder'});return;}
     const picked=await this.pick(x,y,'inspect');
-    if(epoch!==this.state.interactionEpoch||frame.frameId!==this.state.frame?.frameId||picked===undefined)return;
+    if(epoch!==this.state.interactionEpoch||frame.frameId!==this.state.frame?.frameId||presentation!==this.presentationToken()||picked===undefined)return;
     if(picked?.kind==='object'){
       const target=frame.summary.world?.actors.find(a=>a.objectId===picked.object.id);
       if(target&&target.owner!==this.state.playerId){await this.attack(target.id);return;}
@@ -143,6 +191,7 @@ export class TerrainController{
   }
   async focusEntity():Promise<void>{
     const entityId=this.state.selectedEntity;if(entityId===null||!this.#port||this.state.busy||!this.state.frame)return;
+    if(this.state.frame.type==='gpu-frame'){const point=this.state.frame.worldPoints.find(p=>p.entityId===entityId),c=this.#desired;if(point&&c)this.#camera({...c,cameraX:point.x-c.width/c.zoom/2,cameraY:point.y-c.height/c.zoom/2});return;}
     const generation=this.#generation,active=new AbortController();this.#active=active;this.#update({busy:true,selection:null});
     try{const result=await this.#port.request({type:'focus',entityId},active.signal);if(generation!==this.#generation)return;if(result.type!=='frame')throw new Error('invalid');this.#active=null;this.#desired={...result.camera};this.#update({frame:result,busy:false,notice:'ready'});if(result.camera.width!==this.#width||result.camera.height!==this.#height)this.resize(this.#width,this.#height);}catch(e){this.#failure(e,generation);}
   }
@@ -170,7 +219,7 @@ export class TerrainController{
       let result;try{result=await port.request(action,active.signal);}catch(error){transportFailed=true;throw error;}if(!live())return null;
       if(result.type==='world-rejection'){this.#update({running:false,worldNotice:result.code==='world-ui-group-blocked'?'worldGroupBlocked':result.code==='world-ui-group-budget-exhausted'?'worldGroupBudget':result.code==='world-ui-attack-range'?'worldAttackRange':result.code==='world-ui-attack-moving'?'worldAttackMoving':result.code==='world-ui-attack-context'?'worldAttackContext':result.code==='world-ui-attack-unsupported'?'worldAttackUnsupported':'worldRejected',error:result.code});return null;}
       if(result.type==='world-document')return result;
-      if(result.type!=='frame'||!result.world)throw new Error('invalid');
+      if((result.type!=='frame'&&result.type!=='gpu-frame')||!result.world)throw new Error('invalid');
       if(action.type==='world-restore'){this.#controlGroups.clear();this.#update({selectedEntities:[],selectedEntity:null,controlGroupFeedback:null,interacting:false,interactionEpoch:this.state.interactionEpoch+1});}
       // Automatic frames update the clock, not the acknowledgement of the last
       // user action. In particular, a busy-order refusal must remain readable.

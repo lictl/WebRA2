@@ -89,7 +89,10 @@ export function createVoxelWorldViewport(base: ViewportScene, terrain: ScenarioT
   if(!validArtworkSummary(combined,objects.placements.length))throw new Error('voxel-world-report');
   const atlas=preview.atlas,used=new Set(initial.map(p=>p.paletteId));
   const paletteCopies=Object.freeze(preview.palettes.filter(p=>used.has(p.id)).map(p=>Object.freeze({id:p.id,rgba:p.rgba.slice(),remap:null,transparentIndex:0})));
-  return {artwork:combined,scene:{...(base.locate?{locate:base.locate}:{}),render(viewport,snapshot){
+  // A partial GPU scene would omit already supported voxel artwork. Keep the complete
+  // CPU composition until the GPU path supports this layer; never silently drop it.
+  const gpu=initial.length?{gpuRefusal:'voxel-layer' as const}:base.gpu?{gpu:base.gpu.bind(base)}:{gpuRefusal:base.gpuRefusal??'scene-unavailable' as const};
+  return {artwork:combined,scene:{...gpu,...(base.locate?{locate:base.locate}:{}),render(viewport,snapshot){
     if(modelHash!==null&&(!snapshot||snapshot.modelHash!==modelHash))throw new Error('voxel-world-snapshot');
     const positions=new Map(snapshot?.actors.map(a=>[a.id,a])??[]),instances:VoxelInstance[]=[],sources=new Map<string,ObjectInfo>(),retired=new Set<string>();
     for(const p of initial){

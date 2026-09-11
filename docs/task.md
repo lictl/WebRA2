@@ -15,51 +15,60 @@ development target; other browsers come later. Assets remain on-device/read-only
 
 ## Active work and exclusive ownership
 
-- Coordinator: source audio dispatch [#220](https://github.com/lictl/WebRA2/issues/220),
-  [PR #223](https://github.com/lictl/WebRA2/pull/223), branch
-  `codex/220-mission-audio-dispatch`, `local/worktrees/mission-audio-dispatch`.
-  Source/test checkpoint `cd4ed44b702338f3041e08954b25d3e5a32cccfb` composes
-  source policy #219. The three shared mission files (`mission-logic.ts`,
-  `mission-bindings.ts`, `mission-world.ts`) stay coordinator-owned. Twelve new
-  tests cover actual polling/force/cell/team audio dispatch, exact old hashes,
-  every-boundary save/replay and resource rollback. Full check: 1,305 public +14
-  tool tests, types, 202 documents/1,036 links, publication/M0 and 78 build files/
-  145 inputs. Fresh 438-file preparation and independent raw audit: 7,930 checks.
-  RA2 required diagnostics are 197, YR 437; all unrelated failures are preserved.
-  Finish report/census/handoff composition, exact-head review and ordinary merge.
-  Next audio slice is [#236](https://github.com/lictl/WebRA2/issues/236), spatial
-  sound 99 and stop 116 source/dispatch, then actual browser queue/output integration.
-- `browser_feasibility`: sole CUA/Chrome owner, product GPU controls for
-  [#229](https://github.com/lictl/WebRA2/issues/229), [PR #231](https://github.com/lictl/WebRA2/pull/231).
-  UI tree `local/worktrees/gpu-viewport`; coordinator composition tree
-  `local/worktrees/gpu-product` at `d901522`. Worker transport, displayed-frame
-  picking and presenter/controller integration exist. Review found capture/index
-  validation gaps; fixes `c01a88a` and `032458d` passed independent review.
-  Native original UI controls, context-loss CPU recovery, save/replay and hidden-tab
-  pause passed. The first sustained mounted 1,024-actor run failed: subscriptions
-  rebuilt actor controls on camera emissions, causing long main-thread stalls.
-  The agent is measuring/caching world/terrain DOM updates, then rerunning timing.
-  Do not claim product 60 FPS from the earlier diagnostic experiment. Actual retail
-  voxel openings still require complete CPU fallback acceptance before this PR merges.
+- Coordinator: source spatial sound99/stop116 [#236](https://github.com/lictl/WebRA2/issues/236),
+  [PR238](https://github.com/lictl/WebRA2/pull/238), branch `codex/236-spatial-audio`,
+  tree `local/worktrees/spatial-audio`, checkpoint `6feb5ff` (based on `ede6e92`).
+  Genuine opt-in cue/audio references and paired native span ledger exist. Full
+  1,311 public +14 tool tests pass; fresh438-file probe and independent9,499 raw
+  comparisons support26/97 sound references and1/19 stop locations. Both opcodes
+  remain unadmitted by the VM; source-only checkpoint review is pending. Native
+  selection requires the object-enumeration global, current building-first/terrain
+  content and object/position controller lifetimes. Coordinates/controller output
+  and browser audio integration remain. Root owns the three mission files and will
+  add the private ordered candidate-world context shared with #233.
+- `browser_feasibility`: sole CUA/Chrome owner for product GPU [#229](https://github.com/lictl/WebRA2/issues/229),
+  [PR231](https://github.com/lictl/WebRA2/pull/231). UI tree
+  `local/worktrees/gpu-viewport`; composition `local/worktrees/gpu-product`.
+  Implementation, final full1,377 public +14 tool checks and bounded Chrome
+  acceptance pass; independent final-head reviews and merge pending. Root boundary
+  fix `7ec07d0` pins the result family before choosing its capture codec. Final
+  browser source `6573f18`, frozen4222/cadence-6, manifest
+  `cd347be1557fbae583b842aa4f82c5b89d92f55119af8c46138ba0ea049b005e`.
+  Corrected primary1,024 actors/64 movers:119.983 observed frames/s, all1,050 ticks
+  across10s warmup+60s measurement, identical replay. Native256-actor input support:
+  120.067 frames/s, accepted running Move/Stop and replay equality. Primary179 gaps
+  exceeded16.667ms, maximum23.5ms; no every-frame/scanout guarantee. The three
+  preceding candidates also exceeded120/s; two failed predecessors remain in
+  [the report](gpu-viewport.md). Original GPU controls/context recovery/hidden pause
+  and both retail opening CPU voxel-refusal/save/replay checks are recorded with
+  exact earlier source identities and three unattributed console errors. The92
+  product/dependency inputs of the final95-input timing build match composition;
+  three private harness inputs remain outside the repository. Agent now coordinates
+  #234 actual GPU shader/cadence proof, preserving all frozen servers and evidence.
 - `bootstrap_review`: [#234](https://github.com/lictl/WebRA2/issues/234), tree
-  `local/worktrees/gpu-voxel-feasibility`, checkpoint `9a1c9de`.
-  New bounded sparse-voxel scene/frame/picking policy and original tests exist;
-  product integration is absent. Quantized float32 ray math can change near-tie
-  owner decisions relative to old float64; deviations must be explicit and measured.
-  Next is a bounded tile-candidate shader and source/CPU/GPU comparison. Existing
-  renderer contracts are not authorized for uncoordinated mutation.
+  `local/worktrees/gpu-voxel-feasibility`, checkpoint `bd733936`,
+  [PR237](https://github.com/lictl/WebRA2/pull/237). Bounded sparse-voxel CPU policy
+  and integer color/owner/depth-bit GPU backend exist; product integration is absent.
+  Float32 census151,488 pixels has16 owner/14,410 depth differences from old float64,
+  zero mask/color differences. Actual GPU oracle/cadence follows #229 acceptance.
+  Source extraction and final-layer publication contracts stay root-owned. The
+  optional worker canonical-cache proposal stays private/deferred: current GPU
+  acceptance passes without a simulation-storage change. Agent first finishes
+  independent final #229 and #236 source reviews.
 - `mix_reader`: ownership/population [#233](https://github.com/lictl/WebRA2/issues/233),
-  [PR #235](https://github.com/lictl/WebRA2/pull/235), checkpoint `81ef0be`.
-  Genuine source/state modules cover required transfer operands and paired native
-  house counters, including deployable-building classification. Fresh source probe
-  supports all 120/143 placed type contributions and 8/4 RA2, 26/12 YR action/event
-  occurrences. Final native/raw proof and actual world integration remain.
-  Approved next mode: optional genuine source-bound ownership, strict world-8 save
-  with per-entity current owner plus population/lifecycle; legacy modes keep hashes.
+  [PR235](https://github.com/lictl/WebRA2/pull/235), tree
+  `local/worktrees/mission-house-state`, latest checkpoint `a72cbf7` after world-8
+  `abc0c6d`. Genuine house-source state and optional world-8 current owner,
+  lifecycle/population, atomic transfer history and ordered version2 replay exist.
+  Current-house Firepower/ROF/armor and historical reload/death attribution pass84
+  focused tests/types; infantry slots remain gated pending captured-claim work.
   Own world-model/world/world-replay, combat, ordinary-infantry-bridge,
   ordinary-combat-rules, infantry-passage-occupancy, team-runtime-destinations and
-  team-runtime-world; later team-runtime and mission-team-cell-context owner consumers.
-  Coordinate changes to the three root-owned mission files rather than racing edits.
+  team-runtime-world; later team-runtime and mission-team-cell-context consumers.
+  Root handles exact-source VM admission and a private candidate-world context:
+  transfers apply immediately before later same-poll population predicates or
+  spatial target selection, then world/mission commit atomically. No post-poll
+  transfer shortcut or copied catalog authority. Full/fresh final review remains.
 
 Stop heavy tests/probes during browser timing windows. Agent messages signal start
 and end. Root never initializes CUA. Keep one coordinator plus three workers; reuse
@@ -69,6 +78,15 @@ checks and ordinary SHA-matched squash merge. No fake approval or admin bypass.
 
 ## Newly merged evidence
 
+- Mission audio dispatch [PR #223](https://github.com/lictl/WebRA2/pull/223) merged as
+  `a260e7d173d7357eb9c079d7a5eca68517bfa99d`, reviewed
+  `ede6e92cd629d730c7e88fff3d0c46afd80d7605` by
+  [independent COMMENT](https://github.com/lictl/WebRA2/pull/223#pullrequestreview-5174137800),
+  hosted check 34550786150. Full 1,305 public +14 tool tests, 202 documents/1,039
+  links; reviewer 40 scenarios/400 boundaries/18 hostile cases/5,512 assertions,
+  fresh 438-file probe and separate raw audit 7,930 comparisons. RA2 required
+  diagnostics 197, YR 437; both whole-mission authorities remain null. No browser
+  playback authority was added. See [dispatch report](mission-audio-dispatch.md).
 - Source audio policy [PR #226](https://github.com/lictl/WebRA2/pull/226) merged as
   `6f599d95aa121ef7c153bcf296da5aeb7dc9e9df`, reviewed
   `15fcc45c9274fde1a157cd8b89ab2a8310c5be4f` by

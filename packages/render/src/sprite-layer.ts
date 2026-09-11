@@ -255,7 +255,7 @@ export function describeSpriteRasters(batch: SpriteBatch, coordinate: number) {
       return { rgba, depth, minDepth: 0, maxDepth: Math.max(0, r.height - 1) * p.object.depth.rowStep };
     } });
   }
-  return { resources: [...resources.values()], objects: owned.objects,
+  return { resources: [...resources.values()], objects: owned.objects, objectLimit: atlas.cap.objects,
     prepare(objects: readonly SpriteObject[], viewport: TerrainViewport, samples: number) {
       // Dropping all users of a prepared palette is valid for an animation frame.
       const capturedObjects = captureObjects(objects, atlas.cap.objects), used = new Set(capturedObjects.map(o => o.paletteId));
