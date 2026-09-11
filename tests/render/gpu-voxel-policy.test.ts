@@ -6,6 +6,7 @@ import { createGpuVoxelScene, prepareGpuVoxelFrame, pickGpuVoxelFrame, copyGpuVo
 import { createVoxelAtlas, renderVoxelFrame } from '../../packages/render/src/voxel-render.ts';
 import { createRuntimeVxl } from '../../packages/formats/src/runtime-vxl.ts';
 import { vxl, hva, sha } from '../content/voxel.fixture.ts';
+import { gpuVoxelOracleCases } from './gpu-voxel-fixtures.ts';
 function fixture(cells: readonly (readonly [number,number,number,number,number])[] = [[0,0,0,1,7]], size = [1,1,1], pose?:number[]) {
  const bytes=vxl(cells,size).bytes,animation=pose?hva([pose]):null,atlas=createVoxelAtlas({assets:[{id:'source',kind:'vxl',sha256:sha(bytes),bytes},...(animation?[{id:'pose',kind:'hva' as const,sha256:sha(animation),bytes:animation}]:[])],parts:[{id:'part',vxlAssetId:'source',vxlSection:0,hva:animation?{assetId:'pose',layout:'frame-major',frame:0,section:0}:null,transformPolicy:'openra-hva-bounds-scale'}]});
  const rgba=new Uint8Array(1024);for(let i=0;i<256;i++)rgba.set([i,255-i,i*17%256,255],i*4);rgba[11*4+3]=0;
@@ -57,8 +58,8 @@ test('descriptor capture does not invoke property getters or trust typed-array s
 });
 test('candidate, sample and array budgets reject deterministically at their exact boundary',()=>{
  const f=fixture(),input={instances:[instance()],width:24,height:24},frame=prepareGpuVoxelFrame(f.scene,input),a=frame.allocations;
- assert(prepareGpuVoxelFrame(f.scene,input,{samples:a.samples,binEntries:a.binEntries,binCandidates:a.maxBinCandidates,frameBytes:a.frameBytes}));
- for(const [key,value] of [['samples',a.samples],['binEntries',a.binEntries],['binCandidates',a.maxBinCandidates],['frameBytes',a.frameBytes]] as const)assert.throws(()=>prepareGpuVoxelFrame(f.scene,input,{[key]:value-1}),/budget/);
+ assert(prepareGpuVoxelFrame(f.scene,input,{samples:a.samples,candidateTests:a.candidateTests,binEntries:a.binEntries,binCandidates:a.maxBinCandidates,frameBytes:a.frameBytes}));
+ for(const [key,value] of [['samples',a.samples],['candidateTests',a.candidateTests],['binEntries',a.binEntries],['binCandidates',a.maxBinCandidates],['frameBytes',a.frameBytes]] as const)assert.throws(()=>prepareGpuVoxelFrame(f.scene,input,{[key]:value-1}),/budget/);
  assert(createGpuVoxelScene(f.input,{residentBytes:f.scene.allocations.residentBytes}));assert.throws(()=>createGpuVoxelScene(f.input,{residentBytes:f.scene.allocations.residentBytes-1}),/resident-budget/);
  assert.throws(()=>prepareGpuVoxelFrame(f.scene,{instances:Array.from({length:3},(_,i)=>instance('i'+i)),width:24,height:24},{binCandidates:2}),/candidate-budget/);
 });
@@ -74,4 +75,17 @@ test('invalid references, sparse geometry duplicates and nonbinary alpha fail ex
  assert.throws(()=>createGpuVoxelScene({...f.input,parts:[{...f.input.parts[0]!,voxels:new Uint8Array([0,0,0,1,7,0,0,0,2,8])}]}),/duplicate-voxel/);
  const rgba=f.palette.rgba.slice();rgba[3]=12;assert.throws(()=>createGpuVoxelScene({...f.input,palettes:[{...f.palette,rgba}]}),/alpha/);
  assert.throws(()=>prepareGpuVoxelFrame(f.scene,{instances:[instance('bad',Array(12).fill(0))],width:24,height:24}),/singular/);
+ assert.throws(()=>prepareGpuVoxelFrame(f.scene,{instances:[instance('far',model(1048576))],width:24,height:24}),/projection/);
+});
+test('browser fixture matrix keeps the old Float64 reference and exposes the distinct Float32 policy',()=>{
+ let pixels=0,changedOwners=0,changedDepths=0;const cases=gpuVoxelOracleCases();assert.equal(cases.length,43);
+ for(const c of cases){const old=renderVoxelFrame(c.reference);assert.equal(c.frame.allocations.samples,old.allocations.samples);
+  for(let y=0;y<c.frame.height;y++)for(let x=0;x<c.frame.width;x++){
+   const prior=old.pick(x,y),exact=pickGpuVoxelFrame(c.frame,x,y,'float64'),candidate=pickGpuVoxelFrame(c.frame,x,y);
+   assert.equal(exact?.instanceId,prior?.instanceId,c.id);assert.equal(exact?.voxelOrdinal,prior?.voxelOrdinal,c.id);assert.equal(exact?.depth,prior?.depth,c.id);
+   if(candidate?.instanceId!==prior?.instanceId||candidate?.voxelOrdinal!==prior?.voxelOrdinal)changedOwners++;
+   if(candidate&&prior&&candidate.depth!==prior.depth)changedDepths++;pixels++;
+  }
+ }
+ assert.equal(pixels,151488);assert.ok(changedOwners>0);assert.ok(changedDepths>0);
 });

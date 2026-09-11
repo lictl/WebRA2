@@ -5,7 +5,7 @@ import { inverse, multiply } from './voxel-math.ts';
 export const GPU_VOXEL_POLICY = 'webra2-voxel-f32-ray-1' as const;
 export const GPU_VOXEL_LIMITS = Object.freeze({ parts: 256, palettes: 256, voxels: 1048576,
   instances: 4096, instanceVoxels: 1048576, dimension: 2048, pixels: 1280 * 720,
-  samples: 64 * 1024 * 1024, binEntries: 8 * 1024 * 1024, binCandidates: 4096,
+  samples: 64 * 1024 * 1024, candidateTests: 128 * 1024 * 1024, binEntries: 8 * 1024 * 1024, binCandidates: 4096,
   residentBytes: 128 * 1024 * 1024, frameBytes: 128 * 1024 * 1024 });
 export type GpuVoxelLimits = { -readonly [K in keyof typeof GPU_VOXEL_LIMITS]: number };
 export interface GpuVoxelPartInput { readonly id: string; readonly voxels: Uint8Array; readonly modelMatrix: readonly number[] }
@@ -13,7 +13,7 @@ export interface GpuVoxelPaletteInput { readonly id: string; readonly rgba: Uint
 export interface GpuVoxelInstance { readonly id: string; readonly partId: string; readonly paletteId: string; readonly modelToView: readonly number[] }
 export interface GpuVoxelScene { readonly policy: typeof GPU_VOXEL_POLICY; readonly allocations: Readonly<{ parts: number; palettes: number; voxels: number; residentBytes: number }> }
 export interface GpuVoxelFrame { readonly policy: typeof GPU_VOXEL_POLICY; readonly scene: GpuVoxelScene; readonly width: number; readonly height: number;
-  readonly allocations: Readonly<{ instances: number; instanceVoxels: number; boxes: number; samples: number; binEntries: number; maxBinCandidates: number; frameBytes: number }> }
+  readonly allocations: Readonly<{ instances: number; instanceVoxels: number; boxes: number; samples: number; candidateTests: number; binEntries: number; maxBinCandidates: number; frameBytes: number }> }
 export interface GpuVoxelHit { readonly instanceId: string; readonly partId: string; readonly voxelOrdinal: number; readonly x: number; readonly y: number; readonly z: number;
   readonly colorIndex: number; readonly normalIndex: number; readonly depth: number; readonly owner: number }
 interface Part { id: string; start: number; count: number; matrix: number[] }
@@ -87,18 +87,21 @@ export function prepareGpuVoxelFrame(scene: GpuVoxelScene, input: { readonly ins
     const rx = (Math.abs(m[0]!) + Math.abs(m[1]!) + Math.abs(m[2]!)) / 2, ry = (Math.abs(m[4]!) + Math.abs(m[5]!) + Math.abs(m[6]!)) / 2;
     for (let i = 0; i < p.part.count; i++) { const word = resident.geometry[(p.part.start + i) * 2]!, x = word & 255, y = word >>> 8 & 255, z = word >>> 16 & 255;
       const cx = m[0]! * (x + .5) + m[1]! * (y + .5) + m[2]! * (z + .5) + m[3]!, cy = m[4]! * (x + .5) + m[5]! * (y + .5) + m[6]! * (z + .5) + m[7]!;
-      if (![cx, cy, rx, ry].every(Number.isFinite)) fail('projection');
+      const cz = m[8]! * (x + .5) + m[9]! * (y + .5) + m[10]! * (z + .5) + m[11]!, rz = (Math.abs(m[8]!) + Math.abs(m[9]!) + Math.abs(m[10]!)) / 2;
+      if (![cx - rx, cx + rx, cy - ry, cy + ry, cz - rz, cz + rz].every(n => Number.isFinite(n) && Math.abs(n) <= 1048576)) fail('projection');
       const x0 = Math.max(0, Math.ceil(cx - rx - .5)), y0 = Math.max(0, Math.ceil(cy - ry - .5)), x1 = Math.min(width, Math.floor(cx + rx - .5) + 1), y1 = Math.min(height, Math.floor(cy + ry - .5) + 1);
       samples += Math.max(0, x1 - x0) * Math.max(0, y1 - y0); if (samples > cap.samples) fail('sample-budget'); if (x0 >= x1 || y0 >= y1) continue;
       scratch.set([x0, y0, x1, y1, p.part.start + i, pi, p.start + i, 0], used * 8); used++;
       for (let by = Math.floor(y0 / 16); by <= Math.floor((y1 - 1) / 16); by++) for (let bx = Math.floor(x0 / 16); bx <= Math.floor((x1 - 1) / 16); bx++) { const b = by * tilesX + bx; counts[b] = counts[b]! + 1; if (counts[b]! > cap.binCandidates || ++binEntries > cap.binEntries) fail('candidate-budget'); }
     }
   });
+  let candidateTests = 0; for (let i = 0; i < counts.length; i++) candidateTests += counts[i]! * Math.min(16, width - i % tilesX * 16) * Math.min(16, height - Math.floor(i / tilesX) * 16);
+  if (candidateTests > cap.candidateTests) fail('candidate-work-budget');
   const frameBytes = initialBytes + binEntries * 4; if (frameBytes > cap.frameBytes) fail('frame-budget');
   const offsets = new Uint32Array(counts.length + 1); for (let i = 0; i < counts.length; i++) offsets[i + 1] = offsets[i]! + counts[i]!;
   const candidates = new Uint32Array(binEntries), cursor = offsets.slice(0, -1);
   for (let i = 0; i < used; i++) { const at = i * 8; for (let by = Math.floor(scratch[at + 1]! / 16); by <= Math.floor((scratch[at + 3]! - 1) / 16); by++) for (let bx = Math.floor(scratch[at]! / 16); bx <= Math.floor((scratch[at + 2]! - 1) / 16); bx++) { const b = by * tilesX + bx; candidates[cursor[b]!] = i; cursor[b] = cursor[b]! + 1; } }
-  const frame: GpuVoxelFrame = Object.freeze({ policy: GPU_VOXEL_POLICY, scene, width, height, allocations: Object.freeze({ instances: placements.length, instanceVoxels, boxes: used, samples, binEntries, maxBinCandidates: counts.reduce((a, b) => Math.max(a, b), 0), frameBytes }) });
+  const frame: GpuVoxelFrame = Object.freeze({ policy: GPU_VOXEL_POLICY, scene, width, height, allocations: Object.freeze({ instances: placements.length, instanceVoxels, boxes: used, samples, candidateTests, binEntries, maxBinCandidates: counts.reduce((a, b) => Math.max(a, b), 0), frameBytes }) });
   frames.set(frame, { cap, resident, placements, inverses, boxes: scratch.subarray(0, used * 8), offsets, candidates, tilesX }); return frame;
 }
 const f = Math.fround, add = (a: number, b: number) => f(f(a) + f(b)), sub = (a: number, b: number) => f(f(a) - f(b)), mul = (a: number, b: number) => f(f(a) * f(b)), div = (a: number, b: number) => f(f(a) / f(b));
@@ -131,3 +134,16 @@ export function copyGpuVoxelSceneData(scene: GpuVoxelScene) { const r = scenes.g
 /** Detached frame staging. Timed callers account for this copy along with preparation. */
 export function copyGpuVoxelFrameData(frame: GpuVoxelFrame) { const p = frames.get(frame); if (!p) return fail('frame'); return { inverses: p.inverses.slice(), boxes: p.boxes.slice(), offsets: p.offsets.slice(), candidates: p.candidates.slice(), tilesX: p.tilesX,
   placements: p.placements.map(v => ({ id: v.id, partId: v.part.id, palette: v.palette, start: v.start, end: v.end })) }; }
+
+/** Resolve a diagnostic shader owner/depth pair against an exact factory-owned frame. */
+export function resolveGpuVoxelOwner(frame: GpuVoxelFrame, owner: number, depth: number): GpuVoxelHit | null {
+  const p = frames.get(frame); if (!p) return fail('frame'); if (owner === 0xffffffff) return null;
+  integer(owner, 0, frame.allocations.instanceVoxels - 1); if (!Number.isFinite(depth) || Math.abs(depth) > 2097152) fail('depth');
+  const placement = p.placements.find(v => owner >= v.start && owner < v.end); if (!placement) return fail('owner');
+  const ordinal = owner - placement.start, global = placement.part.start + ordinal, word = p.resident.geometry[global * 2]!;
+  return Object.freeze({ instanceId: placement.id, partId: placement.part.id, voxelOrdinal: ordinal, x: word & 255, y: word >>> 8 & 255, z: word >>> 16 & 255, colorIndex: word >>> 24,
+    normalIndex: p.resident.geometry[global * 2 + 1]!, depth, owner });
+}
+
+export function assertGpuVoxelScene(scene: GpuVoxelScene): void { if (!scenes.has(scene)) fail('scene'); }
+export function assertGpuVoxelFrame(frame: GpuVoxelFrame): void { if (!frames.has(frame)) fail('frame'); }

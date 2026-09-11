@@ -1,6 +1,7 @@
 # GPU voxel experiment provenance
 
-The new `src/gpu-voxel-policy.ts` and its original synthetic tests are GPL-3.0-or-later.
+The new `src/gpu-voxel-policy.ts`, `src/gpu-voxel-renderer.ts`, browser-importable
+original fixtures and synthetic tests are GPL-3.0-or-later.
 They derive the sparse-cube projection, interval and ordering policy from WebRA2's
 existing `src/voxel-render.ts` and import its original `src/voxel-math.ts` helpers.
 Existing VXL/HVA decoding provenance remains in [VOXEL_PROVENANCE.md](VOXEL_PROVENANCE.md).
@@ -14,12 +15,13 @@ factory accepts owned decoded presentation data, not authenticated source author
 See [the experiment report](../../docs/gpu-voxel-feasibility.md) for the current
 bounds, tested counts and incomplete GPU/performance gates.
 
-The possible framebuffer implementation is informed by primary Khronos extension
-specifications for [EXT_color_buffer_float](https://registry.khronos.org/webgl/extensions/EXT_color_buffer_float/)
-and [EXT_float_blend](https://registry.khronos.org/webgl/extensions/EXT_float_blend/).
-These specifications describe capabilities; they do not establish performance,
-CPU/GPU arithmetic parity, native game behavior or device support.
+The original shader uses primary Khronos specifications for
+[GLSL ES 3.00](https://registry.khronos.org/OpenGL/specs/es/3.0/GLSL_ES_Specification_3.00.pdf)
+and [WebGL2](https://registry.khronos.org/webgl/specs/latest/2.0/). It encodes the
+selected Float32 depth with `floatBitsToUint` in an integer owner/depth attachment;
+no floating-point framebuffer extension is required. These specifications do not
+establish performance, CPU/GPU arithmetic parity or native game behavior.
 
-This source-only checkpoint is not imported into the application bundle. The
+This experimental checkpoint is not imported into the application bundle. The
 coordinator must add the retained GPL notice/distribution mapping when integrating
-it into a distributed runtime. GPU code and actual browser tests are still pending.
+it into a distributed runtime. Actual browser validation remains pending.
