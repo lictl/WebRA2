@@ -1,7 +1,8 @@
 # Common mission team transaction provenance
 
 `src/mission-team-context.ts`, `src/mission-team-runtime.ts`,
-`src/mission-team-selection.ts` and `src/mission-team-values.ts` are original
+`src/mission-team-selection.ts`, `src/mission-team-values.ts` and
+`src/mission-team-owned-binding.ts` are original
 WebRA2 TypeScript, licensed GPL-3.0-or-later. The corresponding original synthetic
 fixtures/tests use the same license. No retail data, executable code or extracted
 listing is included.
@@ -25,7 +26,11 @@ The transaction order, next-tick effect admission, global history/ID scheme,
 structural save format and aggregate limits are explicit WebRA2 policies under
 D03. They are not claims of native instruction/frame timing equivalence. Source
 proofs are reused from the pinned components above; this slice adds no native
-machine-code interpretation. Current scope rejects combat and infantry-slot worlds.
+machine-code interpretation. The optional fixed-actor ownership binding composes
+genuine combat and infantry-slot worlds for placed recruitment; the original mode
+retains its earlier dynamic-world restrictions. Its exact source/model joins,
+revision-qualified claims, active-transfer refusal and existing native evidence are
+recorded in [current ownership recruitment](../../docs/mission-team-ownership.md).
 Full original mission authority and browser presentation remain separate gates.
 
 Distribute this notice and the GPL-3.0-or-later license with these modules and

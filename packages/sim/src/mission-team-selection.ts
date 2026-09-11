@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Original common-world application of the reviewed full-force spawn/recruitment policies.
-import { type MissionTeamContext, type MissionTeamSpawnActor, type MissionTeamRecord, missionTeamContextData, missionTeamAction } from './mission-team-context.ts';
+import { type MissionTeamContext, type MissionTeamSpawnActor, type MissionTeamRecord, missionTeamContextData, missionTeamAction, missionTeamRuntimeData } from './mission-team-context.ts';
+import { restoreMissionTeamOwnedWorld } from './mission-team-owned-binding.ts';
+import { currentWorldOwner, worldOwnershipAtRevision } from './world-ownership.ts';
 import { WorldSimulation } from './world.ts';
 import { worldAddress, worldInteger, WORLD_LIMITS } from './world-values.ts';
 import { navigationCell } from './navigation.ts';
@@ -10,10 +12,15 @@ export interface MissionTeamClaimPlan { readonly status: 'ready' | 'blocked'; re
 /** No partial force is returned. Context and caller world remain unchanged on any budget/source failure. */
 export function planMissionTeamClaim(context: MissionTeamContext, input: unknown, actionId: string, workLimit: number): MissionTeamClaimPlan {
   const data = missionTeamContextData(context), cap = data.runtime.limits, selected = missionTeamAction(data.runtime, actionId);
-  const world = WorldSimulation.restore(data.model, missionTeamSnapshot(input)).save(), tick = world.nextTick;
   const familyCap = selected.spawn ? Math.min(cap.insertionWork, selected.spawn.limits.insertionWork) : Math.min(cap.selectionWork, selected.recruitment!.limits.work);
-  const budget = Math.min(worldInteger(workLimit, 0, cap.tickWork), familyCap); let work = 0;
-  const charge = () => { if (++work > budget) fail('claim-work'); };
+  const budget = Math.min(worldInteger(workLimit, 0, cap.tickWork), familyCap);
+  const owned = missionTeamRuntimeData(data.runtime).owned;
+  const restored = owned ? restoreMissionTeamOwnedWorld(owned, input, budget) : null;
+  const world = restored?.world ?? WorldSimulation.restore(data.model, missionTeamSnapshot(input)).save(), tick = world.nextTick;
+  let work = restored?.work ?? 0;
+  const charge = (n = 1) => { if (n > budget - work) fail('claim-work'); work += n; };
+  if (owned) charge(owned.actions.length);
+  const postTransferReady = !owned || owned.actions.some(a => a.instructionId === actionId && a.postTransferRecruitment === 'stationary-guard-sleep');
   const result = (record: MissionTeamRecord | null): MissionTeamClaimPlan => freeze({ status: record ? 'ready' : 'blocked', record, work });
   if (data.records.some(r => (r.kind === 'released' ? r.atTick : r.bornAtTick) > tick)) fail('future-history');
   const catalog = selected.spawn ?? selected.recruitment!, t = catalog.templates.find(t => t.teamId === selected.action.teamId)!;
@@ -53,9 +60,9 @@ export function planMissionTeamClaim(context: MissionTeamContext, input: unknown
   for (const typeId of template.memberTypeIds) {
     let best: { id: number; score: number } | null = null;
     for (const a of c.actors) {
-      charge(); if (a.typeId !== typeId || a.houseId !== template.houseId || a.playerId !== template.playerId || a.status !== 'source-candidate' || chosen.has(a.entityId)) continue;
+      charge(); if (a.typeId !== typeId || (!owned && (a.houseId !== template.houseId || a.playerId !== template.playerId)) || a.status !== 'source-candidate' || chosen.has(a.entityId)) continue;
       const e = current.get(a.entityId), member = eligibility.get(a.entityId);
-      if (!e || !member || member.claimedBy !== null || member.releasedMissionUnverified || e.health === 0 || e.goal !== null || e.progress !== 0 || e.route.length || queued.has(e.id)) continue;
+      if (!e || (owned && (currentWorldOwner(data.model, e) !== template.playerId || (worldOwnershipAtRevision(data.model, restored!.ownership, e.id, restored!.ownership.transfers.length).lastChangeRevision > 0 && !postTransferReady))) || !member || member.claimedBy !== null || member.releasedMissionUnverified || e.health === 0 || e.goal !== null || e.progress !== 0 || e.route.length || queued.has(e.id)) continue;
       if (!(a.recruitableA || template.autocreate) || (!member.recruitableB && template.autocreate) ||
         (template.group !== -2 && member.group !== template.group && !template.recruiter)) continue;
       const dx = e.x - template.anchor.x, dy = e.y - template.anchor.y, score = 65536 * (dx * dx + dy * dy) + (member.group === template.group ? 0 : 12800);
@@ -64,5 +71,5 @@ export function planMissionTeamClaim(context: MissionTeamContext, input: unknown
     }
     if (!best) return result(null); chosen.add(best.id); ids.push(best.id);
   }
-  return result({ ...base, kind: 'recruited', actorIds: ids });
+  return result({ ...base, kind: 'recruited', actorIds: ids, ...(owned ? { ownershipRevision: world.state.ownership!.transfers.length } : {}) });
 }
