@@ -118,3 +118,14 @@ Its module-private factory identity protects the read; returned component data
 is not mission-invocation authority. No WorldSave schema or legacy source hash is
 changed by that read seam. The new spatial/context/dispatch components and their
 original tests are GPL-3.0-or-later under this notice.
+
+
+`src/mission-spatial-intents.ts` and its tests are original GPL-3.0-or-later
+WebRA2 code. The versioned D03 resume policy retains object desired sounds and
+indefinitely looping positional intents, preserving separate identities and
+exact-coordinate stop matching. It uses the genuine current-world lifetime and
+source identity join but its caller-driven reducer is not invocation authority.
+The compound adapter supplies actual private requests and publishes the saved
+state with the world. The [controller assessment](../../docs/mission-spatial-controller.md)
+distinguishes inspected native behavior from the chosen resume/update phase.
+No native save bytes, mixer implementation or retail sample is included.

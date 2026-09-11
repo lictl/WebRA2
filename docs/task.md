@@ -15,28 +15,26 @@ development target; other browsers come later. Assets remain on-device/read-only
 
 ## Active work and exclusive ownership
 
-- Coordinator: [spatial dispatch PR240](https://github.com/lictl/WebRA2/pull/240),
-  issue236, tree `local/worktrees/spatial-world`, branch `codex/236-spatial-world`.
-  Source/runtime `c68b8e5` plus the final replay-result fix are undergoing exact-head
-  review. Full baseline: 1,444 public +14 tool checks, types, 212 docs/1,109 links,
-  777 publication paths, M0 and79 outputs/189 inputs. Fresh438-file preparation
-  accepts27/27 RA2 and106/116 YR spatial actions; required diagnostics fall
-  185→158 and399→293, with whole authorities still null. Independent raw audit:
-  4,411 comparisons, including1,859 packed-map/TMP checks and four full roots.
-  Source hashes are unchanged;8 YR ramps and2 overlays remain gated.
-  Root source/resolver/VM/context/compound code is reviewed by `mix_reader`;
-  worker current-entity read seam3bfb726 is independently reviewed by root.
-  Standalone restore reserves structural/history work; per-action reads use the
-  current private world. Final correction includes nav/blocker join reservation
-  and full replay request batches. Next: ordinary reviewed merge, then saved
-  spatial controller intent and browser consumer in `local/worktrees/spatial-controller`,
-  branch `codex/236-spatial-controller`. Root owns contracts/config/licensing/handoff.
-- `mix_reader`: independent PR240 review in `local/reviews/mission-spatial-world-236`,
-  then dynamic team/current-owner composition under [#233](https://github.com/lictl/WebRA2/issues/233).
-  House PR235 is merged. Team construction/recruitment/combat/slot integration and
-  YR8997 event-derived Trigger.House remain gated. Never substitute type ownership
-  for Trigger.House or treat every capture as death. Static team-detach and nullable
-  trigger-house evidence is preserved in the house worker's private notes.
+- Coordinator: saved spatial intent and browser consumer under
+  [#236](https://github.com/lictl/WebRA2/issues/236), tree
+  `local/worktrees/spatial-controller`, branch `codex/236-spatial-controller`.
+  The new pure source-bound component retains object desires and indefinite
+  positional loops. Transient starts remain ordered receipts and are not replayed
+  by restore. Compound checkpoints/batches include the versioned intent state;
+  source clocks/voice RNG stay outside simulation. Seven original component/
+  compound tests plus six existing dispatch tests and types pass. Full check passes
+  1,451 public +14 tool tests,212docs/1,112links,M0,79outputs/189inputs.
+  Independent review and browser consumer remain. Source dispatch PR240 is merged
+  below. Root owns the intent/source modules, compound integration, shared
+  contracts/config/licensing and this handoff.
+- `mix_reader`: fixed-actor recruitment/current-owner composition under
+  [#233](https://github.com/lictl/WebRA2/issues/233), new branch `codex/233-team-ownership`.
+  Proposed opt-in owned-world capability preserves complete source identity,
+  combat/slots and revision-qualified recruitment claims. First path: transfer
+  unclaimed placed actors, recruit, Move/Flash/finish/release, save/replay. Dynamic
+  spawns and active-member transfers remain explicitly gated. Agent owns team
+  modules/world-ownership/tests/provenance; root integrates mission action hooks.
+  Never substitute type ownership for YR Trigger.House or treat capture as death.
 - `browser_feasibility`: sole CUA/Chrome owner, tree `local/worktrees/gpu-voxel-browser`,
   [#234](https://github.com/lictl/WebRA2/issues/234) / [PR237](https://github.com/lictl/WebRA2/pull/237).
   Native foreground captured-layout short cadence at frozen4229, source0cf5725,
@@ -67,6 +65,19 @@ No fake approval or admin bypass. Continue toward the original first mission;
 component completion is not the stopping condition. No human input is required.
 
 ## Newly merged evidence
+
+- Spatial dispatch [PR240](https://github.com/lictl/WebRA2/pull/240) merged as
+  `d9345d844ce060d02d43d3ae5c22ed63e9e5a4a9`, exact reviewed
+  `0a20a4c72f95d58912cc2dfb520dfcbff622570b`, hosted34561677242SUCCESS.
+  [Worker source review](https://github.com/lictl/WebRA2/pull/240#pullrequestreview-5174921259)
+  and [coordinator read-seam review](https://github.com/lictl/WebRA2/pull/240#pullrequestreview-5174926162)
+  cover complementary authorship. Full1,444 +14/types,212docs/1,110links,
+  778 publication paths,M0,79outputs/189inputs. Source preparation reads438 files
+  for each profile;27/106 spatial actions are admitted, required diagnostics
+  158/293 and both complete authorities null. Independent raw audit4,411 comparisons
+  includes1,859 packed-map/TMP checks and four complete roots; controller ledger
+  reproduces52 records/7,980 bytes. Full grouped/resumed/empty replay preserves
+  authenticated requests. Issue236 remains open for intent/browser consumers.
 
 - House ownership [PR235](https://github.com/lictl/WebRA2/pull/235) merged as
   `232dc07c38c446bbde38c28c3b45d48379e4ec65`, exact reviewed

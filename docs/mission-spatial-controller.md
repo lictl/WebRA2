@@ -72,16 +72,46 @@ units, every caller and relative ordering of every mission action versus object
 update remain unproved. Multiple desired assignments before one native object
 update may coalesce to the last value.
 
-The proposed D03 consumer preserves ordered action receipts, saves object desired
-sound intent and distinct positional intent IDs, then reconciles object intent
-once at a published boundary. This explicitly chosen phase can coalesce requests
-differently from native traversal; it must not be described as exact native timing.
-Listener gain, engine admission, RNG/sample/queue state, natural completion, decay
-and audio-device clocks remain presentation state and cannot affect simulation.
+The implemented D03 intent policy applies ordered action records after each
+mission poll. An object keeps its latest desired custom sound until a stop or
+actual retirement. Repeated positional starts retain distinct sequence IDs;
+positioned stop matches all retained loops at exact XYZ, independent of sound
+index. Only indefinite positional loops enter the resume store. Finite and
+one-shot starts stay in the action receipts: restoring a save does not replay
+old transient sounds. Object desires resume even when their definition is finite,
+matching their separate resubmission path.
 
-The [current dispatch](mission-spatial-world.md) has authenticated targets and a
-saved request cursor. It has no desired-controller store or browser voice consumer
-yet. Future tests must cover repeated/replaced/stopped object desires, positional
-duplicates, changed target routing, stale instance generations, failed admission,
-retirement, decay tails, restore and atomic work-bound rejection. The static
-assessment does not turn those proposed tests into completed playback evidence.
+This is a chosen WebRA2 audible-resume policy, not original mixer/save timing.
+It can coalesce intermediate object assignments differently from native update
+order. It does not retain waveform offsets, decay progress, stream state, RNG,
+listener gain, voice admission or device clocks. Those belong to presentation
+and cannot affect deterministic world outcomes. A stop can leave an output decay
+tail; deleting intent is not a claim of immediate silence.
+
+The [intent module](../packages/sim/src/mission-spatial-intents.ts) validates exact
+source references, ordered request sequences, bounded object/loop capacity and
+restored identities. It obtains presence through the genuine current-world read
+and complete initial-source join. Pending death remains present; retired objects
+lose desire. Its public reducer accepts component records only and explicitly
+returns `sourceDispatchVerified:false`. Only the compound adapter supplies actual
+private VM requests and publishes intent with its world/VM/cursor checkpoint.
+Branded request batches include the saved intent snapshot. Renderer/device state
+cannot mint a mission request.
+
+The policy allows at most2,048 object desires,4,096 retained positional loops,
+1,024 requests per append and1,000,000 total request sequences. Existing model
+and work limits remain active; aggregate failures publish no partial compound
+state. Prior models without spatial sources keep their previous hashes. Models
+with the new intent policy have a distinct identity and require its saved fields;
+old dispatch-only checkpoints are not silently interpreted as audio state.
+
+Seven original both-profile [tests](../tests/sim/mission-spatial-intents.test.ts)
+cover positional duplicates/stops, latest object desire, finite/transient resume,
+nullable-health scenery and retired objects, exact source and work joins,
+malformed/order/capacity rejection, and grouped/every-boundary save/replay.
+Six prior dispatch tests and types also pass. The full check passes1,451 public
++14 tool tests,212 documents/1,112 links,M0 and79 code/license outputs from189
+inputs. Independent review is still required. No browser voice consumer has been
+exercised by these tests.
+Browser admission, stale instance generations, natural ends/decay and audible
+restore remain the next consumer's acceptance work.
