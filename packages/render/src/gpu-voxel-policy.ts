@@ -44,6 +44,7 @@ function name(value: unknown): string { if (typeof value !== 'string' || !/^[A-Z
 function matrix(value: unknown): number[] { const a = array(value, 12); if (a.length !== 12 || a.some(n => typeof n !== 'number' || !Number.isFinite(n) || Math.abs(n) > 1048576)) fail('matrix'); inverse(a as number[]); return a as number[]; }
 const typed = Object.getPrototypeOf(Uint8Array.prototype) as object;
 const byteLength = Object.getOwnPropertyDescriptor(typed, 'byteLength')!.get!, buffer = Object.getOwnPropertyDescriptor(typed, 'buffer')!.get!, byteOffset = Object.getOwnPropertyDescriptor(typed, 'byteOffset')!.get!;
+const elementType = Object.getOwnPropertyDescriptor(typed, Symbol.toStringTag)!.get!;
 const resizable = Object.getOwnPropertyDescriptor(ArrayBuffer.prototype, 'resizable')?.get;
 function bytes(value: unknown, cap: number): Uint8Array {
   if (!value || Object.getPrototypeOf(value) !== Uint8Array.prototype) fail('bytes');
@@ -92,7 +93,7 @@ export function createGpuVoxelInstanceLayout(scene: GpuVoxelScene, instances: re
 function matrixPlane(value: unknown, expectedBytes: number, maximumBytes: number): Float64Array {
   if (!value || Object.getPrototypeOf(value) !== Float64Array.prototype) return fail('matrix-plane');
   let n: number, b: ArrayBuffer, at: number;
-  try { n = byteLength.call(value); b = buffer.call(value); at = byteOffset.call(value); } catch { return fail('matrix-plane'); }
+  try { if (elementType.call(value) !== 'Float64Array') fail('matrix-plane'); n = byteLength.call(value); b = buffer.call(value); at = byteOffset.call(value); } catch { return fail('matrix-plane'); }
   if (n !== expectedBytes || n > maximumBytes || Object.getPrototypeOf(b) !== ArrayBuffer.prototype || resizable?.call(b)) fail('matrix-plane');
   // Intrinsics bypass named shadow accessors; a detached buffer rejects even for an empty layout.
   try { return new Float64Array(new Float64Array(b, at, n / 8)); } catch { return fail('matrix-plane'); }
