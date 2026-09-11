@@ -1,10 +1,11 @@
 # Mission house source and population ledger provenance
 
 The original TypeScript source in `src/mission-house-*.ts` and original tests are
-licensed GPL-3.0-or-later. This is a source/helper checkpoint for
+licensed GPL-3.0-or-later. This is a source and ordinary world checkpoint for
 [issue233](https://github.com/lictl/WebRA2/issues/233), not a complete native house
 implementation. Its opt-in engine composition is described below; the browser
-and compound mission runtime are not yet connected.
+remains unconnected; ordered compound VM adoption is covered by the
+[dispatch record](../../docs/mission-house-dispatch.md).
 
 The implementation reuses the already reviewed source/identity components in
 [entity definitions](../content/ENTITY_DEFINITIONS_PROVENANCE.md),
@@ -25,8 +26,11 @@ and YR gamemd.exe
 The installation build label remains unverified. Native executables were not run.
 
 The ranges below are half-open inspected instruction blocks, not assertions about
-complete function extents. The final machine-readable range ledger and independent
-raw-field oracle remain acceptance work at this checkpoint.
+complete function extents. The [machine-readable ledger](../../docs/analysis/mission-house-native.json)
+pins 91 code/data records (60 complete instruction spans and 31 data spans),
+24,134 summed bytes and 80 explicit key/store/pointer assertions. Range hashes
+include overlapping inspected context where necessary; the byte sum is not a
+unique-byte census. Both complete source images are rehashed before decoding.
 
 | Evidence | RA2 virtual address | YR virtual address | Interpretation |
 | --- | --- | --- | --- |
@@ -91,7 +95,9 @@ The exact-result receipt proves a completed component transaction and its source
 model and before/after saves. It does not prove that a mission trigger executed;
 the compound VM must authenticate instruction emission and caller house context.
 Eight new original world cases plus legacy checks pass 61 focused tests and
-type checking. Final native/raw ledgers and full independent review remain due.
+type checking. The final static ledger accompanies this checkpoint; the focused report records
+the separate raw projection and composed validation. Independent review remains
+a merge gate.
 
 
 Current-house numerical composition reuses the genuine retained bridge table and

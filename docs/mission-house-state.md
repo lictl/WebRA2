@@ -1,10 +1,12 @@
 # Mission ownership and house population
 
-State: **WORKING — source/helper and initial world-8 checkpoint for
+State: **WORKING — ordinary world ownership and mission callback checkpoint for
 [issue233](https://github.com/lictl/WebRA2/issues/233)**, following the
 [first-mission audit](https://github.com/lictl/WebRA2/pull/232). The optional engine
-policy changes current ownership and serialized WorldState. Compound VM adoption,
-browser exposure and whole-campaign admission remain separate gates.
+policy changes current ownership and serialized WorldState. Source-ordered
+compound VM actions, population predicates and initial actor callbacks are
+composed; dynamic teams, browser exposure and whole-campaign admission remain
+separate gates.
 
 `compileMissionHouseSource({bindings, definitions, rules, mission})` owns and
 verifies mission bytes and joins genuine binding/type/world identities. It retains
@@ -39,7 +41,7 @@ asymmetric DontScore unit gain/loss path requires historical residuals and is
 outside this helper; neither loaded opening registry contains that case.
 See [the provenance record](../packages/sim/MISSION_HOUSE_PROVENANCE.md).
 
-## Checkpoint validation and next integration
+## World ownership and source consumers
 
 The opt-in world-8 checkpoint now binds the genuine source to the complete base
 world hash. `WorldEntityDefinition.owner` remains initial source metadata;
@@ -115,9 +117,13 @@ The combined ownership, movement, source combat, passage and team-world regressi
 run passes 117 focused tests; type and documentation checks also pass. These are
 original synthetic checks, not imported mission execution.
 
-Team construction/recruitment ownership, compound
-mission actions/events and browser exposure also remain pending. This checkpoint
-does not admit an original mission or change the application's active model.
+The [ordered mission integration](mission-house-dispatch.md) applies transfers
+before later same-invocation predicates, including current entrant/attacker house
+checks on genuine movement/health callbacks. Failed compound work publishes
+neither VM nor world changes. Dynamic team construction/recruitment ownership,
+YR8997 saved event-derived house and browser exposure remain pending under233.
+This checkpoint does not admit an original mission or change the application's
+active model.
 
 The new original source/state tests cover both profiles, exact operands, profile
 counter differences, tag versus house selection, powered-building order,
@@ -129,16 +135,47 @@ checks, not original campaign execution.
 The private source preparation rereads the 438-file on-device catalog. It retains
 all 8 ownership/4 population occurrences in the RA2 opening and 26/12 in YR; all
 operands resolve, with no source diagnostics. All 120/143 placed type contributions
-are supported in these source preparations. The private source/native ledger,
-independent raw-field census, full final checks and independent review are still
-being completed. All game inputs and resulting source records remain ignored in
-`local/`.
+are supported in these source preparations. With the reviewed cue/audio/spatial,
+cell, object and partial team sources, the exact house occurrence joins reduce
+required diagnostics from 197 to 185 in RA2 and 437 to 399 in YR. Both complete
+mission authorities remain null; unrelated unsupported declarations are preserved.
+All game inputs and resulting source records remain ignored in `local/`.
+
+The [metadata census](analysis/mission-house-census.json) records 58,158 independent
+raw comparisons (25,045 RA2 and 33,113 YR), with five complete root hashes and
+eight member hashes verified again. The Python oracle reparses original INI bytes
+and compares seven field values/defaults/history across 1,222 types, population
+categories, first-country-house selection, 1,381 initial actor joins and all 50
+house instruction occurrences. Previously reviewed construction visit origins,
+foundation dimensions, tag allocation and world row ordering are explicit inputs
+to this oracle; those mechanisms are not independently reconstructed here.
+
+The [native ledger](analysis/mission-house-native.json) contains 91 inspected
+records: 60 complete instruction spans and 31 data spans, totaling 24,134 bytes
+including overlapping context. It verifies 80 explicit key/store/dispatch
+assertions and rehashes both complete executable images before static decoding.
+No retail executable is run. The event9/10/11 and action14/36 dispatch tables bind
+the opcode numbers to the inspected consumers; labels alone are not evidence.
+
+Private reproduction in this worktree uses `local/probe233-final.mjs` (Node24 with
+`--import tsx`), then `python3 local/oracle233.py`, and the existing Capstone
+environment's Python with `local/native233/ledger233.py`. The probe writes
+`local/mission233-final/`; the ledger writes only `local/native233/ledger-final.json`
+and private listings. Public metadata is copied separately after review. No
+private sample, extracted text, actor identifier or coordinate is published.
+
+The final composed `npm run check` passes 1,427 public tests, five performance
+harness tests and nine GPU harness tests, with type checking, 210 document files /
+1,094 local links, 768 publication paths and the M0 metadata guard. The build emits
+79 code/license outputs from 188 approved inputs. These public checks use original
+fixtures; the source/native evidence above is separate. Browser ownership controls
+and original mission execution have not been exercised by this change.
 
 The coordinator has delegated the existing simulation ownership consumers to this
 worker. The current checkpoint updates world model/state/replay and core hostility;
 source `definition.owner` remains initial identity. Current-house combat and
-shared-slot consumers are implemented; team and compound mission consumers are
-coordinated next.
+shared-slot consumers and ordered initial-actor mission callbacks are implemented.
+Dynamic team consumers remain coordinated follow-up work.
 Root retains the mission VM/bindings/compound world and shared configuration.
 The complete original mission remains gated by the other dependency groups in
 the audit.
