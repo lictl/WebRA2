@@ -3,7 +3,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { createGpuVoxelScene, prepareGpuVoxelFrame, pickGpuVoxelFrame, copyGpuVoxelSceneData, copyGpuVoxelFrameData } from '../../packages/render/src/gpu-voxel-policy.ts';
+import { createGpuVoxelScene, prepareGpuVoxelFrame, pickGpuVoxelFrame, copyGpuVoxelSceneData, copyGpuVoxelFrameData,
+ createGpuVoxelInstanceLayout, prepareGpuVoxelLayoutFrame } from '../../packages/render/src/gpu-voxel-policy.ts';
 import { createVoxelAtlas, renderVoxelFrame } from '../../packages/render/src/voxel-render.ts';
 import { createRuntimeVxl } from '../../packages/formats/src/runtime-vxl.ts';
 import { vxl, hva, sha } from '../content/voxel.fixture.ts';
@@ -157,4 +158,57 @@ test('moving multipart packets preserve the pre-optimization integer bins and st
  }
  // Recorded from d478270 before scalar allocation removal, outside any timing region.
  assert.equal(hash.digest('hex'),'f0cbd40441d652e0329e68680d35cd0ee4077b18e1f9432ea94a1dc615f81859');
+});
+
+const planeOf=(instances:readonly {readonly modelToView:readonly number[]}[])=>new Float64Array(instances.flatMap(v=>Array.from(v.modelToView)));
+test('retained layout reproduces every oracle packet, allocation and old Float64 pick',()=>{
+ let pixels=0;
+ for(const c of [...gpuVoxelOracleCases(),...gpuVoxelBoundaryCases()]){
+  const layout=createGpuVoxelInstanceLayout(c.frame.scene,c.reference.instances),frame=prepareGpuVoxelLayoutFrame(layout,{matrices:planeOf(c.reference.instances),width:c.frame.width,height:c.frame.height});
+  assert.deepEqual(frame.allocations,c.frame.allocations);assert.deepEqual(copyGpuVoxelFrameData(frame),copyGpuVoxelFrameData(c.frame));
+  for(let y=0;y<frame.height;y++)for(let x=0;x<frame.width;x++){assert.deepEqual(pickGpuVoxelFrame(frame,x,y,'float64'),pickGpuVoxelFrame(c.frame,x,y,'float64'));pixels++;}
+ }
+ assert.equal(pixels,153088);
+});
+test('retained layout maps original caller order to sorted owners and owns all joins and matrices',()=>{
+ const f=fixture(),input=[instance('z',model(11)),instance('a',model(10))],matrices=planeOf(input),layout=createGpuVoxelInstanceLayout(f.scene,input);
+ const expected=prepareGpuVoxelFrame(f.scene,{instances:input,width:24,height:24});
+ input[0]!.id='changed';input[0]!.partId='bad';input[1]!.modelToView.fill(0);input.reverse();
+ const actual=prepareGpuVoxelLayoutFrame(layout,{matrices,width:24,height:24}),saved=copyGpuVoxelFrameData(actual);
+ assert.deepEqual(saved,copyGpuVoxelFrameData(expected));matrices.fill(0);assert.deepEqual(copyGpuVoxelFrameData(actual),saved);
+ assert.equal(pickGpuVoxelFrame(actual,11,9)?.instanceId,'z');assert(Object.isFrozen(layout));assert(Object.isFrozen(layout.allocations));
+ assert.throws(()=>prepareGpuVoxelLayoutFrame({...layout},{matrices,width:24,height:24}),/layout/);
+ assert.throws(()=>createGpuVoxelInstanceLayout({...f.scene},[]),/scene/);
+});
+test('retained layout preserves changed linear transforms and exact rounding-boundary packets',()=>{
+ const f=fixture([[0,0,0,1,7],[1,0,0,2,8]],[2,1,1]),layout=createGpuVoxelInstanceLayout(f.scene,[instance('z'),instance('a')]);
+ for(let step=0;step<64;step++){
+  const zoom=[.25,.5,1,2][step%4]!,shift=[-.0000001,0,.0000001,.375][Math.floor(step/4)%4]!;
+  const first=[zoom,.15*zoom,.02*zoom,15.5+shift,-.05*zoom,zoom,.13*zoom,15.5-shift,.1,.3,1,10+step/8],second=first.slice();second[11]!+=1e-7;
+  const input=[instance('z',first),instance('a',second)],old=prepareGpuVoxelFrame(f.scene,{instances:input,width:32,height:32}),next=prepareGpuVoxelLayoutFrame(layout,{matrices:planeOf(input),width:32,height:32});
+  assert.deepEqual(copyGpuVoxelFrameData(next),copyGpuVoxelFrameData(old));assert.deepEqual(next.allocations,old.allocations);
+ }
+});
+test('retained layout rejects foreign mutable storage and captures intrinsic data without invoking shadows',()=>{
+ const f=fixture(),layout=createGpuVoxelInstanceLayout(f.scene,[instance()]),matrices=planeOf([instance()]);let gets=0;
+ for(const key of ['buffer','byteOffset','byteLength','length'])Object.defineProperty(matrices,key,{get(){gets++;throw Error('shadow');}});
+ const input=new Proxy({matrices,width:24,height:24},{get(){gets++;throw Error('raw input');}});
+ assert(prepareGpuVoxelLayoutFrame(layout,input));assert.equal(gets,0);
+ const bad={matrices,width:24,height:24};Object.defineProperty(bad,'width',{get(){gets++;return 24;}});assert.throws(()=>prepareGpuVoxelLayoutFrame(layout,bad),/record/);assert.equal(gets,0);
+ class Subclass extends Float64Array{};
+ const detached=new Float64Array(12);structuredClone(detached,{transfer:[detached.buffer]});
+ for(const rejected of [new Proxy(new Float64Array(12),{}),new Subclass(12),new Float64Array(new SharedArrayBuffer(96)),new Float64Array(Reflect.construct(ArrayBuffer,[96,{maxByteLength:192}])),detached,new Float32Array(12),new Float64Array(11),new Float64Array(13)])assert.throws(()=>prepareGpuVoxelLayoutFrame(layout,{matrices:rejected as Float64Array,width:24,height:24}),/matrix-plane/);
+ const larger=new Float64Array(14);larger.set(planeOf([instance()]),1);assert(prepareGpuVoxelLayoutFrame(layout,{matrices:larger.subarray(1,13),width:24,height:24}));
+});
+test('retained layout applies exact byte caps, frame limits and atomic failed preparation',()=>{
+ const f=fixture(),instances=[instance()],layout=createGpuVoxelInstanceLayout(f.scene,instances),matrices=planeOf(instances),input={matrices,width:24,height:24},frame=prepareGpuVoxelLayoutFrame(layout,input),before=copyGpuVoxelFrameData(frame);
+ assert(createGpuVoxelInstanceLayout(f.scene,instances,{capturedBytes:layout.allocations.capturedBytes,matrixBytes:layout.allocations.matrixBytes}));
+ for(const key of ['capturedBytes','matrixBytes'] as const)assert.throws(()=>createGpuVoxelInstanceLayout(f.scene,instances,{[key]:layout.allocations[key]-1}),/layout-budget/);
+ for(const key of ['samples','candidateTests','binEntries','frameBytes'] as const)assert.throws(()=>prepareGpuVoxelLayoutFrame(layout,input,{[key]:frame.allocations[key]-1}),/budget/);
+ assert.throws(()=>prepareGpuVoxelLayoutFrame(layout,input,{instances:0}),/instance-budget/);
+ for(const value of [NaN,Infinity,1048577]){const invalid=matrices.slice();invalid[3]=value;assert.throws(()=>prepareGpuVoxelLayoutFrame(layout,{...input,matrices:invalid}),/matrix/);}
+ const singular=new Float64Array(12);assert.throws(()=>prepareGpuVoxelLayoutFrame(layout,{...input,matrices:singular}),/singular/);
+ assert.deepEqual(copyGpuVoxelFrameData(frame),before);assert.deepEqual(copyGpuVoxelFrameData(prepareGpuVoxelLayoutFrame(layout,input)),before);
+ const empty=createGpuVoxelInstanceLayout(f.scene,[],{capturedBytes:0,matrixBytes:0});assert.equal(prepareGpuVoxelLayoutFrame(empty,{matrices:new Float64Array(0),width:1,height:1}).allocations.instances,0);
+ const detached=new Float64Array(0);structuredClone(detached,{transfer:[detached.buffer]});assert.throws(()=>prepareGpuVoxelLayoutFrame(empty,{matrices:detached,width:1,height:1}),/matrix-plane/);
 });

@@ -280,3 +280,34 @@ browser rate nor establishes the 60 FPS target; the corrected browser probe is
 still required. A public six-frame multipart regression pins the earlier complete
 packet digest and checks previous-frame ownership across successful and failed
 preparation.
+
+### Retained instance layout checkpoint
+
+The next optional path captures the static instance IDs, part/palette joins and
+caller-order to sorted-owner mapping once, using
+`createGpuVoxelInstanceLayout(scene, instances, lowerLayoutLimits?)`. Each later
+`prepareGpuVoxelLayoutFrame(layout, { matrices, width, height }, lowerFrameLimits?)`
+receives a `Float64Array` with 12 coefficients per instance in the **original caller
+order**. It owns a fixed-length copy, validates every matrix and runs the same frame
+preparation as the existing record-based API. The original API remains available.
+There is no transform, inverse, envelope, box or bin cache in this checkpoint.
+
+The genuine layout binds its exact scene. Caller edits, detached exports, forged
+layouts and a copied scene cannot change that binding. Top-level accessor properties
+reject. The numeric plane uses intrinsic buffer/offset/length accessors: unused named
+shadows are ignored without invocation, while foreign/proxy/subclass/shared/resizable
+or detached storage rejects. Failure leaves previous frames and the layout usable.
+
+Separate lowerable layout limits bound captured bytes (default 4 MiB) and one owned
+matrix plane (default 393,216 bytes: 4,096 × 12 × 8). Captured bytes count UTF-16 string
+units plus 16 logical bytes of joins/mapping per instance; this is not an actual
+JavaScript heap measurement. Factory validation still has the existing bounded
+instance/matrix temporary objects. These extra layout/plane counters are exposed
+on `layout.allocations`; the existing frame allocation values remain unchanged.
+All matrices and derived numeric arrays still use the original bounds and arithmetic.
+
+Public comparisons cover all 45 oracle packets/allocations and 153,088 old-Float64
+picks, plus 64 changing-linear/rounding-boundary frames, caller-order ownership,
+byte/storage limits, successful/failed retries and input mutation. This checkpoint
+has no new browser timing result; the browser worker will compare it against the
+same recorded inputs and bundle before any performance conclusion.
