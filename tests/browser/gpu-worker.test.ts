@@ -5,7 +5,9 @@ import assert from 'node:assert/strict';
 import { TerrainBridge } from '../../apps/web/src/terrain-bridge.ts';
 import { validAction, validResult, type GpuFrameResult, type FrameResult } from '../../apps/web/src/terrain-protocol.ts';
 import { captureGpuFrame } from '../../apps/web/src/gpu-protocol.ts';
-import { importGpuScene, prepareGpuFrame } from '../../packages/render/src/gpu-scene.ts';
+import { importGpuScene, prepareGpuFrame, compileGpuScene, exportGpuScene } from '../../packages/render/src/gpu-scene.ts';
+import { createTerrainScene } from '../../packages/render/src/terrain-scene.ts';
+import { makeOriginalTerrain, makeOriginalSprites, originalObject } from '../render/gpu-fixtures.ts';
 import { createGpuPicker } from '../../packages/render/src/gpu-picking.ts';
 import { GpuOriginalWorker, gpuOriginalLoad } from './gpu-worker.fixture.ts';
 const signal=()=>new AbortController().signal;
@@ -66,4 +68,25 @@ test('GPU message capture owns metadata and rejects extra data, bad planes, dish
   const bad=structuredClone(captured);bad.resources!.rasters[0]!.rgba[3]=1;assert(!validResult(bad));
   const accessor={...captured};Object.defineProperty(accessor,'objects',{get(){throw new Error('must not call');}});assert(!validResult(accessor));
   assert(validAction({type:'renderer-mode',mode:'gpu'}));assert(!validAction({type:'renderer-mode',mode:'automatic'}));assert(!validAction({type:'renderer-mode',mode:'gpu',extra:true}));bridge.dispose();
+});
+
+test('GPU capture validates descriptor snapshots without rereading switching Proxy properties',async()=>{
+  const {bridge,s}=await start(),init=await bridge.request({type:'renderer-mode',mode:'gpu'},s) as GpuFrameResult;
+  let gets=0;
+  const switched=new Proxy(init,{get(target,key){gets++;if(key==='camera')return {...target.camera,cameraX:NaN};if(key==='type')return 'frame';return Reflect.get(target,key);}});
+  const captured=captureGpuFrame(switched);assert.equal(gets,0);assert(validResult(captured));assert.equal(captured.type,'gpu-frame');assert.deepEqual(captured.camera,init.camera);
+  for(const field of ['camera','summary','world','worldPoints'] as const){
+    const raw=structuredClone(init),value=raw[field];if(!value)assert.fail();
+    const trapped=new Proxy(value,{get(){gets++;throw new Error('must not get');}});
+    Object.defineProperty(raw,field,{value:trapped});const copy=captureGpuFrame(raw);assert(validResult(copy));assert.equal(gets,0);
+  }
+  const wrong=new Proxy(init.camera,{getOwnPropertyDescriptor(target,key){const descriptor=Reflect.getOwnPropertyDescriptor(target,key);return key==='cameraX'?{...descriptor,value:NaN}:descriptor;}});
+  assert.throws(()=>captureGpuFrame({...init,camera:wrong}),/gpu-message/);
+  const batch=makeOriginalSprites({objects:[originalObject({id:'object-0'})]}).batch,withObject=structuredClone(init);
+  withObject.resources=exportGpuScene(compileGpuScene(createTerrainScene(makeOriginalTerrain()),batch));withObject.objects=batch.objects;
+  Object.assign(withObject.summary.artwork,{types:1,rendered:1,unavailable:2,omittedTypes:1,omittedRendered:1});
+  withObject.objectInfo=[{id:'object-0',typeId:'type-0',name:'Original',family:'unit',owner:'Original',format:'shp',voxel:null,x:1,y:3,frame:0,sourcePath:'original.shp',sourceHash:'a'.repeat(64),palettePath:'original.pal',paletteHash:'b'.repeat(64)}];
+  withObject.objectInfo[0]=new Proxy(withObject.objectInfo[0]!,{get(){gets++;throw new Error('must not get metadata');}});
+  assert(validResult(captureGpuFrame(withObject)));assert.equal(gets,0);
+  bridge.dispose();
 });
