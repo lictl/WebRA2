@@ -9,7 +9,7 @@ import { teamRuntimeFreeze as freeze } from './team-runtime-program.ts';
 
 export const WORLD_OWNERSHIP_ENGINE = 'webra2-world-8' as const;
 export const WORLD_OWNERSHIP_POLICY = 'webra2-current-house-1' as const;
-export type WorldHouseInvocation = { readonly instructionId: string; readonly sourceHouse: number; readonly triggerHouse: number }
+export type WorldHouseInvocation = { readonly instructionId: string; readonly sourceHouse: number; readonly triggerHouse: number | null }
 export type WorldHouseLifecycle = { entityId: number; lethalTick: number | null; removedTick: number | null }
 export type WorldHouseTransfer = WorldHouseInvocation & { nextTick: number; entityIds: number[] };
 export type WorldOwnershipState = {
@@ -33,7 +33,7 @@ const passWork = (source: MissionHouseSource) => source.types.length + source.ho
 export function worldHouseInvocation(value: unknown): WorldHouseInvocation {
   const r = worldRecord(value, ['instructionId', 'sourceHouse', 'triggerHouse']);
   if (typeof r.instructionId !== 'string' || !r.instructionId.length || r.instructionId.length > 255) fail('world-house-instruction');
-  return { instructionId: r.instructionId, sourceHouse: integer(r.sourceHouse, 0, C.players - 1), triggerHouse: integer(r.triggerHouse, 0, C.players - 1) };
+  return { instructionId: r.instructionId, sourceHouse: integer(r.sourceHouse, 0, C.players - 1), triggerHouse: r.triggerHouse === null ? null : integer(r.triggerHouse, 0, C.players - 1) };
 }
 function participation(model: WorldModel, life: readonly WorldHouseLifecycle[], tick: number): MissionHouseParticipation[] {
   return life.map((l, i) => {

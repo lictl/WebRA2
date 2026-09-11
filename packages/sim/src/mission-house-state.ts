@@ -131,13 +131,13 @@ export function restoreMissionHouseState(source: MissionHouseSource, value: unkn
  * mission VM. Static tag chains follow the existing logical retained-action policy;
  * dynamic tag reassignment is not represented by this source catalog. */
 export function planMissionHouseTransfer(state: MissionHouseState, instructionId: string,
-  invocation: Readonly<{ sourceHouse: number; triggerHouse: number }>, workLimit?: number): MissionHouseTransferPlan {
+  invocation: Readonly<{ sourceHouse: number; triggerHouse: number | null }>, workLimit?: number): MissionHouseTransferPlan {
   const source = sourceOf(state), charge = meter(source, workLimit), context = worldRecord(invocation, ['sourceHouse', 'triggerHouse']);
-  const sourceHouse = integer(context.sourceHouse), triggerHouse = integer(context.triggerHouse);
+  const sourceHouse = integer(context.sourceHouse), triggerHouse = context.triggerHouse === null ? null : integer(context.triggerHouse);
   charge(source.instructions.length + source.types.length + source.tagChains.length + source.houses.length);
   const instruction = source.instructions.find(i => i.instructionId === instructionId);
   if (!instruction || instruction.kind !== 'action' || instruction.status !== 'supported-source' ||
-    !source.houses.some(h => h.playerId === sourceHouse) || !source.houses.some(h => h.playerId === triggerHouse)) fail('transfer-instruction');
+    !source.houses.some(h => h.playerId === sourceHouse) || (triggerHouse !== null && !source.houses.some(h => h.playerId === triggerHouse))) fail('transfer-instruction');
   const destinationHouse = instruction.selector.kind === 'current-trigger-house' ? triggerHouse : instruction.selector.playerId;
   if (destinationHouse === null) fail('transfer-instruction');
   const types = new Map(source.types.map(t => [t.typeId, t])), tags = new Map(source.tagChains.map(t => [t.tagId, t.triggerIds]));

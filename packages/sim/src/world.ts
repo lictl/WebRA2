@@ -29,7 +29,7 @@ export interface WorldStepCombatObservations {
 const stepCombatObservations = new WeakMap<object, { model: WorldModel; value: WorldStepCombatObservations }>();
 export interface WorldHouseTransferFacts {
   readonly sourceSha256: string; readonly bindingsSha256: string; readonly fromStateSha256: string; readonly toStateSha256: string;
-  readonly nextTick: number; readonly instructionId: string; readonly sourceHouse: number; readonly triggerHouse: number;
+  readonly nextTick: number; readonly instructionId: string; readonly sourceHouse: number; readonly triggerHouse: number | null;
 }
 const houseTransfers = new WeakMap<object, { model: WorldModel; value: WorldHouseTransferFacts }>();
 /** A receipt proves only this exact core transaction, not that a mission trigger legitimately requested it. */

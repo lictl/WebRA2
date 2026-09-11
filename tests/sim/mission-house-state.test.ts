@@ -44,6 +44,7 @@ test('current-trigger-house selector uses explicit invocation context and aircra
   const f = houseFixture({ profile: 'yr', extraMap: houseTrigger.replace('14,0,1,', '14,0,8997,'), extraRules: '[AircraftTypes]\n0=Wing\n[Wing]\nStrength=100' });
   const s = createMissionHouseState(f.source, f.participation), action = f.source.instructions.find(i => i.opcode === 14)!;
   const p = planMissionHouseTransfer(s, action.instructionId, { sourceHouse: 0, triggerHouse: 1 });
+  assert.throws(() => planMissionHouseTransfer(s, action.instructionId, { sourceHouse: 0, triggerHouse: null }), /transfer-instruction/);
   assert.equal(p.destinationHouse, 1); assert.deepEqual(p.changedEntityIds, [1]);
   const empty = applyMissionHouseChanges(s, s.actors.map(a => ({ kind: 'remove', entityId: a.entityId })));
   const wing = applyMissionHouseChanges(empty, [{ kind: 'insert', actor: { ...s.actors[0]!, entityId: empty.nextEntityId, typeId: 'type:aircraft:wing', tagId: null } }]);

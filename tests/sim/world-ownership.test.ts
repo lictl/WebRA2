@@ -174,3 +174,15 @@ test('pending death retains population until completion and capture preserves da
     assert.throws(() => WorldSimulation.restore(f.model, premature), /world-ownership-counts/);
   }
 });
+
+
+test('missing current-trigger house remains null and is not replaced by the source owner', () => {
+  for (const profile of ['ra2', 'yr'] as const) {
+    const f = fixture(profile), r = new WorldReplayRecorder(f.model), action = f.source.instructions.find(i => i.opcode === 36)!;
+    const result = r.transferOwnership({ instructionId: action.instructionId, sourceHouse: 0, triggerHouse: null });
+    assert.deepEqual(result.changedEntityIds, [1, 2]);
+    assert.equal(r.save().state.ownership!.transfers[0]!.triggerHouse, null);
+    assert.equal(replayWorld(f.model, r.document()).stateSha256, worldHash(r.save()));
+    assert.deepEqual(WorldSimulation.restore(f.model, r.save()).save(), r.save());
+  }
+});
