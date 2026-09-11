@@ -394,3 +394,9 @@ original GPL-3.0-or-later components. Distribution includes the
 notices, corresponding source and build scripts. The
 [dispatch checkpoint](mission-house-dispatch.md) separates native source facts
 from WebRA2 transaction policy; no native listings or original mission data ship.
+
+The original initial-world spatial sound source/resolver and its original tests
+are GPL-3.0-or-later under the existing
+[mission/world notice](../packages/sim/MISSION_WORLD_PROVENANCE.md).
+See the [bounded source report](mission-spatial-world.md). No new third-party
+dependency or retail content is included.

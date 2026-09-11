@@ -22,11 +22,11 @@ function packed(raw: Uint8Array, literal: boolean): string {
   }
   return Buffer.concat(blocks).toString('base64');
 }
-export function missionBindingsFixture({profile='ra2' as 'ra2'|'yr', mapEncoding='utf8' as 'utf8'|'latin1', extraRules='', extraInfantryTypes='', extraArt='', waypoint='0=3003', extraMap='[Actions]\nSpawn=1,80,1,Squad,0,0,0,0,A', speed=128, infantryRows='0=Commander,Walker,256,2,2,0,Guard,0,None\n1=Commander,Walker,256,2,3,0,Guard,0,None\n2=Rival,Walker,256,4,2,0,Guard,0,None'}={}) {
+export function missionBindingsFixture({profile='ra2' as 'ra2'|'yr', mapEncoding='utf8' as 'utf8'|'latin1', extraRules='', extraInfantryTypes='', extraArt='', level=0, tmpHeight=0, ramp=0, overlay=255, waypoint='0=3003', extraMap='[Actions]\nSpawn=1,80,1,Squad,0,0,0,0,A', speed=128, infantryRows='0=Commander,Walker,256,2,2,0,Guard,0,None\n1=Commander,Walker,256,2,3,0,Guard,0,None\n2=Rival,Walker,256,4,2,0,Guard,0,None'}={}) {
   const xy = [[1,3],[2,2],[3,1],[2,3],[3,2],[2,4],[3,3],[4,2],[3,4],[4,3]];
   const raw = new Uint8Array(114), view = new DataView(raw.buffer);
-  xy.forEach(([x,y], i) => { view.setUint16(i*11,x!,true);view.setUint16(i*11+2,y!,true);view.setUint16(i*11+4,1,true); });
-  const bytes = new Uint8Array(Buffer.from(`[Basic]\nNewINIFormat=4\nPlayer=Commander\n[Map]\nSize=0,0,3,2\nLocalSize=0,0,3,2\nTheater=URBAN\n[Houses]\n0=Commander\n1=Rival\n[Commander]\nCountry=Blue\n[Rival]\nCountry=Red\n[Infantry]\n${infantryRows}\n[Waypoints]\n${waypoint}\n[IsoMapPack5]\n1=${packed(raw,true)}\n[OverlayPack]\n1=${packed(new Uint8Array(262144).fill(255),false)}\n[OverlayDataPack]\n1=${packed(new Uint8Array(262144),false)}\n${extraMap}`, mapEncoding));
+  xy.forEach(([x,y], i) => { view.setUint16(i*11,x!,true);view.setUint16(i*11+2,y!,true);view.setUint16(i*11+4,1,true);raw[i*11+9]=level; });
+  const bytes = new Uint8Array(Buffer.from(`[Basic]\nNewINIFormat=4\nPlayer=Commander\n[Map]\nSize=0,0,3,2\nLocalSize=0,0,3,2\nTheater=URBAN\n[Houses]\n0=Commander\n1=Rival\n[Commander]\nCountry=Blue\n[Rival]\nCountry=Red\n[Infantry]\n${infantryRows}\n[Waypoints]\n${waypoint}\n[IsoMapPack5]\n1=${packed(raw,true)}\n[OverlayPack]\n1=${packed(new Uint8Array(262144).fill(overlay),false)}\n[OverlayDataPack]\n1=${packed(new Uint8Array(262144),false)}\n${extraMap}`, mapEncoding));
   const base = encode(`[Countries]\n0=Blue\n1=Red\n[Clear]\nFoot=1\n[InfantryTypes]\n0=Walker\n${extraInfantryTypes}\n[Walker]\nStrength=100\nSpeed=${speed}\nLocomotor={4A582744-9839-11D1-B709-00A024DDAFD1}\n${extraRules}`);
   const artBytes = encode('[Original]\nValue=1\n'+extraArt), source = {id:'map',profile,sha256:hash(bytes)};
   const rules = compileRuntimeIni(profile,[{id:'base',profile,order:0,kind:'base',sourceSha256:hash(base),bytes:base},
@@ -36,6 +36,7 @@ export function missionBindingsFixture({profile='ra2' as 'ra2'|'yr', mapEncoding
   const definitions = compileEntityDefinitions({objects,rules,art});
   const tile = new Uint8Array(1872), tileView = new DataView(tile.buffer);
   for (const [at,n] of [[0,1],[4,1],[8,60],[12,30],[16,20],[32,952],[56,2]]) tileView.setUint32(at!,n!,true);
+  tile[60] = tmpHeight; tile[62] = ramp;
   const digest = hash(tile), contentIdentity = {profile,manifestSha256:'a'.repeat(64),rulesSha256:'b'.repeat(64),orderedModHashes:[]};
   const traversal = compileTerrainTraversal({contentIdentity,terrain,mapBytes:bytes,rules:createIniSourceView(rules),
     assets:[{id:'tiles',path:'original.urb',sha256:digest,bytes:tile,source:{root:{sourceId:'root',size:tile.length,sha256:digest},absoluteOffset:0,size:tile.length,sha256:digest}}],

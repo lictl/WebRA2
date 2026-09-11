@@ -15,29 +15,31 @@ development target; other browsers come later. Assets remain on-device/read-only
 
 ## Active work and exclusive ownership
 
-- Coordinator: ordered house/VM integration [#233](https://github.com/lictl/WebRA2/issues/233),
-  tree `local/worktrees/mission-world-context`, branch `codex/233-mission-world-context`.
-  It composes house checkpoint `a72cbf7`, nullable-trigger fix `2c1d5f8` (local
-  `e6aa910`) and main through GPU229. Five new original tests prove same-poll
-  transfer/population, tag-chain selection, one-use source context and atomic
-  rollback;40 focused regressions and full1,410 public +14 tool checks pass.
-  Build79 outputs/188 inputs includes the new house notice. Root owns
-  mission-logic/bindings/world and the new mission-action-world-context, its tests,
-  distribution lists and handoff. The follow-up initial cell/object composition passes3 new original movement/
-  combat scenarios and48 regressions/types: each predicate sees current ownership
-  after earlier callbacks/transfers. Team composition and YR8997 event-derived
-  trigger house remain explicit gates. Full composed1,419 +14 tests, types,
-  209docs/1,084links, publication/M0 and79-output/188-input build pass. Final
-  source census and independent review follow.
-  Commit/review via existing [PR235](https://github.com/lictl/WebRA2/pull/235), then
-  extend dynamic actors without a post-poll transfer list.
-  Spatial99/116 [#236](https://github.com/lictl/WebRA2/issues/236) source checkpoint
-  [PR238](https://github.com/lictl/WebRA2/pull/238) is merged as `f09856a7b28cc74478417f7a318e151a6c344c4c`.
-  The clean source tree `local/worktrees/spatial-audio` remains at reviewed `5fc6394`.
-  Full composed1,383 public +14 tool checks, fresh438-file probe,9,499 independent
-  raw comparisons and native36 records/4,373 bytes pass; [final COMMENT](https://github.com/lictl/WebRA2/pull/238#pullrequestreview-5174507322),
-  hosted34555330187. Stop116/native geometry/controller dispatch and browser audio
-  remain open236. Never substitute numeric sound index for stop's ignored value.
+- Coordinator: spatial current-world source/dispatch [#236](https://github.com/lictl/WebRA2/issues/236),
+  tree `local/worktrees/spatial-world`, branch `codex/236-spatial-world`, based on
+  root house callback `fada423` plus main through spatial-source `f09856a`.
+  New `mission-spatial-audio-source.ts` and five original tests join genuine
+  binding/cue/audio/traversal data, flat signed-level104 geometry and unique
+  building-before-terrain current targets. Focused tests/types and full1,424 +14 public/tool checks,210docs/1,091links,
+  publication/M0 and79-output/188-input build pass; this grants
+  no VM dispatch or playback. Root owns new source/resolver and its tests/report,
+  future VM/bindings/world/context integration, licensing/build lists and handoff.
+  Native controller reuse/update timing remains to inspect before scheduling.
+  Paired geometry metadata is being prepared by bootstrap in a separate tree.
+  House/VM work [#233](https://github.com/lictl/WebRA2/issues/233) is frozen at
+  `2ea0052` then `fada423` in `local/worktrees/mission-world-context`. Eight new
+  tests plus48 focused regressions and full1,419 +14 tests/types/docs/M0/build
+  pass. Mix independently reviewed both root deltas and composed them as
+  `a6aad53`/`e67bc66` into existing [PR235](https://github.com/lictl/WebRA2/pull/235).
+  Its world8/slot source code still needs root review and final source census.
+  Review reproduced a capture bug in initially shared infantry cells: a third
+  allied entrant could be offered a slot then throw during movement. Mix fixes it
+  at `11ca7ee` with eight slot tests/117 regressions; final root review remains. Team/8997 composition remains explicitly gated.
+  Source236 [PR238](https://github.com/lictl/WebRA2/pull/238) is merged as
+  `f09856a7b28cc74478417f7a318e151a6c344c4c`, exact reviewed `5fc6394`;
+  full1,383 +14 checks, fresh438 files,9,499 independent raw comparisons and
+  native36 records/4,373 bytes. [Final COMMENT](https://github.com/lictl/WebRA2/pull/238#pullrequestreview-5174507322),
+  hosted34555330187. Never reinterpret stop116's ignored value as a sound index.
 - `browser_feasibility`: sole CUA/Chrome owner for product GPU [#229](https://github.com/lictl/WebRA2/issues/229),
   [PR231](https://github.com/lictl/WebRA2/pull/231). UI tree
   `local/worktrees/gpu-viewport`; composition `local/worktrees/gpu-product`.
