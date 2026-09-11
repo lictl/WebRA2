@@ -1,0 +1,57 @@
+{
+  "scope": "Independent raw map and selected TMP bytes; retained upstream original model foundation and audio selection; initial-world target comparison, not native execution or runtime dispatch.",
+  "comparisons": 3974,
+  "rawGeometryComparisons": 1859,
+  "verifiedRoots": 4,
+  "profiles": [
+    {
+      "sourceRevision": "6d16e758b1b5639dbf99efd2ca078c949988162d",
+      "profile": "ra2",
+      "files": 438,
+      "missionSha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+      "spatialSha256": "00f36697b76ffafd01b7dc9260fecba99ba72df5d49546ad85456587ee4ab7eb",
+      "instructions": 27,
+      "supported": 27,
+      "diagnostics": {},
+      "targetKinds": {
+        "position": 24,
+        "object": 3
+      },
+      "afterHouseRequired": 185,
+      "wholeMissionAuthority": false,
+      "nativeExecution": false,
+      "browserExecution": false,
+      "sourceProjectionSha256": "fad603d0d9cc415c9e6dbe413df8e94c705f20a5b4fbc052f1514971ace5f03c",
+      "spatialProjectionSha256": "340512f6c2f378cf500bbcc6e77cc2fa58a96cd3bbf432cec0efa00394e2def6"
+    },
+    {
+      "sourceRevision": "6d16e758b1b5639dbf99efd2ca078c949988162d",
+      "profile": "yr",
+      "files": 438,
+      "missionSha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+      "spatialSha256": "df7c3c987fb4c1ffd3dc3cf86ea93a22a765b1f59abc126af8b69d0bc7487479",
+      "instructions": 116,
+      "supported": 106,
+      "diagnostics": {
+        "overlay-bridge-context": 2,
+        "ramp-height": 8
+      },
+      "targetKinds": {
+        "position": 103,
+        "object": 3
+      },
+      "afterHouseRequired": 399,
+      "wholeMissionAuthority": false,
+      "nativeExecution": false,
+      "browserExecution": false,
+      "sourceProjectionSha256": "4c0aefcc8881002301515643c083a976282f630f71729d060a4a215702ad145b",
+      "spatialProjectionSha256": "e2781af781bbeb399194147aaa36b2804ec3869f229d51db405efca3f26395bc"
+    }
+  ],
+  "schemaVersion": 1,
+  "sourceRevision": "6d16e758b1b5639dbf99efd2ca078c949988162d",
+  "geometryRevision": "499cc9e2fbaedf2959d80e55c9e89379f8060aa4",
+  "nativeFlatScale": 104,
+  "vmAdmission": false,
+  "playbackAuthority": false
+}
