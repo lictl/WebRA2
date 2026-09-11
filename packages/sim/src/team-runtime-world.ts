@@ -4,6 +4,7 @@ import { parseJson } from './canonical.ts';
 import type { CommandEnvelope } from '../../contracts/src/index.ts';
 import { WorldSimulation, type WorldTrace, type WorldStep } from './world.ts';
 import { assertWorldModel, type WorldModel } from './world-model.ts';
+import { currentWorldOwner } from './world-ownership.ts';
 import { worldClone, worldHash, worldInteger, worldList, worldRecord, worldSourceHash } from './world-values.ts';
 import { teamRuntimeFail as fail, teamRuntimeFreeze as freeze } from './team-runtime-program.ts';
 import { prepareTeamTick, restoreTeamCheckpoint, teamRosterProgram, teamRosterModel, type TeamCheckpoint, type TeamRoster, type TeamOrder, type TeamEvent } from './team-runtime.ts';
@@ -33,7 +34,7 @@ export function commitTeamTick(roster:TeamRoster,input:unknown,workLimit?:number
   if(plan.work>budget)fail('step-work-limit');
   const model=teamRosterModel(roster),simulation=WorldSimulation.restore(model,checkpoint.world),actors=new Set(roster.bindings.flatMap(b=>[...b.actorIds]));
   for(const c of checkpoint.world.queuedCommands)if(actors.has((c.payload as {entityId:number}).entityId))fail('competing-actor-command');
-  const owners=new Map(model.entities.map(e=>[e.id,e.owner])),cursor=new Map(checkpoint.world.state.admissionCursors.map(c=>[c.playerId,c.sequence]));
+  const owners=new Map(checkpoint.world.state.entities.map(e=>[e.id,currentWorldOwner(model,e)])),cursor=new Map(checkpoint.world.state.admissionCursors.map(c=>[c.playerId,c.sequence]));
   const commands:CommandEnvelope[]=[],expected=new Map<number,TeamOrder>();
   if(plan.orders.length>p.limits.orders)fail('step-order-limit');
   for(const order of plan.orders){

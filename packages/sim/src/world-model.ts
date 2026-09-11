@@ -7,6 +7,8 @@ import { worldFail, worldRecord, worldList, worldInteger, worldSymbol as symbol,
 export * from './world-values.ts';
 import { navigationCell, NAVIGATION_POLICY, type NavigationGrid } from './navigation.ts';
 import { infantryPassageBase, type InfantryPassageCatalog } from './infantry-passage-catalog.ts';
+import { ordinaryInfantryCurrentHouseRules } from './ordinary-infantry-bridge.ts';
+import { isMissionHouseSource, type MissionHouseSource } from './mission-house-source.ts';
 
 export const WORLD_MODEL_POLICY = 'webra2-world-model-1' as const;
 export const WORLD_MOTION_POLICY = 'webra2-cell-motion-1' as const;
@@ -31,6 +33,8 @@ export interface WorldModelInput {
   readonly footprints?: readonly WorldFootprint[];
   readonly combat?: CombatModel;
   readonly infantryPassage?: InfantryPassageCatalog;
+  /** Genuine source-bound mutable ownership; omission preserves every previous model/save identity. */
+  readonly ownership?: MissionHouseSource;
 }
 export interface WorldModel {
   readonly policy: typeof WORLD_MODEL_POLICY; readonly motionPolicy: typeof WORLD_MOTION_POLICY | typeof WORLD_INFANTRY_MOTION_POLICY;
@@ -41,15 +45,16 @@ export interface WorldModel {
   readonly initialSharedCells: number; readonly nativeBehaviorVerified: false;
   readonly combat?: CombatModel;
   readonly infantryPassage?: InfantryPassageCatalog;
+  readonly ownership?: MissionHouseSource;
 }
 const models = new WeakSet<WorldModel>();
 export function assertWorldModel(model: WorldModel): void { if (!models.has(model)) worldFail('world-model'); }
 
 /** Content adapters supply interpreted health, occupancy and traversal. No art/pixel inference occurs here. */
 export function createWorldModel(input: WorldModelInput): WorldModel {
-  const hasFootprints = !!input && Object.hasOwn(input, 'footprints'), hasCombat = !!input && Object.hasOwn(input, 'combat'), hasPassage = !!input && Object.hasOwn(input, 'infantryPassage');
+  const hasFootprints = !!input && Object.hasOwn(input, 'footprints'), hasCombat = !!input && Object.hasOwn(input, 'combat'), hasPassage = !!input && Object.hasOwn(input, 'infantryPassage'), hasOwnership = !!input && Object.hasOwn(input, 'ownership');
   const r = worldRecord(input, ['contentIdentity', 'sourceSha256', 'definitionsSha256', 'entities', 'navigation', 'blocked',
-    ...(hasFootprints ? ['footprints'] : []), ...(hasCombat ? ['combat'] : []), ...(hasPassage ? ['infantryPassage'] : [])]);
+    ...(hasFootprints ? ['footprints'] : []), ...(hasCombat ? ['combat'] : []), ...(hasPassage ? ['infantryPassage'] : []), ...(hasOwnership ? ['ownership'] : [])]);
   const contentIdentity = worldContent(r.contentIdentity), sourceSha256 = hash(r.sourceSha256), definitionsSha256 = hash(r.definitionsSha256);
   const classes = new Set<string>(), navigation: WorldNavigationBinding[] = [];
   for (const item of worldList(r.navigation, WORLD_LIMITS.grids)) {
@@ -128,10 +133,17 @@ export function createWorldModel(input: WorldModelInput): WorldModel {
   if(source && source.baseModelSha256 !== baseHash) worldFail('source-world-join');
   const infantryPassage = hasPassage ? r.infantryPassage as InfantryPassageCatalog : undefined;
   if(hasPassage && infantryPassageBase(infantryPassage!).sha256 !== baseHash) worldFail('world-infantry-join');
+  const ownership = hasOwnership ? r.ownership as MissionHouseSource : undefined;
+  if (hasOwnership) {
+    if (!isMissionHouseSource(ownership) || ownership.baseWorldSha256 !== baseHash || ownership.profile !== contentIdentity.profile ||
+      !ownership.initialPopulationTypesSupported ||
+      entities.some(e => ['infantry', 'unit', 'structure', 'aircraft'].includes(e.kind) && e.initialHealth === null)) worldFail('world-ownership-source');
+    if (source) ordinaryInfantryCurrentHouseRules(source);
+  }
   const bound = { ...common, motionPolicy: infantryPassage ? WORLD_INFANTRY_MOTION_POLICY : WORLD_MOTION_POLICY };
   const sha256 = worldHash({ ...bound, ...(combat ? { combatSha256: combat.sha256 } : {}),
-    ...(infantryPassage ? { infantryPassageSha256: infantryPassage.sha256 } : {}), navigation: navigationIdentity });
-  const model = Object.freeze({ ...bound, ...(combat ? { combat } : {}), ...(infantryPassage ? { infantryPassage } : {}), navigation: Object.freeze(navigation), sha256 }); models.add(model); return model;
+    ...(infantryPassage ? { infantryPassageSha256: infantryPassage.sha256 } : {}), ...(ownership ? { ownershipSha256: ownership.sha256 } : {}), navigation: navigationIdentity });
+  const model = Object.freeze({ ...bound, ...(combat ? { combat } : {}), ...(infantryPassage ? { infantryPassage } : {}), ...(ownership ? { ownership } : {}), navigation: Object.freeze(navigation), sha256 }); models.add(model); return model;
 }
 
 /** Local adjacency/cost check used to validate persisted routes against the immutable grid policy. */

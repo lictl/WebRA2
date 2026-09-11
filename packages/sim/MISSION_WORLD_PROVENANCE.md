@@ -82,3 +82,19 @@ traces do not grant that authority. Saved request cursors preserve the existing
 D03 lifecycle while output clocks, queue arbitration and global audio RNG remain
 outside simulation. No native playback timing, new dependency or retail payload
 is included. See the [dispatch report](../../docs/mission-audio-dispatch.md).
+
+
+The optional house-source integration and private ordered candidate-world context
+are original GPL-3.0-or-later WebRA2 code. The
+[house notice](MISSION_HOUSE_PROVENANCE.md) records native selectors/counters and
+the distinct source-country versus event-derived trigger-house values. The
+[dispatch report](../../docs/mission-house-dispatch.md) describes bounded atomic
+world/VM composition, original fixtures and its remaining callback/team gates.
+Default callers retain their prior model and save policies. No native listing,
+retail fixture or new third-party dependency is incorporated.
+
+The follow-up initial-actor callback composition reads current ownership for each
+cell-entry/event44 predicate from the private candidate after preceding transfers.
+It preserves the source actor/type/tag and ordinary damage-family joins. The
+explicit D03 compound phase is documented in the same dispatch report; source
+rows alone do not grant dynamic team, hijacker or native reentrant callback scope.

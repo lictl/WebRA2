@@ -4,6 +4,7 @@ import { infantryPassageBase, infantryPassageFail as fail, infantryPassageFreeze
   type InfantryPassageCatalog, type InfantryPassageActor, type InfantrySubcell } from './infantry-passage-catalog.ts';
 import { worldAddress, worldInteger, worldList, worldRecord, WORLD_LIMITS } from './world-values.ts';
 import type { WorldEntity } from './world.ts';
+import {worldOwnershipInfantryData,type WorldOwnershipState} from './world-ownership.ts';
 
 export interface InfantrySlotState { readonly entityId: number; readonly subcell: InfantrySubcell; readonly reservedSubcell: InfantrySubcell | null }
 /** Core-owned projection: retired IDs must come from its validated lifecycle, never an imported permission flag. */
@@ -12,7 +13,7 @@ export interface InfantryOccupancyInput {
 }
 export interface InfantryCellChoice {
   readonly status: 'available' | 'blocked'; readonly subcell: InfantrySubcell | null;
-  readonly reason: 'available' | 'unsupported-actor' | 'retired-actor' | 'dying-actor' | 'whole-cell-blocker' | 'non-allied-occupant' | 'unknown-alliance' | 'full-subcells';
+  readonly reason: 'available' | 'unsupported-actor' | 'retired-actor' | 'dying-actor' | 'whole-cell-blocker' | 'non-allied-occupant' | 'unknown-alliance' | 'full-subcells' | 'captured-settled-group';
   readonly work: number;
 }
 export interface InfantryOccupancy {
@@ -21,7 +22,7 @@ export interface InfantryOccupancy {
   choose(entityId: number, destination: number): InfantryCellChoice;
 }
 type Claim = { entityId: number | null; slot: InfantrySubcell | null; initial: boolean; anchor: boolean };
-type Live = { id: number; at: number; health: number | null; progress: number; head: number | null; row: InfantryPassageActor };
+type Live = { id: number; at: number; health: number | null; progress: number; head: number | null; owner: number|null; row: InfantryPassageActor };
 const slot = (v: unknown): InfantrySubcell => { const n = worldInteger(v, 2, 4); return n as InfantrySubcell; };
 
 export function initialInfantrySlots(catalog: InfantryPassageCatalog): readonly InfantrySlotState[] {
@@ -32,14 +33,15 @@ export function initialInfantrySlots(catalog: InfantryPassageCatalog): readonly 
 /** Validates slot structure/collisions against a genuine catalog and already core-validated motion/lifecycle.
  * Core save validation still owns routes, commands, health transitions, combat, clocks and retirement authenticity.
  * The returned detached index cannot update the world or authorize a different model. */
-export function createInfantryOccupancy(catalog: InfantryPassageCatalog, input: InfantryOccupancyInput): InfantryOccupancy {
+export function createInfantryOccupancy(catalog: InfantryPassageCatalog, input: InfantryOccupancyInput, ownership?: WorldOwnershipState): InfantryOccupancy {
   const model = infantryPassageBase(catalog), r = worldRecord(input, ['entities', 'infantrySlots', 'retiredEntityIds']);
+  const current=ownership?worldOwnershipInfantryData(ownership,catalog):null, owners=new Map(current?.owners.map(a=>[a.entityId,a.owner]));
   const rows = worldList(r.entities, catalog.limits.actors), slotRows = worldList(r.infantrySlots, catalog.limits.actors);
   if (rows.length !== model.entities.length) fail('state-entity-count');
   const byId = new Map<number, Live>(), source = new Map(catalog.actors.map(a => [a.entityId, a]));
   let totalRoute = 0;
   for (let i = 0; i < rows.length; i++) {
-    const e = worldRecord(rows[i], ['id', 'x', 'y', 'health', 'goal', 'route', 'progress', 'waitTicks']), d = model.entities[i]!;
+    const e = worldRecord(rows[i], ['id', 'x', 'y', 'health', 'goal', 'route', 'progress', 'waitTicks',...(current?['owner']:[])]), d = model.entities[i]!;
     if (e.id !== d.id) fail('state-entity-order');
     const at = worldAddress(e.x, e.y), health = e.health === null ? null : worldInteger(e.health, 0, d.maximumHealth ?? 0);
     if ((health === null) !== (d.maximumHealth === null)) fail('state-health');
@@ -48,7 +50,9 @@ export function createInfantryOccupancy(catalog: InfantryPassageCatalog, input: 
     const progress = worldInteger(e.progress, 0, 362 * 65535 - 1);
     if (progress && (route.length < 2 || route[0] !== at || route[1] === at || health === 0 || health === null || !d.movementPerTick)) fail('state-edge');
     if (!d.movementPerTick && at !== worldAddress(d.x, d.y)) fail('static-position');
-    byId.set(d.id, { id: d.id, at, health, progress, head: progress ? route[1]! : null, row: source.get(d.id)! });
+    const owner=current?owners.get(d.id)!:source.get(d.id)!.playerId;
+    if(current&&e.owner!==owner)fail('current-owner-join');
+    byId.set(d.id, { id: d.id, at, health, progress, head: progress ? route[1]! : null, owner, row: source.get(d.id)! });
   }
   const retired = new Set<number>(); let previous = 0;
   for (const value of worldList(r.retiredEntityIds, catalog.limits.actors)) {
@@ -81,21 +85,37 @@ export function createInfantryOccupancy(catalog: InfantryPassageCatalog, input: 
     add(at, { entityId: null, slot: null, initial: true, anchor: true });
   const alliances = new Set(catalog.alliances.map(p => `${p.from}:${p.to}`));
   const allied = (from: number, to: number): boolean => {
-    const a = byId.get(from)!.row.playerId, b = byId.get(to)!.row.playerId;
+    const a = byId.get(from)!.owner, b = byId.get(to)!.owner;
     return a !== null && b !== null && (a === b || catalog.alliancesComplete && alliances.has(`${a}:${b}`));
   };
   // <=3 items; removing a possible last entrant proves one directed arrival order.
-  const arrivalOrder = (items: Claim[]): boolean => items.length <= 1 || items.some((last, index) =>
-    items.every(other => other === last || allied(last.entityId!, other.entityId!)) && arrivalOrder(items.filter((_, i) => i !== index)));
-  for (const list of claims.values()) if (list.length > 1) {
+  const arrivalOrder = (items: Claim[], retained?: (item:Claim)=>boolean): boolean => items.length <= 1 ||
+    !!retained && items.every(retained) || items.some((last, index) =>
+    items.every(other => other === last || allied(last.entityId!, other.entityId!)) && arrivalOrder(items.filter((_, i) => i !== index),retained));
+  const retained=new Map(current?.sharing.map(g=>[g.cell,g])),transferred=new Set(current?.transferredIds);
+  for (const [at,list] of claims) if (list.length > 1) {
     // Preserve only exact original source positions/slots, never a moved actor newly joining a hard blocker.
-    if (list.every(c => c.initial && c.anchor)) continue;
+    const original=list.every(c=>c.initial&&c.anchor),priorGroup=retained.get(at);
+    if(original&&!priorGroup){
+      // A capture of an original shared cohort needs the same closed marker as
+      // a moved cohort. Otherwise a third-house query could admit an invalid edge.
+      if(current&&list.length<=3&&list.every(c=>c.entityId!==null&&c.slot!==null)&&
+        list.some(c=>transferred.has(c.entityId!))&&!arrivalOrder(list))fail('captured-group-missing');
+      continue;
+    }
+    const prior=priorGroup, captured=prior ? (c:Claim)=>c.anchor && prior.remainingIds.includes(c.entityId!) &&
+      prior.members.some(m=>m.entityId===c.entityId&&m.subcell===c.slot) : undefined;
+    if(prior&&list.some(c=>!captured!(c)))fail('captured-group-closed');
     if (list.length > 3 || list.some(c => c.entityId === null || c.slot === null) ||
-        new Set(list.map(c => c.slot)).size !== list.length || !arrivalOrder(list)) fail('slot-overlap');
+        new Set(list.map(c => c.slot)).size !== list.length || !arrivalOrder(list,captured)) fail('slot-overlap');
     // Active reservations have a known incoming actor, so a possible inverse arrival order is insufficient.
     if (list.some(c => !c.anchor && list.some(other => other !== c && byId.get(other.entityId!)!.health === 0))) fail('reservation-dying-blocker');
     if (list.some(c => !c.anchor && list.some(other => other !== c && !allied(c.entityId!, other.entityId!)))) fail('reservation-alliance');
   }
+  // A saved surviving member must still occupy its precise recorded slot. Omitting
+  // one cannot hide an unknown occupant; the complete claim list above is validated.
+  for(const group of retained.values())for(const id of group.remainingIds){const e=byId.get(id)!, s=slots.get(id);
+    if(retired.has(id)||e.at!==group.cell||!s||s.subcell!==group.members.find(m=>m.entityId===id)!.subcell)fail('captured-slot-join');}
   const result: InfantryOccupancy = {
     catalogSha256: catalog.sha256, occupiedCells: claims.size, indexedClaims,
     choose(entityId, destination) {
@@ -105,6 +125,10 @@ export function createInfantryOccupancy(catalog: InfantryPassageCatalog, input: 
         Object.freeze({ status: value === null ? 'blocked' : 'available', subcell: value, reason, work });
       if (e.row.status !== 'ordinary-slots') return answer('unsupported-actor');
       if (retired.has(id)) return answer('retired-actor'); if (e.health === 0) return answer('dying-actor');
+      // Holding an already validated anchor adds no claim. No entrant may extend
+      // a hostile capture cohort, even a third house allied to every member.
+      if(at===e.at&&retained.has(at))return answer('available',slots.get(id)!.subcell);
+      if(retained.has(at))return answer('captured-settled-group');
       const list = claims.get(at) ?? [], used = new Set<number>(); let work = 0;
       for (const claim of list) {
         work++; if (claim.entityId === id) continue;

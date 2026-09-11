@@ -45,7 +45,8 @@ export function createOrdinaryCombatRules(input:{readonly seed:number;readonly a
  const rules=Object.freeze({...data,sha256:worldHash(data)});rulesSet.add(rules);numericActors.set(rules,Object.freeze(actors));return rules;
 }
 export interface OrdinaryCombatBinding {readonly policy:typeof ORDINARY_COMBAT_POLICY;readonly rulesSha256:string;readonly seed:number;readonly work:number}
-type Data={damage:Map<string,number>;reload:Map<string,readonly number[]>;maximum:Map<number,number>};
+type Data={damage:Map<string,number>;reload:Map<string,readonly number[]>;maximum:Map<number,number>;
+ rules:OrdinaryCombatRules;factors:Map<number,OrdinaryCombatActor>;actors:readonly CombatActor[];weapons:readonly CombatWeapon[]};
 const bindings=new WeakMap<object,Data>();
 const key=(source:number,weapon:string,target?:number)=>JSON.stringify([source,weapon,...(target===undefined?[]:[target])]);
 function data(binding:OrdinaryCombatBinding):Data{const value=bindings.get(binding);if(!value)worldFail('ordinary-binding');return value;}
@@ -76,7 +77,9 @@ export function bindOrdinaryCombatRules(rules:OrdinaryCombatRules,actors:readonl
   }
   maximum.set(a.entityId,max);
  }
- const binding=Object.freeze({policy:ORDINARY_COMBAT_POLICY,rulesSha256:rules.sha256,seed:rules.seed,work});bindings.set(binding,{damage,reload,maximum});return binding;
+ const ownedActors=Object.freeze(actors.map(a=>Object.freeze({...a,weapons:Object.freeze([...a.weapons])})));
+ const ownedWeapons=Object.freeze(weapons.map(w=>Object.freeze({...w,verses:Object.freeze(w.verses.map(v=>Object.freeze({...v})))})));
+ const binding=Object.freeze({policy:ORDINARY_COMBAT_POLICY,rulesSha256:rules.sha256,seed:rules.seed,work});bindings.set(binding,{damage,reload,maximum,rules,factors:byActor,actors:ownedActors,weapons:ownedWeapons});return binding;
 }
 export function ordinaryCombatDamage(binding:OrdinaryCombatBinding,source:number,weapon:string,target:number):number {
  const result=data(binding).damage.get(key(source,weapon,target));if(result===undefined)worldFail('ordinary-damage-binding');return result;
@@ -86,4 +89,60 @@ export function ordinaryCombatReload(binding:OrdinaryCombatBinding,source:number
 }
 export function ordinaryCombatMaximumReload(binding:OrdinaryCombatBinding,source:number):number {
  const result=data(binding).maximum.get(source);if(result===undefined)worldFail('ordinary-actor-binding');return result;
+}
+
+/** Explicit numerical inputs. Only the source bridge may authenticate these as current house factors. */
+export interface OrdinaryCombatHouse { readonly playerId:number; readonly houseFirepower:number; readonly countryArmor:number; readonly houseRof:number }
+export interface OrdinaryCombatCurrentHouses { readonly rulesSha256:string; readonly work:number }
+type HousesData={base:Data;houses:Map<number,OrdinaryCombatHouse>;fire:Map<string,number>;reload:Map<string,readonly number[]>;maximum:Map<number,number>;weapons:Map<string,CombatWeapon>;actors:Map<number,CombatActor>;maxDamage:Map<string,number>};
+const houseBindings=new WeakMap<object,HousesData>();
+const houseKey=(entityId:number,playerId:number,weaponId:string)=>JSON.stringify([entityId,playerId,weaponId]);
+function houseData(value:OrdinaryCombatCurrentHouses):HousesData{return houseBindings.get(value)??worldFail('ordinary-house-binding');}
+/** Preflight every source/house reload/fire result and every target/house damage
+ * upper bound. Positive arithmetic stages are monotone in incoming damage, so
+ * the largest admitted fire value per weapon bounds all combinations without a
+ * quadratic actor-by-house pair table. Exact damage is evaluated at impact. */
+export function bindOrdinaryCombatCurrentHouses(binding:OrdinaryCombatBinding,input:readonly OrdinaryCombatHouse[]):OrdinaryCombatCurrentHouses {
+ const base=data(binding),cap=base.rules.limits;let work=0,pairs=0;
+ const charge=(n=1)=>{if(n>cap.work-work)worldFail('ordinary-house-work');work+=n;};
+ const rows=worldList(input,256);charge(rows.length*5);const houses=new Map<number,OrdinaryCombatHouse>();
+ for(const value of rows){const r=worldRecord(value,['playerId','houseFirepower','countryArmor','houseRof']),playerId=worldInteger(r.playerId,0,255);
+  if(houses.has(playerId))worldFail('ordinary-house-duplicate');
+  const owned={playerId,houseFirepower:0,countryArmor:0,houseRof:0};
+  for(const key of ['houseFirepower','countryArmor','houseRof'] as const){const n=r[key];
+   if(typeof n!=='number'||!Number.isFinite(n)||Object.is(n,-0)||!(n>=N.factorMin&&n<=N.factorMax||n===0&&key==='houseRof'))worldFail('ordinary-house-factor');owned[key]=n;}
+  houses.set(playerId,Object.freeze(owned));
+ }
+ if(!houses.size)worldFail('ordinary-house-coverage');
+ const weapons=new Map(base.weapons.map(w=>[w.id,w])),actors=new Map(base.actors.map(a=>[a.entityId,a]));
+ const fire=new Map<string,number>(),reload=new Map<string,readonly number[]>(),maximum=new Map<number,number>(),fireMax=new Map<string,number>();
+ for(const a of base.actors){charge();const f=base.factors.get(a.entityId)!;let max=0;
+  for(const h of houses.values())for(const id of a.weapons){charge(5);const w=weapons.get(id)!,k=houseKey(a.entityId,h.playerId,id);
+   if(++pairs>cap.pairs)worldFail('ordinary-house-pair-limit');
+   const damage=nativeFirepowerDamage({damage:w.damage,houseFirepower:h.houseFirepower,actorFirepower:f.actorFirepower,veteranCombat:f.veteranCombat});
+   if(damage===0)worldFail('ordinary-zero-firepower');fire.set(k,damage);fireMax.set(id,Math.max(damage,fireMax.get(id)??0));
+   const values=Object.freeze(([0,1,2] as const).map(jitter=>worldInteger(nativeNormalReload({rof:w.reloadTicks,houseRof:h.houseRof,jitter,veteranRof:f.veteranRof}),0,cap.reload)));
+   reload.set(k,values);max=Math.max(max,...values);
+  }maximum.set(a.entityId,max);
+ }
+ const maxDamage=new Map(base.rules.weapons.map(w=>[w.weaponId,w.maxDamage]));
+ for(const a of base.actors){const f=base.factors.get(a.entityId)!;
+  for(const h of houses.values())for(const [id,damage] of fireMax){charge(3);const w=weapons.get(id)!,v=w.verses[a.armor]!;
+   const armored=nativeArmorAdjustedDamage({damage,countryArmor:h.countryArmor,actorArmor:f.actorArmor,veteranArmor:f.veteranArmor});
+   nativeZeroSpreadDamage({damage:armored,verse:v.significand*2**v.exponent,maxDamage:maxDamage.get(id)!});
+  }
+ }
+ const result=Object.freeze({rulesSha256:binding.rulesSha256,work});houseBindings.set(result,{base,houses,fire,reload,maximum,weapons,actors,maxDamage});return result;
+}
+export function ordinaryCombatHouseDamage(value:OrdinaryCombatCurrentHouses,source:number,sourceHouse:number,weapon:string,target:number,targetHouse:number):number {
+ const d=houseData(value),fire=d.fire.get(houseKey(source,sourceHouse,weapon)),a=d.actors.get(target),h=d.houses.get(targetHouse),f=d.base.factors.get(target),w=d.weapons.get(weapon);
+ if(fire===undefined||!a||!h||!f||!w)worldFail('ordinary-house-damage');
+ const armored=nativeArmorAdjustedDamage({damage:fire,countryArmor:h.countryArmor,actorArmor:f.actorArmor,veteranArmor:f.veteranArmor}),v=w.verses[a.armor]!;
+ return nativeZeroSpreadDamage({damage:armored,verse:v.significand*2**v.exponent,maxDamage:d.maxDamage.get(weapon)!});
+}
+export function ordinaryCombatHouseReload(value:OrdinaryCombatCurrentHouses,source:number,house:number,weapon:string,jitter:0|1|2):number {
+ worldInteger(jitter,0,2);return houseData(value).reload.get(houseKey(source,house,weapon))?.[jitter]??worldFail('ordinary-house-reload');
+}
+export function ordinaryCombatHouseMaximumReload(value:OrdinaryCombatCurrentHouses,source:number):number {
+ return houseData(value).maximum.get(source)??worldFail('ordinary-house-reload');
 }
