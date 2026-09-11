@@ -9,11 +9,12 @@ import { SOURCE_INFANTRY_COMBAT_POLICY, SOURCE_INFANTRY_COMBAT_ENGINE_VERSION, I
 import { ORDINARY_COMBAT_ENGINE_VERSION, ORDINARY_COMBAT_POLICY } from './ordinary-combat-rules.ts';
 import { combatDyingActorIds, combatTargetLegal, attackCombat, createCombatState, stepCombat, stopCombat, validateCombatState, validateSourceCombatState, type CombatState, type CombatDamageObservation } from './combat.ts';
 import { WORLD_OWNERSHIP_ENGINE, WORLD_OWNERSHIP_POLICY, currentWorldOwner, createWorldOwnership, restoreWorldOwnership, worldOwnershipLedger,
-  updateWorldOwnershipLifecycle, validateWorldOwnershipLifecycle, prepareWorldHouseTransfer, pruneWorldHouseSharing, worldOwnershipWork,
+  updateWorldOwnershipLifecycle, validateWorldOwnershipLifecycle, prepareWorldHouseTransfer, pruneWorldHouseSharing, worldOwnershipWork, appendWorldOwnership,
   type WorldOwnershipState, type WorldHouseInvocation, type WorldHouseTransferResult } from './world-ownership.ts';
 import { assertWorldModel, worldAddress, worldClone, worldContent, worldEdgeCost, worldFail, worldInteger, worldList, worldPosition,
-  worldRecord, worldHash, WORLD_ENGINE_VERSION, WORLD_INFANTRY_ENGINE_VERSION, WORLD_LIMITS as C, WORLD_MOTION_POLICY, type WorldModel, type WorldEntityDefinition } from './world-model.ts';
+  worldRecord, worldHash, WORLD_ENGINE_VERSION, WORLD_INFANTRY_ENGINE_VERSION, WORLD_CONSTRUCTION_ENGINE_VERSION, WORLD_LIMITS as C, WORLD_MOTION_POLICY, type WorldModel, type WorldEntityDefinition } from './world-model.ts';
 import { evaluateMissionHousePopulation } from './mission-house-state.ts';
+import { missionTeamConstructorHistoryData } from './mission-team-constructor-history.ts';
 
 export type WorldEntity = { id: number; x: number; y: number; health: number | null; owner?: number | null;
   goal: number | null; route: number[]; progress: number; waitTicks: number };
@@ -93,8 +94,8 @@ export function readWorldEntityPresence(world: WorldSimulation, entityIds: reado
   return Object.freeze({ model, nextTick: value.nextTick, entities: Object.freeze(entities), work });
 }
 
-const engineVersion = (model: WorldModel) => model.ownership ? WORLD_OWNERSHIP_ENGINE : model.infantryPassage ? WORLD_INFANTRY_ENGINE_VERSION : model.combat?.policy===SOURCE_INFANTRY_COMBAT_POLICY ? SOURCE_INFANTRY_COMBAT_ENGINE_VERSION : model.combat?.policy===INFANTRY_COMBAT_POLICY ? INFANTRY_COMBAT_ENGINE_VERSION : model.combat?.policy===ORDINARY_DEATH_POLICY ? ORDINARY_DEATH_ENGINE_VERSION : model.combat?.policy===ORDINARY_COMBAT_POLICY ? ORDINARY_COMBAT_ENGINE_VERSION : model.combat ? COMBAT_ENGINE_VERSION : WORLD_ENGINE_VERSION;
-const rulesVersion = (model: WorldModel) => [model.combat?.policy ?? WORLD_MOTION_POLICY, ...(model.infantryPassage ? [model.infantryPassage.policy] : []), ...(model.ownership ? [WORLD_OWNERSHIP_POLICY] : [])].join('+');
+const engineVersion = (model: WorldModel) => model.construction ? WORLD_CONSTRUCTION_ENGINE_VERSION : model.ownership ? WORLD_OWNERSHIP_ENGINE : model.infantryPassage ? WORLD_INFANTRY_ENGINE_VERSION : model.combat?.policy===SOURCE_INFANTRY_COMBAT_POLICY ? SOURCE_INFANTRY_COMBAT_ENGINE_VERSION : model.combat?.policy===INFANTRY_COMBAT_POLICY ? INFANTRY_COMBAT_ENGINE_VERSION : model.combat?.policy===ORDINARY_DEATH_POLICY ? ORDINARY_DEATH_ENGINE_VERSION : model.combat?.policy===ORDINARY_COMBAT_POLICY ? ORDINARY_COMBAT_ENGINE_VERSION : model.combat ? COMBAT_ENGINE_VERSION : WORLD_ENGINE_VERSION;
+const rulesVersion = (model: WorldModel) => [model.combat?.policy ?? WORLD_MOTION_POLICY, ...(model.infantryPassage ? [model.infantryPassage.policy] : []), ...(model.ownership ? [WORLD_OWNERSHIP_POLICY] : []), ...(model.construction ? [model.construction.policy] : [])].join('+');
 function infantryOccupancy(model: WorldModel, state: WorldState): InfantryOccupancy {
   const dying = combatDyingActorIds(state.combat);
   // Same authoritative release policy as whole-cell occupancy: pending deaths retain claims.
@@ -133,6 +134,9 @@ function validateSave(model: WorldModel, input: unknown): LiveSave {
   const contentIdentity = worldContent(r.contentIdentity);
   if (canonicalText(contentIdentity) !== canonicalText(model.contentIdentity)) worldFail('world-save-content');
   const nextTick = worldInteger(r.nextTick, 0, C.tick), s = worldRecord(r.state, ['modelSha256', 'entities', 'planningCursor', 'admissionCursors', ...(model.combat ? ['combat'] : []), ...(model.infantryPassage ? ['infantrySlots'] : []), ...(model.ownership ? ['ownership'] : [])]);
+  const constructed = model.construction ? missionTeamConstructorHistoryData(model.construction) : null;
+  if (constructed && (constructed.births.at(-1)?.bornAtTick ?? 0) > nextTick) worldFail('world-construction-clock');
+  const appendedIds = constructed ? new Set(constructed.entities.map(e => e.id)) : null;
   if (s.modelSha256 !== model.sha256) worldFail('world-save-model');
   if (worldList(r.scheduledWork, 0).length || Reflect.ownKeys(worldRecord(r.rngStates, [])).length) worldFail('world-save-work');
   const inputs = worldList(s.entities, C.entities); if (inputs.length !== model.entities.length) worldFail('world-save-entities');
@@ -202,7 +206,7 @@ function validateSave(model: WorldModel, input: unknown): LiveSave {
   for (let i = 0; i < entities.length; i++) {
     const e = entities[i]!, d = model.entities[i]!, at = worldAddress(e.x, e.y);
     if (d.blocksCell && (e.health !== 0||dying.has(e.id)) && (counts.get(at) ?? 0) > 1 &&
-      (d.initialHealth === 0 || !model.infantryPassage && at !== worldAddress(d.x, d.y))) worldFail('world-save-anchor-overlap');
+      (appendedIds?.has(d.id) || d.initialHealth === 0 || !model.infantryPassage && at !== worldAddress(d.x, d.y))) worldFail('world-save-anchor-overlap');
   }
   // Extra cells are occupants too. Reviving an initially absent stationary
   // footprint cannot create sharing even when every other anchor is unchanged.
@@ -229,6 +233,7 @@ export class WorldSimulation {
   }
   static create(model: WorldModel): WorldSimulation {
     assertWorldModel(model);
+    if (model.construction?.births.length) worldFail('world-construction-requires-migration');
     return WorldSimulation.restore(model, { schemaVersion: 1, engineVersion: engineVersion(model), simulationRulesVersion: rulesVersion(model),
       contentIdentity: model.contentIdentity, nextTick: 0, state: { modelSha256: model.sha256, planningCursor: 0, admissionCursors: [],
         ...(model.combat ? { combat: createCombatState(model) } : {}),
@@ -238,6 +243,58 @@ export class WorldSimulation {
       queuedCommands: [], scheduledWork: [], rngStates: {} });
   }
   static restore(model: WorldModel, input: unknown): WorldSimulation { return new WorldSimulation(model, validateSave(model, input), worldConstructionToken); }
+  /** Atomically extend a genuine current world with source-derived unit births.
+   * The team dispatcher must separately prove the invocation and chosen cells.
+   * Existing commands, lifecycle, combat and slot state survive unchanged. */
+  static migrateConstruction(previous: WorldSimulation, nextModel: WorldModel, workLimit: number = C.replayWork): Readonly<{ world: WorldSimulation; work: number }> {
+    const read = currentWorldData.get(previous);
+    if (!read || Object.getPrototypeOf(previous) !== WorldSimulation.prototype) worldFail('world-instance');
+    assertWorldModel(nextModel);
+    const limit = worldInteger(workLimit, 0, C.replayWork); let work = 0;
+    const charge = (n: number) => { if (n > limit - work) worldFail('world-construction-work'); work += n; };
+    const { model, value } = read();
+    if (!model.construction || !nextModel.construction) worldFail('world-construction-history');
+    const before = missionTeamConstructorHistoryData(model.construction), after = missionTeamConstructorHistoryData(nextModel.construction);
+    // Source histories and definitions are immutable factory-owned data. Reserve
+    // their canonical comparisons before copying or hashing either prefix.
+    const scan = (v: unknown): void => {
+      charge(4);
+      if (typeof v === 'string') charge(v.length * 4);
+      else if (v && typeof v === 'object') for (const key of Object.keys(v)) { charge(key.length * 4 + 4); scan((v as Record<string, unknown>)[key]); }
+    };
+    scan(before.births); scan(after.births); scan(model.entities); scan(nextModel.entities);
+    if (before.source !== after.source || before.base !== after.base ||
+      model.combat !== nextModel.combat || model.infantryPassage !== nextModel.infantryPassage || model.ownership !== nextModel.ownership ||
+      after.births.length <= before.births.length || nextModel.entities.length <= model.entities.length ||
+      canonicalText(before.births) !== canonicalText(after.births.slice(0, before.births.length)) ||
+      canonicalText(model.entities) !== canonicalText(nextModel.entities.slice(0, model.entities.length))) worldFail('world-construction-prefix');
+    const births = after.births.slice(before.births.length), revision = value.state.ownership!.transfers.length;
+    if (births.some(b => b.bornAtTick !== value.nextTick || b.ownershipRevision !== revision)) worldFail('world-construction-boundary');
+    scan(value);
+    const added = nextModel.entities.slice(model.entities.length), addedIds = new Set(added.map(e => e.id));
+    // An order queued while its actor or attack target did not exist cannot gain
+    // authority merely because a later constructor happens to reuse that ID.
+    for (const command of value.queuedCommands) {
+      const p = command.payload as Record<string, number>;
+      if (addedIds.has(p.entityId!) || command.kind === 'attack' && addedIds.has(p.targetId!)) worldFail('world-construction-queued-actor');
+    }
+    const candidate = worldClone(value);
+    candidate.engineVersion = engineVersion(nextModel); candidate.simulationRulesVersion = rulesVersion(nextModel);
+    candidate.state.modelSha256 = nextModel.sha256;
+    candidate.state.entities.push(...added.map(d => ({ id: d.id, x: d.x, y: d.y, health: d.initialHealth, owner: d.owner,
+      goal: null, route: [], progress: 0, waitTicks: 0 })));
+    const appended = appendWorldOwnership(model, nextModel, value.state, candidate.state.entities, value.nextTick, limit - work);
+    charge(appended.work); candidate.state.ownership = appended.ownership;
+    // Reserve another complete ownership reconstruction and core/slot traversal
+    // before validating the candidate. These are resource units, not timings.
+    charge(appended.work);
+    scan(candidate);
+    charge(nextModel.entities.length * 32 + nextModel.blocked.length * 4 +
+      nextModel.footprints.reduce((n, f) => n + f.cells.length * 4 + 4, 0) +
+      (nextModel.infantryPassage?.alliances.length ?? 0) * 4);
+    const world = new WorldSimulation(nextModel, validateSave(nextModel, candidate), worldConstructionToken);
+    return Object.freeze({ world, work });
+  }
   get model(): WorldModel { return this.#model; }
   get nextTick(): number { return this.#value.nextTick; }
   save(): WorldSave { return worldClone(this.#value); }

@@ -22,7 +22,7 @@ export interface InfantryOccupancy {
   choose(entityId: number, destination: number): InfantryCellChoice;
 }
 type Claim = { entityId: number | null; slot: InfantrySubcell | null; initial: boolean; anchor: boolean };
-type Live = { id: number; at: number; health: number | null; progress: number; head: number | null; owner: number|null; row: InfantryPassageActor };
+type Live = { id: number; at: number; health: number | null; progress: number; head: number | null; owner: number|null; row: InfantryPassageActor | null };
 const slot = (v: unknown): InfantrySubcell => { const n = worldInteger(v, 2, 4); return n as InfantrySubcell; };
 
 export function initialInfantrySlots(catalog: InfantryPassageCatalog): readonly InfantrySlotState[] {
@@ -34,8 +34,9 @@ export function initialInfantrySlots(catalog: InfantryPassageCatalog): readonly 
  * Core save validation still owns routes, commands, health transitions, combat, clocks and retirement authenticity.
  * The returned detached index cannot update the world or authorize a different model. */
 export function createInfantryOccupancy(catalog: InfantryPassageCatalog, input: InfantryOccupancyInput, ownership?: WorldOwnershipState): InfantryOccupancy {
-  const model = infantryPassageBase(catalog), r = worldRecord(input, ['entities', 'infantrySlots', 'retiredEntityIds']);
+  const base = infantryPassageBase(catalog), r = worldRecord(input, ['entities', 'infantrySlots', 'retiredEntityIds']);
   const current=ownership?worldOwnershipInfantryData(ownership,catalog):null, owners=new Map(current?.owners.map(a=>[a.entityId,a.owner]));
+  const model = current?.model ?? base;
   const rows = worldList(r.entities, catalog.limits.actors), slotRows = worldList(r.infantrySlots, catalog.limits.actors);
   if (rows.length !== model.entities.length) fail('state-entity-count');
   const byId = new Map<number, Live>(), source = new Map(catalog.actors.map(a => [a.entityId, a]));
@@ -50,9 +51,13 @@ export function createInfantryOccupancy(catalog: InfantryPassageCatalog, input: 
     const progress = worldInteger(e.progress, 0, 362 * 65535 - 1);
     if (progress && (route.length < 2 || route[0] !== at || route[1] === at || health === 0 || health === null || !d.movementPerTick)) fail('state-edge');
     if (!d.movementPerTick && at !== worldAddress(d.x, d.y)) fail('static-position');
-    const owner=current?owners.get(d.id)!:source.get(d.id)!.playerId;
+    const row = source.get(d.id) ?? null;
+    // A genuine constructed model proves the full original prefix. Appended
+    // ordinary units are whole-cell occupants; they never receive infantry slots.
+    if (!row && (!model.construction || i < base.entities.length || d.kind !== 'unit')) fail('state-source-actor');
+    const owner=current?owners.get(d.id)!:row!.playerId;
     if(current&&e.owner!==owner)fail('current-owner-join');
-    byId.set(d.id, { id: d.id, at, health, progress, head: progress ? route[1]! : null, owner, row: source.get(d.id)! });
+    byId.set(d.id, { id: d.id, at, health, progress, head: progress ? route[1]! : null, owner, row });
   }
   const retired = new Set<number>(); let previous = 0;
   for (const value of worldList(r.retiredEntityIds, catalog.limits.actors)) {
@@ -62,7 +67,7 @@ export function createInfantryOccupancy(catalog: InfantryPassageCatalog, input: 
   const slots = new Map<number, InfantrySlotState>(); previous = 0;
   for (const value of slotRows) {
     const s = worldRecord(value, ['entityId', 'subcell', 'reservedSubcell']), id = worldInteger(s.entityId, 1, 2147483647), e = byId.get(id);
-    if (id <= previous || !e || e.row.status !== 'ordinary-slots') fail('slot-entity-order'); previous = id;
+    if (id <= previous || !e || e.row?.status !== 'ordinary-slots') fail('slot-entity-order'); previous = id;
     const current = slot(s.subcell), reserved = s.reservedSubcell === null ? null : slot(s.reservedSubcell);
     if (!!e.progress !== (reserved !== null) || retired.has(id) && reserved !== null) fail('slot-reservation');
     slots.set(id, { entityId: id, subcell: current, reservedSubcell: reserved });
@@ -76,7 +81,7 @@ export function createInfantryOccupancy(catalog: InfantryPassageCatalog, input: 
     // A dying actor retains its already-occupied slot so legal settled sharing survives death.
     // It separately blocks every incoming query/reservation until authoritative retirement.
     const s = slots.get(d.id);
-    add(e.at, { entityId: d.id, slot: s?.subcell ?? null, initial: e.at === worldAddress(d.x, d.y) &&
+    add(e.at, { entityId: d.id, slot: s?.subcell ?? null, initial: e.row !== null && e.at === worldAddress(d.x, d.y) &&
       (!s || s.subcell === e.row.sourceSubcell), anchor: true });
     if (e.head !== null) add(e.head, { entityId: d.id, slot: s?.reservedSubcell ?? null, initial: false, anchor: false });
   }
@@ -123,7 +128,7 @@ export function createInfantryOccupancy(catalog: InfantryPassageCatalog, input: 
       if (!e) fail('query-entity');
       const answer = (reason: InfantryCellChoice['reason'], value: InfantrySubcell | null = null, work = 0): InfantryCellChoice =>
         Object.freeze({ status: value === null ? 'blocked' : 'available', subcell: value, reason, work });
-      if (e.row.status !== 'ordinary-slots') return answer('unsupported-actor');
+      if (e.row?.status !== 'ordinary-slots') return answer('unsupported-actor');
       if (retired.has(id)) return answer('retired-actor'); if (e.health === 0) return answer('dying-actor');
       // Holding an already validated anchor adds no claim. No entrant may extend
       // a hostile capture cohort, even a third house allied to every member.

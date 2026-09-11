@@ -74,7 +74,7 @@ test('constructor migration rejects wrong birth boundaries and invalid new state
     assert.throws(() => appendWorldOwnership(initial, next, previous.save().state, changed, 1), /construction-initial/);
     changed[2]!.owner = 0; changed[0]!.x++;
     assert.throws(() => appendWorldOwnership(initial, next, previous.save().state, changed, 1), /construction-state/);
-    const count = structuredClone(result.world.save()); count.state.ownership!.counts[0]!.registered.unit = 0;
+    const count = structuredClone(result.world.save()); Object.assign(count.state.ownership!.counts[0]!.registered, { unit: 0 });
     assert.throws(() => WorldSimulation.restore(next, count), /ownership-counts/);
     const premature = structuredClone(result.world.save()); premature.state.entities[2]!.health = 0;
     premature.state.ownership!.lifecycle[2]!.lethalTick = 1; premature.state.ownership!.lifecycle[2]!.removedTick = 1;
