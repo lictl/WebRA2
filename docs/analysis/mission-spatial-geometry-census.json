@@ -1,0 +1,82 @@
+{
+  "status": "private-static-source-comparison",
+  "scope": "Raw packed map and declared selected TMP-member comparison; upstream theater choice is retained, not independently recompiled.",
+  "sourcePolicy": "Initial source level is signed8; flat Z is truncateTowardZero(level * 104 + 0.5). Base-level term counts do not establish final ramp/overlay/object coordinates.",
+  "nativeLedgerSha256": "0718c5c41807c9dded53cef6bef76128bfd54d7f7fb55a8a8fadc8b0492a34e5",
+  "profiles": [
+    {
+      "profile": "ra2",
+      "missionSha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+      "projectionSha256": "fad603d0d9cc415c9e6dbe413df8e94c705f20a5b4fbc052f1514971ace5f03c",
+      "cuesSha256": "04de715a64b602706227f8013a5a131e02ff52502343b18d7bd5341c9f4e2838",
+      "traversalSha256": "9c7b71856263a771c49034b2c3ed2fc47b659122b73d2ec40ebb29f0c2d1a663",
+      "spatialOccurrences": 27,
+      "sound99": 26,
+      "stop116": 1,
+      "nonzeroRamps": 0,
+      "nonemptyOverlay": 0,
+      "nonzeroTmpHeight": 2,
+      "negativeSignedLevel": 0,
+      "sourceLevelCounts": {
+        "2": 8,
+        "6": 19
+      },
+      "nativeExecutionVerified": false,
+      "runtimeAuthority": false,
+      "baseLevelTermCounts": {
+        "208": 8,
+        "624": 19
+      }
+    },
+    {
+      "profile": "yr",
+      "missionSha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+      "projectionSha256": "4c0aefcc8881002301515643c083a976282f630f71729d060a4a215702ad145b",
+      "cuesSha256": "2d00d9f03405f93d84f697c0e90f67c998aad83e9e0988d80e07f145a2137685",
+      "traversalSha256": "7f4df00682377a8c28c0bee574854404cb669a3d3c946bd3c345b72eca02a077",
+      "spatialOccurrences": 116,
+      "sound99": 97,
+      "stop116": 19,
+      "nonzeroRamps": 8,
+      "nonemptyOverlay": 2,
+      "nonzeroTmpHeight": 0,
+      "negativeSignedLevel": 0,
+      "sourceLevelCounts": {
+        "0": 22,
+        "4": 55,
+        "5": 6,
+        "6": 3,
+        "8": 17,
+        "9": 1,
+        "10": 2,
+        "12": 10
+      },
+      "nativeExecutionVerified": false,
+      "runtimeAuthority": false,
+      "baseLevelTermCounts": {
+        "0": 22,
+        "416": 55,
+        "520": 6,
+        "624": 3,
+        "832": 17,
+        "936": 1,
+        "1040": 2,
+        "1248": 10
+      }
+    }
+  ],
+  "validation": {
+    "scalarComparisons": 1859,
+    "verifiedArchiveRoots": 4,
+    "lzoVersion": "2.10",
+    "allDeclaredSelectedMembersRehashed": true,
+    "webRA2Imports": false,
+    "upstreamTheaterSelectionIndependentlyRecompiled": false
+  },
+  "limitations": [
+    "No native execution or new runtime authority.",
+    "Selected TMP membership is authenticated against retained source projections; asset-choice compilation is an unchanged upstream dependency.",
+    "Counts are action occurrences, not unique cells or independently playable missions.",
+    "Current object coordinates, object enumeration phase and membership, ramps, bridge elevation and dynamic terrain remain separate gates."
+  ]
+}
