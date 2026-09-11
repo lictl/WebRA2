@@ -371,6 +371,11 @@ An exploratory alternating Node run of the bounded candidate measured 15.87 ms
 versus 10.69 ms median preparation at 1,024 groups over 80 measured recorded inputs;
 p95 was 36.02 ms versus 38.11 ms. The earlier unbounded private prototype was faster
 in a separate run and is not the public implementation. Hashing/comparison stayed
-outside the timed interval. The candidate has no Chrome timing or 60 FPS result
-yet; the captured-only 42 FPS failure and all prior driver/coverage limitations in
-the [browser report](gpu-voxel-browser.md) remain applicable evidence.
+outside the timed interval. The subsequent native-selected Chrome4230 short
+renderer-only run reached 74.5 observed completions/s at 1,024 groups (minimum
+full second 73), with median/p95 preparation 9.4/13.7 ms and median GPU query
+5.262 ms. Its eight-second measurement still recorded 32 frame gaps over
+16.667 ms, p95/p99 gaps 16.7/19.5 ms and a 38.6 ms maximum. The smaller64/256
+rows reached120.625/114.5 completions/s. These are short samples, not sustained
+product or retail acceptance. The captured-only42 FPS failure and all earlier
+driver/coverage limitations remain in the [browser report](gpu-voxel-browser.md).
