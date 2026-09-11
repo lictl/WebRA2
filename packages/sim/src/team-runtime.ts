@@ -7,7 +7,7 @@ import { WorldSimulation, type WorldSave, type WorldEntity } from './world.ts';
 import type { WorldModel } from './world-model.ts';
 import { teamSpawnContextData, type TeamSpawnContext } from './team-spawn-context.ts';
 import { teamRecruitmentContextData, type TeamRecruitmentContext } from './team-recruitment-context.ts';
-import { missionTeamContextData, type MissionTeamContext } from './mission-team-context.ts';
+import { missionTeamContextData, missionTeamRuntimeData, type MissionTeamContext } from './mission-team-context.ts';
 import { worldAddress, worldClone, worldHash, worldInteger, worldList, worldRecord, worldSymbol } from './world-values.ts';
 import { navigationCell } from './navigation.ts';
 import { planTeamDestinations, TEAM_DESTINATION_LIMITS, TEAM_DESTINATION_POLICY, type TeamDestinationAssignment } from './team-runtime-destinations.ts';
@@ -55,7 +55,7 @@ export function bindMissionTeamActors(context: MissionTeamContext): TeamRoster {
     if(!t||!b.actorIds.length||b.actorIds.length>64||b.actorIds.length>cap.members-seen.size)fail('mission-binding-team');
     for(const id of b.actorIds){const a=actors.get(id),d=definitions.get(id);
       if(!a||!d||seen.has(id)||a.rowId!==d.rowId||a.typeId!==d.typeId||a.houseId!==t.houseId||a.playerId!==t.playerId||
-        d.owner!==t.playerId||a.bornAtTick!==b.bornAtTick||!['infantry','unit'].includes(d.kind))fail('mission-binding-actor');
+        (!missionTeamRuntimeData(data.runtime).owned && d.owner!==t.playerId)||a.bornAtTick!==b.bornAtTick||!['infantry','unit'].includes(d.kind))fail('mission-binding-actor');
       seen.add(id);quantities.set(d.typeId,(quantities.get(d.typeId)??0)+1);
     }
     if(quantities.size!==t.members.length||t.members.some(m=>quantities.get(m.typeId)!==m.quantity))fail('mission-binding-taskforce');
@@ -327,7 +327,9 @@ export function restoreTeamCheckpoint(roster:TeamRoster,input:unknown,workLimit?
   const value=typeof input==='string'||input instanceof Uint8Array?parseJson(input):worldClone(input);
   const r=worldRecord(value,['schemaVersion','policy','rosterSha256','world','team','pending']);
   if(r.schemaVersion!==1||r.policy!=='webra2-team-transaction-1'||r.rosterSha256!==roster.sha256)fail('checkpoint-identity');
-  const world=WorldSimulation.restore(teamRosterModel(roster),r.world).save(),team=teamState(roster,r.team,world);
+  const world=WorldSimulation.restore(teamRosterModel(roster),r.world).save(),mission=missionContexts.get(roster);
+  if(mission?.ownershipTransfersSha256!==undefined&&mission.ownershipTransfersSha256!==worldHash(world.state.ownership!.transfers))fail('mission-owner-checkpoint');
+  const team=teamState(roster,r.team,world);
   const checkpoint:TeamCheckpoint={schemaVersion:1,policy:'webra2-team-transaction-1',rosterSha256:roster.sha256,world,team,pending:null};
   if(r.pending!==null){const expected=computePlan(roster,checkpoint,budget);if(canonicalText(r.pending)!==canonicalText(expected))fail('pending-plan-mismatch');checkpoint.pending=expected;}
   return checked(roster,checkpoint);
