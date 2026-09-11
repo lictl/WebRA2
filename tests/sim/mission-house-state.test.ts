@@ -1,10 +1,32 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { teamFingerprint } from '../../packages/content/src/team-values.ts';
 import { houseFixture, houseTrigger } from './mission-house-fixture.ts';
 import { createMissionHouseState, applyMissionHouseChanges, saveMissionHouseState, restoreMissionHouseState,
   planMissionHouseTransfer, applyMissionHouseTransfer, evaluateMissionHousePopulation, isMissionHouseState } from '../../packages/sim/src/mission-house-state.ts';
 const profiles = ['ra2', 'yr'] as const;
+test('saved population counters are retained, bounded and verified against ordinary participation', () => {
+  for (const profile of profiles) {
+    const f = houseFixture({ profile }), state = createMissionHouseState(f.source, f.participation), saved = saveMissionHouseState(state);
+    assert.deepEqual(saved.counts, state.counts);
+    const altered = JSON.parse(JSON.stringify(saved)); altered.counts[0].registered.infantry--;
+    const { sha256: _sha256, ...body } = altered; altered.sha256 = teamFingerprint(body, f.source.limits.serializedBytes);
+    assert.throws(() => restoreMissionHouseState(f.source, altered), /save-counts/);
+    const trap = { get() { throw Error('ordinary getter must not execute'); } };
+    const counts = new Proxy(saved.counts.map(c => new Proxy({ ...c,
+      registered: new Proxy({ ...c.registered }, trap), present: new Proxy({ ...c.present }, trap) }, trap)), trap);
+    assert.deepEqual(restoreMissionHouseState(f.source, { ...saved, counts }), state);
+    let low = 0, high = f.source.limits.work;
+    while (low < high) {
+      const middle = Math.floor((low + high) / 2);
+      try { restoreMissionHouseState(f.source, saved, middle); high = middle; }
+      catch (error) { assert.match(String(error), /work-limit/); low = middle + 1; }
+    }
+    assert.deepEqual(restoreMissionHouseState(f.source, saved, low), state);
+    assert.throws(() => restoreMissionHouseState(f.source, saved, low - 1), /work-limit/);
+  }
+});
 test('registered counts and present Counters are separate', () => {
   for (const profile of profiles) {
     const f = houseFixture({ profile }), initial = createMissionHouseState(f.source, f.participation);

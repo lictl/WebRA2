@@ -16,7 +16,9 @@ participation row per initial actor. Initial type, owner and tag come from sourc
 Births use monotonic IDs; removal retains tombstones. Registered and present
 participation are separate, with no health-based inference. Changes are atomic,
 work-bounded and serializable; every original fixture transition is restored and
-replayed. Unsupported type contributions return an unsupported population query,
+replayed. Saved counters are retained and checked against the supported ordinary
+participation invariant; a supplied historical total is never silently discarded.
+Unsupported type contributions return an unsupported population query,
 never an invented zero.
 
 Action14 selects eligible tagged actors even when their current owners differ.
@@ -42,7 +44,7 @@ The new original source/state tests cover both profiles, exact operands, profile
 counter differences, tag versus house selection, powered-building order,
 construction/removal/absence/transfer, aircraft exclusion, current-trigger-house
 selection, unsupported fields, descriptor ownership, bounded failure and
-save/restore/replay. Type checking and all 13 focused tests pass. These are synthetic
+save/restore/replay. Type checking and all 14 focused tests pass. These are synthetic
 checks, not original campaign execution.
 
 The private source preparation rereads the 438-file on-device catalog. It retains

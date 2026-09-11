@@ -7,7 +7,7 @@ import { isMissionHouseSource } from './mission-house-source.ts';
 import { houseFail as fail, houseInteger as integer, houseBoolean as bool } from './mission-house-values.ts';
 import { MISSION_HOUSE_STATE_POLICY, type MissionHouseSource, type MissionHouseState, type MissionHouseActor,
   type MissionHouseParticipation, type MissionHouseChange, type MissionHouseCounts, type MissionHouseTransferPlan } from './mission-house-types.ts';
-export type MissionHouseSave = Omit<MissionHouseState, 'counts'>;
+export type MissionHouseSave = MissionHouseState;
 const contexts = new WeakMap<object, MissionHouseSource>(), plans = new WeakMap<object, MissionHouseState>();
 export const isMissionHouseState = (value: unknown): value is MissionHouseState => !!value && typeof value === 'object' && contexts.has(value);
 function sourceOf(state: MissionHouseState) { return contexts.get(state) ?? fail('state-brand'); }
@@ -56,8 +56,8 @@ function publish(source: MissionHouseSource, actors: MissionHouseActor[], nextEn
   const born = actors.filter(a => a.entityId >= initialNext);
   if (born.some((a, i) => a.entityId !== initialNext + i)) fail('constructed-identity-gap');
   const body = { schemaVersion: 1 as const, policy: MISSION_HOUSE_STATE_POLICY, sourceSha256: source.sha256,
-    actors, nextEntityId, revision };
-  const result: MissionHouseState = freeze({ ...body, counts: [...counters.values()], sha256: teamFingerprint(body, source.limits.serializedBytes) });
+    actors, nextEntityId, revision, counts: [...counters.values()] };
+  const result: MissionHouseState = freeze({ ...body, sha256: teamFingerprint(body, source.limits.serializedBytes) });
   contexts.set(result, source); return result;
 }
 
@@ -103,14 +103,28 @@ export function applyMissionHouseChanges(state: MissionHouseState, values: reado
   return publish(source, [...actors.values()].sort((a, b) => a.entityId - b.entityId), next, integer(state.revision + 1), charge);
 }
 export function saveMissionHouseState(state: MissionHouseState): MissionHouseSave {
-  sourceOf(state); const { counts: _counts, ...save } = state; return freeze(save);
+  sourceOf(state); return state;
 }
 export function restoreMissionHouseState(source: MissionHouseSource, value: unknown, workLimit?: number): MissionHouseState {
   if (!isMissionHouseSource(source)) fail('source-brand'); const charge = meter(source, workLimit);
-  const r = worldRecord(value, ['schemaVersion', 'policy', 'sourceSha256', 'actors', 'nextEntityId', 'revision', 'sha256']);
+  const r = worldRecord(value, ['schemaVersion', 'policy', 'sourceSha256', 'actors', 'nextEntityId', 'revision', 'counts', 'sha256']);
   if (r.schemaVersion !== 1 || r.policy !== MISSION_HOUSE_STATE_POLICY || r.sourceSha256 !== source.sha256) fail('save-identity');
   const rows = worldList(r.actors, source.limits.actors); charge(rows.length * 8);
   const state = publish(source, rows.map(actor), integer(r.nextEntityId), integer(r.revision), charge);
+  const classes = ['building', 'unit', 'infantry', 'aircraft'] as const;
+  const savedCounts = worldList(r.counts, source.limits.houses).map(value => {
+    charge(12); const c = worldRecord(value, ['playerId', 'registered', 'present', 'unknownRegistered', 'unknownPresent']);
+    const counters = (value: unknown) => {
+      const row = worldRecord(value, classes);
+      return Object.fromEntries(classes.map(key => [key, integer(row[key], source.limits.actors)]));
+    };
+    return { playerId: integer(c.playerId), registered: counters(c.registered), present: counters(c.present),
+      unknownRegistered: integer(c.unknownRegistered, source.limits.actors), unknownPresent: integer(c.unknownPresent, source.limits.actors) };
+  });
+  // This policy admits only symmetric ordinary participation. Keep the actual
+  // counters in the save and validate that invariant; never silently discard a
+  // supplied historical total or reinterpret the exceptional native residuals.
+  if (teamFingerprint(savedCounts, source.limits.serializedBytes) !== teamFingerprint(state.counts, source.limits.serializedBytes)) fail('save-counts');
   if (r.sha256 !== state.sha256) fail('save-hash'); return state;
 }
 /** Selection only. The caller's source-house context must be authenticated by the

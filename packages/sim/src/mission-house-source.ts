@@ -115,7 +115,7 @@ export function compileMissionHouseSource(input: MissionHouseInput, options: Par
   charge(houses.length + countries.length + world.players.length + bindings.triggers.length + bindings.tags.length + bindings.objects.length);
   const first = new Map<number, typeof houses[number]>();
   for (const house of houses) if (house.country.index !== null && !first.has(house.country.index)) first.set(house.country.index, house);
-  const players = new Map(world.players.map(p => [p.houseId, p])), triggers = new Map(bindings.triggers.map(t => [t.id, t]));
+  const players = new Map(world.players.map(p => [p.houseId, p])), housesById = new Map(houses.map(h => [h.id, h])), triggers = new Map(bindings.triggers.map(t => [t.id, t]));
   function selector(raw: string | undefined, triggerId: string, action: boolean): MissionHouseSelector {
     const none: MissionHouseSelector = { kind: 'unsupported', raw: raw ?? null, countryIndex: null, houseId: null, playerId: null };
     if (raw === undefined || !/^(?:0|[1-9][0-9]*)$/.test(raw)) return none;
@@ -152,7 +152,7 @@ export function compileMissionHouseSource(input: MissionHouseInput, options: Par
   const initialActors = world.model.entities.map(e => { reference(); return { entityId: e.id, typeId: e.typeId, owner: e.owner, tagId: objectTags.get(e.id) ?? null }; });
   const source = { policy: MISSION_HOUSE_SOURCE_POLICY, profile: definitions.profile, source: definitions.source,
     bindingsSha256: bindings.fingerprint, definitionsSha256: definitions.fingerprint, worldContentSha256: world.sha256, baseWorldSha256: world.model.sha256,
-    houses: world.players.map(p => ({ playerId: p.playerId, houseId: p.houseId, countryIndex: houses.find(h => h.id === p.houseId)?.country.index ?? null })),
+    houses: world.players.map(p => ({ playerId: p.playerId, houseId: p.houseId, countryIndex: housesById.get(p.houseId)?.country.index ?? null })),
     initialActors, types, instructions, tagChains: bindings.tags.filter(t => t.allocated).map(t => { reference(t.runtimeChain.length); return { tagId: t.tagId, triggerIds: [...t.runtimeChain] }; }), diagnostics,
     allInstructionsSupported: instructions.every(i => i.status === 'supported-source') && diagnostics.length === 0,
     initialPopulationTypesSupported: initialActors.every(a => typeMap.get(a.typeId)?.status === 'supported-counts'), limits: cap,
