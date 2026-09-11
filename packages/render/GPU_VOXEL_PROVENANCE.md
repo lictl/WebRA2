@@ -8,9 +8,13 @@ Existing VXL/HVA decoding provenance remains in [VOXEL_PROVENANCE.md](VOXEL_PROV
 No external shader implementation, new dependency, native executable listing or
 retail asset is included in this experiment.
 
-The initial policy explicitly rounds inverse coefficients and ray operations to
-Float32. Its optional Float64 diagnostic reproduces the unchanged CPU renderer in
-original fixtures; the Float32 policy can change depth and near-tie ownership. The
+The current presentation policy uploads Float32 inverse coefficients and uses
+driver-evaluated GLSL highp slab arithmetic. Explicit per-operation CPU Float32
+rounding remains a comparison reference; it is not the displayed-pixel authority.
+The optional Float64 diagnostic retains the old CPU clipping and arithmetic. Both
+precision changes and driver evaluation can change depth, mask and near-tie ownership.
+The original candidate-envelope derivation and its numeric guards are documented
+in the report; no external implementation was copied. The
 factory accepts owned decoded presentation data, not authenticated source authority.
 See [the experiment report](../../docs/gpu-voxel-feasibility.md) for the current
 bounds, tested counts and incomplete GPU/performance gates.
@@ -24,4 +28,6 @@ establish performance, CPU/GPU arithmetic parity or native game behavior.
 
 This experimental checkpoint is not imported into the application bundle. The
 coordinator must add the retained GPL notice/distribution mapping when integrating
-it into a distributed runtime. Actual browser validation remains pending.
+it into a distributed runtime. The earlier browser checkpoint failed exact CPU/GPU Float32 depth equality. Revised
+coverage, independent review and sustained cadence remain pending; the report
+preserves the measured differences and their scope.

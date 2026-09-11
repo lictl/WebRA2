@@ -102,7 +102,7 @@ test('diagnostic planes flip rows; interaction reads only owner/depth for the ex
   mock.read((_attachment, out) => { out[0] = 0; out[1] = bits(11); }); const at = mock.calls.length;
   const hit = renderer.pick(.5, 1.5, 1); assert.equal(hit?.instanceId, 'actor'); assert.equal(hit?.depth, 11);
   const reads = mock.calls.slice(at).filter(c => c.name === 'readPixels'); assert.equal(reads.length, 1); assert.ok(reads.every(c => c.args[0] === 0 && c.args[1] === 0 && c.args[2] === 1 && c.args[3] === 1));
-  renderer.draw(f.frame); const count = mock.calls.filter(c => c.name === 'readPixels').length; assert.equal(renderer.pick(0, 0, 1), null); assert.equal(renderer.pick(-1, 0), null); assert.equal(mock.calls.filter(c => c.name === 'readPixels').length, count);
+  renderer.draw(f.frame); const count = mock.calls.filter(c => c.name === 'readPixels').length; assert.equal(renderer.pick(0, 0, 1), null); assert.equal(renderer.pick(-1, 0, 2), null); assert.equal(renderer.pick(0, 0, undefined as unknown as number), null); assert.equal(mock.calls.filter(c => c.name === 'readPixels').length, count);
   renderer.dispose();
 });
 
