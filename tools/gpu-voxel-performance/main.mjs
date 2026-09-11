@@ -3,7 +3,7 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import { bytesToHex } from '@noble/hashes/utils.js';
 import { GpuVoxelRenderer } from '../../packages/render/src/gpu-voxel-renderer.ts';
-import { GPU_VOXEL_POLICY, pickGpuVoxelFrame, copyGpuVoxelSceneData, copyGpuVoxelFrameData } from '../../packages/render/src/gpu-voxel-policy.ts';
+import { GPU_VOXEL_POLICY, resolveGpuVoxelOwner, pickGpuVoxelFrame, copyGpuVoxelSceneData, copyGpuVoxelFrameData } from '../../packages/render/src/gpu-voxel-policy.ts';
 import { renderVoxelFrame } from '../../packages/render/src/voxel-render.ts';
 import { gpuVoxelOracleCases } from '../../tests/render/gpu-voxel-fixtures.ts';
 import { runVoxelCadence, cadenceOptions } from './cadence.mjs';
@@ -24,7 +24,7 @@ function context(){gl=canvas.getContext('webgl2',attributes);assert(gl,'WebGL2 u
 function top(bytes,width,height){const out=new Uint8Array(bytes.length);for(let y=0;y<height;y++)out.set(bytes.subarray(y*width*4,(y+1)*width*4),(height-1-y)*width*4);return out;}
 function presentation(frame){const pixels=new Uint8Array(frame.width*frame.height*4);gl.bindFramebuffer(gl.READ_FRAMEBUFFER,null);gl.readBuffer(gl.BACK);gl.readPixels(0,0,frame.width,frame.height,gl.RGBA,gl.UNSIGNED_BYTE,pixels);assert(gl.getError()===gl.NO_ERROR,'default framebuffer read error');return top(pixels,frame.width,frame.height);}
 function identity(p){return p?`${p.instanceId}/${p.partId}/${p.voxelOrdinal}`:null;}
-function sumCases(cases){const keys=['pixels','gpuMaskDifferences','gpuOwnerDifferences','gpuDepthDifferences','gpuRgbaDifferences','defaultRgbaDifferences','oldMaskDifferences','oldOwnerDifferences','oldDepthDifferences','oldRgbaDifferences','float64OracleDifferences','interactionDifferences'];return Object.fromEntries(keys.map(k=>[k,cases.reduce((n,c)=>n+c[k],0)]));}
+function sumCases(cases){const keys=['pixels','gpuMaskDifferences','gpuOwnerDifferences','gpuDepthDifferences','gpuRgbaDifferences','defaultRgbaDifferences','defaultGpuPlaneDifferences','gpuOldMaskDifferences','gpuOldOwnerDifferences','gpuOldDepthDifferences','gpuOldRgbaDifferences','oldMaskDifferences','oldOwnerDifferences','oldDepthDifferences','oldRgbaDifferences','float64OracleDifferences','interactionDifferences'];return Object.fromEntries(keys.map(k=>[k,cases.reduce((n,c)=>n+c[k],0)]));}
 async function correctness(token,report){
  const cases=gpuVoxelOracleCases();report.cases=[];report.policy=GPU_VOXEL_POLICY;context();report.contextAttributes=gl.getContextAttributes();report.gl={version:gl.getParameter(gl.VERSION),renderer:gl.getParameter(gl.RENDERER),vendor:gl.getParameter(gl.VENDOR)};
  for(const c of cases){check(token);$('status').textContent=`Checking ${report.cases.length+1}/${cases.length}: ${c.id}`;await pause();
@@ -33,10 +33,11 @@ async function correctness(token,report){
   const shown=presentation(c.frame),gpu=renderer.readback();assert(gl.getError()===gl.NO_ERROR,'diagnostic GL error');
   const old=renderVoxelFrame(c.reference),resident=copyGpuVoxelSceneData(c.frame.scene),packet=copyGpuVoxelFrameData(c.frame);
   const expected=new Uint8Array(gpu.rgba.length),expectedOwner=new Uint32Array(gpu.owner.length),expectedDepth=new Float32Array(gpu.depth.length);expectedOwner.fill(0xffffffff);expectedDepth.fill(-Infinity);
-  const row={id:c.id,width:c.frame.width,height:c.frame.height,pixels:gpu.owner.length,gpuMaskDifferences:0,gpuOwnerDifferences:0,gpuDepthDifferences:0,gpuRgbaDifferences:0,defaultRgbaDifferences:0,oldMaskDifferences:0,oldOwnerDifferences:0,oldDepthDifferences:0,oldRgbaDifferences:0,float64OracleDifferences:0,interactionDifferences:0,maxGpuDepthError:0,firstDifferences:[],picks:[],loadSubmitMs:loaded-start,firstDrawSubmitMs:drawn-loaded,allocations:c.frame.allocations};
+  const row={id:c.id,width:c.frame.width,height:c.frame.height,pixels:gpu.owner.length,gpuMaskDifferences:0,gpuOwnerDifferences:0,gpuDepthDifferences:0,gpuRgbaDifferences:0,defaultRgbaDifferences:0,defaultGpuPlaneDifferences:0,gpuOldMaskDifferences:0,gpuOldOwnerDifferences:0,gpuOldDepthDifferences:0,gpuOldRgbaDifferences:0,oldMaskDifferences:0,oldOwnerDifferences:0,oldDepthDifferences:0,oldRgbaDifferences:0,float64OracleDifferences:0,interactionDifferences:0,maxGpuDepthError:0,firstDifferences:[],picks:[],loadSubmitMs:loaded-start,firstDrawSubmitMs:drawn-loaded,allocations:c.frame.allocations};
   const probes=[];let hits=0,empty=0;
   for(let y=0;y<c.frame.height;y++)for(let x=0;x<c.frame.width;x++){
-   const i=y*c.frame.width+x,p=pickGpuVoxelFrame(c.frame,x,y),fp64=pickGpuVoxelFrame(c.frame,x,y,'float64'),prior=old.pick(x,y);const priorDepth=prior?.depth??-Infinity;
+   const i=y*c.frame.width+x,p=pickGpuVoxelFrame(c.frame,x,y),fp64=pickGpuVoxelFrame(c.frame,x,y,'float64'),prior=old.pick(x,y);const priorDepth=prior?.depth??-Infinity;const gpuHit=resolveGpuVoxelOwner(c.frame,gpu.owner[i],gpu.depth[i]);
+   if((gpuHit===null)!==(prior===null))row.gpuOldMaskDifferences++;if(identity(gpuHit)!==identity(prior))row.gpuOldOwnerDifferences++;if((gpuHit?.depth??-Infinity)!==priorDepth)row.gpuOldDepthDifferences++;
    if(identity(fp64)!==identity(prior)||(fp64?.depth??-Infinity)!==priorDepth)row.float64OracleDifferences++;
    if(p){const placement=packet.placements.find(v=>p.owner>=v.start&&p.owner<v.end);assert(placement,'owner palette join');expectedOwner[i]=p.owner;expectedDepth[i]=p.depth;expected.set(resident.rgba.subarray(placement.palette*1024+p.colorIndex*4,placement.palette*1024+p.colorIndex*4+4),i*4);}
    if((gpu.owner[i]===0xffffffff)!==(p===null))row.gpuMaskDifferences++;
@@ -45,9 +46,9 @@ async function correctness(token,report){
    if((p===null)!==(prior===null))row.oldMaskDifferences++;
    if(identity(p)!==identity(prior))row.oldOwnerDifferences++;
    if((p?.depth??-Infinity)!==priorDepth)row.oldDepthDifferences++;
-   let rgbaDiff=false,displayDiff=false,oldDiff=false;
-   for(let k=0;k<4;k++){const target=expected[i*4+k];rgbaDiff ||= gpu.rgba[i*4+k]!==target;displayDiff ||= shown[i*4+k]!== (p?target:[17,31,47,37][k]);oldDiff ||=old.rgba[i*4+k]!==target;}
-   row.gpuRgbaDifferences+=Number(rgbaDiff);row.defaultRgbaDifferences+=Number(displayDiff);row.oldRgbaDifferences+=Number(oldDiff);
+   let rgbaDiff=false,displayDiff=false,oldDiff=false,gpuDisplayDiff=false,gpuOldDiff=false;
+   for(let k=0;k<4;k++){const target=expected[i*4+k];rgbaDiff ||= gpu.rgba[i*4+k]!==target;displayDiff ||= shown[i*4+k]!== (p?target:[17,31,47,37][k]);oldDiff ||=old.rgba[i*4+k]!==target;gpuOldDiff ||=old.rgba[i*4+k]!==gpu.rgba[i*4+k];gpuDisplayDiff ||=shown[i*4+k] !==(gpuHit?gpu.rgba[i*4+k]:[17,31,47,37][k]);}
+   row.gpuRgbaDifferences+=Number(rgbaDiff);row.defaultRgbaDifferences+=Number(displayDiff);row.oldRgbaDifferences+=Number(oldDiff);row.defaultGpuPlaneDifferences+=Number(gpuDisplayDiff);row.gpuOldRgbaDifferences+=Number(gpuOldDiff);
    if((rgbaDiff||displayDiff||gpu.owner[i]!==expectedOwner[i]||gpu.depth[i]!==expectedDepth[i])&&row.firstDifferences.length<16)row.firstDifferences.push({x,y,cpu:p,gpuOwner:gpu.owner[i],gpuDepth:gpu.depth[i],rgbaDiff,displayDiff});
    if(p&&hits++<3||!p&&empty++<3)probes.push({x,y,p});
   }
@@ -55,7 +56,7 @@ async function correctness(token,report){
   assert(renderer.pick(0,0,receipt.sequence+1)===null,'obsolete pick accepted');assert(renderer.pick(-1,0,receipt.sequence)===null,'outside pick accepted');
   row.hashes={gpuRgba:hash(gpu.rgba),gpuOwner:hash(gpu.owner),gpuDepth:hash(gpu.depth),defaultFramebuffer:hash(shown),cpuRgba:hash(expected),cpuOwner:hash(expectedOwner),cpuDepth:hash(expectedDepth),oldRgba:hash(old.rgba)};row.binCoverage=checkBinCoverage(c.frame,packet);row.stats=renderer.stats();report.cases.push(row);
  }
- report.summary=sumCases(report.cases);report.verified=report.summary.gpuOwnerDifferences===0&&report.summary.gpuDepthDifferences===0&&report.summary.gpuRgbaDifferences===0&&report.summary.defaultRgbaDifferences===0&&report.summary.float64OracleDifferences===0&&report.summary.interactionDifferences===0;
+ report.summary=sumCases(report.cases);report.summary.exactCpuF32=report.summary.gpuOwnerDifferences===0&&report.summary.gpuDepthDifferences===0&&report.summary.gpuRgbaDifferences===0&&report.summary.defaultRgbaDifferences===0&&report.summary.float64OracleDifferences===0&&report.summary.interactionDifferences===0;report.verified=report.summary.defaultGpuPlaneDifferences===0&&report.summary.float64OracleDifferences===0&&report.summary.interactionDifferences===0;report.summary.verificationScope='GPU presentation/readback/pick consistency and old Float64 reference; CPU-f32 equality is separate';
 }
 function eventOnce(target,name,token){return new Promise((resolve,reject)=>{function stop(){clearTimeout(timer);target.removeEventListener(name,handler);token.abort=null;}function handler(){stop();try{check(token);resolve();}catch(e){reject(e);}}const timer=setTimeout(()=>{stop();reject(Error(`${name} timeout`));},5000);token.abort=()=>{stop();reject(Error(token.reason??'cancelled'));};target.addEventListener(name,handler,{once:true});});}
 async function lifecycle(token,report){context();const c=gpuVoxelOracleCases()[0];canvas.width=c.frame.width;canvas.height=c.frame.height;renderer=new GpuVoxelRenderer(gl);renderer.load(c.frame.scene);const first=renderer.draw(c.frame);const before=hash(renderer.readback().rgba);const ext=gl.getExtension('WEBGL_lose_context');assert(ext,'WEBGL_lose_context unavailable');
