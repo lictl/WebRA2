@@ -15,8 +15,8 @@ export function isMissionAudioPlan(value: unknown): value is MissionAudioPlan { 
 export function missionAudioPlanLimits(plan: MissionAudioPlan): MissionAudioLimits {
   const state=plans.get(plan); if(!state) audioFail('plan-brand'); return state.caps;
 }
-const closures = {19:'sound-definition-sample-closure-unresolved',20:'theme-definition-resource-closure-unresolved',21:'speech-definition-side-resource-closure-unresolved'} as const;
-const pending = {19:['native-control-random-loop-selection','native-sound-mixing-volume-timing'],
+const closures = {99:'sound-definition-sample-closure-unresolved',19:'sound-definition-sample-closure-unresolved',20:'theme-definition-resource-closure-unresolved',21:'speech-definition-side-resource-closure-unresolved'} as const;
+const pending = {99:['native-control-random-loop-selection','native-positional-and-object-controller-lifetime','native-spatial-volume-pan-and-visibility'],19:['native-control-random-loop-selection','native-sound-mixing-volume-timing'],
   20:['native-theme-availability-queue-repeat-timing'],21:['native-eva-queue-priority-type-volume-timing']} as const;
 
 /** Fresh named registries from explicit import candidates; does not authenticate invocation or start playback. */
@@ -93,7 +93,7 @@ export function compileMissionAudioPlan(input: MissionAudioPlanInput, options: P
   }
   const bindings:MissionAudioBinding[]=[]; let retainedCharacters=0;
   for(const instruction of cues.instructions) {
-    if(instruction.opcode!==19&&instruction.opcode!==20&&instruction.opcode!==21)continue;
+    if(instruction.opcode!==19&&instruction.opcode!==20&&instruction.opcode!==21&&instruction.opcode!==99)continue;
     const opcode=instruction.opcode;
     const reasons=instruction.reasons.filter(x=>x!==closures[opcode]),addReason=(s:string)=>{if(!reasons.includes(s))reasons.push(s);};
     // paths are sound/eva/theme, whereas opcodes are sound/theme/eva.
@@ -125,7 +125,7 @@ export function compileMissionAudioPlan(input: MissionAudioPlanInput, options: P
     }
     if(defaults?.duplicate)addReason('ambiguous-defaults');
     const field=(key:string)=>fields.find(f=>f.key===key)?.value??'';
-    if(!reasons.length&&opcode===19) {
+    if(!reasons.length&&(opcode===19||opcode===99)) {
       const value=field('Sounds');
       if(value.length>2047||!/^[\t\x20-\x7e]*$/.test(value))addReason('sound-token-boundary');
       const tokens=value.split(/[ \t\n]+/).filter(Boolean);

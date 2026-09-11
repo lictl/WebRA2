@@ -55,3 +55,9 @@ The index-format records support retaining rate, channel, flags and chunk metada
 The bounded RIFF/PCM/IMA-ADPCM header inspection is a WebRA2 validation policy;
 it does not decode waveforms, prove native permissiveness, or start playback.
 See the [component report](../../docs/mission-audio.md) for limits and evidence.
+
+The optional [spatial mission source slice](../../docs/mission-spatial-audio.md)
+reuses this same sound registry and sample-reference pipeline for action99, with
+its original opcode and genuine opt-in cue identity retained. It neither disguises
+99 as19 nor treats116's ignored scalar as a sound lookup. No new playback authority
+or sample bytes are distributed.
