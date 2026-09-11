@@ -3,11 +3,12 @@
 import { shape,int,code,validAction,validProgress,validResult,type TerrainAction,type TerrainResult,type TerrainProgress } from './terrain-protocol.ts';
 import type { CampaignLaunchPlan } from './campaign-protocol.ts';
 import { validWorldAction } from './world-protocol.ts';
+import { captureGpuFrame } from './gpu-protocol.ts';
 export const TERRAIN_DEADLINES=Object.freeze({load:15*60_000,operation:30_000,replay:180_000});
 export interface TerrainPort { request(action:TerrainAction,signal:AbortSignal,progress?:(p:TerrainProgress)=>void):Promise<TerrainResult>; dispose():void }
 export type TerrainWorkerPort=Pick<Worker,'postMessage'|'terminate'|'addEventListener'|'removeEventListener'>;
 export class TerrainBridge implements TerrainPort {
-  #sequence=0;#pending:((e:Error)=>void)|null=null;#dead=false;#identity:string|null=null;#worldHash:string|null=null;#revision=0;#campaign:CampaignLaunchPlan|null=null;
+  #sequence=0;#pending:((e:Error)=>void)|null=null;#dead=false;#identity:string|null=null;#worldHash:string|null=null;#revision=0;#campaign:CampaignLaunchPlan|null=null;#sceneId=0;#gpu=false;
   constructor(private worker:TerrainWorkerPort=new Worker('/workers/terrain.js',{type:'module'})){}
   request(action:TerrainAction,signal:AbortSignal,progress?:(p:TerrainProgress)=>void):Promise<TerrainResult>{
     if(this.#dead || this.#pending || !validAction(action))return Promise.reject(new Error('unavailable'));
@@ -27,12 +28,17 @@ export class TerrainBridge implements TerrainPort {
         }
         if(shape(v,['version','id','type','code']) && v.version===7 && v.type==='error' && code(v.code)){finish(new Error(v.code));return;}
         if(!shape(v,['version','id','type','result']) || v.version!==7 || v.type!=='result' || !validResult(v.result)){finish(new Error('invalid'));return;}
-        const result=v.result;
+        let result=v.result;
+        if(result.type==='gpu-frame'){try{result=captureGpuFrame(result);}catch{finish(new Error('invalid'));return;}}
         if(result.type==='campaign-plan'){
           if(action.type==='campaign-scan'?result.plan.profile!==action.profile:action.type==='campaign-back'?result.plan.fingerprint!==action.fingerprint:true){finish(new Error('invalid'));return;}
-          this.#campaign=structuredClone(result.plan);this.#identity=null;this.#worldHash=null;this.#revision=0;finish(undefined,result);return;
+          this.#campaign=structuredClone(result.plan);this.#identity=null;this.#worldHash=null;this.#revision=0;this.#sceneId=0;this.#gpu=false;finish(undefined,result);return;
         }
         if(action.type==='campaign-scan'||action.type==='campaign-back'){finish(new Error('invalid'));return;}
+        if(result.type==='renderer-refusal'){
+          if(action.type!=='renderer-mode'||action.mode!=='gpu'||!this.#identity||this.#gpu){finish(new Error('invalid'));return;}
+          finish(undefined,result);return;
+        }
 
         if(result.type==='world-document' || result.type==='world-rejection'){
           if(!validWorldAction(action) || result.modelHash!==this.#worldHash || result.revision!==this.#revision){finish(new Error('invalid'));return;}
@@ -45,7 +51,10 @@ export class TerrainBridge implements TerrainPort {
         if(action.type==='pick'){
           if(result.type!=='pick' || result.frameId!==action.frameId){finish(new Error('invalid'));return;}
         }else{
-          if(result.type!=='frame' || result.frameId!==id || (action.type==='load' && (result.summary.profile!==action.profile || result.camera.width!==action.width || result.camera.height!==action.height)) || (action.type==='render' && Object.entries(action.camera).some(([key,value])=>result.camera[key as keyof typeof result.camera]!==value))){finish(new Error('invalid'));return;}
+          if((result.type!=='frame'&&result.type!=='gpu-frame') || result.frameId!==id || (action.type==='load' && (result.summary.profile!==action.profile || result.camera.width!==action.width || result.camera.height!==action.height)) || (action.type==='render' && Object.entries(action.camera).some(([key,value])=>result.camera[key as keyof typeof result.camera]!==value))){finish(new Error('invalid'));return;}
+          const initializing=action.type==='load'||action.type==='campaign-launch',expectedGpu=initializing?false:action.type==='renderer-mode'?action.mode==='gpu':this.#gpu;
+          if((result.type==='gpu-frame')!==expectedGpu){finish(new Error('invalid'));return;}
+          if(result.type==='gpu-frame'&&(result.sceneId!==this.#sceneId||((result.resources!==null)!==(action.type==='renderer-mode'&&action.mode==='gpu')))){finish(new Error('invalid'));return;}
           if(action.type==='load'&&result.summary.mission!==(action.profile==='ra2'?'all01t.map':'all01umd.map')){finish(new Error('invalid'));return;}
           if(action.type==='campaign-launch'){
             const entry=this.#campaign!.entries.find(e=>e.id===action.entryId)!;
@@ -57,6 +66,7 @@ export class TerrainBridge implements TerrainPort {
           if(result.world && result.world.revision!==expectedRevision){finish(new Error('invalid'));return;}
           if(validWorldAction(action) && (!result.world || !['world-order','world-orders','world-step','world-restore'].includes(action.type))){finish(new Error('invalid'));return;}
           this.#identity=identity;this.#worldHash=result.summary.world?.modelHash??null;this.#revision=result.world?.revision??0;
+          if(initializing)this.#sceneId=id;this.#gpu=result.type==='gpu-frame';
         }
         finish(undefined,result);
       };
