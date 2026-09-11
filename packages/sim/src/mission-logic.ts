@@ -575,7 +575,7 @@ export class MissionLogic {
       beginMissionActionWorld(context, this.#program, prior.nextTick);
       const polled = this.#step(1, cells, objects, undefined, context);
       const result = finishMissionActionWorld(context, this.#program);
-      return { ...polled, world: result.world, worldWork: result.work };
+      return { ...polled, world: result.world, worldWork: result.work, ...(result.teams ? { teams: result.teams } : {}) };
     } catch (error) { this.#state = prior; abortMissionActionWorld(context, this.#program); throw error; }
   }
   /** One source-enabled VM tick with explicit data observations, not proof of world movement. */

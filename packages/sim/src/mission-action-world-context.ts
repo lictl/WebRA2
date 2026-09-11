@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Original private candidate-world transaction. See ../MISSION_WORLD_PROVENANCE.md.
 import { isMissionBindingAuthority, missionBindingSourceContext, type MissionBindingAuthority } from './mission-bindings.ts';
-import { missionProgramSpatialAudioSource, missionProgramHouseSource, type MissionProgram } from './mission-logic.ts';
+import { missionProgramSpatialAudioSource, missionProgramHouseSource, missionProgramTeamActions, type MissionProgram } from './mission-logic.ts';
 import { missionHouseSourceContext } from './mission-house-source.ts';
 import { assertWorldModel, type WorldModel } from './world-model.ts';
 import { WorldSimulation, worldHouseTransferFacts, type WorldSave } from './world.ts';
 import { worldHash, worldInteger, worldRecord, WORLD_LIMITS } from './world-values.ts';
+import { missionTeamRuntimeData, type MissionTeamRuntime } from './mission-team-context.ts';
+import { restoreMissionTeamCheckpointWithWork, transferMissionTeamOwnership, type MissionTeamCheckpoint } from './mission-team-runtime.ts';
+import { restoreMissionTeamOwnedWorld } from './mission-team-owned-binding.ts';
 
 import { missionSpatialAudioSourceContext, resolveMissionSpatialAudioInWorld, restoreMissionSpatialAudioWorld, type MissionSpatialAudioTarget } from './mission-spatial-audio-source.ts';
 
@@ -21,6 +24,7 @@ type Owned = {
   readonly sourceHouses: ReadonlyMap<string, number>;
   readonly owners: Map<number, number | null>;
   readonly limit: number; work: number;
+  readonly teamRuntime: MissionTeamRuntime | null; teams: MissionTeamCheckpoint | null;
   state: 'fresh' | 'running' | 'finished' | 'aborted'; world: WorldSimulation | null;
 };
 const contexts = new WeakMap<object, Owned>();
@@ -39,11 +43,14 @@ function charge(data: Owned, n: number): void {
  * mission checkpoint; this factory does not certify a mission invocation. */
 export function createMissionActionWorldContext(input: Readonly<{
   world: WorldModel; bindings: MissionBindingAuthority; checkpoint: WorldSave; missionNextTick: number;
+  teams?: Readonly<{ runtime: MissionTeamRuntime; checkpoint: MissionTeamCheckpoint }>;
 }>, workLimit: number): MissionActionWorldContext {
-  const r = worldRecord(input, ['world', 'bindings', 'checkpoint', 'missionNextTick']);
+  const hasTeams = !!input && typeof input === 'object' && Object.hasOwn(input, 'teams');
+  const r = worldRecord(input, ['world', 'bindings', 'checkpoint', 'missionNextTick', ...(hasTeams ? ['teams'] : [])]);
   if (!isMissionBindingAuthority(r.bindings)) fail('authority');
   const bindings = r.bindings, model = r.world as WorldModel; assertWorldModel(model);
   const house = missionProgramHouseSource(bindings.program), spatial = missionProgramSpatialAudioSource(bindings.program);
+  if (missionProgramTeamActions(bindings.program) && !hasTeams) fail('team-source');
   if ((!house && !spatial) || (model.ownership ?? null) !== house ||
     (house && (house.bindingsSha256 !== bindings.catalogSha256 || house.baseWorldSha256 !== bindings.worldSha256)) ||
     (spatial && (spatial.bindingsSha256 !== bindings.catalogSha256 || spatial.baseWorldSha256 !== bindings.worldSha256))) fail('source');
@@ -67,14 +74,29 @@ export function createMissionActionWorldContext(input: Readonly<{
     sourceHouses.set(instruction.triggerId, player.playerId);
   }
   const tick = worldInteger(r.missionNextTick, 0, WORLD_LIMITS.tick - 1);
-  const restored = spatial ? restoreMissionSpatialAudioWorld(spatial, model, r.checkpoint as WorldSave, Math.min(8_388_608, limit - initialWork)) : null;
-  const world = restored?.world ?? WorldSimulation.restore(model, r.checkpoint);
+  let work = initialWork, teamRuntime: MissionTeamRuntime | null = null, teams: MissionTeamCheckpoint | null = null;
+  if (hasTeams) {
+    const t = worldRecord(r.teams, ['runtime', 'checkpoint']), runtime = t.runtime as MissionTeamRuntime;
+    const data = missionTeamRuntimeData(runtime);
+    if (!house || !data.owned || data.baseModel !== model || data.source !== missionProgramTeamActions(bindings.program)) fail('team-source');
+    const restored = restoreMissionTeamCheckpointWithWork(runtime, t.checkpoint, Math.min(runtime.limits.tickWork, limit - work));
+    // Reserve the later complete world equality check as well as reconstruction.
+    if (restored.work * 2 > limit - work) fail('work-limit'); work += restored.work * 2;
+    if (restored.checkpoint.pending) fail('team-pending');
+    teamRuntime = runtime; teams = restored.checkpoint;
+  }
+  const restored = spatial ? restoreMissionSpatialAudioWorld(spatial, model, r.checkpoint as WorldSave, Math.min(8_388_608, limit - work)) : null;
+  work += restored?.work ?? 0;
+  const ownedWorld = teamRuntime && !restored ? restoreMissionTeamOwnedWorld(missionTeamRuntimeData(teamRuntime).owned!, r.checkpoint, limit - work) : null;
+  if (ownedWorld) { if (ownedWorld.work * 2 > limit - work) fail('work-limit'); work += ownedWorld.work * 2; }
+  const world = restored?.world ?? WorldSimulation.restore(model, ownedWorld?.world ?? r.checkpoint);
   if (world.nextTick !== tick + 1) fail('clock');
   const checkpoint = world.save();
+  if (teams && worldHash(teams.team.world) !== worldHash(checkpoint)) fail('team-world');
   const owners = new Map(checkpoint.state.entities.map((e, i) => [e.id, house ? e.owner! : model.entities[i]!.owner]));
   const result = Object.freeze({ policy: MISSION_ACTION_WORLD_POLICY, programSha256: bindings.program.sha256,
     worldSha256: model.sha256, fromStateSha256: worldHash(checkpoint), missionNextTick: tick });
-  const data: Owned = { bindings, model, sourceHouses, owners, limit, work: initialWork + (restored?.work ?? 0), state: 'fresh', world };
+  const data: Owned = { bindings, model, sourceHouses, owners, limit, work, teamRuntime, teams, state: 'fresh', world };
   contexts.set(result, data); return result;
 }
 
@@ -98,12 +120,21 @@ export function missionActionTransfer(context: MissionActionWorldContext, progra
   if (!instruction || instruction.kind !== 'action' || instruction.triggerId !== triggerId ||
     !chain?.triggerIds.includes(triggerId)) fail('invocation');
   const sourceHouse = data.sourceHouses.get(triggerId); if (sourceHouse === undefined) fail('trigger-house');
-  const result = data.world!.transferOwnership({ instructionId, sourceHouse, triggerHouse: null },
+  const invocation = { instructionId, sourceHouse, triggerHouse: null };
+  const transferred = data.teamRuntime ? transferMissionTeamOwnership(data.teamRuntime, data.teams!, invocation,
+    Math.min(data.teamRuntime.limits.tickWork, data.limit - data.work)) : null;
+  if (transferred) charge(data, transferred.work);
+  const result = transferred?.result ?? data.world!.transferOwnership(invocation,
     Math.min(WORLD_LIMITS.replayWork, data.limit - data.work));
   const receipt = worldHouseTransferFacts(data.model, result);
   if (receipt.instructionId !== instructionId || receipt.sourceSha256 !== source.sha256 ||
     receipt.bindingsSha256 !== data.bindings.catalogSha256 || receipt.nextTick !== context.missionNextTick + 1) fail('receipt');
-  charge(data, result.work + result.changedEntityIds.length);
+  charge(data, (transferred ? 0 : result.work) + result.changedEntityIds.length);
+  if (transferred) {
+    const restored = restoreMissionTeamOwnedWorld(missionTeamRuntimeData(data.teamRuntime!).owned!, transferred.checkpoint.team.world, data.limit - data.work);
+    charge(data, restored.work * 2);
+    data.world = WorldSimulation.restore(data.model, restored.world); data.teams = transferred.checkpoint;
+  }
   for (const entityId of result.changedEntityIds) {
     if (!data.owners.has(entityId)) fail('actor-owner');
     data.owners.set(entityId, result.destinationHouse);
@@ -136,11 +167,12 @@ export function missionActionActorOwner(context: MissionActionWorldContext, prog
 export function missionActionWorldSnapshot(context: MissionActionWorldContext, program: MissionProgram): WorldSave {
   const data = owned(context, program, 'running'); charge(data, data.model.entities.length); return data.world!.save();
 }
-export function finishMissionActionWorld(context: MissionActionWorldContext, program: MissionProgram): Readonly<{ world: WorldSave; work: number }> {
+export function finishMissionActionWorld(context: MissionActionWorldContext, program: MissionProgram): Readonly<{ world: WorldSave; work: number; teams?: MissionTeamCheckpoint }> {
   const data = owned(context, program, 'running'), world = data.world!.save();
-  data.state = 'finished'; data.world = null; data.owners.clear(); return { world, work: data.work };
+  const teams = data.teams; data.teams = null;
+  data.state = 'finished'; data.world = null; data.owners.clear(); return { world, work: data.work, ...(teams ? { teams } : {}) };
 }
 export function abortMissionActionWorld(context: MissionActionWorldContext, program: MissionProgram): void {
   const data = contexts.get(context);
-  if (data?.bindings.program === program && data.state !== 'finished') { data.state = 'aborted'; data.world = null; data.owners.clear(); }
+  if (data?.bindings.program === program && data.state !== 'finished') { data.state = 'aborted'; data.world = null; data.teams = null; data.owners.clear(); }
 }

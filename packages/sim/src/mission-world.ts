@@ -3,7 +3,7 @@
 import type { MissionAudioPolicyCatalog, MissionAudioPolicyBinding } from '../../content/src/mission-audio-policy.ts';
 import { MISSION_SPATIAL_INTENT_POLICY, createMissionSpatialIntents, restoreMissionSpatialIntents,
   appendMissionSpatialIntents, type MissionSpatialIntentState } from './mission-spatial-intents.ts';
-import { missionSpatialAudioSourceContext, type MissionSpatialAudioSource, type MissionSpatialAudioTarget } from './mission-spatial-audio-source.ts';
+import { missionSpatialAudioSourceContext, restoreMissionSpatialAudioWorld, type MissionSpatialAudioSource, type MissionSpatialAudioTarget } from './mission-spatial-audio-source.ts';
 import type { MissionHouseSource } from './mission-house-source.ts';
 import { createMissionActionWorldContext, MISSION_ACTION_WORLD_POLICY } from './mission-action-world-context.ts';
 import { missionProgramSpatialAudioSource, MISSION_SPATIAL_AUDIO_DISPATCH_POLICY, missionProgramHouseSource, MISSION_HOUSE_DISPATCH_POLICY } from './mission-logic.ts';
@@ -20,10 +20,11 @@ import { missionCellEntrySourceBindings, type MissionCellEntrySource } from './m
 import { missionObjectEventSourceBindings, type MissionObjectEventSource, type MissionObjectEventActor } from './mission-object-event-source.ts';
 import { missionTeamActionSourceContext } from './mission-team-action-source.ts';
 import { compileMissionTeamRuntime, restoreMissionTeamContext, type MissionTeamRuntime } from './mission-team-context.ts';
+import { compileMissionTeamOwnedBinding } from './mission-team-owned-binding.ts';
 import { isMissionTeamCellSource, missionTeamCellSourceContext } from './mission-team-cell-source.ts';
 import { compileMissionTeamCellContext, missionTeamCellContextData } from './mission-team-cell-context.ts';
 import type { MissionTeamCellSource } from './mission-team-cell-types.ts';
-import { createMissionTeamCheckpoint, restoreMissionTeamCheckpoint, admitMissionTeamInput, stepMissionTeamWorld, missionTeamWorldStep,
+import { createMissionTeamCheckpoint, restoreMissionTeamCheckpoint, admitMissionTeamInput, admitMissionTeamInputWithWork, stepMissionTeamWorld, missionTeamWorldStep,
   type MissionTeamCheckpoint, type MissionTeamReceipt, type MissionTeamEvent } from './mission-team-runtime.ts';
 import type { TeamOrder, TeamEvent } from './team-runtime.ts';
 import type { MissionCueCatalog } from '../../content/src/mission-cues.ts';
@@ -33,11 +34,13 @@ export const MISSION_WORLD_POLICY = 'webra2-mission-world-poll-1' as const;
 export const MISSION_WORLD_CELL_PHASE_POLICY = 'webra2-world-cell-events-before-scenario-poll-1' as const;
 export const MISSION_WORLD_OBJECT_PHASE_POLICY = 'webra2-world-health-callbacks-before-scenario-poll-1' as const;
 export const MISSION_WORLD_HOUSE_CALLBACK_POLICY = 'webra2-current-house-callbacks-before-poll-1' as const;
+export const MISSION_WORLD_OWNED_TEAM_POLICY = 'webra2-fixed-actor-team-action-world-1' as const;
 export const MISSION_WORLD_TEAM_PHASE_POLICY = 'webra2-world-team-actions-next-tick-1' as const;
 export const MISSION_WORLD_TEAM_CELL_PHASE_POLICY = 'webra2-world-team-cell-events-before-scenario-poll-1' as const;
 export const MISSION_WORLD_LIMITS = Object.freeze({ ticks: 128, work: 16_777_216, trace: 32768, replayTicks: 10000, admissions: 1024, presentationUnits: 1_048_576 });
 export interface MissionWorldModel {
   readonly policy: typeof MISSION_WORLD_POLICY; readonly sha256: string; readonly worldSha256: string;
+  readonly teamOwnershipPolicy?: typeof MISSION_WORLD_OWNED_TEAM_POLICY;
   readonly teamActionSourceSha256?: string; readonly teamRuntimeSha256?: string; readonly teamPhasePolicy?: typeof MISSION_WORLD_TEAM_PHASE_POLICY;
   readonly teamCellSourceSha256?: string; readonly teamCellPhasePolicy?: typeof MISSION_WORLD_TEAM_CELL_PHASE_POLICY;
   readonly cellEntrySourceSha256?: string; readonly cellEntryPhasePolicy?: typeof MISSION_WORLD_CELL_PHASE_POLICY;
@@ -216,7 +219,7 @@ type Source = { world: WorldModel; bindings: MissionBindingAuthority; flags: Mis
   houses: MissionHouseSource | null; spatial: MissionSpatialAudioSource | null;
   spatialByInstruction: ReadonlyMap<string, MissionSpatialAudioSource['instructions'][number]>;
   audio: MissionAudioPolicyCatalog | null; audioByInstruction: ReadonlyMap<string, MissionAudioPolicyBinding>;
-  teams: MissionTeamRuntime | null; teamCells: MissionTeamCellSource | null; cells: MissionCellEntrySource | null; cellByAddress: ReadonlyMap<number, string>;
+  teams: MissionTeamRuntime | null; ownedTeams: boolean; teamCells: MissionTeamCellSource | null; cells: MissionCellEntrySource | null; cellByAddress: ReadonlyMap<number, string>;
   objects: MissionObjectEventSource | null; objectActors: ReadonlyMap<number, MissionObjectEventActor> };
 const sources = new WeakMap<MissionWorldModel, Source>();
 function source(model: MissionWorldModel): Source { const s = sources.get(model); if (!s) fail('model'); return s; }
@@ -273,11 +276,13 @@ export function compileMissionWorld(input: {
     // movement-only actors cannot receive its hits and remain represented in the source.
     for (const actor of bridge?.actors ?? []) if (actor.role !== 'movement-only' && objectActors.get(actor.entityId)?.status !== 'supported') fail('object-combat-context');
   }
-  const teams = teamSource ? compileMissionTeamRuntime(teamSource) : null;
-  // Initial source actors can read current owners from the private candidate.
-  // Dynamically constructed team actors still require their own ownership join.
-  if (houses && teams) fail('house-team-context');
-  if (spatial && teams) fail('spatial-team-context');
+  const ownedTeams = teamSource && houses ? compileMissionTeamOwnedBinding({ source: teamSource, world }) : null;
+  if (ownedTeams && (!ownedTeams.allRequiredActionsSupported ||
+    (houses!.instructions.some(i => i.kind === 'action') && !ownedTeams.allRequiredTransfersSupported))) fail('owned-team-source');
+  const teams = teamSource ? compileMissionTeamRuntime(teamSource, {}, ownedTeams) : null;
+  // Fixed actors retain complete initial event/spatial identities. Dynamic actors
+  // still require constructor-specific ownership and observer capabilities.
+  if (spatial && teams && !ownedTeams) fail('spatial-team-context');
   let teamCells: MissionTeamCellSource | null = null;
   if (hasTeamCells) {
     if (!teams || !cells || !isMissionTeamCellSource(r.teamCells)) fail('team-cell-source');
@@ -291,7 +296,7 @@ export function compileMissionWorld(input: {
       teams.baseModelSha256 !== world.sha256) fail('team-source');
     // Only the explicit complete team-cell source extends initial actor context.
     // Object callbacks and combat still require their own dynamic actor proof.
-    if ((cells && !teamCells) || objects) fail('team-dynamic-event-context');
+    if (!ownedTeams && ((cells && !teamCells) || objects)) fail('team-dynamic-event-context');
   }
   const initial = MissionLogic.create(bindings.program, { bindings: bindings.bindings, globals: flags.globals, locals: flags.locals }).save();
   const data = { policy: MISSION_WORLD_POLICY, worldSha256: world.sha256, bindingsSha256: bindings.catalogSha256,
@@ -300,13 +305,14 @@ export function compileMissionWorld(input: {
     ...(houses ? { houseSourceSha256: houses.sha256, houseDispatchPolicy: MISSION_HOUSE_DISPATCH_POLICY } : {}),
     ...(houses || spatial ? { actionWorldPolicy: MISSION_ACTION_WORLD_POLICY } : {}),
     ...(spatial ? { spatialAudioSourceSha256: spatial.sha256, spatialAudioDispatchPolicy: MISSION_SPATIAL_AUDIO_DISPATCH_POLICY, spatialIntentPolicy: MISSION_SPATIAL_INTENT_POLICY } : {}),
+    ...(ownedTeams ? { teamOwnershipPolicy: MISSION_WORLD_OWNED_TEAM_POLICY } : {}),
     ...(teams ? { teamActionSourceSha256: teamSource!.sha256, teamRuntimeSha256: teams.sha256, teamPhasePolicy: MISSION_WORLD_TEAM_PHASE_POLICY } : {}),
     ...(teamCells ? { teamCellSourceSha256: teamCells.sha256, teamCellPhasePolicy: MISSION_WORLD_TEAM_CELL_PHASE_POLICY } : {}),
     ...(audio ? { audioPolicySha256: audio.sha256, audioDispatchPolicy: MISSION_AUDIO_DISPATCH_POLICY } : {}),
     ...(cues ? { cueCatalogSha256: cues.sha256, cueDispatchPolicy: MISSION_CUE_DISPATCH_POLICY } : {}),
     ...(cells ? { cellEntrySourceSha256: cells.sha256, cellEntryPhasePolicy: MISSION_WORLD_CELL_PHASE_POLICY } : {}),
     ...(objects ? { objectEventSourceSha256: objects.sha256, objectEventPhasePolicy: MISSION_WORLD_OBJECT_PHASE_POLICY } : {}) };
-  const model = freeze({ ...data, sha256: worldHash(data) }); sources.set(model, { world, bindings, flags, initial, cues, audio, audioByInstruction, teams, teamCells, cells, cellByAddress, objects, objectActors, houses, spatial, spatialByInstruction }); return model;
+  const model = freeze({ ...data, sha256: worldHash(data) }); sources.set(model, { world, bindings, flags, initial, cues, audio, audioByInstruction, teams, ownedTeams: ownedTeams !== null, teamCells, cells, cellByAddress, objects, objectActors, houses, spatial, spatialByInstruction }); return model;
 }
 function checkFlags(s: Source, mission: MissionSave): void {
   if (mission.locals.slice(s.flags.localCapacity).some(Boolean) || mission.pending.some(i => i.kind === 'local' && i.index >= s.flags.localCapacity)) fail('local-capacity');
@@ -325,7 +331,7 @@ export function restoreMissionWorld(model: MissionWorldModel, value: unknown): M
     const context = compileMissionTeamCellContext({ source: s.teamCells, teams: restoreMissionTeamContext(s.teams!, teams.history) });
     if (context.modelSha256 !== teams.team.world.state.modelSha256) fail('team-cell-world');
   }
-  const restoredWorld = teams ? null : WorldSimulation.restore(s.world, r.world);
+  const restoredWorld = teams && !s.spatial ? null : WorldSimulation.restore(s.world, teams?.team.world ?? r.world);
   const world = teams ? teams.team.world : restoredWorld!.save(), mission = MissionLogic.restore(s.bindings.program, r.mission).save();
   if (teams && teams.requests.some(q => q.effectOrder < 1 || q.effectOrder >= mission.nextEffectOrder || q.emittedAtTick >= mission.nextTick)) fail('team-vm-cursor');
   if (world.nextTick !== mission.nextTick) fail('clock'); checkFlags(s, mission);
@@ -469,15 +475,46 @@ export function stepMissionWorld(model: MissionWorldModel, value: unknown, ticks
 /** D03: one world tick, optional genuine team-cell entries, then poll and next-tick requests. */
 function stepMissionTeams(model: MissionWorldModel, checkpoint: MissionWorldCheckpoint, ticks: number, workLimit: number): MissionWorldResult {
   const s = source(model), runtime = s.teams!, mission = MissionLogic.restore(s.bindings.program, checkpoint.mission);
-  let teams = checkpoint.teams!, cursor = checkpoint.presentation, audioCursor = checkpoint.audio, work = 0, units = 0;
+  let teams = checkpoint.teams!, cursor = checkpoint.presentation, audioCursor = checkpoint.audio, spatialCursor = checkpoint.spatialAudio, intents = checkpoint.spatialIntents, work = 0, units = 0;
   const effects: MissionEffect[] = [], worldEvents: WorldTrace[] = [], actions: MissionTeamEvent[] = [], orders: TeamOrder[] = [], events: (TeamEvent & { tick: number })[] = [];
-  const requests: MissionWorldPresentationRequest[] = [], audioRequests: MissionWorldAudioRequest[] = [];
+  const requests: MissionWorldPresentationRequest[] = [], audioRequests: MissionWorldAudioRequest[] = [], spatialRequests: MissionWorldSpatialAudioRequest[] = [];
   const charge = (n: number) => { if (n > workLimit - work) fail('work-limit'); work += n; };
   for (let at = 0; at < ticks; at++) {
     const advanced = stepMissionTeamWorld(runtime, teams, Math.min(runtime.limits.tickWork, workLimit - work)); charge(advanced.work);
     const receipt = missionTeamWorldStep(advanced);
-    let polled: ReturnType<MissionLogic['step']>;
-    if (s.teamCells) {
+    let polled: ReturnType<MissionLogic['step']>, nextTeams = advanced.checkpoint;
+    if (s.ownedTeams) {
+      if (receipt.model !== s.world || receipt.step.nextTick !== advanced.checkpoint.team.world.nextTick) fail('owned-team-world');
+      const entries: { cellId: string; entityId: number }[] = [];
+      if (s.cells) for (const event of receipt.step.events) {
+        charge(1); if (event.phase !== 'movement' || event.kind !== 'moved' || event.cell === null) continue;
+        const cellId = s.cellByAddress.get(event.cell); if (!cellId) continue;
+        if (entries.length >= MISSION_LOGIC_LIMITS.cellEntries) fail('cell-event-limit');
+        entries.push({ cellId, entityId: event.entityId });
+      }
+      const callbacks: MissionObjectEventObservation[] = [];
+      if (s.objects) {
+        const facts = worldStepCombatObservations(s.world, receipt.step);
+        if (facts.fromNextTick !== checkpoint.mission.nextTick + at || facts.toNextTick !== receipt.step.nextTick) fail('object-clock');
+        for (const hit of facts.damage) {
+          charge(1); if (hit.healthBefore <= 0 || hit.damage <= 0 || hit.healthAfter >= hit.healthBefore) continue;
+          const target = s.objectActors.get(hit.targetId), attacker = s.objectActors.get(hit.sourceId);
+          if (!target || !attacker || target.status !== 'supported' || attacker.status !== 'supported' ||
+            target.playerId === null || attacker.playerId === null) fail('object-hit-context');
+          if (target.bindingId === null) continue;
+          for (const callback of hit.healthAfter === 0 ? target.fatalSequence : target.nonfatalSequence) {
+            charge(1); if (callbacks.length >= MISSION_LOGIC_LIMITS.objectEvents) fail('object-event-limit');
+            callbacks.push({ opcode: callback.opcode, entityId: target.entityId, sourceId: attacker.entityId });
+          }
+        }
+      }
+      const context = createMissionActionWorldContext({ world: s.world, bindings: s.bindings,
+        checkpoint: advanced.checkpoint.team.world, missionNextTick: checkpoint.mission.nextTick + at,
+        teams: { runtime, checkpoint: advanced.checkpoint } }, workLimit - work);
+      const transaction = mission.stepWorldContext(context, entries, callbacks); charge(transaction.worldWork);
+      if (!transaction.teams || worldHash(transaction.teams.team.world) !== worldHash(transaction.world)) fail('owned-team-result');
+      nextTeams = transaction.teams; polled = transaction;
+    } else if (s.teamCells) {
       const context = compileMissionTeamCellContext({ source: s.teamCells, teams: restoreMissionTeamContext(runtime, advanced.checkpoint.history) },
         { contextWork: Math.min(s.teamCells.limits.contextWork, workLimit - work) });
       const data = missionTeamCellContextData(context); charge(data.contextWork);
@@ -495,7 +532,7 @@ function stepMissionTeams(model: MissionWorldModel, checkpoint: MissionWorldChec
     } else polled = mission.step();
     charge(polled.work);
     if (receipt.step.nextTick !== polled.nextTick || advanced.checkpoint.team.world.nextTick !== polled.nextTick) fail('team-clock');
-    teams = advanced.checkpoint;
+    teams = nextTeams;
     const incoming: MissionTeamReceipt[] = [];
     for (const effect of polled.effects) {
       charge(1); if (effect.kind !== 'team-request') continue;
@@ -505,7 +542,12 @@ function stepMissionTeams(model: MissionWorldModel, checkpoint: MissionWorldChec
     }
     // No receipt/effect list is accepted from callers. These requests come from
     // this private VM invocation, after the world's only advance in this tick.
-    if (incoming.length) teams = admitMissionTeamInput(runtime, teams, { requests: incoming, commands: [] });
+    if (incoming.length) {
+      if (s.ownedTeams) {
+        const admitted = admitMissionTeamInputWithWork(runtime, teams, { requests: incoming, commands: [] }, Math.min(runtime.limits.tickWork, workLimit - work));
+        charge(admitted.work); teams = admitted.checkpoint;
+      } else teams = admitMissionTeamInput(runtime, teams, { requests: incoming, commands: [] });
+    }
     if (s.cues && cursor) {
       const selected = polled.effects.filter(e => e.kind === 'presentation-request');
       const appended = appendMissionCues(s.cues, cursor, { tick: polled.nextTick - 1,
@@ -523,15 +565,30 @@ function stepMissionTeams(model: MissionWorldModel, checkpoint: MissionWorldChec
       if (appended.requests.length > MISSION_WORLD_LIMITS.trace - audioRequests.length) fail('audio-trace-limit');
       audioRequests.push(...appended.requests); audioCursor = appended.state;
     }
+    if (s.spatial && spatialCursor) {
+      const appended = appendSpatial(s, spatialCursor, polled.effects, polled.nextTick - 1, MISSION_WORLD_LIMITS.presentationUnits - units);
+      units += appended.units; charge(appended.work);
+      if (appended.requests.length > MISSION_WORLD_LIMITS.trace - spatialRequests.length) fail('spatial-trace-limit');
+      spatialRequests.push(...appended.requests); spatialCursor = appended.state;
+      const restored = restoreMissionSpatialAudioWorld(s.spatial, s.world, teams.team.world, Math.min(8_388_608, workLimit - work));
+      charge(restored.work); const current = restored.world;
+      const retained = appendMissionSpatialIntents(s.spatial, intents!, appended.requests.map(r => ({ sequence: r.sequence,
+        instructionId: r.instructionId, opcode: r.opcode, soundIndex: r.soundIndex, target: r.target })), current,
+        Math.min(8_388_608, workLimit - work));
+      charge(retained.work); intents = retained.state;
+    }
     const size = polled.effects.length + advanced.worldEvents.length + advanced.actionEvents.length + advanced.orders.length + advanced.events.length;
     if (size > MISSION_WORLD_LIMITS.trace - effects.length - worldEvents.length - actions.length - orders.length - events.length) fail('trace-limit');
     effects.push(...polled.effects); worldEvents.push(...advanced.worldEvents); actions.push(...advanced.actionEvents); orders.push(...advanced.orders); events.push(...advanced.events);
   }
-  const next = restoreMissionWorld(model, { ...checkpoint, teams, world: teams.team.world, mission: mission.save(), ...(cursor ? { presentation: cursor } : {}), ...(audioCursor ? { audio: audioCursor } : {}) });
+  const next = restoreMissionWorld(model, { ...checkpoint, teams, world: teams.team.world, mission: mission.save(), ...(cursor ? { presentation: cursor } : {}), ...(audioCursor ? { audio: audioCursor } : {}),
+    ...(spatialCursor ? { spatialAudio: spatialCursor } : {}), ...(intents ? { spatialIntents: intents } : {}) });
   return freeze({ checkpoint: next, effects, worldEvents, work, teams: { actions, orders, events },
     ...(s.cues ? { presentation: presentation(model, checkpoint.world.nextTick, next, requests) } : {}),
-    ...(s.audio ? { audio: audioBatch(model, checkpoint.world.nextTick, next, audioRequests) } : {}) });
+    ...(s.audio ? { audio: audioBatch(model, checkpoint.world.nextTick, next, audioRequests) } : {}),
+    ...(s.spatial ? { spatialAudio: spatialBatch(model, checkpoint.world.nextTick, next, spatialRequests) } : {}) });
 }
+
 export interface MissionWorldReplay {
   readonly schemaVersion: 1; readonly modelSha256: string; readonly initialCheckpoint: MissionWorldCheckpoint;
   readonly admissions: readonly Readonly<{ nextTick: number; input: MissionWorldAdmission }>[];
