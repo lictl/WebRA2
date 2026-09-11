@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Original bounded compound transactions. See ../MISSION_WORLD_PROVENANCE.md.
 import type { MissionAudioPolicyCatalog, MissionAudioPolicyBinding } from '../../content/src/mission-audio-policy.ts';
+import type { MissionHouseSource } from './mission-house-source.ts';
+import { createMissionActionWorldContext, MISSION_ACTION_WORLD_POLICY } from './mission-action-world-context.ts';
+import { missionProgramHouseSource, MISSION_HOUSE_DISPATCH_POLICY } from './mission-logic.ts';
 import type { CommandEnvelope } from '../../contracts/src/index.ts';
 import { canonicalText, parseJson } from './canonical.ts';
 import { isMissionBindingAuthority, type MissionBindingAuthority } from './mission-bindings.ts';
@@ -36,6 +39,8 @@ export interface MissionWorldModel {
   readonly cellEntrySourceSha256?: string; readonly cellEntryPhasePolicy?: typeof MISSION_WORLD_CELL_PHASE_POLICY;
   readonly objectEventSourceSha256?: string; readonly objectEventPhasePolicy?: typeof MISSION_WORLD_OBJECT_PHASE_POLICY;
   readonly audioPolicySha256?: string; readonly audioDispatchPolicy?: typeof MISSION_AUDIO_DISPATCH_POLICY;
+  readonly houseSourceSha256?: string; readonly houseDispatchPolicy?: typeof MISSION_HOUSE_DISPATCH_POLICY;
+  readonly actionWorldPolicy?: typeof MISSION_ACTION_WORLD_POLICY;
   readonly cueCatalogSha256?: string; readonly cueDispatchPolicy?: typeof MISSION_CUE_DISPATCH_POLICY;
   readonly bindingsSha256: string; readonly programSha256: string; readonly flagsSha256: string;
   readonly canStartCampaign: false; readonly nativeBehaviorVerified: false;
@@ -143,6 +148,7 @@ function freeze<T>(v: T): T {
   if (v && typeof v === 'object' && !Object.isFrozen(v)) { for (const c of Object.values(v)) freeze(c); Object.freeze(v); } return v;
 }
 type Source = { world: WorldModel; bindings: MissionBindingAuthority; flags: MissionInitialFlags; initial: MissionSave; cues: MissionCueCatalog | null;
+  houses: MissionHouseSource | null;
   audio: MissionAudioPolicyCatalog | null; audioByInstruction: ReadonlyMap<string, MissionAudioPolicyBinding>;
   teams: MissionTeamRuntime | null; teamCells: MissionTeamCellSource | null; cells: MissionCellEntrySource | null; cellByAddress: ReadonlyMap<number, string>;
   objects: MissionObjectEventSource | null; objectActors: ReadonlyMap<number, MissionObjectEventActor> };
@@ -168,10 +174,12 @@ export function compileMissionWorld(input: {
     blocked: world.blocked.map(worldPosition), footprints: world.footprints.map(p => ({ entityId: p.entityId, cells: p.cells.map(worldPosition) })) });
   if (base.sha256 !== bindings.worldSha256 || (world.combat && !combatSourceBridge(world.combat))) fail('world-join');
   const teamSource = missionProgramTeamActions(bindings.program), audio = missionProgramAudioPolicy(bindings.program);
+  const houses = missionProgramHouseSource(bindings.program);
+  if ((world.ownership ?? null) !== houses || (houses && houses.bindingsSha256 !== bindings.catalogSha256)) fail('house-source');
   for (const trigger of bindings.program.triggers) {
     for (const event of trigger.events) if ((event.opcode === 36 || event.opcode === 37) && event.argument >= flags.localCapacity) fail('local-capacity');
     for (const action of trigger.actions) {
-      if (!actions.has(action.opcode) && !(teamSource && [4, 7, 80].includes(action.opcode)) && !(missionProgramCues(bindings.program) && [11, 48, 55].includes(action.opcode)) && !(audio && [19, 21].includes(action.opcode))) fail('unimplemented-effect');
+      if (!actions.has(action.opcode) && !(houses && [14, 36].includes(action.opcode)) && !(teamSource && [4, 7, 80].includes(action.opcode)) && !(missionProgramCues(bindings.program) && [11, 48, 55].includes(action.opcode)) && !(audio && [19, 21].includes(action.opcode))) fail('unimplemented-effect');
       if ((action.opcode === 56 || action.opcode === 57) && action.argument >= flags.localCapacity) fail('local-capacity');
     }
   }
@@ -197,6 +205,9 @@ export function compileMissionWorld(input: {
     for (const actor of bridge?.actors ?? []) if (actor.role !== 'movement-only' && objectActors.get(actor.entityId)?.status !== 'supported') fail('object-combat-context');
   }
   const teams = teamSource ? compileMissionTeamRuntime(teamSource) : null;
+  // Fixed initial actors and scenario polling only until current-owner callback
+  // and dynamic-team observations have their own genuine context adapters.
+  if (houses && (teams || cells || objects)) fail('house-callback-context');
   let teamCells: MissionTeamCellSource | null = null;
   if (hasTeamCells) {
     if (!teams || !cells || !isMissionTeamCellSource(r.teamCells)) fail('team-cell-source');
@@ -215,13 +226,14 @@ export function compileMissionWorld(input: {
   const initial = MissionLogic.create(bindings.program, { bindings: bindings.bindings, globals: flags.globals, locals: flags.locals }).save();
   const data = { policy: MISSION_WORLD_POLICY, worldSha256: world.sha256, bindingsSha256: bindings.catalogSha256,
     programSha256: bindings.program.sha256, flagsSha256: flags.sha256, canStartCampaign: false as const, nativeBehaviorVerified: false as const,
+    ...(houses ? { houseSourceSha256: houses.sha256, houseDispatchPolicy: MISSION_HOUSE_DISPATCH_POLICY, actionWorldPolicy: MISSION_ACTION_WORLD_POLICY } : {}),
     ...(teams ? { teamActionSourceSha256: teamSource!.sha256, teamRuntimeSha256: teams.sha256, teamPhasePolicy: MISSION_WORLD_TEAM_PHASE_POLICY } : {}),
     ...(teamCells ? { teamCellSourceSha256: teamCells.sha256, teamCellPhasePolicy: MISSION_WORLD_TEAM_CELL_PHASE_POLICY } : {}),
     ...(audio ? { audioPolicySha256: audio.sha256, audioDispatchPolicy: MISSION_AUDIO_DISPATCH_POLICY } : {}),
     ...(cues ? { cueCatalogSha256: cues.sha256, cueDispatchPolicy: MISSION_CUE_DISPATCH_POLICY } : {}),
     ...(cells ? { cellEntrySourceSha256: cells.sha256, cellEntryPhasePolicy: MISSION_WORLD_CELL_PHASE_POLICY } : {}),
     ...(objects ? { objectEventSourceSha256: objects.sha256, objectEventPhasePolicy: MISSION_WORLD_OBJECT_PHASE_POLICY } : {}) };
-  const model = freeze({ ...data, sha256: worldHash(data) }); sources.set(model, { world, bindings, flags, initial, cues, audio, audioByInstruction, teams, teamCells, cells, cellByAddress, objects, objectActors }); return model;
+  const model = freeze({ ...data, sha256: worldHash(data) }); sources.set(model, { world, bindings, flags, initial, cues, audio, audioByInstruction, teams, teamCells, cells, cellByAddress, objects, objectActors, houses }); return model;
 }
 function checkFlags(s: Source, mission: MissionSave): void {
   if (mission.locals.slice(s.flags.localCapacity).some(Boolean) || mission.pending.some(i => i.kind === 'local' && i.index >= s.flags.localCapacity)) fail('local-capacity');
@@ -283,12 +295,13 @@ export function stepMissionWorld(model: MissionWorldModel, value: unknown, ticks
   const s = source(model), checkpoint = restoreMissionWorld(model, value);
   worldInteger(ticks, 1, MISSION_WORLD_LIMITS.ticks); worldInteger(workLimit, 0, MISSION_WORLD_LIMITS.work);
   if (s.teams) return stepMissionTeams(model, checkpoint, ticks, workLimit);
-  const world = WorldSimulation.restore(s.world, checkpoint.world), mission = MissionLogic.restore(s.bindings.program, checkpoint.mission);
+  let world = WorldSimulation.restore(s.world, checkpoint.world);
+  const mission = MissionLogic.restore(s.bindings.program, checkpoint.mission);
   const effects: MissionEffect[] = [], worldEvents: WorldTrace[] = [], requests: MissionWorldPresentationRequest[] = []; let work = 0, units = 0;
   const audioRequests: MissionWorldAudioRequest[] = [];
   let cursor = checkpoint.presentation, audioCursor = checkpoint.audio;
   for (let at = 0; at < ticks; at++) {
-    const advanced = s.cells || s.objects ? world.step(1, workLimit - work) : null;
+    const advanced = s.cells || s.objects || s.houses ? world.step(1, workLimit - work) : null;
     if (advanced) work += advanced.work.entityVisits + advanced.work.navigationExpansions + advanced.work.transitions;
     const entries: { cellId: string; entityId: number }[] = [];
     if (advanced) for (const event of advanced.events) {
@@ -316,7 +329,14 @@ export function stepMissionWorld(model: MissionWorldModel, value: unknown, ticks
     }
     // No caller observation list is accepted. Only successful private world transitions
     // produce source cell delivery; renderer picks, arrivals without movement and reservations do not.
-    const polled = s.objects ? mission.stepObjectEvents(callbacks, entries) : s.cells ? mission.stepCellEntries(entries) : mission.step(); work += polled.work;
+    const context = s.houses ? createMissionActionWorldContext({ world: s.world, bindings: s.bindings,
+      checkpoint: world.save(), missionNextTick: checkpoint.mission.nextTick + at }, workLimit - work) : null;
+    let polled: ReturnType<MissionLogic['step']>;
+    if (context) {
+      const transaction = mission.stepWorldContext(context); polled = transaction;
+      work += transaction.worldWork; world = WorldSimulation.restore(s.world, transaction.world);
+    } else polled = s.objects ? mission.stepObjectEvents(callbacks, entries) : s.cells ? mission.stepCellEntries(entries) : mission.step();
+    work += polled.work;
     if (s.cues && cursor) {
       // These effects are produced immediately by the private source-bound VM;
       // no public caller-supplied invocation/effect list reaches this boundary.
