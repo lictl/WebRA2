@@ -284,3 +284,67 @@ all70 disk/HTTP outputs and16 inputs verify with product headers. Raw probe hash
 |64|`9d3ce3b39b292eeeabc4b15c709d60fbd5a96ae5d8e014be3e0ae008332bd09b`|
 |256|`52769225033f2d1b168b7267a54609b6698d409c52719fc5dc9f0bdb741963f8`|
 |1,024|`4efe4319e74c707006fd870f0eb14da321cb8e044a9434542e905e6a029fcc35`|
+
+## Native-selected exact-reuse probe
+
+Core `d6f96f62f39128e3ea8e060b232f6c1e82808de5` adds bounded exact basis and
+bin reuse. The uncached path remains available; policy, shader and candidate caps
+are unchanged. Frozen browser source
+`2d5226dadaaf2b149594d4402fea12ea75ea85eb` adds only a post-measurement layout
+accounting field to the preceding harness. The same changing-transform generator,
+viewport, warmup and measurement schedule are retained. No simulation runs here.
+
+Independent source comparison passes129 complete packets/allocation projections
+and306,176 CPU-reference picks, including84 recorded4229 moving inputs. Thirty-one
+focused policy/harness tests pass. Actual Chrome repeats all45 shader cases with
+identical GPU/default-framebuffer/CPU hash rows and the previously reported depth
+differences. This does not turn the highp policy into exact CPU-f32 arithmetic.
+
+At4230, the native selected Chrome tab and native Run button are verified for each
+short2s/8s row. Other agents paused heavy work. All3,094 issued receipts complete;
+ring peaks2/3/3, no skipped work, no disjoint queries and no pending receipt at end.
+The complete raw ledgers independently reproduce rates, windows and quantiles.
+
+| Groups | Submitted / observed in window | Observed/s | Minimum full-second observed | Gap p95 / p99 ms | Gaps >16.667ms | Prepare median / p95 ms | GPU median ms |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+|64|966 /965|120.625|118|13.5 /14.6|4|1.0 /5.9|1.868|
+|256|917 /916|114.500|111|21.4 /24.1|65|2.5 /15.9|2.807|
+|1,024|597 /596|74.500|73|16.7 /19.5|32|9.4 /13.7|5.262|
+
+The largest short row improves from42 to74.5 observed completions/s and18.8 to9.4ms
+median preparation. Its maximum submission gap remains38.6ms. These single short
+rows pass an average/full-second60 threshold, **not sustained, every-frame or retail
+performance**. No long run is inferred. Fence timestamps remain successful poll-start
+observations, not strict completion upper bounds or scanout measurements. Native
+selected-tab verification removes the earlier ambiguity, but does not control all
+OS/browser/GC variability or establish a hardware backend.
+
+Last-success retained reuse accounting is314,492 /1,184,924 /4,700,828 bytes for the
+three scales; combined logical frame/reuse peaks are1,285,980 /4,864,956 /19,283,388
+bytes. All use one basis entry. These counters include the documented logical
+workspace/cache reservations, not actual heap, RSS or driver memory. Renderer
+disposal reports zero owned/requested bytes; that counter excludes layout reuse
+storage, whose lifetime ends when the caller releases the layout. No GC completion
+claim is made. Fifteen sampled complete packets, including all three final frames,
+equal the pristine reference and recorded allocations; not every timed packet was
+compared. The full untimed comparison above is separate.
+
+Private `reuse-1/frozen/` manifest SHA is
+`e732ae67a78d038d65530481c781c29b73034ac0919f8baeac40190ad563f23a`;
+all70 disk/HTTP outputs and16 source inputs verify with product headers. Only the
+voxel policy and post-timing harness accounting source differ from4229. Correctness
+raw SHA is `c5d1c59ba8922ebd154aae073b3244ce194493dd2708a1abc04ac601ff813e51`.
+Raw cadence hashes:
+
+| Groups | SHA256 |
+| --- | --- |
+|64|`6397543100604deeac562362d200caf3aa469e0611bff7518905efb5ebb32d8f`|
+|256|`a3015c6bc27584e63bd8fa00e0c8ba43b8c9e608421f2de24787081fd8fe514a`|
+|1,024|`27496b09da1e710066574ec17c45acd978f6069a9dbf100a257a59f04807fe28`|
+
+The next product gate is [complete voxel composition](https://github.com/lictl/WebRA2/issues/242):
+genuine source groups, terrain/SHP/voxel depth and displayed picking, bounded
+startup checks and complete CPU fallback. Dense real-source parts can exceed a
+per-bin cap despite far fewer instances than this sparse synthetic workload.
+Source preparation or these renderer-only timings cannot establish a retail GPU
+mission, supported native lighting/facing, or the first playable mission.
