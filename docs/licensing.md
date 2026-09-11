@@ -87,6 +87,18 @@ attributions and original CPU rasterization described in
 [voxel render provenance](../packages/render/VOXEL_PROVENANCE.md). Its notice is
 included in the code-only development bundle.
 
+The original [performance harness](performance-baseline.md) in tools/performance/
+uses GPL-3.0-or-later when composing those engine/browser components; its separable
+notice-source list is MIT. Generated benchmarks stay under ignored local/ and carry
+the existing app's broader license/provenance set, exact dependency license texts
+and corresponding-source/build location. Workload maps, tiles, sprites and commands
+are generated original fixtures. No retail assets or new dependency are included.
+
+The original WebGL2 experiment and its composing diagnostic are GPL-3.0-or-later.
+[GPU provenance](../packages/render/GPU_PROVENANCE.md) distinguishes original GPU
+code from the existing CPU/decoder references. Retain that notice and composed
+notices in diagnostic distributions. No retail textures or new dependency are added.
+
 The original bounded mission trigger interpreter and fixtures are GPL-3.0-or-later;
 [mission runtime provenance](../packages/sim/MISSION_LOGIC_PROVENANCE.md) separates
 factual native analysis from source reuse and preserves the existing compiler
@@ -367,3 +379,10 @@ GPL-3.0-or-later. Its [allocation notice](../packages/sim/MISSION_TEAM_ALLOCATIO
 is included byte-for-byte in the code-only development build. It adds no dependency
 and does not grant native AI or campaign execution authority. Native listings,
 retail names and rule/mission rows are absent from the distribution.
+
+The mission sound/EVA typed source-policy catalog and original fixtures are
+GPL-3.0-or-later WebRA2 code. Distribution includes the
+[source-policy notice](../packages/content/MISSION_AUDIO_POLICY_PROVENANCE.md),
+GPL text and corresponding source. It composes existing cue/audio and numeric
+components, adds no dependency, and includes no retail waveform, native listing
+or binary table. Source readiness does not authorize playback or campaign start.
