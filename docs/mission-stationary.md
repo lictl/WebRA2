@@ -46,6 +46,11 @@ Queries use an indexed actor/action predicate. Only untrusted restore replays th
 journal. Default limits are 4,096 journal rows, 20,000 operations, 4,096 commands,
 10,000 ticks and the existing 16,777,216 logical work cap, all lowerable. Resource
 limits can refuse a long restore even when its compressed journal is short.
+Restore reserves the complete current save graph and ownership-history work
+before each replay call, using the existing bounded owning-world helper. This
+includes transfer history accumulated before later idle or command calls. The
+same complete bound applies to the final caller-world comparison. This currently
+performs additional validation during restore; the live path is unchanged.
 
 Root integration must update the witness on a private candidate world, observe
 its complete team context, then publish both atomically. A witness failure does

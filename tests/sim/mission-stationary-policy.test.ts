@@ -155,3 +155,24 @@ test('long idle journals retain call boundaries and restore without per-tick row
   assert.deepEqual(saveMissionStationaryWitness(f.stationary, restored.witness).save, saved);
   assert.equal(f.candidate(restored.witness, restored.world).eligible, true);
 });
+
+test('restore reserves accumulated transfers and queued command graphs at every later boundary', () => {
+  for (const profile of ['ra2', 'yr'] as const) {
+    const f = setup(profile); let witness = f.witness;
+    for (let i = 0; i < 20; i++) witness = advanceMissionStationaryWitness(f.stationary, witness, f.world.transferOwnership(f.transfer)).witness;
+    for (let i = 0; i < 16; i++) {
+      const queued = { schemaVersion: 1 as const, tick: 80, playerId: 0, sequence: i, kind: 'stop', payload: { entityId: 1 } };
+      witness = advanceMissionStationaryWitness(f.stationary, witness, f.world.admitCommands([queued])).witness;
+      witness = advanceMissionStationaryWitness(f.stationary, witness, f.world.step()).witness;
+    }
+    const saved = saveMissionStationaryWitness(f.stationary, witness).save, world = f.world.save(), context = f.context(f.world);
+    assert.equal(world.state.ownership!.transfers.length, 20); assert.equal(world.queuedCommands.length, 16);
+    const restored = restoreMissionStationaryWitness(f.stationary, saved, world, context);
+    assert(restored.work > 100_000);
+    assert.deepEqual(saveMissionStationaryWitness(f.stationary, restored.witness).save, saved);
+    assert.deepEqual(restoreMissionStationaryWitness(f.stationary, saved, world, context, { work: restored.work }).world.save(), world);
+    assert.throws(() => restoreMissionStationaryWitness(f.stationary, saved, world, context, { work: restored.work - 1 }), /work/);
+    assert.throws(() => restoreMissionStationaryWitness(f.stationary, saved, world, context, { work: 100_000 }), /work/);
+    assert.deepEqual(f.world.save(), world); assert.deepEqual(saveMissionStationaryWitness(f.stationary, witness).save, saved);
+  }
+});

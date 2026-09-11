@@ -8,6 +8,7 @@ import { missionTeamSnapshot } from './mission-team-values.ts';
 import { teamRuntimeFreeze as freeze } from './team-runtime-program.ts';
 import { worldHash, worldInteger, worldList, worldRecord, WORLD_LIMITS as W } from './world-values.ts';
 import { worldHouseInvocation } from './world-ownership.ts';
+import { restoreMissionTeamOwnedWorld } from './mission-team-owned-binding.ts';
 
 export const MISSION_STATIONARY_POLICY = 'webra2-untouched-infantry-guard-witness-1' as const;
 export const MISSION_STATIONARY_LIMITS = Object.freeze({ journalRows: 4096, operations: 20000, commands: 4096,
@@ -60,8 +61,11 @@ function check(source: MissionStationarySource, witness: MissionStationaryWitnes
 }
 function creationWork(source: MissionStationarySource): number {
   const model = missionStationarySourceData(source).model;
+  const house = model.ownership!;
+  const ownershipPass = house.types.length + house.houses.length + house.tagChains.length +
+    house.initialActors.length * 12 + house.instructions.length;
   return 32 * model.entities.length + model.blocked.length * 2 + model.navigation.length * 4 +
-    model.footprints.reduce((n, f) => n + f.cells.length * 3 + 1, 0);
+    model.footprints.reduce((n, f) => n + f.cells.length * 3 + 1, 0) + ownershipPass * 6;
 }
 /** Initial current/queue values describe the admitted fresh campaign placement
  * branch. The policy freezes autonomous native mission scheduling under D03. */
@@ -202,6 +206,23 @@ export function saveMissionStationaryWitness(source: MissionStationarySource, wi
   return { save, work: m.work };
 }
 
+/** Restore-only reservation. The existing owning-world helper charges its full
+ * descriptor capture and source/ownership-history reconstruction. Reserve the
+ * same counter for the upcoming core validation before executing that call.
+ * This deliberately trades extra restore work for reusing the audited bound;
+ * uninterrupted live updates and candidate queries never call it. */
+function reserveReplayCore(source: MissionStationarySource, world: WorldSimulation, m: ReturnType<typeof meter>): void {
+  const s = missionStationarySourceData(source), boundary = readWorldStationaryBoundary(world);
+  if (boundary.model !== s.model) fail('replay-model');
+  const hash = worldStationaryBoundaryHash(s.model, boundary.boundary, Math.floor(m.remaining / 2));
+  // The first charge covers the requested digest walk; the second reserves the
+  // detached save copy before it occurs. No unmetered world.save() discovery.
+  m.charge(hash.work * 2);
+  const captured = world.save();
+  const checked = restoreMissionTeamOwnedWorld(s.binding, captured, Math.floor(m.remaining / 2));
+  m.charge(checked.work * 2);
+}
+
 /** Untrusted serialized state is reconstructed from the source world. Lowered
  * execution work limits preserve original call boundaries and output semantics;
  * the recorded requested caps remain audit metadata. No live update calls this. */
@@ -223,8 +244,9 @@ export function restoreMissionStationaryWitness(source: MissionStationarySource,
     worldRecord(row, expected);
     if (witness.operationCount + repetitions > cap.operations) fail('operation-limit');
     for (let repeat = 0; repeat < repetitions; repeat++) {
-      // Reserve bounded core validation work before each temporary transaction.
-      m.charge(creationWork(source)); let receipt: unknown;
+      // Includes accumulated transfers, queued commands, routes, combat and
+      // passage state; a fixed initial-model estimate cannot bound this work.
+      reserveReplayCore(source, world, m); let receipt: unknown;
       if (row.kind === 'commands') {
         const commands = worldList(row.commands, W.commands); m.charge(commands.length * 256);
         receipt = world.admitCommands(commands);
@@ -245,8 +267,10 @@ export function restoreMissionStationaryWitness(source: MissionStationarySource,
   // Replayed limited caps are replaced only after complete successful replay;
   // operation contents, current state and actor invalidations remain verified.
   if (saved.save.worldStateSha256 !== r.worldStateSha256 || saved.save.nextTick !== r.nextTick || worldHash(saved.save.actors) !== worldHash(r.actors)) fail('save-reconstruction');
-  const model = missionStationarySourceData(source).model;
-  m.charge(creationWork(source)); const expectedWorld = WorldSimulation.restore(model, missionTeamSnapshot(currentWorld, n => m.charge(n)));
+  const s = missionStationarySourceData(source), model = s.model;
+  const checkedWorld = restoreMissionTeamOwnedWorld(s.binding, currentWorld, Math.floor(m.remaining / 2));
+  m.charge(checkedWorld.work * 2);
+  const expectedWorld = WorldSimulation.restore(model, checkedWorld.world);
   const b = readWorldStationaryBoundary(expectedWorld), hash = worldStationaryBoundaryHash(model, b.boundary, m.remaining); m.charge(hash.work);
   if (hash.sha256 !== r.worldStateSha256) fail('save-world');
   // Keep original journal audit caps and compression after validation. These
