@@ -8,8 +8,9 @@ import { compileMissionTeamOwnedBinding } from '../../packages/sim/src/mission-t
 import { compileMissionTeamRuntime, restoreMissionTeamContext, missionTeamContextData } from '../../packages/sim/src/mission-team-context.ts';
 import { createWorldModel, worldPosition, worldHash } from '../../packages/sim/src/world-model.ts';
 import { createMissionTeamCheckpoint, admitMissionTeamInput, stepMissionTeamWorld, prepareMissionTeamTick,
-  restoreMissionTeamCheckpoint, replayMissionTeamWorld, transferMissionTeamOwnership } from '../../packages/sim/src/mission-team-runtime.ts';
-import { WorldSimulation } from '../../packages/sim/src/world.ts';
+  restoreMissionTeamCheckpoint, replayMissionTeamWorld, transferMissionTeamOwnership,
+  readMissionTeamCheckpointModel, missionTeamConstructionMigrations, restoreMissionTeamCheckpointWithWork, admitMissionTeamInputWithWork } from '../../packages/sim/src/mission-team-runtime.ts';
+import { WorldSimulation, readWorldConstructionMigration } from '../../packages/sim/src/world.ts';
 import { createOrdinaryCombatRules } from '../../packages/sim/src/ordinary-combat-rules.ts';
 import { createOrdinaryDeathRules } from '../../packages/sim/src/ordinary-death-rules.ts';
 import { createCombatModel, combatFactor } from '../../packages/sim/src/combat-model.ts';
@@ -147,7 +148,7 @@ test('owned construction budgets, source substitution and forged birth revisions
     }
     const forged = structuredClone(step.checkpoint); delete (forged.history[0] as { ownershipRevision?: number }).ownershipRevision;
     assert.throws(() => restoreMissionTeamCheckpoint(f.runtime, forged));
-    assert.equal(f.binding.allRequiredTransfersSupported, false);
+    assert.equal(f.binding.allRequiredTransfersSupported, true);
   }
 });
 test('a later birth follows releases and transfers without reusing IDs or rewriting the earlier population', () => {
@@ -185,5 +186,66 @@ test('a pending ordinary corpse keeps its anchor reserved when the source constr
     assert.deepEqual(restoreMissionTeamCheckpoint(f.runtime, born.checkpoint), born.checkpoint);
     assert.deepEqual(replayMissionTeamWorld(f.runtime, { schemaVersion: 1, runtimeSha256: f.runtime.sha256, initialCheckpoint: initial,
       admissions: [{ nextTick: 0, ...admission }], finalNextTick: 2, finalStateSha256: worldHash(born.checkpoint) }).checkpoint, born.checkpoint);
+  }
+});
+
+
+test('constructor transfer closure depends on source support and action4 mission policy only', () => {
+  for (const profile of profiles) for (const recruitable of [true, false]) for (const supported of [true, false]) {
+    const f = constructorFixture(profile, `Passengers=${supported ? 0 : 1}\n[Sleep]\nRecruitable=${recruitable ? 'yes' : 'no'}`), b = f.world.model;
+    const model = createWorldModel({ contentIdentity: b.contentIdentity, sourceSha256: b.sourceSha256, definitionsSha256: b.definitionsSha256,
+      entities: b.entities, navigation: b.navigation, blocked: b.blocked.map(worldPosition),
+      footprints: b.footprints.map(p => ({ entityId: p.entityId, cells: p.cells.map(worldPosition) })), ownership: f.input.houses,
+      construction: restoreMissionTeamConstructorHistory(f.catalog, []) });
+    const binding = compileMissionTeamOwnedBinding({ source: f.source, world: model, constructors: f.catalog });
+    assert.equal(binding.allRequiredActionsSupported, supported);
+    assert.equal(binding.actions.find(a => a.opcode === 4)!.postTransferRecruitment, recruitable ? 'stationary-guard-sleep' : 'unsupported');
+    assert(binding.actions.filter(a => a.opcode !== 4).every(a => a.postTransferRecruitment === 'unsupported'));
+    assert.equal(binding.allRequiredTransfersSupported, supported && recruitable);
+  }
+});
+
+test('genuine checkpoints retain committed models and individual ticks expose exact construction transitions', () => {
+  for (const profile of profiles) {
+    const f = fixture(profile, '0=11,0'), initial = createMissionTeamCheckpoint(f.runtime), before = worldHash(initial);
+    assert.equal(readMissionTeamCheckpointModel(initial), f.model);
+    const admission = { requests: [f.receipt(1, 0), f.receipt(2, 1)], commands: [] };
+    const admitted = admitMissionTeamInputWithWork(f.runtime, initial, admission, f.runtime.limits.tickWork);
+    assert.equal(readMissionTeamCheckpointModel(admitted.checkpoint), f.model);
+    const waiting = stepMissionTeamWorld(f.runtime, admitted.checkpoint), due = waiting.checkpoint;
+    assert.deepEqual(missionTeamConstructionMigrations(waiting), []);
+    const pending = prepareMissionTeamTick(f.runtime, due), pendingHash = worldHash(pending);
+    assert.equal(readMissionTeamCheckpointModel(pending), f.model);
+    assert.equal(readMissionTeamCheckpointModel(pending.pending!.checkpoint).entities.length, 4);
+    const restored = restoreMissionTeamCheckpointWithWork(f.runtime, JSON.stringify(pending), f.runtime.limits.tickWork);
+    assert.deepEqual(Object.keys(restored).sort(), ['checkpoint', 'work']);
+    assert.equal(readMissionTeamCheckpointModel(restored.checkpoint), f.model);
+    const born = stepMissionTeamWorld(f.runtime, restored.checkpoint), model = readMissionTeamCheckpointModel(born.checkpoint);
+    const migrations = missionTeamConstructionMigrations(born), facts = migrations.map(m => readWorldConstructionMigration(m));
+    assert(Object.isFrozen(migrations)); assert.equal(facts.length, 2);
+    assert.equal(facts[0]!.source, f.catalog); assert.equal(facts[1]!.source, f.catalog);
+    assert.equal(facts[0]!.previousModel, f.model);
+    assert.equal(facts[0]!.model.sha256, facts[1]!.previousModel.sha256);
+    assert.equal(facts[1]!.model.sha256, model.sha256);
+    assert.deepEqual(facts.map(r => r.births.map(b => b.ordinal)), [[0], [1]]);
+    assert.deepEqual(facts.map(r => [r.fromNextTick, r.toNextTick]), [[1, 1], [1, 1]]);
+    assert.equal(model.entities.length, 4); assert.equal(worldHash(initial), before); assert.equal(worldHash(pending), pendingHash);
+    const settled = restoreMissionTeamCheckpointWithWork(f.runtime, JSON.stringify(born.checkpoint), f.runtime.limits.tickWork);
+    assert.equal(readMissionTeamCheckpointModel(settled.checkpoint).sha256, model.sha256);
+    assert.deepEqual(restoreMissionTeamCheckpointWithWork(f.runtime, JSON.stringify(born.checkpoint), settled.work), settled);
+    assert.throws(() => restoreMissionTeamCheckpointWithWork(f.runtime, JSON.stringify(born.checkpoint), settled.work - 1), /work/);
+    const replay = replayMissionTeamWorld(f.runtime, { schemaVersion: 1, runtimeSha256: f.runtime.sha256, initialCheckpoint: initial,
+      admissions: [{ nextTick: 0, ...admission }], finalNextTick: 2, finalStateSha256: worldHash(born.checkpoint) });
+    assert.equal(readMissionTeamCheckpointModel(replay.checkpoint).sha256, model.sha256);
+    assert.throws(() => missionTeamConstructionMigrations(replay), /construction-receipt/);
+    for (const forged of [{ ...born }, new Proxy(born, { get() { throw new Error('must-not-read'); } })]) {
+      assert.throws(() => missionTeamConstructionMigrations(forged), /construction-receipt/);
+    }
+    for (const forged of [{ ...born.checkpoint }, new Proxy(born.checkpoint, { get() { throw new Error('must-not-read'); } })]) {
+      assert.throws(() => readMissionTeamCheckpointModel(forged), /checkpoint-model-receipt/);
+    }
+    assert.throws(() => readWorldConstructionMigration({ ...migrations[0] }), /construction-receipt/);
+    const changed = transferMissionTeamOwnership(f.runtime, initial, f.transfer).checkpoint;
+    assert.equal(readMissionTeamCheckpointModel(changed), f.model);
   }
 });

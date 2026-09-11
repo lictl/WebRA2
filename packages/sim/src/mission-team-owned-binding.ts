@@ -99,7 +99,7 @@ export function compileMissionTeamOwnedBinding(input: Readonly<{
     ...(constructors ? { constructorSourceSha256: constructors.sha256 } : {}), sourceSha256: source.sha256,
     modelSha256: model.sha256, houseSourceSha256: houses.sha256, actions,
     allRequiredActionsSupported: actions.every(a => a.status === 'supported'),
-    allRequiredTransfersSupported: actions.every(a => a.status === 'supported' && a.postTransferRecruitment !== 'unsupported') };
+    allRequiredTransfersSupported: actions.every(a => a.status === 'supported' && (a.opcode !== 4 || a.postTransferRecruitment !== 'unsupported')) };
   const binding = freeze({ ...value, sha256: worldHash(value) }); bindings.set(binding, freeze({ source, model, ...(constructors ? { constructors } : {}) })); return binding;
 }
 

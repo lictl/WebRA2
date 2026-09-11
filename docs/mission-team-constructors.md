@@ -29,6 +29,9 @@ The optional `constructors` argument to `compileMissionTeamOwnedBinding` selects
 construction history in the base model. Omitting the option preserves the existing
 fixed-actor binding and save identities. The common runtime then derives each
 current model from the complete saved history before accepting its world save.
+Its transfer-closure aggregate requires every action to be supported; only action4
+also requires post-transfer recruitment mission controls. Constructors do not
+recruit placed actors, and their active-member transfer refusal remains in force.
 Every birth records the preceding ownership transfer revision; tick numbers alone
 cannot distinguish source actions at the same boundary.
 
@@ -121,6 +124,18 @@ receipts and adds the pending-death regression. Its complete check passes1,512
 public +14 tool tests, types,218docs/1,136links,812publication paths,M0 and
 79code/license outputs/193inputs. The receipt is an opaque core transition, not a
 mission invocation.
+
+`readMissionTeamCheckpointModel` reads the genuine model already validated by
+checkpoint creation/restoration/admission. A pending checkpoint exposes its
+committed base model; its candidate does not become current until commit.
+`missionTeamConstructionMigrations` returns the actual core migrations retained
+by a genuine single-tick result. Restored pending candidates recreate those
+receipts through computation; copied results and replay aggregates reject. Neither
+accessor serializes state or repeats history reconstruction, and existing returned
+work already charges model validation. Migration details use the separate bounded
+core accessor. Reconstructed genuine models can have equal complete hashes without
+being the same object; an observer crossing those boundaries must validate the
+explicit source/history/model and saved-boundary equivalence.
 
 No browser, spawned-combat, dynamic trigger attachment, general constructor or
 full-campaign claim follows from these tests. Current stationary Guard witnesses
