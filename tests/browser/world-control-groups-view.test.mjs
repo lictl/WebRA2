@@ -33,6 +33,20 @@ test('mounted group keys require canvas focus, preserve forms/browser combinatio
   controller.state={...controller.state,phase:'ready',playerId:0,selectedEntity:1,selectedEntities:[1],selection:{kind:'object',object:{id:'object-1'}},frame:{summary:{world:session.summary},world:session.snapshot()}};
   const viewRoot=new Element();unmount=mountWorld(viewRoot,controller);const canvas=viewRoot.querySelector('#terrain-canvas');canvas.focus();
   const send=(extra={})=>{let prevented=false;viewRoot.handlers.keydown({key:'1',target:canvas,ctrlKey:false,metaKey:false,altKey:false,shiftKey:false,repeat:false,isComposing:false,preventDefault(){prevented=true;},...extra});return prevented;};
+  // Camera and presentation emissions must not rewrite the unchanged accessible
+  // actor list. Legitimate health, owner, locale and busy changes still update it.
+  const unit=nodes.get('#world-unit'),ownedOption=unit.options[0];let optionWrites=0;
+  for(const name of ['selected','disabled']){let value=ownedOption[name];Object.defineProperty(ownedOption,name,{get:()=>value,set:next=>{optionWrites++;value=next;},configurable:true});}
+  const worldFrame=controller.state.frame;
+  for(let i=0;i<20;i++){controller.state={...controller.state,presentationSequence:i,frame:{...worldFrame,camera:{cameraX:i}}};controller.setLocale('en');}
+  assert.equal(optionWrites,0);assert.equal(unit.options[0],ownedOption);
+  controller.state={...controller.state,busy:true};controller.setLocale('en');assert.equal(unit.disabled,true);assert.equal(optionWrites,0);
+  const dead={...worldFrame.world,revision:1,actors:worldFrame.world.actors.map(a=>a.id===1?{...a,health:0}:a)};
+  controller.state={...controller.state,busy:false,frame:{...worldFrame,world:dead}};controller.setLocale('en');assert.equal(ownedOption.disabled,true);assert.equal(unit.disabled,false);
+  controller.state={...controller.state,frame:worldFrame};controller.setLocale('en');assert.equal(ownedOption.disabled,false);
+  controller.setPlayer(1);assert.equal(unit.options.length,1);assert.equal(unit.options[0].value,'2');
+  controller.setPlayer(0);controller.selectEntity(1);assert.equal(unit.options[0].value,'1');
+  const beforeReplacement=unit.options[0];controller.state={...controller.state,frame:null};controller.setLocale('en');controller.state={...controller.state,frame:worldFrame};controller.setLocale('en');assert.notEqual(unit.options[0],beforeReplacement);assert.equal(unit.options[0].selected,true);
   const initial=session.act({type:'world-replay-export'}).text;
   assert(send({ctrlKey:true}));assert.match(nodes.get('#world-group-notice').textContent,/Group 1: assigned 1/);
   controller.clearSelection();assert(send());assert.deepEqual(controller.state.selectedEntities,[1]);assert.match(nodes.get('#world-group-notice').textContent,/selected 1/);

@@ -15,7 +15,8 @@ export function mountWorld(root: HTMLElement, controller: TerrainController): ()
   const stage = root.querySelector('.terrain-stage')!;
   const sidebar = root.querySelector<HTMLElement>('#battlefield-sidebar');
   if (sidebar) sidebar.append(panel); else stage.before(panel);
-  const get = <T extends HTMLElement = HTMLElement>(id: string) => panel.querySelector<T>('#world-' + id)!;
+  const elements = new Map<string, HTMLElement>();
+  const get = <T extends HTMLElement = HTMLElement>(id: string): T => { let element=elements.get(id); if(!element){element=panel.querySelector<HTMLElement>('#world-'+id)!;elements.set(id,element);}return element as T; };
   const click = (id: string, action: () => void) => get(id).addEventListener('click', action);
   const toggleRunning = () => { if (document.hidden) controller.hidden(); else controller.setRunning(!controller.state.running); };
   get<HTMLSelectElement>('house').addEventListener('change', () => controller.setPlayer(get<HTMLSelectElement>('house').value === '' ? null : Number(get<HTMLSelectElement>('house').value)));
@@ -60,18 +61,29 @@ export function mountWorld(root: HTMLElement, controller: TerrainController): ()
   const option = (value: string, text: string) => { const o = document.createElement('option'); o.value = value; o.textContent = text; return o; };
   const details = (element: HTMLElement, values: [string, string][]) => { element.replaceChildren(); for (const [name, value] of values) { const dt = document.createElement('dt'), dd = document.createElement('dd'); dt.textContent = name; dd.textContent = value; element.append(dt, dd); } };
   let locale = '', selectKey = '', priorEntity = -1, priorPick: object|null = null;
+  let previous: readonly unknown[] = [];
+  let optionWorld: unknown = null, optionSelection = '';
+  let indexedWorld: unknown = null, indexedSummary: unknown = null;
+  let actorIndex = new Map<number, import('./world-protocol.ts').WorldSnapshot['actors'][number]>();
+  let infoIndex = new Map<number, import('./world-protocol.ts').WorldSummary['actors'][number]>();
   const unsubscribe = controller.subscribe(state => {
     const t = (key: string) => worldText(state.locale, key), summary = state.frame?.summary.world, world = state.frame?.world;
+    // Camera/display-only emissions carry the same immutable world. Do not touch the
+    // accessible actor list or diagnostics until their actual inputs change.
+    const selectionIds=state.selectedEntities.join(','), inputs=[summary,world,state.phase,state.locale,state.busy,state.running,state.playerId,selectionIds,state.selectedEntity,state.selection,state.controlGroupFeedback,state.slot,state.verifyingReplay,state.worldNotice,state.replayHash,state.error,get<HTMLSelectElement>('attack-target').value];
+    if(inputs.length===previous.length&&inputs.every((value,index)=>value===previous[index]))return;previous=inputs;
     panel.hidden = !summary || !world;
     if (sidebar) sidebar.hidden = panel.hidden;
     const destination = panel.hidden ? sourceHome : get('source-diagnostics');
     for (const element of [artwork, scope, sourceDetails]) place(destination, element);
     place(panel.hidden ? sourceHome : get('camera-help'), cameraHelp);
     if (locale !== state.locale) { locale = state.locale; for (const el of panel.querySelectorAll<HTMLElement>('[data-world]')) el.textContent = t(el.dataset.world!); }
-    if (!summary || !world) { selectKey = ''; priorEntity = -1; return; }
+    if (!summary || !world) { selectKey = ''; priorEntity = -1; optionWorld=null;optionSelection='';indexedWorld=null;indexedSummary=null;actorIndex.clear();infoIndex.clear();return; }
+    if(indexedWorld!==world){indexedWorld=world;actorIndex=new Map(world.actors.map(a=>[a.id,a]));}
+    if(indexedSummary!==summary){indexedSummary=summary;infoIndex=new Map(summary.actors.map(a=>[a.id,a]));}
     const selectionKey = `${summary.modelHash}:${state.playerId}:${state.locale}`;
     if (selectionKey !== selectKey) {
-      selectKey = selectionKey;
+      selectKey = selectionKey;optionWorld=null;
       get('house').replaceChildren(option('', t('chooseHouse')), ...summary.players.map(p => option(String(p.id), p.name))); get<HTMLSelectElement>('house').value = state.playerId === null ? '' : String(state.playerId);
       const ownerName = (id: number | null) => summary.players.find(p => p.id === id)?.name ?? t('unknown');
       const target=get<HTMLSelectElement>('attack-target'), prior=target.value;
@@ -79,14 +91,18 @@ export function mountWorld(root: HTMLElement, controller: TerrainController): ()
       if(Array.from(target.options).some(o=>o.value===prior))target.value=prior;
       get('unit').replaceChildren(...summary.actors.filter(a => a.owner === state.playerId && a.movable).map(a => option(String(a.id), `${a.id} · ${a.typeId} · ${ownerName(a.owner)}`)));
     }
-    for (const option of get<HTMLSelectElement>('unit').options) { option.selected = state.selectedEntities.includes(Number(option.value)); const actor = world.actors.find(a => a.id === Number(option.value)); option.disabled = actor?.health === null || actor?.health === undefined || actor.health <= 0; }
+    if(optionWorld!==world||optionSelection!==selectionIds){
+      const selected=new Set(state.selectedEntities);
+      for(const option of get<HTMLSelectElement>('unit').options){const id=Number(option.value),actor=actorIndex.get(id),disabled=actor?.health===null||actor?.health===undefined||actor.health<=0;if(option.selected!==selected.has(id))option.selected=selected.has(id);if(option.disabled!==disabled)option.disabled=disabled;}
+      optionWorld=world;optionSelection=selectionIds;
+    }
     get('combat-controls').hidden=!summary.combatPolicy;
     const attackTarget=get<HTMLSelectElement>('attack-target');
     const picked=state.selection?.kind==='object'?summary.actors.find(a=>a.objectId===(state.selection?.kind==='object'?state.selection.object.id:'')):undefined;
     const changedPick=state.selection!==priorPick;priorPick=state.selection;
     if(changedPick&&picked&&picked.owner!==state.playerId&&Array.from(attackTarget.options).some(o=>o.value===String(picked.id)))attackTarget.value=String(picked.id);
-    const targetState=world.actors.find(a=>String(a.id)===attackTarget.value);
-    for(const option of attackTarget.options){const a=world.actors.find(a=>String(a.id)===option.value);option.disabled=!!a&&(a.health===null||a.health<=0);}
+    const targetState=actorIndex.get(Number(attackTarget.value));
+    for(const option of attackTarget.options){const a=actorIndex.get(Number(option.value));const disabled=!!a&&(a.health===null||a.health<=0);if(option.disabled!==disabled)option.disabled=disabled;}
     attackTarget.disabled=state.busy;get<HTMLButtonElement>('attack').disabled=!attackTarget.value||!controller.canAttack(Number(attackTarget.value));
     get('attack-status').textContent=targetState?`${t('health')}: ${targetState.health} · ${t(targetState.health===0?(targetState.combat?.corpseIndex===null?'dying':'destroyed'):'alive')}`:'';
     get('selection-help').hidden = state.selectedEntities.length > 0;
@@ -94,7 +110,7 @@ export function mountWorld(root: HTMLElement, controller: TerrainController): ()
     get('selection-status').textContent = `${t('selectionCount')}: ${state.selectedEntities.length} / 64`;
     const hud = get('hud'); hud.replaceChildren();
     for (const id of state.selectedEntities.slice(0, 8)) {
-      const actor = world.actors.find(a => a.id === id)!, info = summary.actors.find(a => a.id === id)!;
+      const actor = actorIndex.get(id)!, info = infoIndex.get(id)!;
       const item = document.createElement('li'), name = document.createElement('strong'), health = document.createElement('span'), bar = document.createElement('progress'), order = document.createElement('span');
       name.textContent = `${t("kind-"+info.kind)} #${id}`; health.textContent = `${t('health')}: ${actor.health} / ${info.maximumHealth}`;
       bar.max = info.maximumHealth ?? 1; bar.value = actor.health ?? 0; bar.setAttribute('aria-label', `${name.textContent} ${health.textContent}`);
@@ -103,7 +119,7 @@ export function mountWorld(root: HTMLElement, controller: TerrainController): ()
     }
     get('hud-omitted').textContent = state.selectedEntities.length > 8 ? `${t('additionalSelected')}: ${state.selectedEntities.length - 8}` : '';
     get<HTMLButtonElement>('clear').disabled = state.selectedEntities.length === 0;
-    const actor = world.actors.find(a => a.id === state.selectedEntity), info = summary.actors.find(a => a.id === state.selectedEntity);
+    const actor = state.selectedEntity===null?undefined:actorIndex.get(state.selectedEntity), info = state.selectedEntity===null?undefined:infoIndex.get(state.selectedEntity);
     if (actor && actor.id !== priorEntity) { priorEntity = actor.id; get<HTMLInputElement>('x').value = String(actor.x); get<HTMLInputElement>('y').value = String(actor.y); }
     get('playback').textContent = t(state.running ? 'runningState' : 'pausedState');
     get('playback').dataset.running = String(state.running);

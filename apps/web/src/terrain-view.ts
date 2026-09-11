@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { beginWorldGesture, updateWorldGesture, finishWorldGesture, type WorldGesture } from './terrain-gestures.ts';
 // Copyright 2026 WebRA2 contributors. Original viewport UI; no retail persistence.
-import { TerrainController, canPick } from './terrain-controller.ts';
+import { TerrainController, canPick, type TerrainState } from './terrain-controller.ts';
 import { createGpuViewport, type GpuViewport } from './gpu-viewport.ts';
 import { importGpuScene } from '../../../packages/render/src/gpu-scene.ts';
 import { campaignText } from './campaign-i18n.ts';
@@ -70,10 +70,15 @@ export function mountTerrain(root:HTMLElement,controller:TerrainController,optio
     context=mode==='cpu'?canvas.getContext('2d',{alpha:false}):null;bindCanvas();
     previous.width=1;previous.height=1;if(focused)canvas.focus({preventScroll:true});
   }
+  const updateMarkers=(state:TerrainState)=>{const frame=state.frame;unitMarkers.replaceChildren();if(frame&&(frame.type==='frame'||state.gpuDisplayedFrameId===frame.frameId)){for(const p of frame.controlPoints){if(!state.selectedEntities.includes(p.entityId))continue;const mark=document.createElement('span');mark.className='terrain-unit-marker';mark.style.left=`${p.x/canvas.width*100}%`;mark.style.top=`${p.y/canvas.height*100}%`;unitMarkers.append(mark);}}};
+  let previousUi:readonly unknown[]=[];
   let lastFrame=0,lastLocale='',lastArtworkKey='';
   const unsubscribe=controller.subscribe(state=>{
     const t=(key:string)=>options.campaign&&['title','intro','nav'].includes(key)?campaignText(state.locale,key==='title'?'missionTitle':key==='intro'?'missionIntro':'nav'):terrainText(state.locale,key);if(back){back.textContent=campaignText(state.locale,'back');back.disabled=state.busy;}
     if(drag&&(state.phase!=='ready'||drag.epoch!==state.interactionEpoch||drag.revision!==(state.frame?.world?.revision??0)||drag.mode==='select'&&drag.frameId!==controller.presentationToken()))releaseGesture();
+    const uiInputs=[state.phase,state.locale,state.profile,state.files,state.bytes,state.busy,state.notice,state.progress,state.error,state.rendererNotice,state.frame?.type,state.frame?.frameId,state.selection,state.selectedEntities.join(','),state.interacting,state.interactionEpoch];
+    const cameraOnly=state.frame?.type==='gpu-frame'&&uiInputs.length===previousUi.length&&uiInputs.every((value,index)=>value===previousUi[index]);previousUi=uiInputs;
+    if(cameraOnly){get<HTMLSelectElement>('zoom').value=String(state.frame!.camera.zoom);updateMarkers(state);return;}
     if(lastLocale!==state.locale){lastLocale=state.locale;document.documentElement.lang=state.locale;for(const element of root.querySelectorAll<HTMLElement>('[data-terrain]'))element.textContent=t(element.dataset.terrain!);root.querySelector('nav')!.setAttribute('aria-label',t('workspace'));root.querySelector('.terrain-pan')!.setAttribute('aria-label',t('pan'));canvas.setAttribute('aria-label',t('canvas'));root.querySelector('.terrain-artwork-table-wrap')!.setAttribute('aria-label',t('artworkDetails'));for(const id of ['left','right','up','down','zoom-in','zoom-out'])get(id).setAttribute('aria-label',t(id==='zoom-in'?'zoomIn':id==='zoom-out'?'zoomOut':id));}
     get<HTMLSelectElement>('locale').value=state.locale;get<HTMLSelectElement>('profile').value=state.profile;
     get('selection').textContent=`${t('selection')}: ${state.files.toLocaleString()} · ${formatBytes(state.bytes,state.locale)}`;get('notice').textContent=t(state.notice);
@@ -106,7 +111,7 @@ export function mountTerrain(root:HTMLElement,controller:TerrainController,optio
       }
     }else if(!frame&&lastFrame){lastFrame=0;gpu?.dispose();gpu=null;gpuSceneId=0;if(!context)replaceCanvas('cpu');context?.clearRect(0,0,canvas.width,canvas.height);}
     if(frame)get<HTMLSelectElement>('zoom').value=String(frame.camera.zoom);
-    unitMarkers.replaceChildren();if(frame&&(frame.type==='frame'||state.gpuDisplayedFrameId===frame.frameId)){for(const p of frame.controlPoints){if(!state.selectedEntities.includes(p.entityId))continue;const mark=document.createElement('span');mark.className='terrain-unit-marker';mark.style.left=`${p.x/canvas.width*100}%`;mark.style.top=`${p.y/canvas.height*100}%`;unitMarkers.append(mark);}}
+    updateMarkers(state);
     const picked=state.selection;marker.hidden=!picked;get('cell').textContent=picked?.kind==='terrain'?`${t('cell')}: ${picked.cell.x}, ${picked.cell.y}`:picked?.kind==='object'?`${t(picked.object.family)} · ${picked.object.x}, ${picked.object.y}`:t('noCell');
     const selected=get('object-details');selected.replaceChildren();if(picked?.kind==='object'){const o=picked.object;for(const [key,value] of [['objectId',o.id],['format',t(o.format)],['typeName',o.name],['owner',o.owner??'—'],['frame',String(o.frame)],['sourcePath',o.sourcePath],['sourceHash',o.sourceHash],['palettePath',o.palettePath],['paletteHash',o.paletteHash],...(o.voxel?[['partId',o.voxel.partId],['partRole',t(o.voxel.role)],['section',String(o.voxel.section)],['hvaPath',o.voxel.hvaPath],['hvaHash',o.voxel.hvaHash],['hvaSection',String(o.voxel.hvaSection)],['hvaFrame',String(o.voxel.hvaFrame)],['voxelOrdinal',String(o.voxel.voxelOrdinal)]]:[])]){const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=t(key!);dd.textContent=value!;selected.append(dt,dd);}}
     get('artwork').textContent=frame?`${t('shown')}: ${frame.summary.artwork.rendered.toLocaleString()} · ${t('unavailable')}: ${frame.summary.artwork.unavailable.toLocaleString()}`:'';
