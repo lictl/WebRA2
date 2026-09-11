@@ -112,3 +112,16 @@ current house IDs; it does not relabel the underlying placement or mutate an
 earlier death. Five additional original source/numerical cases cover this seam,
 including all mixed-house pairs and transferred pending deaths. The combined
 focused world/source combat suite passes 84 tests and type checking.
+
+
+Native FireActions passes its source House from TriggerType owner-country lookup
+for each action: RA2 0x6ed830–0x6ed896 and YR 0x7265c0–0x726626. This is distinct
+from YR Trigger+0x2c, initialized null at 0x725fb5. RegisterEvent
+0x7264c0–0x7265bb copies a non-null TEvent+0x54 value after individual success or
+an already latched predicate. It can update before whole-trigger success, and
+force bypass skips that update loop. Detachment 0x726690–0x7266be clears a matching
+house pointer. The event1/24/25/26/59 success branch 0x71f1bd–0x71f218 records the
+observed object's virtual owning house. This source context requires independent
+saved event/trigger state; a caller label or initial house is not equivalent.
+The nullable world invocation preserves that absence. The bounded transfer helper
+rejects a null8997 target instead of fabricating a target house.

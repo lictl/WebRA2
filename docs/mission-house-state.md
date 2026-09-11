@@ -113,3 +113,14 @@ combat, shared-slot, team and compound mission consumers are coordinated next.
 Root retains the mission VM/bindings/compound world and shared configuration.
 The complete original mission remains gated by the other dependency groups in
 the audit.
+
+
+For action36, the source-house invocation argument is the first house for the
+firing TriggerType's owner-country, rebuilt by native FireActions. It is separate
+from YR's current-trigger-house selector8997. The latter starts null; native
+RegisterEvent retains the last non-null event house for an individually true or
+already latched event, even if another predicate prevents the trigger from firing.
+Force bypass retains it, and matching pointer detachment clears it. The component
+invocation and saved receipt accept null and never replace it with house zero.
+A null8997 target is not an admitted transfer. Compound execution must retain a
+separate saved event/trigger-house context before enabling that selector.
