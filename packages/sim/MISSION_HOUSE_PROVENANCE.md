@@ -3,7 +3,8 @@
 The original TypeScript source in `src/mission-house-*.ts` and original tests are
 licensed GPL-3.0-or-later. This is a source/helper checkpoint for
 [issue233](https://github.com/lictl/WebRA2/issues/233), not a complete native house
-implementation. The module is not yet connected to the engine or browser.
+implementation. Its opt-in engine composition is described below; the browser
+and compound mission runtime are not yet connected.
 
 The implementation reuses the already reviewed source/identity components in
 [entity definitions](../content/ENTITY_DEFINITIONS_PROVENANCE.md),
@@ -83,8 +84,7 @@ composition; its transaction order and health lifecycle are explicit WebRA2 D03
 policy. A pending human death remains registered/present until logical sequence
 completion. Its damage-time owners stay recorded after later transfers. Current
 command authority and hostility change atomically with the counter transition;
-source-bound combat factors and shared infantry claims remain factory-gated until
-those consumers are implemented. Native limbo, technician conversion, capture
+shared infantry claims remain factory-gated until that consumer is implemented. Native limbo, technician conversion, capture
 side effects and imported counter history are not implied.
 
 The exact-result receipt proves a completed component transaction and its source,
@@ -92,3 +92,23 @@ model and before/after saves. It does not prove that a mission trigger executed;
 the compound VM must authenticate instruction emission and caller house context.
 Eight new original world cases plus legacy checks pass 61 focused tests and
 type checking. Final native/raw ledgers and full independent review remain due.
+
+
+Current-house numerical composition reuses the genuine retained bridge table and
+the reviewed [house modifier](../content/COMBAT_MODIFIERS_PROVENANCE.md),
+[veterancy](../content/COMBAT_VETERANCY_PROVENANCE.md) and
+[native arithmetic](NATIVE_COMBAT_NUMBERS_PROVENANCE.md) evidence. The ownership
+consumer above assigns the current house pointer without resetting the retained
+ordinary actor factors; this bounded policy excludes the unmodeled capture and
+status effects. Each future house factor combination is checked before the model
+is published. Original actor/veterancy factors are preserved. Campaign house
+firepower/reload and current-country infantry armor are selected independently,
+matching their already reviewed consumers rather than multiplying every country
+field. Saved schedules/deaths validate against historical owners at damage time.
+
+The content death selector continues to authenticate original source/type/current
+weapon eligibility. The bridge then binds its returned attribution to validated
+current house IDs; it does not relabel the underlying placement or mutate an
+earlier death. Five additional original source/numerical cases cover this seam,
+including all mixed-house pairs and transferred pending deaths. The combined
+focused world/source combat suite passes 84 tests and type checking.

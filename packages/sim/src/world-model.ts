@@ -7,6 +7,7 @@ import { worldFail, worldRecord, worldList, worldInteger, worldSymbol as symbol,
 export * from './world-values.ts';
 import { navigationCell, NAVIGATION_POLICY, type NavigationGrid } from './navigation.ts';
 import { infantryPassageBase, type InfantryPassageCatalog } from './infantry-passage-catalog.ts';
+import { ordinaryInfantryCurrentHouseRules } from './ordinary-infantry-bridge.ts';
 import { isMissionHouseSource, type MissionHouseSource } from './mission-house-source.ts';
 
 export const WORLD_MODEL_POLICY = 'webra2-world-model-1' as const;
@@ -139,7 +140,8 @@ export function createWorldModel(input: WorldModelInput): WorldModel {
       entities.some(e => ['infantry', 'unit', 'structure', 'aircraft'].includes(e.kind) && e.initialHealth === null)) worldFail('world-ownership-source');
     // Next coordinated increments supply current-house numerical factors and
     // retained captured subcell claims. Never admit their initial-owner behavior.
-    if (source || infantryPassage) worldFail('world-ownership-consumer-pending');
+    if (infantryPassage) worldFail('world-ownership-consumer-pending');
+    if (source) ordinaryInfantryCurrentHouseRules(source);
   }
   const bound = { ...common, motionPolicy: infantryPassage ? WORLD_INFANTRY_MOTION_POLICY : WORLD_MOTION_POLICY };
   const sha256 = worldHash({ ...bound, ...(combat ? { combatSha256: combat.sha256 } : {}),

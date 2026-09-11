@@ -16,12 +16,13 @@ import { combatActorFingerprint } from '../../content/src/combat-actor-values.ts
 import { isWorldContent, type WorldContent } from './world-content.ts';
 import { compileCombatWeapons } from './combat-weapons.ts';
 import { compileCombatRoster } from './combat-roster.ts';
-import { createCombatModel, combatFactor, combatSourceBridge, type CombatModel, type CombatWeapon, type CombatActor } from './combat-model.ts';
-import { createOrdinaryCombatRules, type OrdinaryCombatActor } from './ordinary-combat-rules.ts';
+import { createCombatModel, combatFactor, combatSourceBridge, combatOrdinaryBinding, type CombatModel, type CombatWeapon, type CombatActor } from './combat-model.ts';
+import { createOrdinaryCombatRules, bindOrdinaryCombatCurrentHouses, type OrdinaryCombatCurrentHouses, type OrdinaryCombatActor } from './ordinary-combat-rules.ts';
 import { createOrdinaryDeathRules, type OrdinaryDeathActor } from './ordinary-death-rules.ts';
 import { assertWorldModel, worldHash, worldRecord, worldInteger, worldPosition, type WorldModel } from './world-model.ts';
 import { WorldSimulation, type WorldState } from './world.ts';
 import { canonicalText } from './canonical.ts';
+import { currentWorldOwner } from './world-ownership.ts';
 
 export const ORDINARY_INFANTRY_BRIDGE_POLICY = 'webra2-standing-human-source-combat-1' as const;
 export const ORDINARY_INFANTRY_BRIDGE_LIMITS = Object.freeze({ actors: 2048, types: 16384, weapons: 1024,
@@ -60,7 +61,23 @@ function freeze<T>(v: T): T { if (v && typeof v === 'object' && !Object.isFrozen
 type Private = { input: OrdinaryInfantryBridgeInput; rows: Map<number, OrdinaryInfantryActor>; terrain: Map<number, TerrainTraversal['cells'][number]>;
   programs: Map<number, InfantryFiringProgram>; movementHash: string };
 const bridges = new WeakMap<object, Private>();
+const currentHouseRules = new WeakMap<object, OrdinaryCombatCurrentHouses>();
 export const isOrdinaryInfantryBridge = (v: unknown): v is OrdinaryInfantryBridge => !!v && typeof v === 'object' && bridges.has(v);
+/** Current-house factors come from the genuine retained source table. The
+ * original actor/veterancy factors stay attached to their immutable actor rows.
+ * This initial bridge admits infantry only, so Country ArmorInfantry is the
+ * relevant consumer; stored house Armor is not substituted for it. */
+export function ordinaryInfantryCurrentHouseRules(bridge: OrdinaryInfantryBridge): OrdinaryCombatCurrentHouses {
+  const data = bridges.get(bridge) ?? fail('bridge-factory'), combat = bridge.combat ?? fail('bridge-factory');
+  const cached = currentHouseRules.get(bridge); if (cached) return cached;
+  const byId = new Map(data.input.modifiers.houses.map(h => [h.houseId, h]));
+  const houses = data.input.world.players.map(p => {
+    const h = byId.get(p.houseId), houseFirepower = known(h?.fields.firepower), countryArmor = known(h?.fields.countryArmorInfantry), houseRof = known(h?.fields.rof);
+    if (!h || h.houseIndex !== p.playerId || houseFirepower === null || countryArmor === null || houseRof === null) return fail('current-house-numerical-source');
+    return { playerId: p.playerId, houseFirepower, countryArmor, houseRof };
+  });
+  const result = bindOrdinaryCombatCurrentHouses(combatOrdinaryBinding(combat)!, houses); currentHouseRules.set(bridge, result); return result;
+}
 function movementHash(model: WorldModel): string {
   return worldHash({ contentIdentity: model.contentIdentity, sourceSha256: model.sourceSha256, definitionsSha256: model.definitionsSha256,
     entities: model.entities, navigation: model.navigation.map(n => ({ hash: n.grid.sha256, costScale: n.costScale })), blocked: model.blocked, footprints: model.footprints });
@@ -230,7 +247,8 @@ export function evaluateOrdinaryInfantryState(bridge: OrdinaryInfantryBridge, mo
   if (sourceRow?.role !== 'attacker' || !source) reasons.push('source-not-attacker');
   if (!targetRow || targetRow.role === 'movement-only' || !target) reasons.push('target-not-damageable');
   if (reasons.length) return done(null);
-  if (sourceId === targetId || sourceRow!.playerId === targetRow!.playerId || bridge.combat!.allies.some(a => a.playerId === sourceRow!.playerId && a.allyId === targetRow!.playerId)) reasons.push('allied-target');
+  const sourceOwner = model.ownership ? currentWorldOwner(model, source!) : sourceRow!.playerId, targetOwner = model.ownership ? currentWorldOwner(model, target!) : targetRow!.playerId;
+  if (sourceId === targetId || sourceOwner === targetOwner || bridge.combat!.allies.some(a => a.playerId === sourceOwner && a.allyId === targetOwner)) reasons.push('allied-target');
   if (source!.health === null || source!.health <= 0 || target!.health === null || target!.health <= 0) reasons.push('inactive-actor');
   const standing = (e: NonNullable<typeof source>) => e.goal === null && e.route.length === 0 && e.progress === 0;
   if (!standing(source!) || !standing(target!)) reasons.push('moving-actor');
@@ -268,12 +286,23 @@ export function evaluateOrdinaryInfantryState(bridge: OrdinaryInfantryBridge, mo
   const decision = evaluateInstantWeaponContext(data.input.instant, weapon.id, context); reasons.push(...decision.reasons);
   // Closed mode has no native animation-sequence/status transitions: logical windup remains standing pose.
   const identity = (row: OrdinaryInfantryActor) => ({ id: String(row.entityId), rowId: row.rowId, typeId: row.typeId!, ownerId: row.ownerId! });
-  const deathSelection = selectOrdinaryInfantryDeath(data.input.ordinaryDeath, { victim: identity(targetRow!), attacker: identity(sourceRow!),
+  const sourceSelection = selectOrdinaryInfantryDeath(data.input.ordinaryDeath, { victim: identity(targetRow!), attacker: identity(sourceRow!),
     attackWeaponId: weapon.id, warheadId: sourceRow!.warheadId!, currentWeaponId: targetRow!.currentWeaponId, lethal: true,
     context: { complete: true, standing: standing(target!), dryGround: cells.some(c => c.x === target!.x && c.y === target!.y && c.land === 'dry'),
       onBridge: cells.some(c => c.x === target!.x && c.y === target!.y && c.bridge), heightAboveGround: 0, sequence: 0, currentLocomotor: 'walk',
       inTransport: false, passengerCount: 0, driverIndex: -1, attachedEffects: false, spawnManager: false, slaveManager: false, mindControl: false,
       temporal: false, warping: false, immobilized: false, veterancy: targetRow!.veterancy! } });
+  // The conditional content selector proves the original source/type/current-weapon
+  // eligibility. Ownership does not select a death branch in that bounded subset.
+  // Bind its attribution to the already validated live world separately; never
+  // relabel the initial source placement or rewrite a historical completed death.
+  const players = model.ownership ? new Map(data.input.world.players.map(p => [p.playerId, p.houseId])) : null;
+  let deathSelection = sourceSelection;
+  if (players) {
+    const victimOwnerId = targetOwner === null ? undefined : players.get(targetOwner), attackerOwnerId = sourceOwner === null ? undefined : players.get(sourceOwner);
+    if (!victimOwnerId || !attackerOwnerId) reasons.push('current-house-identity');
+    else deathSelection = freeze({ ...sourceSelection, victim: { ...sourceSelection.victim, ownerId: victimOwnerId }, attacker: { ...sourceSelection.attacker, ownerId: attackerOwnerId } });
+  }
   reasons.push(...deathSelection.reasons); return done(context, deathSelection);
 }
 

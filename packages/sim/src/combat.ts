@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 import { combatSourceBridge, combatInfantryPrograms, combatDeathBinding, combatOrdinaryBinding, combatDamage, COMBAT_LIMITS as C, type CombatActor, type CombatWeapon } from './combat-model.ts';
-import { evaluateOrdinaryInfantryState } from './ordinary-infantry-bridge.ts';
+import { evaluateOrdinaryInfantryState, ordinaryInfantryCurrentHouseRules } from './ordinary-infantry-bridge.ts';
 import { worldAddress, worldFail, worldInteger, worldList, worldPosition, worldRecord, WORLD_LIMITS as W } from './world-values.ts';
 import { canonicalText } from './canonical.ts';
 import { createNativeRandom, restoreNativeRandom, nextNativeReloadJitter, nextNativeRandomWord, NATIVE_RELOAD_MAX_DRAWS, type NativeRandomState } from './native-random.ts';
-import { ordinaryCombatDamage, ordinaryCombatReload, ordinaryCombatMaximumReload } from './ordinary-combat-rules.ts';
+import { ordinaryCombatDamage, ordinaryCombatReload, ordinaryCombatMaximumReload, ordinaryCombatHouseDamage, ordinaryCombatHouseReload, ordinaryCombatHouseMaximumReload } from './ordinary-combat-rules.ts';
 import { createInfantryFiringState, restoreInfantryFiring, saveInfantryFiring, transitionInfantryFiring, inspectDueInfantryShot, type InfantryFiringSave, type InfantryFiringState } from './infantry-firing.ts';
 import { ordinaryDeathActor, ordinaryDeathWeapon, ordinaryDeathDuration } from './ordinary-death-rules.ts';
 import type { WorldModel } from './world-model.ts';
@@ -63,13 +63,29 @@ export function combatTargetLegal(model: WorldModel, entities: readonly WorldEnt
   if (a === null || a === b) return false;
   return !model.combat!.allies.some(pair => pair.playerId === a && pair.allyId === b);
 }
-function damageFor(model:WorldModel,source:number,w:CombatWeapon,target:CombatActor):number {
+type EntityRows = ReadonlyMap<number, WorldEntity>;
+function currentHouses(model:WorldModel) {
+  const bridge=model.ownership?combatSourceBridge(model.combat!):undefined;
+  return bridge?ordinaryInfantryCurrentHouseRules(bridge):undefined;
+}
+function damageFor(model:WorldModel,source:number,w:CombatWeapon,target:CombatActor,entities:EntityRows,owners?:readonly [number,number]):number {
+  const houses=currentHouses(model);
+  if(houses){
+    const sourceHouse=owners?.[0]??entities.get(source)?.owner,targetHouse=owners?.[1]??entities.get(target.entityId)?.owner;
+    if(sourceHouse===null||sourceHouse===undefined||targetHouse===null||targetHouse===undefined)worldFail('combat-current-house');
+    return ordinaryCombatHouseDamage(houses,source,sourceHouse,w.id,target.entityId,targetHouse);
+  }
   const ordinary=combatOrdinaryBinding(model.combat!);
   return ordinary?ordinaryCombatDamage(ordinary,source,w.id,target.entityId):combatDamage(w,target.armor);
 }
-function weaponLegal(w: CombatWeapon, target: CombatActor, model:WorldModel,source:number): boolean {
+function reloadFor(model:WorldModel,source:number,weapon:string,jitter:0|1|2,house:number|null|undefined):number {
+  const houses=currentHouses(model);
+  if(houses){if(house===null||house===undefined)worldFail('combat-current-house');return ordinaryCombatHouseReload(houses,source,house,weapon,jitter);}
+  return ordinaryCombatReload(combatOrdinaryBinding(model.combat!)!,source,weapon,jitter);
+}
+function weaponLegal(w: CombatWeapon, target: CombatActor, model:WorldModel,source:number,entities:EntityRows,owners?:readonly [number,number]): boolean {
   const death=combatDeathBinding(model.combat!);
-  return (!death||!!ordinaryDeathActor(death,target.entityId)) && (target.layer === 'air' ? w.air : w.ground) && damageFor(model,source,w,target) > 0;
+  return (!death||!!ordinaryDeathActor(death,target.entityId)) && (target.layer === 'air' ? w.air : w.ground) && damageFor(model,source,w,target,entities,owners) > 0;
 }
 
 export function validateCombatState(model: WorldModel, input: unknown, entities: WorldEntity[], nextTick: number, ownership?: WorldOwnershipState): CombatState {
@@ -82,7 +98,7 @@ export function validateCombatState(model: WorldModel, input: unknown, entities:
     const a = worldRecord(value, ['entityId', 'targetId', 'weaponId', 'readyTick', 'burstRemaining', 'burstTick', 'ammo']), d = config.actors[i]!;
     if (a.entityId !== d.entityId) worldFail('combat-save-actor-id');
     const targetId = a.targetId === null ? null : worldInteger(a.targetId, 1, 2147483647);
-    const latestReadyTick = nextTick === 0 || !d.weapons.length ? 0 : nextTick - 1 + (ordinary?ordinaryCombatMaximumReload(ordinary,d.entityId):Math.max(...d.weapons.map(id => weapons.get(id)!.reloadTicks)));
+    const latestReadyTick = nextTick === 0 || !d.weapons.length ? 0 : nextTick - 1 + (ordinary?(currentHouses(model)?ordinaryCombatHouseMaximumReload(currentHouses(model)!,d.entityId):ordinaryCombatMaximumReload(ordinary,d.entityId)):Math.max(...d.weapons.map(id => weapons.get(id)!.reloadTicks)));
     const readyTick = worldInteger(a.readyTick, 0, latestReadyTick), burstRemaining = worldInteger(a.burstRemaining, 0, C.burst - 1);
     const burstTick = worldInteger(a.burstTick, 0, W.tick + C.delay), ammo = worldInteger(a.ammo, -1, C.ammo);
     if (d.initialAmmo === -1 ? ammo !== -1 : ammo < 0 || ammo > d.initialAmmo) worldFail('combat-save-ammo');
@@ -92,7 +108,7 @@ export function validateCombatState(model: WorldModel, input: unknown, entities:
     if (burstRemaining) {
       const w = typeof a.weaponId === 'string' ? weapons.get(a.weaponId) : undefined;
       if (targetId === null || !w || !d.weapons.includes(w.id) || burstRemaining >= w.burst ||
-        !weaponLegal(w, actorsById.get(targetId)!,model,d.entityId) || burstTick < nextTick || burstTick > nextTick + C.delay || !ammo) worldFail('combat-save-burst');
+        !weaponLegal(w, actorsById.get(targetId)!,model,d.entityId,byId) || burstTick < nextTick || burstTick > nextTick + C.delay || !ammo) worldFail('combat-save-burst');
       const lastShotTick = burstTick - w.burstDelayTicks;
       if (lastShotTick < 0 || lastShotTick >= nextTick || readyTick !== lastShotTick + w.reloadTicks) worldFail('combat-save-burst-clock');
     } else if (a.weaponId !== null || burstTick !== 0) worldFail('combat-save-idle-burst');
@@ -106,7 +122,7 @@ export function validateCombatState(model: WorldModel, input: unknown, entities:
     const launchTick = worldInteger(p.launchTick, 0, nextTick - 1), dueTick = worldInteger(p.dueTick, nextTick, W.tick - 1);
     const from = worldInteger(p.from, 0, 512 * 512 - 1), aim = worldInteger(p.aim, 0, 512 * 512 - 1);
     const w = typeof p.weaponId === 'string' ? weapons.get(p.weaponId) : undefined, source = actorsById.get(sourceId), target = actorsById.get(targetId);
-    if (!w || w.delivery === 'instant' || !source?.weapons.includes(w.id) || !target || !combatTargetLegal(model, entities, sourceId, targetId) || !weaponLegal(w, target,model,sourceId) || !inRange(w, from, aim) || dueTick !== launchTick + flightTicks(w, from, aim)) worldFail('combat-save-impact');
+    if (!w || w.delivery === 'instant' || !source?.weapons.includes(w.id) || !target || !combatTargetLegal(model, entities, sourceId, targetId) || !weaponLegal(w, target,model,sourceId,byId) || !inRange(w, from, aim) || dueTick !== launchTick + flightTicks(w, from, aim)) worldFail('combat-save-impact');
     if (ids.has(id) || dueTick < priorTick || dueTick === priorTick && id <= priorId) worldFail('combat-save-impact-order');
     ids.add(id); priorTick = dueTick; priorId = id; impacts.push({ id, sourceId, targetId, weaponId: w.id, launchTick, dueTick, from, aim });
   }
@@ -116,11 +132,11 @@ export function validateCombatState(model: WorldModel, input: unknown, entities:
     infantryFiring=rows.map((value,i)=>{
       const p=firing[i]!,s=restoreInfantryFiring(p,value),a=actors.find(a=>a.entityId===p.actorId)!,entity=byId.get(p.actorId)!;
       if(s.tick!==nextTick||s.rearm!==null&&s.rearm.shotTick>=nextTick||s.rearm!==null&&a.readyTick!==s.rearm.shotTick+s.rearm.nativeRof||s.rearm===null&&a.readyTick!==0)worldFail('infantry-save-clock');
-      if(s.pending&&(s.pending.dueTick<nextTick||s.pending.startedTick>=nextTick||s.pending.targetId!==a.targetId||s.pending.weaponId!==actorsById.get(p.actorId)!.weapons[0]||!alive(entity)||entity.goal!==null||a.ammo===0||!weaponLegal(weapons.get(s.pending.weaponId)!,actorsById.get(s.pending.targetId)!,model,p.actorId)||!inRange(weapons.get(s.pending.weaponId)!,worldAddress(entity.x,entity.y),worldAddress(byId.get(s.pending.targetId)!.x,byId.get(s.pending.targetId)!.y))))worldFail('infantry-save-pending');
+      if(s.pending&&(s.pending.dueTick<nextTick||s.pending.startedTick>=nextTick||s.pending.targetId!==a.targetId||s.pending.weaponId!==actorsById.get(p.actorId)!.weapons[0]||!alive(entity)||entity.goal!==null||a.ammo===0||!weaponLegal(weapons.get(s.pending.weaponId)!,actorsById.get(s.pending.targetId)!,model,p.actorId,byId)||!inRange(weapons.get(s.pending.weaponId)!,worldAddress(entity.x,entity.y),worldAddress(byId.get(s.pending.targetId)!.x,byId.get(s.pending.targetId)!.y))))worldFail('infantry-save-pending');
       if(a.burstRemaining||a.weaponId!==null||a.burstTick!==0)worldFail('infantry-save-burst');
       const d=actorsById.get(p.actorId)!;
       if(d.initialAmmo>=0&&a.ammo!==d.initialAmmo-s.shots)worldFail('infantry-save-ammo');
-      if(s.rearm!==null&&![0,1,2].some(j=>ordinaryCombatReload(ordinary!,p.actorId,d.weapons[0]!,j as 0|1|2)===s.rearm!.nativeRof))worldFail('infantry-save-reload');
+      if(s.rearm!==null&&![0,1,2].some(j=>reloadFor(model,p.actorId,d.weapons[0]!,j as 0|1|2,model.ownership?worldOwnershipOwnerAt(model,ownership!,p.actorId,s.rearm!.shotTick):undefined)===s.rearm!.nativeRof))worldFail('infantry-save-reload');
       return saveInfantryFiring(p,s);
     });
   }
@@ -131,11 +147,12 @@ export function validateCombatState(model: WorldModel, input: unknown, entities:
       const d=worldRecord(value,['entityId','sourceId','weaponId','victimOwner','sourceOwner','sequence','startedTick','completionTick','corpseIndex']);
       const entityId=worldInteger(d.entityId,1,2147483647),sourceId=worldInteger(d.sourceId,1,2147483647);
       const victim=ordinaryDeathActor(death,entityId),weapon=typeof d.weaponId==='string'?ordinaryDeathWeapon(death,d.weaponId):undefined;
-      if(entityId<=prior||!victim||!weapon||!actorsById.get(sourceId)?.weapons.includes(weapon.weaponId)||(!model.ownership&&!combatTargetLegal(model, entities,sourceId,entityId))||byId.get(entityId)!.health!==0||(!model.ownership&&!weaponLegal(weapons.get(weapon.weaponId)!,actorsById.get(entityId)!,model,sourceId)))worldFail('death-save-identity');prior=entityId;
+      if(entityId<=prior||!victim||!weapon||!actorsById.get(sourceId)?.weapons.includes(weapon.weaponId)||(!model.ownership&&!combatTargetLegal(model, entities,sourceId,entityId))||byId.get(entityId)!.health!==0||(!model.ownership&&!weaponLegal(weapons.get(weapon.weaponId)!,actorsById.get(entityId)!,model,sourceId,byId)))worldFail('death-save-identity');prior=entityId;
       const sourceOwner=worldInteger(d.sourceOwner,0,W.players-1),victimOwner=worldInteger(d.victimOwner,0,W.players-1);
       const damageTick=worldInteger(d.startedTick,0,nextTick-1);
       const historical=(id:number)=>model.ownership?worldOwnershipOwnerAt(model,ownership!,id,damageTick):definitions.get(id)!.owner;
       if(sourceOwner!==historical(sourceId)||victimOwner!==historical(entityId)||model.ownership&&(sourceOwner===victimOwner||config.allies.some(a=>a.playerId===sourceOwner&&a.allyId===victimOwner)))worldFail('death-save-owner');
+      if(model.ownership&&!weaponLegal(weapons.get(weapon.weaponId)!,actorsById.get(entityId)!,model,sourceId,byId,[sourceOwner,victimOwner]))worldFail('death-save-identity');
       const sequence=worldInteger(d.sequence,11,12) as 11|12,startedTick=worldInteger(d.startedTick,0,nextTick-1);
       const completionTick=worldInteger(d.completionTick,1,W.tick-1);
       if(sequence!==weapon.infDeath+10||completionTick!==startedTick+ordinaryDeathDuration(death,entityId,sequence))worldFail('death-save-sequence');
@@ -161,10 +178,10 @@ export function validateCombatState(model: WorldModel, input: unknown, entities:
 /** An accepted attack holds its target; moving into range is an explicit move order in this first policy. */
 export function attackCombat(model: WorldModel, state: CombatState, entities: WorldEntity[], sourceId: number, targetId: number, emit: Emit): boolean {
   const a = state.actors.find(a => a.entityId === sourceId), d = model.combat!.actors.find(a => a.entityId === sourceId);
-  const target = model.combat!.actors.find(a => a.entityId === targetId);
+  const target = model.combat!.actors.find(a => a.entityId === targetId), byId=new Map(entities.map(e=>[e.id,e]));
   if (!a || !d?.weapons.length) { emit('unsupported-weapon', sourceId); return false; }
   if (!target || !alive(entities.find(e => e.id === targetId)) || !combatTargetLegal(model, entities, sourceId, targetId)) { emit('illegal-target', sourceId, null, targetId); return false; }
-  if (!d.weapons.some(id => weaponLegal(model.combat!.weapons.find(w => w.id === id)!, target,model,sourceId))) { emit('ineffective-weapon', sourceId, null, targetId); return false; }
+  if (!d.weapons.some(id => weaponLegal(model.combat!.weapons.find(w => w.id === id)!, target,model,sourceId,byId))) { emit('ineffective-weapon', sourceId, null, targetId); return false; }
   cancelFiring(model,state,sourceId);clearBurst(a); a.targetId = targetId; emit('attack-accepted', sourceId, null, targetId); return true;
 }
 
@@ -195,7 +212,7 @@ export function stepCombat(model: WorldModel, world: WorldState, tick: number, e
     charge(); const target = byId.get(targetId);
     if (!alive(target) || w.delivery === 'fixed-cell' && worldAddress(target.x, target.y) !== aim) { emit('impact-missed', sourceId, aim, targetId); return; }
     const healthBefore = target.health!;
-    const damage = Math.min(healthBefore, damageFor(model,sourceId,w,actors.get(targetId)!)); target.health! -= damage;
+    const damage = Math.min(healthBefore, damageFor(model,sourceId,w,actors.get(targetId)!,byId)); target.health! -= damage;
     emit('damaged', targetId, worldAddress(target.x, target.y), damage);
     if (target.health === 0) {
       target.goal = null; target.route = []; target.progress = 0; target.waitTicks = 0;
@@ -225,7 +242,7 @@ export function stepCombat(model: WorldModel, world: WorldState, tick: number, e
     if(firingProgram){
       let schedule=schedules.get(a.entityId)!;
       weapon=weapons.get(d.weapons[0]!)!;
-      if(!weaponLegal(weapon,targetDefinition,model,source.id)||!inRange(weapon,from,aim)){cancel(a.entityId);continue;}
+      if(!weaponLegal(weapon,targetDefinition,model,source.id,byId)||!inRange(weapon,from,aim)){cancel(a.entityId);continue;}
       if(sourceBridge){
         const decision=evaluateOrdinaryInfantryState(sourceBridge,model,world,{sourceId:source.id,targetId:target.id});
         contextWork+=decision.work;if(contextWork>C.sourceContextPerTick)worldFail('source-context-work');
@@ -247,7 +264,7 @@ export function stepCombat(model: WorldModel, world: WorldState, tick: number, e
       if (tick < a.burstTick) continue;
     } else {
       if (tick < a.readyTick) continue;
-      weapon = d.weapons.map(id => weapons.get(id)!).find(w => weaponLegal(w, targetDefinition,model,source.id) && inRange(w, from, aim));
+      weapon = d.weapons.map(id => weapons.get(id)!).find(w => weaponLegal(w, targetDefinition,model,source.id,byId) && inRange(w, from, aim));
       if (!weapon) continue;
       a.weaponId = weapon.id; a.burstRemaining = weapon.burst;
     }
@@ -258,7 +275,7 @@ export function stepCombat(model: WorldModel, world: WorldState, tick: number, e
     if(ordinary){
       const random=state.ordinaryRandom!,draw=nextNativeReloadJitter(random.state);charge(draw.drawCount);
       random.draws=worldInteger(random.draws+draw.drawCount,0,Number.MAX_SAFE_INTEGER);random.state=draw.state;
-      a.readyTick=tick+ordinaryCombatReload(ordinary,source.id,weapon.id,draw.value);
+      a.readyTick=tick+reloadFor(model,source.id,weapon.id,draw.value,source.owner);
       emit('reload-sampled',source.id,null,draw.value);
       if(firingProgram){
         const due=inspectDueInfantryShot(firingProgram,schedules.get(source.id)!)!;

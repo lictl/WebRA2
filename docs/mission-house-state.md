@@ -67,10 +67,27 @@ history are not inferred. Eight new original world tests plus existing movement/
 cases pass 61 focused tests and type checking. These include exact minimum and
 one-lower work limits, private receipt identity and current population queries.
 
-Current-house source combat numerical factors and retained captured infantry
-subcell claims are the next active integration increment. The model factory
-explicitly refuses those combinations at this checkpoint, so they cannot silently
-consume old-owner values. Team construction/recruitment ownership, compound
+Current-house source combat now composes the genuine bridge's retained house
+modifier table. Campaign house firepower/ROF come from the selected difficulty;
+the country's general Firepower/ROF fields are not incorrectly multiplied into
+those values. Current country ArmorInfantryMult applies at damage time. Actor and
+veterancy factors remain attached to the actor. Bounded preflight covers every
+represented house and all positive damage/reload outcomes before enabling this
+model. Saved reloads use the house at their shot tick, while existing cooldowns
+survive capture. Death source/type/current-weapon eligibility still uses genuine
+initial source identity; the resulting attribution joins validated current house
+IDs separately. Later transfers never rewrite recorded death owners.
+
+Three additional source-bound scenarios cover both profiles and transfer before
+windup, during reload and after lethal damage, with every-boundary restore and
+replay. Two numerical boundary cases compare all mixed-house source/target pairs
+against the reviewed eager factor composition and exercise descriptor ownership,
+invalid factors and overflow rejection. Together with the existing world/source
+combat cases, all 84 focused tests and type checking pass.
+
+Retained captured infantry subcell claims are the next active integration
+increment. The model factory still refuses ownership plus shared-slot models
+until those consumers are implemented. Team construction/recruitment ownership, compound
 mission actions/events and browser exposure also remain pending. This checkpoint
 does not admit an original mission or change the application's active model.
 
