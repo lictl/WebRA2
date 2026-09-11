@@ -92,3 +92,14 @@ No browser, network or retail program is involved in these tests. Actual once-pe
 worker transport, generation ordering, resource lifetime and product cadence remain
 integration gates. Retain [GPU provenance](../packages/render/GPU_PROVENANCE.md),
 [scene semantics](gpu-scene.md) and [readback-free picking](gpu-picking.md).
+
+Product profiling follow-up under #229 removes the bridge's duplicate GPU message
+capture. The retained descriptor snapshot is the validated result; already owned
+scalar metadata needs no second structured clone. The presenter captures each
+sprite update once into a genuine immutable scalar array. Each scene weakly caches
+that array's validated resource joins and geometry for later camera changes.
+Caller-frozen or mutable arrays still receive full validation, and caches are bound
+to resident resources and object/coordinate limits. Every camera frame recomputes
+clipping, sample/draw budgets and exact binary64 sampling. Old frame picks retain
+their original geometry. These changes do not establish a product FPS result;
+Chrome measurement remains required.

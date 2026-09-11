@@ -111,3 +111,20 @@ test('GPU capture validates descriptor snapshots without rereading switching Pro
   assert(validResult(captureGpuFrame(withObject)));assert.equal(gets,0);
   bridge.dispose();
 });
+
+test('bridge retains one descriptor-captured GPU snapshot for initialization and each world update',async()=>{
+  const {worker,bridge,s}=await start(true);let gets=0;const reads:{world:number;summary:number}[]=[];
+  worker.transform=reply=>{
+    if(reply.type!=='result'||reply.result.type!=='gpu-frame')return reply;
+    const counts={world:0,summary:0};reads.push(counts);
+    return {...reply,result:new Proxy(reply.result,{
+      get(){gets++;throw new Error('GPU boundary must capture descriptors');},
+      getOwnPropertyDescriptor(target,key){if(key==='world'||key==='summary')counts[key]++;return Reflect.getOwnPropertyDescriptor(target,key);},
+    })};
+  };
+  const init=await bridge.request({type:'renderer-mode',mode:'gpu'},s) as GpuFrameResult;
+  const moved=await bridge.request({type:'world-step',ticks:1},s) as GpuFrameResult;
+  assert.equal(init.world!.revision,0);assert.equal(moved.world!.revision,1);
+  assert.deepEqual(reads,[{world:1,summary:1},{world:1,summary:1}]);assert.equal(gets,0);
+  bridge.dispose();
+});

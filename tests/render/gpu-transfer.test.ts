@@ -179,3 +179,42 @@ test('captures pin input buffers after all metadata traps and accept ordinary no
   assert.ok(zero); structuredClone(zero.rgba.buffer, { transfer: [zero.rgba.buffer] });
   assert.throws(() => importGpuScene(emptyPacket), /gpu-transfer-plane/);
 });
+
+test('owned sprite updates retain frame geometry across cameras without trusting mutable or caller-frozen arrays', () => {
+  const { scene } = simple(), input = [originalObject()], owned = captureGpuSpriteObjects(input);
+  const views = [originalViewport(), originalViewport({ cameraX: -2.25, cameraY: 1.125, zoom: 2 }), originalViewport({ cameraX: 1000, zoom: 0.5 })];
+  const expected = views.map(v => framePacket(prepareGpuFrame(scene, v, input)));
+  const old = prepareGpuFrame(scene, views[0]!, owned);
+  (input[0] as Mutable).x += 17;
+  for (const [i, v] of views.entries()) assert.deepEqual(framePacket(prepareGpuFrame(scene, v, owned)), expected[i]);
+  assert.deepEqual(framePacket(old), expected[0]);
+  assert.notDeepEqual(framePacket(prepareGpuFrame(scene, views[0]!, input)), expected[0]);
+  const shallow = Object.freeze([originalObject()]);
+  assert.deepEqual(framePacket(prepareGpuFrame(scene, views[0]!, shallow)), expected[0]);
+  (shallow[0] as Mutable).frameId = 'unknown';
+  assert.throws(() => prepareGpuFrame(scene, views[0]!, shallow), /gpu-unprepared-sprite-resource/);
+  const low = importGpuScene(exportGpuScene(scene), { samples: 0 });
+  assert.doesNotThrow(() => prepareGpuFrame(low, views[2]!, owned));
+  assert.throws(() => prepareGpuFrame(low, views[0]!, owned), /sprite-sample-budget/);
+  assert.doesNotThrow(() => prepareGpuFrame(low, views[2]!, owned));
+  const two = captureGpuSpriteObjects([originalObject(), originalObject({ id: 'second' })]);
+  assert.doesNotThrow(() => prepareGpuFrame(scene, views[0]!, two));
+  const one = importGpuScene(exportGpuScene(scene), { objects: 1 });
+  assert.throws(() => prepareGpuFrame(one, views[0]!, two), /sprite-array/);
+  const off = captureGpuSpriteObjects([originalObject({ x: 300 })]);
+  assert.doesNotThrow(() => prepareGpuFrame(scene, views[0]!, off));
+  const bounded = importGpuScene(exportGpuScene(scene), { coordinate: 100 });
+  assert.throws(() => prepareGpuFrame(bounded, views[0]!, off), /sprite-coordinate-limit/);
+});
+
+test('a genuine sprite update remains bound to each scene resource geometry across repeated camera changes', () => {
+  const source = createTerrainScene(makeOriginalTerrain()), objects = captureGpuSpriteObjects([originalObject()]);
+  const batches = [makeOriginalSprites().batch, makeOriginalSprites({ frames: [{ id: 'frame', x: 1, y: 2, width: 2, height: 2, pixels: [1, 2, 3, 4] }] }).batch];
+  const scenes = batches.map(batch => compileGpuScene(source, batch));
+  for (const cameraX of [-2.125, 5, 0]) for (const [i, scene] of scenes.entries()) {
+    const v = originalViewport({ cameraX }), picker = createGpuPicker(scene), frame = prepareGpuFrame(scene, v, objects);
+    const expected = source.renderSprites(v, { ...batches[i]!, objects });
+    for (let y = 0; y < v.height; y++) for (let x = 0; x < v.width; x++) assert.deepEqual(picker.pick(frame, x, y), expected.pick(x, y));
+    picker.dispose();
+  }
+});

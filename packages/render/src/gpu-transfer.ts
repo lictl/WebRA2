@@ -63,18 +63,43 @@ function objects(input: unknown, maximum: number, coordinate: number, b?: Budget
   }
   result.sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0); return result;
 }
-export interface GpuSpritePlacement { object: SpriteObject; metadata: GpuSpriteResource; left: number; top: number; x0: number; y0: number; x1: number; y1: number }
-/** Common compiled/imported geometry policy; it never decodes, remaps or copies a palette per frame. */
+interface GpuSpriteGeometry { object: SpriteObject; metadata: GpuSpriteResource; left: number; top: number }
+export interface GpuSpritePlacement extends GpuSpriteGeometry { x0: number; y0: number; x1: number; y1: number }
+interface PreparedSprites {
+  maximum: number; coordinate: number; resources: ReadonlyMap<string, GpuSpriteResource>;
+  frameGeometry: ReadonlyMap<string, GpuSpriteResource>; geometry: readonly GpuSpriteGeometry[];
+}
+/** Each genuine scene owns its cache; entries disappear with their immutable update. */
+export type GpuSpritePreparationCache = WeakMap<readonly SpriteObject[], PreparedSprites>;
+const ownedObjects = new WeakSet<readonly SpriteObject[]>();
+function ownObjects(input: SpriteObject[]): readonly SpriteObject[] {
+  const result = Object.freeze(input); ownedObjects.add(result); return result;
+}
+/** Common compiled/imported geometry policy; camera-only frames retain validated resource joins. */
 export function prepareTransferredSprites(input: unknown, maximum: number, coordinate: number, samplesLimit: number,
-  resources: ReadonlyMap<string, GpuSpriteResource>, frameGeometry: ReadonlyMap<string, GpuSpriteResource>, viewport: TerrainViewport): { placements: GpuSpritePlacement[]; samples: number } {
-  const captured = objects(input, maximum, coordinate), placements: GpuSpritePlacement[] = []; let samples = 0;
+  resources: ReadonlyMap<string, GpuSpriteResource>, frameGeometry: ReadonlyMap<string, GpuSpriteResource>, viewport: TerrainViewport,
+  cache?: GpuSpritePreparationCache): { placements: GpuSpritePlacement[]; samples: number } {
+  // Object.freeze supplied by a caller grants no trust. Only this module's owned,
+  // descriptor-captured scalar arrays are eligible, within the same scene and caps.
+  const owned = ownedObjects.has(input as readonly SpriteObject[]), key = input as readonly SpriteObject[];
+  let prepared = owned ? cache?.get(key) : undefined;
+  if (!prepared || prepared.maximum !== maximum || prepared.coordinate !== coordinate || prepared.resources !== resources || prepared.frameGeometry !== frameGeometry) {
+    const captured = objects(input, maximum, coordinate), geometry: GpuSpriteGeometry[] = [];
+    for (const object of captured) {
+      const source = frameGeometry.get(object.frameId); if (!source) fail('gpu-unprepared-sprite-resource');
+      const r = source.rectangle, left = object.x - object.anchorX + r.x, top = object.y - object.anchorY + r.y;
+      for (const value of [left, top, left + r.width, top + r.height]) number(value, -coordinate, coordinate, 'sprite-coordinate-limit');
+      number(object.depth.base + Math.max(0, r.height - 1) * object.depth.rowStep, -coordinate, coordinate, 'sprite-depth-limit');
+      const metadata = resources.get(gpuResourceKey({ ...object, rowStep: object.depth.rowStep })); if (!metadata) fail('gpu-unprepared-sprite-resource');
+      geometry.push({ object, metadata, left, top });
+    }
+    prepared = { maximum, coordinate, resources, frameGeometry, geometry };
+    if (owned) cache?.set(key, prepared);
+  }
+  const placements: GpuSpritePlacement[] = []; let samples = 0;
   const { cameraX, cameraY, zoom, width, height } = viewport;
-  for (const object of captured) {
-    const geometry = frameGeometry.get(object.frameId); if (!geometry) fail('gpu-unprepared-sprite-resource');
-    const r = geometry.rectangle, left = object.x - object.anchorX + r.x, top = object.y - object.anchorY + r.y;
-    for (const value of [left, top, left + r.width, top + r.height]) number(value, -coordinate, coordinate, 'sprite-coordinate-limit');
-    number(object.depth.base + Math.max(0, r.height - 1) * object.depth.rowStep, -coordinate, coordinate, 'sprite-depth-limit');
-    const metadata = resources.get(gpuResourceKey({ ...object, rowStep: object.depth.rowStep })); if (!metadata) fail('gpu-unprepared-sprite-resource');
+  for (const p of prepared.geometry) {
+    const { object, metadata, left, top } = p, r = metadata.rectangle;
     const x0 = Math.max(0, Math.ceil((left - cameraX) * zoom - 0.5)), y0 = Math.max(0, Math.ceil((top - cameraY) * zoom - 0.5));
     const x1 = Math.min(width, Math.ceil((left + r.width - cameraX) * zoom - 0.5)), y1 = Math.min(height, Math.ceil((top + r.height - cameraY) * zoom - 0.5));
     samples += Math.max(0, x1 - x0) * Math.max(0, y1 - y0); if (samples > samplesLimit) fail('sprite-sample-budget');
@@ -201,7 +226,7 @@ export function captureGpuTransfer(input: unknown, options: Partial<GpuTransferL
   for (const r of spriteResources) { const raster = rasters[r.rasterId]!;
     for (let i = 0; i < raster.depth.length; i++) if (raster.rgba[i * 4 + 3] !== 0 && raster.depth[i] !== Math.floor(i / raster.width) * r.rowStep) fail('gpu-transfer-sprite-depth'); }
   return Object.freeze({ schemaVersion: 1, policy: GPU_SCENE_TRANSFER_POLICY, scenePolicy: GPU_SCENE_POLICY, limits: Object.freeze(limits), spriteObjectLimit,
-    rasters: Object.freeze(rasters), terrainGroups: Object.freeze(terrainGroups), terrain: Object.freeze(terrain), spriteResources: Object.freeze(spriteResources), objects: Object.freeze(initialObjects) });
+    rasters: Object.freeze(rasters), terrainGroups: Object.freeze(terrainGroups), terrain: Object.freeze(terrain), spriteResources: Object.freeze(spriteResources), objects: ownObjects(initialObjects) });
 }
 
 
@@ -212,5 +237,5 @@ export function validateGpuSceneTransfer(input: unknown, options: Partial<GpuTra
 /** Scalar snapshot only. Resident frame/palette/geometry references are checked by prepareGpuFrame. */
 export function captureGpuSpriteObjects(input: unknown, options: Partial<GpuTransferLimits> = {}): readonly SpriteObject[] {
   const cap = lower(options), b: Budget = { work: 0, strings: 0, cap };
-  return Object.freeze(objects(input, cap.objects, cap.coordinate, b));
+  return ownObjects(objects(input, cap.objects, cap.coordinate, b));
 }

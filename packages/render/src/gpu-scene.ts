@@ -2,7 +2,7 @@
 // Copyright 2026 WebRA2 contributors. See ../GPU_PROVENANCE.md.
 import { describeTerrainRasters, type TerrainPick, type TerrainScene, type TerrainViewport } from './terrain-scene.ts';
 import { describeSpriteRasters, type SpriteBatch, type SpriteObject, type SpritePick } from './sprite-layer.ts';
-import { captureGpuTransfer, gpuResourceKey, prepareTransferredSprites, type GpuSpritePlacement } from './gpu-transfer.ts';
+import { captureGpuTransfer, gpuResourceKey, prepareTransferredSprites, type GpuSpritePlacement, type GpuSpritePreparationCache } from './gpu-transfer.ts';
 export { validateGpuSceneTransfer, captureGpuSpriteObjects } from './gpu-transfer.ts';
 import { GPU_SCENE_TRANSFER_POLICY, GPU_DEPTH_MAX, GPU_DEPTH_MIN, GPU_DRAW_STRIDE, GPU_PREPARE_LIMITS, GPU_SCENE_POLICY,
   type GpuFrame, type GpuFrameData, type GpuPrepareLimits, type GpuRasterData, type GpuScene, type GpuSceneData, type GpuSceneTransfer, type GpuSpriteResource, type GpuTransferLimits } from './gpu-contracts.ts';
@@ -29,7 +29,7 @@ function limits(options: Partial<GpuPrepareLimits>): GpuPrepareLimits {
   return cap;
 }
 interface OwnedScene {
-  cap: Readonly<GpuPrepareLimits>; rasters: readonly GpuRasterData[]; packet: GpuSceneTransfer;
+  spritePreparations: GpuSpritePreparationCache; cap: Readonly<GpuPrepareLimits>; rasters: readonly GpuRasterData[]; packet: GpuSceneTransfer;
   resources: ReadonlyMap<string, GpuSpriteResource>; frameGeometry: ReadonlyMap<string, GpuSpriteResource>;
 }
 interface OwnedFrame { packet: GpuFrameData; objects: GpuSpritePlacement[] }
@@ -86,7 +86,7 @@ function registerScene(packet: GpuSceneTransfer): GpuScene {
   const terrainPieces = packet.terrain.reduce((n, p) => n + packet.terrainGroups[p.group]!.pieces.length, 0);
   const scene: GpuScene = Object.freeze({ policy: GPU_SCENE_POLICY, nativeBehaviorVerified: false,
     allocations: Object.freeze({ rasterCount: packet.rasters.length, rasterPixels: pixels, rasterBytes: pixels * 8, terrainPieces, objects: packet.objects.length }) });
-  scenes.set(scene, { packet, cap: packet.limits, rasters: packet.rasters,
+  scenes.set(scene, { spritePreparations: new WeakMap(), packet, cap: packet.limits, rasters: packet.rasters,
     resources: new Map(packet.spriteResources.map(r => [gpuResourceKey(r), r])), frameGeometry: new Map(packet.spriteResources.map(r => [r.frameId, r])) });
   return scene;
 }
@@ -115,7 +115,7 @@ export function prepareGpuFrame(scene: GpuScene, request: TerrainViewport, objec
   const data = sceneData(scene), cap = data.cap, viewport = viewportCopy(request, cap);
   const resident = data.packet;
   if (resident.spriteObjectLimit === null && objects !== undefined) fail('gpu-no-sprite-catalog');
-  const sprites = resident.spriteObjectLimit === null ? null : prepareTransferredSprites(objects ?? resident.objects, resident.spriteObjectLimit, cap.coordinate, cap.samples, data.resources, data.frameGeometry, viewport);
+  const sprites = resident.spriteObjectLimit === null ? null : prepareTransferredSprites(objects ?? resident.objects, resident.spriteObjectLimit, cap.coordinate, cap.samples, data.resources, data.frameGeometry, viewport, data.spritePreparations);
   const draws: number[] = []; let samples = 0, cpuSamples = sprites?.samples ?? 0;
   const { cameraX, cameraY, zoom, width, height } = viewport;
   const bounds = (left: number, top: number, right: number, bottom: number): [number, number, number, number] => [

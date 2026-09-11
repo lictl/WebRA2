@@ -30,9 +30,16 @@ export class TerrainBridge implements TerrainPort {
           lastProgress=v.sequence;try{progress?.(v.progress);if(!settled)this.worker.postMessage({version:7,id,type:'ack',sequence:v.sequence});}catch{failed();}return;
         }
         if(shape(v,['version','id','type','code']) && v.version===7 && v.type==='error' && code(v.code)){finish(new Error(v.code));return;}
-        if(!shape(v,['version','id','type','result']) || v.version!==7 || v.type!=='result' || !validResult(v.result)){finish(new Error('invalid'));return;}
-        let result=v.result;
-        if(result.type==='gpu-frame'){try{result=captureGpuFrame(result);}catch{finish(new Error('invalid'));return;}}
+        if(!shape(v,['version','id','type','result']) || v.version!==7 || v.type!=='result'){finish(new Error('invalid'));return;}
+        // GPU capture is also its complete validation. Retain that owned result instead
+        // of discarding a validator's capture and traversing the same snapshot twice.
+        let result:TerrainResult;
+        try{
+          const raw=v.result,kind=raw&&typeof raw==='object'?Object.getOwnPropertyDescriptor(raw,'type'):undefined;
+          if(kind&&'value'in kind&&kind.value==='gpu-frame')result=captureGpuFrame(raw);
+          else if(validResult(raw))result=raw;
+          else{finish(new Error('invalid'));return;}
+        }catch{finish(new Error('invalid'));return;}
         if(result.type==='campaign-plan'){
           if(action.type==='campaign-scan'?result.plan.profile!==action.profile:action.type==='campaign-back'?result.plan.fingerprint!==action.fingerprint:true){finish(new Error('invalid'));return;}
           this.#campaign=structuredClone(result.plan);this.#identity=null;this.#worldHash=null;this.#revision=0;this.#sceneId=0;this.#gpu=false;this.#resident=null;finish(undefined,result);return;

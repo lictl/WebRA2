@@ -80,7 +80,7 @@ export function captureGpuFrame(input:unknown):GpuFrameResult {
     }
     if(resources.objects.length!==objectInfo.length || resources.objects.some(o=>!ids.has(o.id)) || objects.some(o=>!ids.has(o.id)))return fail();
   }
-  return {type:'gpu-frame',sceneId:value.sceneId,frameId:value.frameId,camera:{...camera},summary:structuredClone(summary),world:world?structuredClone(world):null,
+  return {type:'gpu-frame',sceneId:value.sceneId,frameId:value.frameId,camera:{...camera},summary,world,
     controlPoints:value.controlPoints.map(p=>({...p})),worldPoints:(value.worldPoints as WorldControlPoint[]).map(p=>({...p})),resources,objectInfo,objects,retiredObjectIds:[...value.retiredObjectIds] as string[]};
 }
 export function validGpuResult(value:unknown):value is GpuFrameResult|RendererRefusal {

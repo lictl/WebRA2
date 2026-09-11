@@ -2,7 +2,7 @@
 // Copyright 2026 WebRA2 contributors. Presentation only; never simulation authority.
 import { GpuRenderer } from '../../../packages/render/src/gpu-renderer.ts';
 import { createGpuPicker, type GpuPicker } from '../../../packages/render/src/gpu-picking.ts';
-import { prepareGpuFrame } from '../../../packages/render/src/gpu-scene.ts';
+import { prepareGpuFrame, captureGpuSpriteObjects } from '../../../packages/render/src/gpu-scene.ts';
 import type { GpuScene, GpuFrame, GpuDrawReceipt } from '../../../packages/render/src/gpu-contracts.ts';
 import type { SpriteObject } from '../../../packages/render/src/sprite-layer.ts';
 import { validCamera, type Camera, type ViewportPick } from './terrain-protocol.ts';
@@ -163,9 +163,10 @@ export function createGpuViewport(options: GpuViewportOptions, env: GpuViewportP
       }
       if (ids.size !== metadata.size) return fail();
       // Validate resource combinations/depth/coordinates before altering pending state.
-      const nextFrame = prepareGpuFrame(scene!, viewport(next.camera), scene!.allocations.objects ? next.objects : undefined);
+      const owned = Object.freeze({ ...next, objects: captureGpuSpriteObjects(next.objects) });
+      const nextFrame = prepareGpuFrame(scene!, viewport(next.camera), scene!.allocations.objects ? owned.objects : undefined);
       prepared = nextFrame;
-      pending = next; camera = next.camera; frameId = next.frameId;
+      pending = owned; camera = next.camera; frameId = next.frameId;
       revision = next.world?.revision ?? -1; stateHash = next.world?.stateHash ?? null; schedule();
     },
     setCamera(input: Camera): void {
