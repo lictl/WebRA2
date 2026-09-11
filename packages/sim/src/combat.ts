@@ -9,6 +9,7 @@ import { createInfantryFiringState, restoreInfantryFiring, saveInfantryFiring, t
 import { ordinaryDeathActor, ordinaryDeathWeapon, ordinaryDeathDuration } from './ordinary-death-rules.ts';
 import type { WorldModel } from './world-model.ts';
 import type { WorldEntity, WorldState } from './world.ts';
+import { currentWorldOwner, worldOwnershipOwnerAt, type WorldOwnershipState } from './world-ownership.ts';
 
 export type CombatOrderState = { entityId: number; targetId: number | null; weaponId: string | null;
   readyTick: number; burstRemaining: number; burstTick: number; ammo: number };
@@ -54,11 +55,13 @@ function flightTicks(w: CombatWeapon, from: number, to: number): number {
   while (lo < hi) { const mid = Math.floor((lo + hi) / 2); if (mid * mid >= square) hi = mid; else lo = mid + 1; }
   const ticks = Math.max(1, Math.ceil(lo / w.speed)); if (ticks > C.delay) worldFail('combat-flight-limit'); return ticks;
 }
-function targetLegal(model: WorldModel, source: number, target: number): boolean {
+export function combatTargetLegal(model: WorldModel, entities: readonly WorldEntity[], source: number, target: number): boolean {
   if (source === target) return false;
-  const from = model.entities.find(e => e.id === source), to = model.entities.find(e => e.id === target);
-  if (!from || !to || from.owner === null || from.owner === to.owner) return false;
-  return !model.combat!.allies.some(a => a.playerId === from.owner && a.allyId === to.owner);
+  const rows = model.ownership ? entities : model.entities, from = rows.find(e => e.id === source), to = rows.find(e => e.id === target);
+  if (!from || !to) return false;
+  const a = from.owner ?? null, b = to.owner ?? null;
+  if (a === null || a === b) return false;
+  return !model.combat!.allies.some(pair => pair.playerId === a && pair.allyId === b);
 }
 function damageFor(model:WorldModel,source:number,w:CombatWeapon,target:CombatActor):number {
   const ordinary=combatOrdinaryBinding(model.combat!);
@@ -69,7 +72,7 @@ function weaponLegal(w: CombatWeapon, target: CombatActor, model:WorldModel,sour
   return (!death||!!ordinaryDeathActor(death,target.entityId)) && (target.layer === 'air' ? w.air : w.ground) && damageFor(model,source,w,target) > 0;
 }
 
-export function validateCombatState(model: WorldModel, input: unknown, entities: WorldEntity[], nextTick: number): CombatState {
+export function validateCombatState(model: WorldModel, input: unknown, entities: WorldEntity[], nextTick: number, ownership?: WorldOwnershipState): CombatState {
   const config = model.combat!,ordinary=combatOrdinaryBinding(config),death=combatDeathBinding(config),firing=combatInfantryPrograms(config);
   const r = worldRecord(input, ['actors', 'impacts', 'nextImpactId',...(ordinary?['ordinaryRandom']:[]),...(death?['deaths']:[]),...(firing?['infantryFiring']:[])]);
   const byId = new Map(entities.map(e => [e.id, e])), actorsById = new Map(config.actors.map(a => [a.entityId, a]));
@@ -83,7 +86,7 @@ export function validateCombatState(model: WorldModel, input: unknown, entities:
     const readyTick = worldInteger(a.readyTick, 0, latestReadyTick), burstRemaining = worldInteger(a.burstRemaining, 0, C.burst - 1);
     const burstTick = worldInteger(a.burstTick, 0, W.tick + C.delay), ammo = worldInteger(a.ammo, -1, C.ammo);
     if (d.initialAmmo === -1 ? ammo !== -1 : ammo < 0 || ammo > d.initialAmmo) worldFail('combat-save-ammo');
-    if (targetId !== null && (!actorsById.has(targetId) || !alive(byId.get(targetId)) || !alive(byId.get(d.entityId)) || !d.weapons.length || !targetLegal(model, d.entityId, targetId))) worldFail('combat-save-target');
+    if (targetId !== null && (!actorsById.has(targetId) || !alive(byId.get(targetId)) || !alive(byId.get(d.entityId)) || !d.weapons.length || !combatTargetLegal(model, entities, d.entityId, targetId))) worldFail('combat-save-target');
     if (targetId !== null && byId.get(d.entityId)!.goal !== null) worldFail('combat-save-moving-target');
     if (!d.weapons.length && readyTick !== 0) worldFail('combat-save-unarmed-cooldown');
     if (burstRemaining) {
@@ -103,7 +106,7 @@ export function validateCombatState(model: WorldModel, input: unknown, entities:
     const launchTick = worldInteger(p.launchTick, 0, nextTick - 1), dueTick = worldInteger(p.dueTick, nextTick, W.tick - 1);
     const from = worldInteger(p.from, 0, 512 * 512 - 1), aim = worldInteger(p.aim, 0, 512 * 512 - 1);
     const w = typeof p.weaponId === 'string' ? weapons.get(p.weaponId) : undefined, source = actorsById.get(sourceId), target = actorsById.get(targetId);
-    if (!w || w.delivery === 'instant' || !source?.weapons.includes(w.id) || !target || !targetLegal(model, sourceId, targetId) || !weaponLegal(w, target,model,sourceId) || !inRange(w, from, aim) || dueTick !== launchTick + flightTicks(w, from, aim)) worldFail('combat-save-impact');
+    if (!w || w.delivery === 'instant' || !source?.weapons.includes(w.id) || !target || !combatTargetLegal(model, entities, sourceId, targetId) || !weaponLegal(w, target,model,sourceId) || !inRange(w, from, aim) || dueTick !== launchTick + flightTicks(w, from, aim)) worldFail('combat-save-impact');
     if (ids.has(id) || dueTick < priorTick || dueTick === priorTick && id <= priorId) worldFail('combat-save-impact-order');
     ids.add(id); priorTick = dueTick; priorId = id; impacts.push({ id, sourceId, targetId, weaponId: w.id, launchTick, dueTick, from, aim });
   }
@@ -128,9 +131,11 @@ export function validateCombatState(model: WorldModel, input: unknown, entities:
       const d=worldRecord(value,['entityId','sourceId','weaponId','victimOwner','sourceOwner','sequence','startedTick','completionTick','corpseIndex']);
       const entityId=worldInteger(d.entityId,1,2147483647),sourceId=worldInteger(d.sourceId,1,2147483647);
       const victim=ordinaryDeathActor(death,entityId),weapon=typeof d.weaponId==='string'?ordinaryDeathWeapon(death,d.weaponId):undefined;
-      if(entityId<=prior||!victim||!weapon||!actorsById.get(sourceId)?.weapons.includes(weapon.weaponId)||!targetLegal(model,sourceId,entityId)||byId.get(entityId)!.health!==0||!weaponLegal(weapons.get(weapon.weaponId)!,actorsById.get(entityId)!,model,sourceId))worldFail('death-save-identity');prior=entityId;
+      if(entityId<=prior||!victim||!weapon||!actorsById.get(sourceId)?.weapons.includes(weapon.weaponId)||(!model.ownership&&!combatTargetLegal(model, entities,sourceId,entityId))||byId.get(entityId)!.health!==0||(!model.ownership&&!weaponLegal(weapons.get(weapon.weaponId)!,actorsById.get(entityId)!,model,sourceId)))worldFail('death-save-identity');prior=entityId;
       const sourceOwner=worldInteger(d.sourceOwner,0,W.players-1),victimOwner=worldInteger(d.victimOwner,0,W.players-1);
-      if(sourceOwner!==definitions.get(sourceId)!.owner||victimOwner!==definitions.get(entityId)!.owner)worldFail('death-save-owner');
+      const damageTick=worldInteger(d.startedTick,0,nextTick-1);
+      const historical=(id:number)=>model.ownership?worldOwnershipOwnerAt(model,ownership!,id,damageTick):definitions.get(id)!.owner;
+      if(sourceOwner!==historical(sourceId)||victimOwner!==historical(entityId)||model.ownership&&(sourceOwner===victimOwner||config.allies.some(a=>a.playerId===sourceOwner&&a.allyId===victimOwner)))worldFail('death-save-owner');
       const sequence=worldInteger(d.sequence,11,12) as 11|12,startedTick=worldInteger(d.startedTick,0,nextTick-1);
       const completionTick=worldInteger(d.completionTick,1,W.tick-1);
       if(sequence!==weapon.infDeath+10||completionTick!==startedTick+ordinaryDeathDuration(death,entityId,sequence))worldFail('death-save-sequence');
@@ -158,7 +163,7 @@ export function attackCombat(model: WorldModel, state: CombatState, entities: Wo
   const a = state.actors.find(a => a.entityId === sourceId), d = model.combat!.actors.find(a => a.entityId === sourceId);
   const target = model.combat!.actors.find(a => a.entityId === targetId);
   if (!a || !d?.weapons.length) { emit('unsupported-weapon', sourceId); return false; }
-  if (!target || !alive(entities.find(e => e.id === targetId)) || !targetLegal(model, sourceId, targetId)) { emit('illegal-target', sourceId, null, targetId); return false; }
+  if (!target || !alive(entities.find(e => e.id === targetId)) || !combatTargetLegal(model, entities, sourceId, targetId)) { emit('illegal-target', sourceId, null, targetId); return false; }
   if (!d.weapons.some(id => weaponLegal(model.combat!.weapons.find(w => w.id === id)!, target,model,sourceId))) { emit('ineffective-weapon', sourceId, null, targetId); return false; }
   cancelFiring(model,state,sourceId);clearBurst(a); a.targetId = targetId; emit('attack-accepted', sourceId, null, targetId); return true;
 }
@@ -198,7 +203,7 @@ export function stepCombat(model: WorldModel, world: WorldState, tick: number, e
       if(death){
         const sequence=(ordinaryDeathWeapon(death,w.id)!.infDeath+10) as 11|12;
         const completionTick=tick+ordinaryDeathDuration(death,target.id,sequence);if(completionTick>=W.tick)worldFail('death-completion-horizon');
-        const sourceOwner=model.entities.find(d=>d.id===sourceId)!.owner!,victimOwner=model.entities.find(d=>d.id===target.id)!.owner!;
+        const sourceOwner=currentWorldOwner(model,byId.get(sourceId)!)!,victimOwner=currentWorldOwner(model,target)!;
         state.deaths!.push({entityId:target.id,sourceId,weaponId:w.id,victimOwner,sourceOwner,sequence,startedTick:tick,completionTick,corpseIndex:null});
         state.deaths!.sort((a,b)=>a.entityId-b.entityId);
         emit('dying',target.id,worldAddress(target.x,target.y),sourceId);
@@ -212,7 +217,7 @@ export function stepCombat(model: WorldModel, world: WorldState, tick: number, e
   for (const a of state.actors) {
     charge(); if (a.targetId === null) {cancel(a.entityId);continue;}
     const source = byId.get(a.entityId)!, target = byId.get(a.targetId), d = actors.get(a.entityId)!;
-    if (!alive(source) || !alive(target)) { clearOrder(a);cancel(a.entityId); continue; }
+    if (!alive(source) || !alive(target) || !combatTargetLegal(model,entities,source.id,target.id)) { clearOrder(a);cancel(a.entityId); continue; }
     if (!a.ammo) { clearBurst(a);cancel(a.entityId); continue; }
     const from = worldAddress(source.x, source.y), aim = worldAddress(target.x, target.y), targetDefinition = actors.get(target.id)!;
     let weapon: CombatWeapon | undefined;

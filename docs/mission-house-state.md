@@ -1,6 +1,6 @@
 # Mission ownership and house population
 
-State: **WORKING — source/helper checkpoint for
+State: **WORKING — source/helper and initial world-8 checkpoint for
 [issue233](https://github.com/lictl/WebRA2/issues/233)**, following the
 [first-mission audit](https://github.com/lictl/WebRA2/pull/232). No engine, VM,
 browser, campaign authority or serialized WorldState behavior changes yet.
@@ -40,6 +40,40 @@ See [the provenance record](../packages/sim/MISSION_HOUSE_PROVENANCE.md).
 
 ## Checkpoint validation and next integration
 
+The opt-in world-8 checkpoint now binds the genuine source to the complete base
+world hash. `WorldEntityDefinition.owner` remains initial source metadata;
+`WorldState.entities[].owner` is current ownership. Saves retain lifecycle
+boundaries, population totals and bounded source-instruction transfer history.
+Restore reconstructs exact action selection and current owners from that history;
+it rejects altered totals, omitted selected actors and unrecorded owner changes.
+Old models omit ownership entirely and retain their former model/save hashes.
+
+`WorldSimulation.transferOwnership` changes a detached candidate, clears the
+transferred actors' movement/targets, cancels newly allied target orders and
+affected logical projectile work, then validates the entire candidate before
+commit. `housePopulation` reads the current source-bound counters. Private receipt
+lookup binds an exact returned transaction to the model and before/after saves;
+the caller must still authenticate mission instruction execution. Replay version2
+records command admissions and transfers in one explicit ordered sequence,
+including multiple operations at the same tick; version1 remains unchanged.
+
+This checkpoint applies the existing WebRA2 world lifecycle: initially health-zero
+actors are absent; ordinary pending human deaths retain registration/presence
+until sequence completion. Tag selection excludes pending deaths, while house-wide
+transfer can include them. Damage attribution preserves the owners at the damage
+tick through subsequent captures. These are explicit D03 lifecycle decisions;
+native limbo, absorption, technician conversion and imported native counter
+history are not inferred. Eight new original world tests plus existing movement/combat/death/replay
+cases pass 61 focused tests and type checking. These include exact minimum and
+one-lower work limits, private receipt identity and current population queries.
+
+Current-house source combat numerical factors and retained captured infantry
+subcell claims are the next active integration increment. The model factory
+explicitly refuses those combinations at this checkpoint, so they cannot silently
+consume old-owner values. Team construction/recruitment ownership, compound
+mission actions/events and browser exposure also remain pending. This checkpoint
+does not admit an original mission or change the application's active model.
+
 The new original source/state tests cover both profiles, exact operands, profile
 counter differences, tag versus house selection, powered-building order,
 construction/removal/absence/transfer, aircraft exclusion, current-trigger-house
@@ -55,13 +89,10 @@ independent raw-field census, full final checks and independent review are still
 being completed. All game inputs and resulting source records remain ignored in
 `local/`.
 
-The next coordinated diff must put current ownership in canonical WorldState and
-WorldSave, version the affected engine policy, and consume it for player command
-admission, hostility, slot allocation, combat, team claims, object/cell callbacks
-and rendering snapshots. Source `definition.owner` remains initial identity.
-Transfers must commit those consumers and the population transition atomically;
-changing this ledger alone cannot execute a mission ownership action.
-
-No shared engine or contract file has been edited in this worker checkpoint.
-Root owns that integration until an explicit sim-path handoff. The complete
-original mission remains gated by the other dependency groups in the audit.
+The coordinator has delegated the existing simulation ownership consumers to this
+worker. The current checkpoint updates world model/state/replay and core hostility;
+source `definition.owner` remains initial identity. Remaining current-house
+combat, shared-slot, team and compound mission consumers are coordinated next.
+Root retains the mission VM/bindings/compound world and shared configuration.
+The complete original mission remains gated by the other dependency groups in
+the audit.

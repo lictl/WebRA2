@@ -68,3 +68,27 @@ outside the supported lifecycle. No imported native save is accepted. The new
 ledger schema does not reinterpret old WorldSave hashes; canonical owner state,
 engine policy/version, commands, alliances, slots, teams, combat and mission
 transactions must be integrated and independently reviewed before use.
+
+
+## Opt-in world ownership policy
+
+`world-ownership.ts` and the coordinated world/combat/replay changes bind this
+genuine source catalog to the complete unbound world identity. World-8 stores
+current owner on each entity, explicit lifecycle boundaries, ordered transfers
+and saved counters; initial definition ownership remains source metadata. Older
+engine/model/save identities are preserved when the optional binding is absent.
+
+The native ownership selectors and counter predicates above motivate this
+composition; its transaction order and health lifecycle are explicit WebRA2 D03
+policy. A pending human death remains registered/present until logical sequence
+completion. Its damage-time owners stay recorded after later transfers. Current
+command authority and hostility change atomically with the counter transition;
+source-bound combat factors and shared infantry claims remain factory-gated until
+those consumers are implemented. Native limbo, technician conversion, capture
+side effects and imported counter history are not implied.
+
+The exact-result receipt proves a completed component transaction and its source,
+model and before/after saves. It does not prove that a mission trigger executed;
+the compound VM must authenticate instruction emission and caller house context.
+Eight new original world cases plus legacy checks pass 61 focused tests and
+type checking. Final native/raw ledgers and full independent review remain due.
