@@ -22,6 +22,7 @@ interface Resident { cap: GpuVoxelLimits; parts: Part[]; paletteIds: string[]; g
 interface Prepared { cap: GpuVoxelLimits; resident: Resident; placements: Placement[]; inverses: Float32Array; boxes: Int32Array; oldBounds: Int32Array; offsets: Uint32Array; candidates: Uint32Array; tilesX: number }
 const scenes = new WeakMap<GpuVoxelScene, Resident>(), frames = new WeakMap<GpuVoxelFrame, Prepared>();
 function fail(code: string): never { throw new Error('gpu-voxel-' + code); }
+function projectionBound(value: number): boolean { return Number.isFinite(value) && Math.abs(value) <= 1048576; }
 function integer(value: unknown, min: number, max: number): number { if (!Number.isSafeInteger(value) || Object.is(value, -0) || (value as number) < min || (value as number) > max) fail('integer'); return value as number; }
 function record(value: unknown, keys: readonly string[]): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Object.getPrototypeOf(value) !== Object.prototype || Reflect.ownKeys(value).length !== keys.length) fail('record');
@@ -115,18 +116,26 @@ export function prepareGpuVoxelFrame(scene: GpuVoxelScene, input: { readonly ins
   const counts = new Uint32Array(tileCount), scratch = new Int32Array(instanceVoxels * 8), oldBounds = new Int32Array(instanceVoxels * 4), inverses = new Float32Array(placements.length * 12); let used = 0;
   placements.forEach((p, pi) => { const m = forwards[pi]!; inverses.set(p.inverse64, pi * 12);
     const envelope = candidateAllowance(Array.from(inverses.subarray(pi * 12, pi * 12 + 12)), width, height), em = envelope.forward;
-    const rx = (Math.abs(m[0]!) + Math.abs(m[1]!) + Math.abs(m[2]!)) / 2, ry = (Math.abs(m[4]!) + Math.abs(m[5]!) + Math.abs(m[6]!)) / 2;
+    const rx = (Math.abs(m[0]!) + Math.abs(m[1]!) + Math.abs(m[2]!)) / 2, ry = (Math.abs(m[4]!) + Math.abs(m[5]!) + Math.abs(m[6]!)) / 2,
+      rz = (Math.abs(m[8]!) + Math.abs(m[9]!) + Math.abs(m[10]!)) / 2,
+      erx = envelope.radii[0]!, ery = envelope.radii[1]!, erz = envelope.radii[2]!;
     for (let i = 0; i < p.part.count; i++) { const word = resident.geometry[(p.part.start + i) * 2]!, x = word & 255, y = word >>> 8 & 255, z = word >>> 16 & 255;
       const cx = m[0]! * (x + .5) + m[1]! * (y + .5) + m[2]! * (z + .5) + m[3]!, cy = m[4]! * (x + .5) + m[5]! * (y + .5) + m[6]! * (z + .5) + m[7]!;
-      const cz = m[8]! * (x + .5) + m[9]! * (y + .5) + m[10]! * (z + .5) + m[11]!, rz = (Math.abs(m[8]!) + Math.abs(m[9]!) + Math.abs(m[10]!)) / 2;
-      if (![cx - rx, cx + rx, cy - ry, cy + ry, cz - rz, cz + rz].every(n => Number.isFinite(n) && Math.abs(n) <= 1048576)) fail('projection');
+      const cz = m[8]! * (x + .5) + m[9]! * (y + .5) + m[10]! * (z + .5) + m[11]!;
+      // Keep the same binary64 arithmetic and bounds without transient arrays per voxel.
+      if (!projectionBound(cx - rx) || !projectionBound(cx + rx) || !projectionBound(cy - ry) || !projectionBound(cy + ry) || !projectionBound(cz - rz) || !projectionBound(cz + rz)) fail('projection');
       const ox0 = Math.max(0, Math.ceil(cx - rx - .5)), oy0 = Math.max(0, Math.ceil(cy - ry - .5)), ox1 = Math.min(width, Math.floor(cx + rx - .5) + 1), oy1 = Math.min(height, Math.floor(cy + ry - .5) + 1);
-      const centers = [0, 4, 8].map(row => em[row]! * (x + .5) + em[row + 1]! * (y + .5) + em[row + 2]! * (z + .5) + em[row + 3]!);
-      if (centers.some((n, axis) => !Number.isFinite(n) || Math.abs(n) + envelope.radii[axis]! > 2097152)) fail('candidate-numeric-context');
-      const x0 = Math.max(0, Math.min(ox0, Math.ceil(centers[0]! - envelope.radii[0]! - .5))), y0 = Math.max(0, Math.min(oy0, Math.ceil(centers[1]! - envelope.radii[1]! - .5))),
-        x1 = Math.min(width, Math.max(ox1, Math.floor(centers[0]! + envelope.radii[0]! - .5) + 1)), y1 = Math.min(height, Math.max(oy1, Math.floor(centers[1]! + envelope.radii[1]! - .5) + 1));
+      const ecx = em[0]! * (x + .5) + em[1]! * (y + .5) + em[2]! * (z + .5) + em[3]!,
+        ecy = em[4]! * (x + .5) + em[5]! * (y + .5) + em[6]! * (z + .5) + em[7]!,
+        ecz = em[8]! * (x + .5) + em[9]! * (y + .5) + em[10]! * (z + .5) + em[11]!;
+      if (!Number.isFinite(ecx) || Math.abs(ecx) + erx > 2097152 || !Number.isFinite(ecy) || Math.abs(ecy) + ery > 2097152 || !Number.isFinite(ecz) || Math.abs(ecz) + erz > 2097152) fail('candidate-numeric-context');
+      const x0 = Math.max(0, Math.min(ox0, Math.ceil(ecx - erx - .5))), y0 = Math.max(0, Math.min(oy0, Math.ceil(ecy - ery - .5))),
+        x1 = Math.min(width, Math.max(ox1, Math.floor(ecx + erx - .5) + 1)), y1 = Math.min(height, Math.max(oy1, Math.floor(ecy + ery - .5) + 1));
       samples += Math.max(0, x1 - x0) * Math.max(0, y1 - y0); if (samples > cap.samples) fail('sample-budget'); if (x0 >= x1 || y0 >= y1) continue;
-      scratch.set([x0, y0, x1, y1, p.part.start + i, pi, p.start + i, 0], used * 8); oldBounds.set([ox0, oy0, ox1, oy1], used * 4); used++;
+      const at = used * 8, oldAt = used * 4;
+      scratch[at] = x0; scratch[at + 1] = y0; scratch[at + 2] = x1; scratch[at + 3] = y1;
+      scratch[at + 4] = p.part.start + i; scratch[at + 5] = pi; scratch[at + 6] = p.start + i;
+      oldBounds[oldAt] = ox0; oldBounds[oldAt + 1] = oy0; oldBounds[oldAt + 2] = ox1; oldBounds[oldAt + 3] = oy1; used++;
       for (let by = Math.floor(y0 / 16); by <= Math.floor((y1 - 1) / 16); by++) for (let bx = Math.floor(x0 / 16); bx <= Math.floor((x1 - 1) / 16); bx++) { const b = by * tilesX + bx; counts[b] = counts[b]! + 1; if (counts[b]! > cap.binCandidates || ++binEntries > cap.binEntries) fail('candidate-budget'); }
     }
   });
