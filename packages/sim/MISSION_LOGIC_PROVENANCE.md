@@ -169,3 +169,11 @@ the genuine source catalog's bounded retained shape. Large YR declaration sets d
 not pass through the smaller simulation-save JSON budget. Copies must still match
 every field, row and order; getters confer no authority and are not invoked. Save
 serialization limits and legacy program hashes are unchanged.
+
+Source-bound team-cell dispatch adds an original GPL-3.0-or-later VM entry point.
+It requires the exact genuine program cell/action catalogs and complete constructor
+and world-invariant gates before replacing the initial actor lookup with genuine
+initial and historical constructed actors. Observations supplied directly to this
+VM method remain data; only the compound world adapter derives movement authority.
+The existing cell-only entry point, object events and ordinary program identities
+retain their semantics. See [the team-cell report](../../docs/mission-team-cell-dispatch.md).

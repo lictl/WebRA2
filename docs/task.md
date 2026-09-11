@@ -1,61 +1,157 @@
 # Current task and refreshed-session handoff
 
-State: **WORKING — M2 presentation and M3 gameplay foundations.** The owner
-now authorizes continuing toward a fully playable UI and original RA2/YR campaigns
-until essential human input is needed. This supersedes the previous M0 stopping
-point. M0 integration [PR #42](https://github.com/lictl/WebRA2/pull/42) merged as
-`d590992382d1ce1526942e12b0c5dc51796da1a2`; its evidence remains the baseline.
-The import shell [PR #56](https://github.com/lictl/WebRA2/pull/56), localhost
-build [PR #46](https://github.com/lictl/WebRA2/pull/46), and original practice/save
-UI [PR #85](https://github.com/lictl/WebRA2/pull/85) have merged after their recorded
-reviews and browser acceptance. Verified profile loading, terrain preparation and
-CPU composition are also merged. Both opening terrains now render in actual desktop Chrome, Edge, Firefox and Safari.
-Placed artwork, typed entities and flat terrain traversal are merged. Current work
-connects authoritative movement and save/replay to the browser, then combat and
-mission behavior. No original mission is playable yet.
+State: **COMPLETE — GPU experiment #225 implementation and measurements.**
+Final exact-head review and merge status are recorded in PR227; verify them below.
+The owner requested at least60FPS on2026-09-11. No human input is needed.
+[Issue225](https://github.com/lictl/WebRA2/issues/225) /
+[PR227](https://github.com/lictl/WebRA2/pull/227) contain the WebGL2 terrain/SHP
+experiment. Root branch is codex/225-gpu-renderer in
+local/worktrees/gpu-renderer-integration; primary main remains clean e15351c.
+Read current GitHub head/check/review/merge state before resuming.
 
-Current root [team transaction210](https://github.com/lictl/WebRA2/issues/210) /
-[PR211](https://github.com/lictl/WebRA2/pull/211) is in
-local/worktrees/mission-team-actions, branch codex/210-mission-team-actions.
-Source catalog, common runtime and root VM/world transaction are implemented and
-committed; merged main209 is included. Full1,197 tests,185 documents,657 publication
-paths, M0 and75 outputs/145 inputs pass. Both independent component/composition
-reviews are clear at fdba15a; final docs-only exact-head COMMENT reviews and hosted
-checks precede ordinary merge. Actual Chrome4195 ran both16-file openings through
-group movement/Stop and queued/moving restore/replay; all75 served hashes match.
-Four unassigned console messages and two unadmitted locator clicks remain recorded,
-with the running keyboard move successful. No human input is needed. See the
-[dispatch report](mission-team-dispatch.md) for the bounded evidence and limits.
+The [experiment report](gpu-renderer-experiment.md) records final measurements,
+identities, method and limitations. Six rotated60second primary Chrome runs at
+960×640 and1280×720 sustained119.990–120.105 observed GPU completions/s, with
+1,024 simulated actors/64 movers and256 rendered SHP sprites. Every primary RAF timestamp
+gap between submitted frames stayed within1000/60ms; minimum full1second completion count was118. Four
+renderer-only and two smaller coupled supporting runs also exceeded60FPS; one
+renderer-only frame gap exceeded16.667ms and remains in the evidence. These are
+original diagnostic workloads, not complete campaign or physical-scanout results.
 
-Source preparation retains every4/7/80 action and complete declarations. The VM
-creates ordered receipts from private effects, due at the next common world tick.
-Claims, retries, movement, Flash/release and saved continuation share one world.
-Original tests cover mixed requests, force/delete ordering, cue interleaving,
-competing commands, every boundary/replay, resource rollback and explicit dynamic
-context gates. The fresh438-file complete source check reports null authorities
-with254/461 required diagnostics;12/9 team actions are individually supported.
-These are component results, not playable original campaigns.
+All12 raw runs (86,437 submitted frames) passed independent rate/window/receipt/
+tick/replay auditing. All8 coupled runs matched fresh-worker replay; the4 manual
+commands reached the expected rendered frame. The original17scene corpus passed
+84viewport/atlas variants,46,501pixels, integer/default framebuffer RGBA and all
+pixel depth/owner/picks. Forced context loss, refused lost draws, restoration and
+double disposal passed. Separate pause/cancel/restart checks passed. Native hidden-tab
+delivery remains unconfirmed because debugging kept the document visible; synthetic
+hidden/pagehide cleanup passes. Browser URL policy blocked internal GPU status
+inspection, so hardware-versus-software backend verification remains unconfirmed.
 
-mix_reader authored the five source paths through bdb04ed; bootstrap_review
-independently reviewed those and root VM/world. browser_feasibility authored the
-four new common runtime modules and tests/report through d143166; mix_reader
-independently reviewed that component plus root union/roster/planning helpers.
-Shared-authorship exclusions and exact reviewed SHAs belong in final GitHub COMMENT
-reviews. Root owns distribution, full checks and ordinary merge. Private source,
-native and200/128-tick runtime evidence remain in ignored local/ trees.
+Final frozen build: source ee3634eef42155debf8d553369203bc299eb2f2c,
+port4209, local/worktrees/gpu-performance/local/gpu/final-6, manifest SHA256
+1aa4d91c64f8e9eb9470dbd2d9e98623337773c53571a1816c5a693f2225fcfc.
+Root checked all70 outputs on disk and HTTP, all67 inputs against composed source,
+product CSP/non-isolated headers and six refused routes. No source game executable
+was run; no retail content was distributed. Browser timings are complete and the
+quiet window has ended. Preserve immutable servers through4209 and private evidence.
 
-The combined source test exposed a YR declaration array exceeding the smaller
-save serializer budget. d0b846c compares against the genuine catalog's bounded
-source shape with an original large-script regression; save limits stay unchanged.
-Next: finish exact composition reviews/checks and merge211, then branch from its
-merged main for [dynamic team cell context212](https://github.com/lictl/WebRA2/issues/212).
-mix_reader is investigating constructor/placement evidence and proposes a two-stage
-source eligibility + genuine context API. Root owns existing VM/world contracts.
-bootstrap_review independently investigates [native allocation closure213](https://github.com/lictl/WebRA2/issues/213):
-Name is a lookup alias and missing default houses do not prove inactive AI roots.
-Its private assessment is local/reviews/mission-team-compound-211/local/native213.
-Worker source modules follow agreed APIs; no211 implementation changes remain.
-Do not stop for routine approval.
+Full composed check:1,271 public tests +5 baseline-tool +9 GPU-tool tests, types,
+196documents/1001links,711tracked publication paths, M0 consistency and77 application
+outputs/145inputs passed. Final documentation link and whitespace checks also pass.
+Independent preparation and backend reviews resolved all findings, including CPU
+viewport descriptor capture866d8c9. Final exact-head GitHub COMMENT reviews remain
+required; shared-account comments are not another account's formal approval.
+
+[Blocker228](https://github.com/lictl/WebRA2/issues/228) records large telemetry
+freezing the diagnostic DOM. A capped local Blob download and compact visible
+summary fixed collection; all final reports download successfully. The recovered
+preliminary run and earlier exploratory failures remain separate from the final pool.
+
+Root owns contracts/adapters/config/handoff, evidence composition and ordinary
+merge. bootstrap_review authored the backend and independently reviews preparation/
+fixtures; mix_reader authored fixtures and independently reviews backend/preparation;
+browser_feasibility owns the diagnostic/report and remains sole CUA/Chrome owner.
+Root reviews the diagnostic. Keep exclusive paths and no more than four active agents.
+Next: integrate the finalized report, check documentation, freeze/push the final
+head, record scoped independent reviews, verify hosted checks and ordinarily merge
+PR227 with the reviewed SHA. Record canonical merge/review URLs in GitHub, avoiding
+an endless merge-SHA-only documentation commit.
+
+The next implementation slice is [issue229](https://github.com/lictl/WebRA2/issues/229):
+use this backend in the actual game viewport with bounded versioned worker scene/
+snapshot transport, independent presentation cadence and displayed-frame picking.
+Preserve every currently supported voxel/effect layer through explicit CPU fallback
+until GPU equivalence exists. Handle context/resource/visibility lifecycle in the
+product. Re-run original and private imported-content Chrome acceptance and sustained
+performance gates. The product still uses CPU composition; no original mission is
+yet fully playable. This experiment does not choose a WASM simulation language.
+
+Previous performance gate [PR224](https://github.com/lictl/WebRA2/pull/224) merged
+as e15351c982c907bfa2670757bd2f7569082455b3, after exact5b0c199
+[architecture review](https://github.com/lictl/WebRA2/pull/224#pullrequestreview-5169241571),
+[harness review](https://github.com/lictl/WebRA2/pull/224#pullrequestreview-5169250951)
+and hosted34497097078.
+[Issue222 completion](https://github.com/lictl/WebRA2/issues/222#issuecomment-5621423178)
+and [ADR0004](adr/0004-hybrid-engine-and-performance-gates.md) preserve the hybrid
+TS/WASM decision and baseline limitations. Compare language/data-layout costs with
+measurements; rendering FPS is not evidence that all simulation work needs a rewrite.
+
+## Preserved audio wave
+
+- [Issue216](https://github.com/lictl/WebRA2/issues/216) / [draft PR221](https://github.com/lictl/WebRA2/pull/221):
+  browser PCM lifecycle component at0c5a436301a170558ab1139b828c38dccba00001,
+  codex/216-pcm-playback, local/worktrees/mission-audio-playback. Author reports12
+  focused tests and full1,231/types passing. Actual Chrome acceptance and independent
+  review remain incomplete; no native playback policy or merge is claimed.
+- [Issue219](https://github.com/lictl/WebRA2/issues/219) / [draft PR226](https://github.com/lictl/WebRA2/pull/226): source sound/EVA policy
+  at pushed6e1e730e646ca4b1479793f66b426d457d87af2b, clean
+  codex/219-mission-audio-policy, local/worktrees/mission-audio-policy.
+  [Pause evidence](https://github.com/lictl/WebRA2/issues/219#issuecomment-5620865968)
+  records10 focused tests/types and fresh438 source preparation. Native ledger,
+  raw typed-policy oracle, final documentation/full checks and review remain.
+  Source preparation grants no playback authority. Sound RNG is a separate global
+  generator; fresh-process defaults and exact numeric boundaries are explicit.
+- [Issue220](https://github.com/lictl/WebRA2/issues/220) / [draft PR223](https://github.com/lictl/WebRA2/pull/223):
+  source-bound19/21 VM/world request batches and saved cursors, checkpoint67e8170,
+  codex/220-mission-audio-dispatch, local/worktrees/mission-audio-dispatch.
+  Includes provisional219 through6e1e730, cherry-picked as4e793a8. Type checking,
+ 191 documents/964 links and36 existing focused tests pass. These tests do not cover
+  the new audio dispatch path. Dedicated fixtures, no-audio hash equivalence,
+  resource/atomic-failure and every-boundary save/replay tests, final219 composition,
+  full checks and independent review remain. Branch clean and pushed; do not merge
+  this checkpoint as a finished feature.
+
+After the GPU experiment, the next performance slice is
+[product renderer integration229](https://github.com/lictl/WebRA2/issues/229).
+Preserve the audio work above and its acceptance gaps; resume216/219/220 in dependency
+order after the active performance priority. Source review and correctness work may
+run alongside integration when write paths and timed browser windows do not contend.
+No additional owner permission is needed for the authorized GitHub workflow.
+
+## Verified merged baseline
+
+[Allocation PR218](https://github.com/lictl/WebRA2/pull/218) merged as
+7deefd203e9cceb8802d44af867ed3e0a38f4991 after exact656c995
+[composition review](https://github.com/lictl/WebRA2/pull/218#pullrequestreview-5168665582),
+[source review](https://github.com/lictl/WebRA2/pull/218#pullrequestreview-5168484186)
+and hosted34491718751. Issue213 is closed. All1,229 tests/types,191 documents/964
+links,680 publication paths, M0 and77 outputs/145 inputs passed. Executable/UI
+outputs match merged212; the new notice and licensing summary differ. No runtime
+or campaign authority was added by the source catalog.
+
+[Team cell PR217](https://github.com/lictl/WebRA2/pull/217) merged as
+14b5f2dbb206b812730e7a0212aa611ef05a72de after exact00cbb0c
+[review](https://github.com/lictl/WebRA2/pull/217#pullrequestreview-5168534640)
+and hosted34490622663. Issue212 is closed. Full1,219 tests/types and source/raw/native
+and private common-runtime comparisons passed; see [the dispatch report](mission-team-cell-dispatch.md).
+Both opening authorities remain null with254/461 required diagnostics.
+
+[Running-order PR215](https://github.com/lictl/WebRA2/pull/215) merged as
+11d403eb786e03c13987cb27043c1434cc61c77b after exactb11cfc0
+[review](https://github.com/lictl/WebRA2/pull/215#pullrequestreview-5168209393)
+and hosted34487443100. Issue214 is closed. Full1,201 tests and actual Chrome RA2/YR
+input/save/replay checks pass; only app.js changed from the previous browser build,
+all75 served hashes match. Refusal/acknowledgement feedback persists across ticks
+and locales. Four unattributed early console messages and historical input-cause
+uncertainty remain explicit in [the feedback report](running-order-input.md).
+
+[Team transaction PR211](https://github.com/lictl/WebRA2/pull/211) merged as
+19b3ec78cf108dff65b39c4a695e954d4c0bcecb after exact18aa500
+[VM/source review](https://github.com/lictl/WebRA2/pull/211#pullrequestreview-5167909089)
+and [runtime/helper review](https://github.com/lictl/WebRA2/pull/211#pullrequestreview-5167867803),
+with hosted34484373757. Full1,197 public tests and both original opening Chrome
+movement/save/replay flows pass within [the dispatch report's scope](mission-team-dispatch.md).
+These are independent agent COMMENT reviews using the shared GitHub account, not
+approvals from a separate account. This distinction applies to the current wave too.
+
+M0 [PR42](https://github.com/lictl/WebRA2/pull/42) merged as
+d590992382d1ce1526942e12b0c5dc51796da1a2; its [exit record](analysis/m0-exit.md)
+remains the completed milestone baseline. Real import, both opening terrains/art,
+authoritative component movement and WebRA2 save/replay exist. Their successful
+checks do not make an original campaign playable.
+
+## Earlier implementation evidence
 
 [Object combat PR207](https://github.com/lictl/WebRA2/pull/207) merged as
 3543b567d6c652ea0648a3f5832fbcee18156ddc, reviewed at

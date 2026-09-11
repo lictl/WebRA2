@@ -9,7 +9,8 @@
    implement the entire roadmap. If the previous task is COMPLETE, use the new user
    request to select the next bounded slice and record it before editing.
 
-Build a browser-native TypeScript engine for **both RA2 and Yuri's Revenge**.
+Build a hybrid browser engine for **both RA2 and Yuri's Revenge**: TypeScript for
+the app/content orchestration, with measured CPU kernels or reusable codecs in WASM.
 Prioritize original campaign behavior and playability. Campaign release includes
 cinematics and WebRA2 saves. Original Windows save import is best effort. Support
 desktop Chrome, Edge, Firefox, and Safari with mouse/keyboard. During development,
@@ -17,6 +18,10 @@ focus browser tests on Chrome; defer full other-browser end-to-end checks until 
 remaining implementation is finished, per the owner update in D17. Vanilla maps, INI
 mods, and replacement assets precede Ares/Phobos extension compatibility.
 WebAssembly is justified by measurements or a documented codec reuse decision.
+The owner raised performance risk on 2026-09-11: follow
+[ADR 0004](docs/adr/0004-hybrid-engine-and-performance-gates.md) and the early
+performance gate before further broad gameplay expansion. Do not wait until M5
+to profile or infer a language bottleneck from an inclusive stage timing.
 The source installation is Steam, Traditional Chinese, build unverified. Support
 all playable language packs present; test Traditional Chinese from the first UI slice.
 
@@ -49,6 +54,10 @@ all playable language packs present; test Traditional Chinese from the first UI 
 - Interpret mission triggers and AI scripts as data. Do not hardcode a mission path
   to make a demo pass. Surface unsupported semantics; do not silently skip them.
 - Render snapshots; never use GPU output or render frame rate to decide game state.
+- Keep hot data and scratch buffers owned by the engine, use coarse versioned
+  command/tick/snapshot boundaries, and preserve numeric/RNG/save/replay behavior
+  when changing storage or language. Measure copying, validation, hashing, worker
+  scheduling and rendering separately; WASM and GPU rendering solve different work.
 - Parse imported content with bounds/resource limits. Legacy DLL mods are not browser
   plugins. Arbitrary mod JavaScript is outside the initial mod contract.
 

@@ -11,7 +11,7 @@ import { compileFoundationOccupancy } from '../../packages/content/src/foundatio
 import { compileEntityDefinitions } from '../../packages/content/src/entity-definitions.ts';
 import { compileTerrainTraversal } from '../../packages/content/src/terrain-traversal.ts';
 import { compileTerrainTraversalGround } from '../../packages/content/src/terrain-traversal-ground.ts';
-import { compileWorldContent, isWorldContent, WORLD_CONTENT_LIMITS } from '../../packages/sim/src/world-content.ts';
+import { compileWorldContent, isWorldContent, worldContentTraversal, WORLD_CONTENT_LIMITS } from '../../packages/sim/src/world-content.ts';
 import { WorldSimulation } from '../../packages/sim/src/world.ts';
 import { WorldReplayRecorder, replayWorld } from '../../packages/sim/src/world-replay.ts';
 const encode = (s: string) => new TextEncoder().encode(s), hash = (b: Uint8Array) => createHash('sha256').update(b).digest('hex');
@@ -65,7 +65,10 @@ test('real compiler/model joins execute orders and preserve moving saves and adm
  assert.equal(a.save().state.entities.find(e=>e.id===id)!.x,3);
 });
 test('factory/source/map joins reject forged results or changed selected bytes',()=>{
- const f=fixture();assert.throws(()=>compileWorldContent({...f,definitions:{...f.definitions}}),/factory/);
+ const f=fixture(), world=compileWorldContent(f);
+ assert.equal(worldContentTraversal(world),f.traversal);
+ for(const value of [{...world},new Proxy(world,{})])assert.throws(()=>worldContentTraversal(value),/factory/);
+ assert.throws(()=>compileWorldContent({...f,definitions:{...f.definitions}}),/factory/);
  assert.throws(()=>compileWorldContent({...f,traversal:{...f.traversal}}),/factory/);
  const changed=f.mapBytes.slice();changed[0]=changed[0]!^1;assert.throws(()=>compileWorldContent({...f,mapBytes:changed}),/map-hash/);
  assert.throws(()=>compileWorldContent({...f,traversal:fixture({profile:'yr'}).traversal}),/profile-source/);
@@ -100,7 +103,8 @@ test('required base footprints must be genuine, source-bound and supported, with
 
 test('genuine ordinary ground graphs enable ramp movement while keeping footprints, identities and replay authoritative',()=>{
  for(const profile of ['ra2','yr'] as const){const f=fixture({profile,ramp:1}),flat=compileWorldContent(f),ground=compileTerrainTraversalGround({base:f.traversal});
-  const world=compileWorldContent({...f,traversal:ground});assert.equal(world.traversalSha256,ground.sha256);assert.notEqual(world.model.sha256,flat.model.sha256);
+  const world=compileWorldContent({...f,traversal:ground});assert.equal(worldContentTraversal(world),ground);assert.equal(worldContentTraversal(flat),f.traversal);
+  assert.equal(world.traversalSha256,ground.sha256);assert.notEqual(world.model.sha256,flat.model.sha256);
   assert.deepEqual(world.model.footprints,flat.model.footprints);assert.deepEqual(world.model.blocked,flat.model.blocked);assert.equal(world.canStartCampaign,false);
   const id=world.placements.find(p=>p.rowId==='infantry:0')!.entityId;assert.equal(flat.model.entities.find(e=>e.id===id)!.movementPerTick,0);
   const r=new WorldReplayRecorder(world.model);r.admitCommands([{schemaVersion:1,tick:0,playerId:0,sequence:0,kind:'move',payload:{entityId:id,x:2,y:3}}]);r.step();
