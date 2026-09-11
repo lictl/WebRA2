@@ -2,8 +2,9 @@
 
 State: **WORKING — source/helper and initial world-8 checkpoint for
 [issue233](https://github.com/lictl/WebRA2/issues/233)**, following the
-[first-mission audit](https://github.com/lictl/WebRA2/pull/232). No engine, VM,
-browser, campaign authority or serialized WorldState behavior changes yet.
+[first-mission audit](https://github.com/lictl/WebRA2/pull/232). The optional engine
+policy changes current ownership and serialized WorldState. Compound VM adoption,
+browser exposure and whole-campaign admission remain separate gates.
 
 `compileMissionHouseSource({bindings, definitions, rules, mission})` owns and
 verifies mission bytes and joins genuine binding/type/world identities. It retains
@@ -85,9 +86,33 @@ against the reviewed eager factor composition and exercise descriptor ownership,
 invalid factors and overflow rejection. Together with the existing world/source
 combat cases, all 84 focused tests and type checking pass.
 
-Retained captured infantry subcell claims are the next active integration
-increment. The model factory still refuses ownership plus shared-slot models
-until those consumers are implemented. Team construction/recruitment ownership, compound
+Ownership now composes with genuine infantry slot catalogs. Movement queries and
+group destination planning use validated current owners. A transfer cancels newly
+hostile incoming reservations at their existing anchors. Existing settled infantry
+keep their coordinates and subcells, including pending deaths. The slot-binding
+adapter preserves ownership when it reconstructs the model; initial definitions
+and all static blockers remain unchanged.
+
+A hostile group created by capture retains a bounded saved claim tied to a genuine
+transfer index, pre-transfer house compatibility, exact cell/subcells and surviving
+members. Claims shrink on departure or completed removal and cannot authorize
+re-entry. Restore checks a structurally possible history; it does not prove that an
+untrusted save replayed every historical movement. Complete current occupancy,
+distinct slots, source archetypes, static blockers and transfer selection are
+validated separately. These records grant no public actor-retirement permission.
+
+Under this explicit D03 rule, a retained hostile group is closed to all new
+arrivals, including a third house allied to every member. Incoming reservations
+are canceled when a capture closes the cell. Existing actors may hold or leave;
+normal admission resumes when the remaining group is allied or has fewer than two
+members. This avoids inferring native mixed-owner cell bookkeeping. Seven original
+tests cover both profiles, two/three-member groups, directed alliances, group
+planning, forged claims, pending death, minimum budgets and complete replay.
+The combined ownership, movement, source combat, passage and team-world regression
+run passes 115 focused tests; type and documentation checks also pass. These are
+original synthetic checks, not imported mission execution.
+
+Team construction/recruitment ownership, compound
 mission actions/events and browser exposure also remain pending. This checkpoint
 does not admit an original mission or change the application's active model.
 
@@ -108,8 +133,9 @@ being completed. All game inputs and resulting source records remain ignored in
 
 The coordinator has delegated the existing simulation ownership consumers to this
 worker. The current checkpoint updates world model/state/replay and core hostility;
-source `definition.owner` remains initial identity. Remaining current-house
-combat, shared-slot, team and compound mission consumers are coordinated next.
+source `definition.owner` remains initial identity. Current-house combat and
+shared-slot consumers are implemented; team and compound mission consumers are
+coordinated next.
 Root retains the mission VM/bindings/compound world and shared configuration.
 The complete original mission remains gated by the other dependency groups in
 the audit.

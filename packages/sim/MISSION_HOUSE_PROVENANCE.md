@@ -83,8 +83,8 @@ The native ownership selectors and counter predicates above motivate this
 composition; its transaction order and health lifecycle are explicit WebRA2 D03
 policy. A pending human death remains registered/present until logical sequence
 completion. Its damage-time owners stay recorded after later transfers. Current
-command authority and hostility change atomically with the counter transition;
-shared infantry claims remain factory-gated until that consumer is implemented. Native limbo, technician conversion, capture
+command authority and hostility change atomically with the counter transition.
+Shared infantry uses the current-house policy described below. Native limbo, technician conversion, capture
 side effects and imported counter history are not implied.
 
 The exact-result receipt proves a completed component transaction and its source,
@@ -125,3 +125,26 @@ observed object's virtual owning house. This source context requires independent
 saved event/trigger state; a caller label or initial house is not equivalent.
 The nullable world invocation preserves that absence. The bounded transfer helper
 rejects a null8997 target instead of fabricating a target house.
+
+## Current ownership and retained infantry slots
+
+The independently reviewed [infantry passage evidence](INFANTRY_PASSAGE_PROVENANCE.md)
+establishes ordinary subcells and directed mover-house admission. The ownership
+consumer above supplies the mutable actor house; initial catalog ownership remains
+source metadata. Current queries, group planning and generated team commands read
+the validated current owner. This does not establish native team membership after
+capture; that separate source/runtime integration remains pending.
+
+Capture preserves settled anchors and cancels newly hostile incoming edges. A
+group rendered hostile by capture receives a bounded saved claim referencing the
+exact source transfer, a compatible pre-transfer owner order and distinct ordinary
+subcells. Only surviving members at those cells/slots remain covered. Claims are
+checked with full current occupancy and cannot replace static blockers or grant
+retirement. Restoration checks structural possible history, not authenticated
+historical execution; full replay provides the separate execution comparison.
+
+The group is closed to new arrivals until it becomes allied or members separate.
+Even a third house allied to each member cannot join while it remains closed.
+This is a conservative D03 rule, not a claim about native mixed-owner cell-house
+bookkeeping. Seven original tests cover capture, reservations, group preflight,
+pending/completed death, strict save rejection and replay in both profiles.
