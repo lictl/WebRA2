@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {createVoxelAtlas,renderVoxelFrame,VOXEL_RENDER_LIMITS,VOXEL_TRANSFORM_POLICY,type VoxelAtlasInput,type VoxelFrameInput,type VoxelInstance,type VoxelPalette} from '../../packages/render/src/voxel-render.ts';
+import {copyVoxelAtlasData,VOXEL_ATLAS_COPY_LIMITS,createVoxelAtlas,renderVoxelFrame,VOXEL_RENDER_LIMITS,VOXEL_TRANSFORM_POLICY,type VoxelAtlasInput,type VoxelFrameInput,type VoxelInstance,type VoxelPalette} from '../../packages/render/src/voxel-render.ts';
 const sha=(b:Uint8Array)=>createHash('sha256').update(b).digest('hex');
 type Cell=readonly [number,number,number,number,number];
 function vxl(cells:readonly Cell[]=[[0,0,0,1,7]],size:readonly number[]=[1,1,1],scale=1,bounds:readonly number[]=[0,0,0,...size]){
@@ -145,4 +145,28 @@ test('explicit parts and independent palettes share a frame without inference or
   assert.equal(f.allocations.instanceVoxels,2);assert.equal(f.allocations.samples,8);
   assert.throws(()=>renderVoxelFrame(r,{instanceVoxels:1}),/instance-budget/);
   assert.throws(()=>renderVoxelFrame(r,{samples:7}),/sample-budget/);
+});
+test('genuine atlas export owns complete geometry and poses without changing CPU rendering',()=>{
+  const input=source(vxl([[0,0,0,1,7],[0,0,1,2,8]],[1,1,2]).bytes,hva([affine(0),affine(1)]));
+  const atlas=createVoxelAtlas({...input,parts:[input.parts[0]!,{...input.parts[0]!,id:'second',hva:{assetId:'h',layout:'frame-major',frame:1,section:0}}]});
+  const requestInput={...request(),atlas},before=renderVoxelFrame(requestInput),data=copyVoxelAtlasData(atlas);
+  assert.equal(data.atlas,atlas);assert.deepEqual(data.parts.map(p=>p.metadata.id),['part','second']);
+  assert.deepEqual(data.allocations,{parts:2,voxels:4,copyBytes:212,work:30});assert.equal(atlas.allocations.geometryBytes,10);
+  for(const part of data.parts){assert.deepEqual([...part.voxels],[0,0,0,1,7,0,0,1,2,8]);assert.deepEqual(part.modelMatrix,part.metadata.modelMatrix);assert.notEqual(part.modelMatrix,part.metadata.modelMatrix);}
+  assert.notEqual(data.parts[0]!.voxels.buffer,data.parts[1]!.voxels.buffer);
+  data.parts[0]!.voxels.fill(255);for(const asset of input.assets)asset.bytes.fill(0);
+  const after=renderVoxelFrame(requestInput);assert.deepEqual(after.rgba,before.rgba);assert.deepEqual(after.copyDepth(),before.copyDepth());assert.deepEqual(after.pick(0,0),before.pick(0,0));
+  assert.deepEqual([...copyVoxelAtlasData(atlas).parts[0]!.voxels],[0,0,0,1,7,0,0,1,2,8]);
+  for(const value of [data,data.parts,data.parts[0],data.parts[0]!.modelMatrix,data.parts[0]!.metadata,data.allocations])assert.ok(Object.isFrozen(value));
+});
+test('atlas export rejects non-genuine identity and reserves full per-pose copy and work limits',()=>{
+  const atlas=createVoxelAtlas(source()),expected=copyVoxelAtlasData(atlas);
+  for(const fake of [structuredClone(atlas),{...atlas},new Proxy(atlas,{})])assert.throws(()=>copyVoxelAtlasData(fake),/voxel-atlas/);
+  for(const key of ['parts','voxels','copyBytes','work'] as const){
+    assert.throws(()=>copyVoxelAtlasData(atlas,{[key]:expected.allocations[key]-1}),/copy-budget/);
+    assert.deepEqual(copyVoxelAtlasData(atlas,{[key]:expected.allocations[key]}),expected);
+    assert.throws(()=>copyVoxelAtlasData(atlas,{[key]:VOXEL_ATLAS_COPY_LIMITS[key]+1}),/copy-limits/);
+  }
+  let calls=0;assert.throws(()=>copyVoxelAtlasData(atlas,{get parts(){calls++;return 1;}}),/copy-limits/);assert.equal(calls,0);
+  const empty=createVoxelAtlas({assets:[],parts:[]});assert.deepEqual(copyVoxelAtlasData(empty,{parts:0,voxels:0,copyBytes:0,work:0}).allocations,{parts:0,voxels:0,copyBytes:0,work:0});
 });

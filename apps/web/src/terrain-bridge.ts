@@ -4,13 +4,14 @@ import { shape,int,code,validAction,validProgress,validResult,type TerrainAction
 import type { CampaignLaunchPlan } from './campaign-protocol.ts';
 import { validWorldAction } from './world-protocol.ts';
 import { captureGpuFrame } from './gpu-protocol.ts';
-type ResidentIndex={objects:Set<string>;resources:Set<string>};
+import {gpuVoxelResourceIdentity,retainGpuVoxelMetadata,validateGpuVoxelWorld,type GpuVoxelResident} from './gpu-voxel-protocol.ts';
+type ResidentIndex={objects:Set<string>;resources:Set<string>;voxel:{metadata:GpuVoxelResident;identity:string}|null};
 const sameMembers=(a:Set<string>,b:Set<string>)=>a.size===b.size&&[...a].every(id=>b.has(id));
 /** Pin every top-level descriptor before choosing a codec. A switching Proxy
  * cannot enter a different result family during the fallback validator. */
 function captureResult(input:unknown):TerrainResult {
   if(!input||typeof input!=='object'||Object.getPrototypeOf(input)!==Object.prototype)throw new Error('invalid');
-  const keys=Reflect.ownKeys(input);if(keys.length>12)throw new Error('invalid');
+  const keys=Reflect.ownKeys(input);if(keys.length>13)throw new Error('invalid');
   const value:Record<string,unknown>={};
   for(const key of keys){
     if(typeof key!=='string'||key==='__proto__')throw new Error('invalid');
@@ -77,17 +78,22 @@ export class TerrainBridge implements TerrainPort {
           let resident=initializing?null:this.#resident;
           if(result.type==='gpu-frame'){
             if(result.resources){
-              const next={objects:new Set(result.resources.objects.map(o=>o.id)),resources:new Set(result.resources.spriteResources.map(r=>JSON.stringify([r.frameId,r.paletteId,r.rowStep])))};
-              if(resident&&(!sameMembers(next.objects,resident.objects)||!sameMembers(next.resources,resident.resources))){finish(new Error('invalid'));return;}
+              const vr=result.voxel?.resources;
+              const next:ResidentIndex={objects:new Set(result.resources.objects.map(o=>o.id)),resources:new Set(result.resources.spriteResources.map(r=>JSON.stringify([r.frameId,r.paletteId,r.rowStep]))),
+                voxel:vr?{metadata:retainGpuVoxelMetadata(vr),identity:gpuVoxelResourceIdentity(vr)}:null};
+              if(resident&&(!sameMembers(next.objects,resident.objects)||!sameMembers(next.resources,resident.resources)||next.voxel?.identity!==resident.voxel?.identity)){finish(new Error('invalid'));return;}
               resident=next;
             }
             if(!resident){finish(new Error('invalid'));return;}
+            if((resident.voxel!==null)!==(result.voxel!==undefined)){finish(new Error('invalid'));return;}
+            if(resident.voxel){try{validateGpuVoxelWorld(resident.voxel.metadata,result.voxel!.placements,result.summary.world,result.world);}catch{finish(new Error('invalid'));return;}}
             const covered=new Set(result.retiredObjectIds);
             for(const object of result.objects){
               if(!resident.objects.has(object.id)||covered.has(object.id)||!resident.resources.has(JSON.stringify([object.frameId,object.paletteId,object.depth.rowStep]))){finish(new Error('invalid'));return;}
               covered.add(object.id);
             }
-            if(!sameMembers(covered,resident.objects)){finish(new Error('invalid'));return;}
+            for(const p of result.voxel?.placements??[]){if(covered.has(p.objectId)){finish(new Error('invalid'));return;}covered.add(p.objectId);}
+            if(!sameMembers(covered,new Set([...resident.objects,...(resident.voxel?.metadata.groups.map(g=>g.id)??[])]))){finish(new Error('invalid'));return;}
           }
           if(action.type==='load'&&result.summary.mission!==(action.profile==='ra2'?'all01t.map':'all01umd.map')){finish(new Error('invalid'));return;}
           if(action.type==='campaign-launch'){

@@ -5,12 +5,14 @@ import type { ScenarioTerrain } from '../../../packages/content/src/scenario-ter
 import { assertObjectArtPlan, type ObjectArtPlan } from '../../../packages/content/src/object-art.ts';
 import { fingerprint } from '../../../packages/content/src/voxel-content-utils.ts';
 import type { ScenarioObjects } from '../../../packages/content/src/scenario-objects.ts';
-import { renderVoxelFrame, type VoxelInstance } from '../../../packages/render/src/voxel-render.ts';
+import { copyVoxelAtlasData,renderVoxelFrame, type VoxelInstance } from '../../../packages/render/src/voxel-render.ts';
 import { ART_REPORT_LIMIT, validArtworkSummary, type ArtworkSummary, type ArtworkType, type ObjectInfo } from './object-protocol.ts';
 import { WORLD_VOXEL_LIMITS, WORLD_VOXEL_POLICY } from './voxel-protocol.ts';
 import { composeVoxelWorld, voxelWorldProjection } from './world-voxel-compositor.ts';
 import type { ViewportScene } from './terrain-worker-runtime.ts';
 import { isRetiredWorldActor } from './world-protocol.ts';
+import type { WorldSnapshot } from './world-protocol.ts';
+import {captureGpuVoxelResources,type GpuVoxelResources,type GpuVoxelPlacement,type GpuVoxelGroup} from './gpu-voxel-protocol.ts';
 
 type WorldJoin = { modelHash: string; actors: readonly { objectId: string; id: number; rowId: string }[] };
 /** Capture source metadata synchronously. Only the genuine owned atlas and copied palettes survive preparation. */
@@ -89,20 +91,39 @@ export function createVoxelWorldViewport(base: ViewportScene, terrain: ScenarioT
   if(!validArtworkSummary(combined,objects.placements.length))throw new Error('voxel-world-report');
   const atlas=preview.atlas,used=new Set(initial.map(p=>p.paletteId));
   const paletteCopies=Object.freeze(preview.palettes.filter(p=>used.has(p.id)).map(p=>Object.freeze({id:p.id,rgba:p.rgba.slice(),remap:null,transparentIndex:0})));
-  // A partial GPU scene would omit already supported voxel artwork. Keep the complete
-  // CPU composition until the GPU path supports this layer; never silently drop it.
-  const gpu=initial.length?{gpuRefusal:'voxel-layer' as const}:base.gpu?{gpu:base.gpu.bind(base)}:{gpuRefusal:base.gpuRefusal??'scene-unavailable' as const};
-  return {artwork:combined,scene:{...gpu,...(base.locate?{locate:base.locate}:{}),render(viewport,snapshot){
+  const grouped=new Map<string,typeof initial>();for(const part of initial){const group=grouped.get(part.info.id)??[];group.push(part);grouped.set(part.info.id,group);}
+  const groups:readonly GpuVoxelGroup[]=Object.freeze([...grouped].map(([id,parts])=>{
+    const first=parts[0]!,at=ground.get(first.info.x+first.info.y*512)!;
+    return Object.freeze({id,actorId:first.actorId,initial:Object.freeze({x:first.info.x,y:first.info.y,...at}),
+      parts:Object.freeze(parts.map(p=>Object.freeze({instanceId:p.instanceId,partId:p.partId,paletteId:p.paletteId,info:p.info})))});
+  }));
+  // One selection program owns full group membership and retirement for both renderers.
+  const captureGroups=(snapshot?:WorldSnapshot)=>{
     if(modelHash!==null&&(!snapshot||snapshot.modelHash!==modelHash))throw new Error('voxel-world-snapshot');
-    const positions=new Map(snapshot?.actors.map(a=>[a.id,a])??[]),instances:VoxelInstance[]=[],sources=new Map<string,ObjectInfo>(),retired=new Set<string>();
-    for(const p of initial){
-      const position=p.actorId===null?p.info:positions.get(p.actorId);if(!position)throw new Error('voxel-world-actor');
-      if(p.actorId!==null&&isRetiredWorldActor(positions.get(p.actorId)!)){retired.add(p.info.id);continue;}
+    const positions=new Map(snapshot?.actors.map(a=>[a.id,a])??[]),placements:GpuVoxelPlacement[]=[],retired:string[]=[];
+    for(const group of groups){
+      const position=group.actorId===null?group.initial:positions.get(group.actorId);if(!position)throw new Error('voxel-world-actor');
+      if(group.actorId!==null&&isRetiredWorldActor(positions.get(group.actorId)!)){retired.push(group.id);continue;}
       const cell=ground.get(position.x+position.y*512);if(!cell)throw new Error('voxel-world-ground');
-      instances.push({id:p.instanceId,partId:p.partId,paletteId:p.paletteId,modelToView:voxelWorldProjection(cell,viewport)});
-      sources.set(p.instanceId,Object.freeze({...p.info,x:position.x,y:position.y}));
+      placements.push(Object.freeze({objectId:group.id,x:position.x,y:position.y,...cell}));
     }
-    const lower=base.render(viewport,snapshot),frame=retired.size?{...lower,allocations:{...lower.allocations,retiredObjectIds:[...new Set([...(lower.allocations.retiredObjectIds??[]),...retired])].sort()}}:lower;
+    return {placements:Object.freeze(placements),retired};
+  };
+  const gpu=base.gpu?{gpu(){
+    const lower=base.gpu!();if(!initial.length)return lower;
+    const copied=copyVoxelAtlasData(atlas),voxel:GpuVoxelResources=captureGpuVoxelResources({version:1,policy:WORLD_VOXEL_POLICY,modelHash,
+      parts:copied.parts.map(p=>({id:p.metadata.id,voxels:p.voxels,modelMatrix:p.modelMatrix})),
+      palettes:paletteCopies.map(p=>({...p,rgba:p.rgba.slice()})),grounds:[...ground].map(([xy,p])=>({x:xy%512,y:Math.floor(xy/512),...p})),groups});
+    return {...lower,voxel,project(snapshot?:WorldSnapshot){const baseState=lower.project(snapshot),state=captureGroups(snapshot);
+      return {...baseState,voxelPlacements:state.placements,retiredObjectIds:[...new Set([...baseState.retiredObjectIds,...state.retired])].sort()};}};
+  }}:{gpuRefusal:base.gpuRefusal??'scene-unavailable' as const};
+  return {artwork:combined,scene:{...gpu,...(base.locate?{locate:base.locate}:{}),render(viewport,snapshot){
+    const {placements,retired}=captureGroups(snapshot),current=new Map(placements.map(p=>[p.objectId,p])),instances:VoxelInstance[]=[],sources=new Map<string,ObjectInfo>();
+    for(const part of initial){const p=current.get(part.info.id);if(!p)continue;
+      instances.push({id:part.instanceId,partId:part.partId,paletteId:part.paletteId,modelToView:voxelWorldProjection(p,viewport)});
+      sources.set(part.instanceId,Object.freeze({...part.info,x:p.x,y:p.y}));
+    }
+    const lower=base.render(viewport,snapshot),frame=retired.length?{...lower,allocations:{...lower.allocations,retiredObjectIds:[...new Set([...(lower.allocations.retiredObjectIds??[]),...retired])].sort()}}:lower;
     if(!instances.length)return frame;
     const livePalettes=new Set(instances.map(p=>p.paletteId));
     const voxel=renderVoxelFrame({atlas,instances,palettes:paletteCopies.filter(p=>livePalettes.has(p.id)),viewport:{width:viewport.width,height:viewport.height,backgroundRgba:[0,0,0,0]},lighting:'unlit'},

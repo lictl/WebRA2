@@ -29,3 +29,9 @@ records the covered subset, code identities, measurement conditions and limitati
 Distributions containing these components must retain this notice, the composed
 component notices, [GPL text](../../LICENSES/GPL-3.0-or-later.txt) and applicable
 corresponding source. The repository's MIT license does not relicense these modules.
+
+The composing app's versioned voxel messages, source-ground/group joins and worker
+transport are original GPL-3.0-or-later code. They retain the voxel decoder, resource,
+CPU-transform and [GPU voxel policy](GPU_VOXEL_PROVENANCE.md) notices. The current
+code-only web build includes both GPU notices explicitly, including the terrain/SHP
+notice previously present only in the diagnostic build's explicit list.

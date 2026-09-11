@@ -11,8 +11,10 @@ import { locateWorldActor } from './infantry-slot-projection.ts';
 import { projectControlPoints, projectWorldControlPoints } from './world-selection.ts';
 import { WorldSession, type WorldPreparation } from './world-session.ts';
 import { validWorldAction, type WorldSnapshot } from './world-protocol.ts';
+import type {GpuVoxelResources,GpuVoxelPlacement} from './gpu-voxel-protocol.ts';
 export interface ViewportFrame { readonly viewport: TerrainViewport; readonly rgba: Uint8Array; readonly allocations: Omit<FrameSummary,'voxel'> & { readonly voxel?: FrameSummary['voxel'] }; pick(x:number,y:number):ViewportPick }
-export interface GpuViewportSource { readonly scene:GpuScene; readonly objectInfo:readonly ObjectInfo[]; project(world?:WorldSnapshot):{objects:readonly SpriteObject[];retiredObjectIds:string[]} }
+export interface GpuViewportSource { readonly scene:GpuScene; readonly objectInfo:readonly ObjectInfo[]; readonly voxel?:GpuVoxelResources;
+  project(world?:WorldSnapshot):{objects:readonly SpriteObject[];retiredObjectIds:string[];voxelPlacements?:readonly GpuVoxelPlacement[]} }
 export interface ViewportScene { render(viewport:TerrainViewport,world?:WorldSnapshot):ViewportFrame; locate?(x:number,y:number):{x:number;y:number}|null; gpu?():GpuViewportSource; gpuRefusal?:'voxel-layer'|'scene-unavailable' }
 export type SceneLoader = (files: File[], profile: TerrainProfile, progress: (p: TerrainProgress)=>void) => Promise<{ scene: ViewportScene; summary: Omit<SceneSummary,'world'>; world?: WorldPreparation }>;
 export interface TerrainScope { onmessage: ((event: { data: unknown }) => void) | null; postMessage(message: TerrainReply, transfer?: Transferable[]): void }
@@ -20,7 +22,7 @@ export interface TerrainScope { onmessage: ((event: { data: unknown }) => void) 
 export function attachTerrainWorker(scope: TerrainScope, load: SceneLoader, campaigns?:CampaignSessionFactory): void {
   let lastId=0,busy=false,currentId=0,sequence=0,outstanding=0,scene:ViewportScene|null=null,summary:SceneSummary|null=null,frame:ViewportFrame|null=null,frameId=0,pending:TerrainProgress|null=null;
   let world:WorldSession|null=null,campaign:CampaignSession|null=null;
-  let gpu:Omit<GpuViewportSource,'scene'>|null=null,sceneId=0,lastCamera:TerrainViewport|null=null;
+  let gpu:(Omit<GpuViewportSource,'scene'|'voxel'>&{hasVoxels:boolean})|null=null,sceneId=0,lastCamera:TerrainViewport|null=null;
   const clearScene=()=>{scene=null;summary=null;frame=null;world=null;frameId=0;gpu=null;sceneId=0;lastCamera=null;};
   const filesFor=(files:{file:File;relativePath:string}[])=>files.map(({file,relativePath})=>{Object.defineProperty(file,'webkitRelativePath',{value:relativePath,configurable:true});return file;});
   const flush=()=>{ if(!busy || outstanding || !pending)return; const progress=pending;pending=null;outstanding=++sequence;scope.postMessage({version:7,id:currentId,type:'progress',sequence,progress}); };
@@ -62,13 +64,13 @@ export function attachTerrainWorker(scope: TerrainScope, load: SceneLoader, camp
             scope.postMessage({version:7,id,type:'result',result:{type:'world-rejection',modelHash:world.model.sha256,revision:world.revision,code}});return;
           }
         }
-        let initializeGpu:GpuScene|null=null;
+        let initializeGpu:GpuScene|null=null,initializeVoxel:GpuVoxelResources|null=null;
         if(action.type==='renderer-mode'){
           if(!lastCamera)throw new Error('unavailable');
           if(action.mode==='cpu')gpu=null;
           else{
             if(!scene.gpu){scope.postMessage({version:7,id,type:'result',result:{type:'renderer-refusal',reason:scene.gpuRefusal??'scene-unavailable'}});return;}
-            try{const prepared=scene.gpu();initializeGpu=prepared.scene;gpu={objectInfo:prepared.objectInfo,project:prepared.project};}catch{gpu=null;scope.postMessage({version:7,id,type:'result',result:{type:'renderer-refusal',reason:'scene-budget'}});return;}
+            try{const prepared=scene.gpu();initializeGpu=prepared.scene;initializeVoxel=prepared.voxel??null;gpu={objectInfo:prepared.objectInfo,project:prepared.project,hasVoxels:initializeVoxel!==null};}catch{gpu=null;scope.postMessage({version:7,id,type:'result',result:{type:'renderer-refusal',reason:'scene-budget'}});return;}
           }
         }
         if(action.type==='pick'){
@@ -91,8 +93,11 @@ export function attachTerrainWorker(scope: TerrainScope, load: SceneLoader, camp
             // Only compact projection metadata survives this request in the worker.
             const state=gpu.project(snapshot??undefined),resources=initializeGpu?exportGpuScene(initializeGpu):null;
             const transfer:Transferable[]=resources?resources.rasters.flatMap(r=>[r.rgba.buffer as ArrayBuffer,r.depth.buffer as ArrayBuffer]):[];
+            if(initializeVoxel)transfer.push(...initializeVoxel.parts.map(p=>p.voxels.buffer as ArrayBuffer),...initializeVoxel.palettes.map(p=>p.rgba.buffer as ArrayBuffer));
+            if(gpu.hasVoxels&&!state.voxelPlacements)throw new Error('voxel-world-state');
             scope.postMessage({version:7,id,type:'result',result:{type:'gpu-frame',sceneId,frameId,camera:{cameraX,cameraY,zoom,width,height},summary,world:snapshot,controlPoints,
-              worldPoints:projectWorldControlPoints(summary.world,snapshot,scene.locate?.bind(scene)),resources,objectInfo:initializeGpu?[...gpu.objectInfo]:null,objects:state.objects,retiredObjectIds:state.retiredObjectIds}},transfer);return;
+              worldPoints:projectWorldControlPoints(summary.world,snapshot,scene.locate?.bind(scene)),resources,objectInfo:initializeGpu?[...gpu.objectInfo]:null,objects:state.objects,retiredObjectIds:state.retiredObjectIds,
+              ...(gpu.hasVoxels?{voxel:{version:1,resources:initializeVoxel,placements:state.voxelPlacements!}}:{})}},transfer);return;
           }
           // Drop the previous picking planes before allocating the next CPU viewport.
           frame=null;frame=scene.render(lastCamera,snapshot??undefined);
