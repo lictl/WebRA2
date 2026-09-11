@@ -29,7 +29,7 @@ export interface WorldHouseTransferResult {
 }
 const techno = (kind: string) => ['infantry', 'unit', 'structure', 'aircraft'].includes(kind);
 const context = new WeakMap<object, { model: WorldModel; source: MissionHouseSource; ledger: MissionHouseState; work: number;
-  ownerHistory: Map<number, { tick: number; owner: number | null }[]> }>();
+  ownerHistory: Map<number, { tick: number; revision: number; owner: number | null }[]> }>();
 const transferCap = C.replayAdmissions;
 function allied(catalog: InfantryPassageCatalog, a: number | null, b: number | null): boolean {
   return a !== null && b !== null && (a === b || catalog.alliancesComplete && catalog.alliances.some(p => p.from === a && p.to === b));
@@ -132,7 +132,7 @@ export function restoreWorldOwnership(model: WorldModel, value: unknown, entitie
   const pass = passWork(source);
   meter.charge(pass * (transfers.length * 3 + 2));
   let ledger = createMissionHouseState(source, participation(model, lifecycle, 0));
-  const ownerHistory = new Map(ledger.actors.map(a => [a.entityId, [{ tick: 0, owner: a.owner }]]));
+  const ownerHistory = new Map(ledger.actors.map(a => [a.entityId, [{ tick: 0, revision: 0, owner: a.owner }]]));
   const advance = (tick: number) => {
     const next = participation(model, lifecycle, tick), changes = next.flatMap<MissionHouseChange>((p, i) => {
       const a = ledger.actors[i]!;
@@ -154,7 +154,7 @@ export function restoreWorldOwnership(model: WorldModel, value: unknown, entitie
         !(group.members.every(m=>{const a=passageActors.get(m.entityId)!;return a.initialCell===group.cell&&a.sourceSubcell===m.subcell;}) ||
           arrival(model.infantryPassage!,group.members.map(m=>m.entityId),id=>owners.get(id)!))) fail('world-ownership-sharing-history');
     }
-    for (const id of plan.changedEntityIds) ownerHistory.get(id)!.push({ tick: t.nextTick, owner: plan.destinationHouse });
+    for (const id of plan.changedEntityIds) ownerHistory.get(id)!.push({ tick: t.nextTick, revision: index + 1, owner: plan.destinationHouse });
     ledger = applyMissionHouseTransfer(ledger, plan);
   }
   advance(tick);
@@ -199,6 +199,19 @@ export function worldOwnershipOwnerAt(model: WorldModel, state: WorldOwnershipSt
   let lo = 0, hi = history.length;
   while (lo < hi) { const mid = (lo + hi) >>> 1; if (history[mid]!.tick <= tick) lo = mid + 1; else hi = mid; }
   return history[Math.max(0, lo - 1)]!.owner;
+}
+/** Exact source-validated transfer boundary, including several transfers at the
+ * same tick. The last-change revision also prevents a change-back from silently
+ * restoring an earlier team claim. This adds no saved state or world identity. */
+export function worldOwnershipAtRevision(model: WorldModel, state: WorldOwnershipState, entityId: number, revision: number):
+Readonly<{ owner: number | null; lastChangeRevision: number }> {
+  const c = context.get(state); if (!c || c.model !== model) fail('world-ownership-context');
+  integer(revision, 0, state.transfers.length);
+  const history = c.ownerHistory.get(entityId) ?? fail('world-ownership-actor');
+  let lo = 0, hi = history.length;
+  while (lo < hi) { const mid = (lo + hi) >>> 1; if (history[mid]!.revision <= revision) lo = mid + 1; else hi = mid; }
+  const row = history[Math.max(0, lo - 1)]!;
+  return Object.freeze({ owner: row.owner, lastChangeRevision: row.revision });
 }
 export function validateWorldOwnershipLifecycle(model: WorldModel, state: WorldState, nextTick: number): void {
   if (!model.ownership) return;
