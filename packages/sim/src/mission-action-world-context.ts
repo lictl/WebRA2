@@ -3,9 +3,9 @@
 import { isMissionBindingAuthority, missionBindingSourceContext, type MissionBindingAuthority } from './mission-bindings.ts';
 import { missionProgramSpatialAudioSource, missionProgramHouseSource, type MissionProgram } from './mission-logic.ts';
 import { missionHouseSourceContext } from './mission-house-source.ts';
-import { assertWorldModel, createWorldModel, type WorldModel } from './world-model.ts';
+import { assertWorldModel, type WorldModel } from './world-model.ts';
 import { WorldSimulation, worldHouseTransferFacts, type WorldSave } from './world.ts';
-import { worldHash, worldInteger, worldPosition, worldRecord, WORLD_LIMITS } from './world-values.ts';
+import { worldHash, worldInteger, worldRecord, WORLD_LIMITS } from './world-values.ts';
 
 import { missionSpatialAudioSourceContext, resolveMissionSpatialAudioInWorld, restoreMissionSpatialAudioWorld, type MissionSpatialAudioTarget } from './mission-spatial-audio-source.ts';
 
@@ -54,12 +54,8 @@ export function createMissionActionWorldContext(input: Readonly<{
   const initialWork = (house ? house.instructions.length * (source.triggers.length + original.houses.length + house.houses.length + 1) : 0) + model.entities.length +
     (spatial ? spatial.instructions.length + model.footprints.reduce((n, p) => n + p.cells.length + 1, 0) : 0);
   if (initialWork > limit) fail('work-limit');
-  if (spatial) {
-    const base = createWorldModel({ contentIdentity: model.contentIdentity, sourceSha256: model.sourceSha256, definitionsSha256: model.definitionsSha256,
-      entities: model.entities, navigation: model.navigation, blocked: model.blocked.map(worldPosition),
-      footprints: model.footprints.map(p => ({ entityId: p.entityId, cells: p.cells.map(worldPosition) })) });
-    if (base.sha256 !== spatial.baseWorldSha256) fail('world-join');
-  }
+  // The bounded restore below performs and reserves the complete source/model
+  // join. Do not repeat that scan here outside its navigation/blocker budget.
   const sourceHouses = new Map<string, number>();
   for (const instruction of house?.instructions ?? []) if (instruction.kind === 'action') {
     // SourceHouse is the first house of Trigger.Type's owner country. It is

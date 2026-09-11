@@ -127,7 +127,8 @@ export function compileMissionSpatialAudioSource(input: Readonly<{ bindings: Mis
 
 const joinedModels = new WeakMap<MissionSpatialAudioSource, WeakSet<WorldModel>>();
 function sourceWorldWork(source: MissionSpatialAudioSource, model: WorldModel): number {
-  return source.instructions.length + model.entities.length + model.footprints.reduce((n, p) => n + p.cells.length + 1, 0);
+  return source.instructions.length + model.entities.length + model.navigation.length + model.blocked.length +
+    model.footprints.reduce((n, p) => n + p.cells.length + 1, 0);
 }
 function joinWorld(source: MissionSpatialAudioSource, model: WorldModel): void {
   const original = missionSpatialAudioSourceContext(source); assertWorldModel(model);

@@ -46,7 +46,8 @@ validated candidate. The core's authenticated `readWorldEntityPresence` reads
 current actor state without serializing or revalidating history per sound. Copies,
 proxies and subclasses cannot supply the world; public method overrides are
 ignored. Immutable source/model joins may be cached, while the published logical
-work reservation stays independent of cache warmth. Returned component data alone
+work reservation includes navigation bindings and blocked cells and stays independent
+of cache warmth. Returned component data alone
 does not prove that a trigger fired.
 
 ## Ordered request dispatch
