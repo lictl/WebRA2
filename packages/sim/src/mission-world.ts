@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Original bounded compound transactions. See ../MISSION_WORLD_PROVENANCE.md.
 import type { MissionAudioPolicyCatalog, MissionAudioPolicyBinding } from '../../content/src/mission-audio-policy.ts';
+import { missionSpatialAudioSourceContext, type MissionSpatialAudioSource, type MissionSpatialAudioTarget } from './mission-spatial-audio-source.ts';
 import type { MissionHouseSource } from './mission-house-source.ts';
 import { createMissionActionWorldContext, MISSION_ACTION_WORLD_POLICY } from './mission-action-world-context.ts';
-import { missionProgramHouseSource, MISSION_HOUSE_DISPATCH_POLICY } from './mission-logic.ts';
+import { missionProgramSpatialAudioSource, MISSION_SPATIAL_AUDIO_DISPATCH_POLICY, missionProgramHouseSource, MISSION_HOUSE_DISPATCH_POLICY } from './mission-logic.ts';
 import type { CommandEnvelope } from '../../contracts/src/index.ts';
 import { canonicalText, parseJson } from './canonical.ts';
 import { isMissionBindingAuthority, type MissionBindingAuthority } from './mission-bindings.ts';
@@ -41,6 +42,7 @@ export interface MissionWorldModel {
   readonly objectEventSourceSha256?: string; readonly objectEventPhasePolicy?: typeof MISSION_WORLD_OBJECT_PHASE_POLICY;
   readonly audioPolicySha256?: string; readonly audioDispatchPolicy?: typeof MISSION_AUDIO_DISPATCH_POLICY;
   readonly houseSourceSha256?: string; readonly houseDispatchPolicy?: typeof MISSION_HOUSE_DISPATCH_POLICY;
+  readonly spatialAudioSourceSha256?: string; readonly spatialAudioDispatchPolicy?: typeof MISSION_SPATIAL_AUDIO_DISPATCH_POLICY;
   readonly actionWorldPolicy?: typeof MISSION_ACTION_WORLD_POLICY;
   readonly houseCallbackPolicy?: typeof MISSION_WORLD_HOUSE_CALLBACK_POLICY;
   readonly cueCatalogSha256?: string; readonly cueDispatchPolicy?: typeof MISSION_CUE_DISPATCH_POLICY;
@@ -49,11 +51,67 @@ export interface MissionWorldModel {
 }
 export interface MissionWorldCheckpoint {
   readonly schemaVersion: 1; readonly policy: typeof MISSION_WORLD_POLICY; readonly modelSha256: string;
-  readonly world: WorldSave; readonly mission: MissionSave; readonly teams?: MissionTeamCheckpoint; readonly presentation?: MissionCueState; readonly audio?: MissionWorldAudioState;
+  readonly world: WorldSave; readonly mission: MissionSave; readonly teams?: MissionTeamCheckpoint; readonly presentation?: MissionCueState; readonly audio?: MissionWorldAudioState; readonly spatialAudio?: MissionWorldSpatialAudioState;
 }
 export interface MissionWorldResult {
   readonly teams?: MissionWorldTeamEvents; readonly checkpoint: MissionWorldCheckpoint; readonly effects: readonly MissionEffect[];
-  readonly worldEvents: readonly WorldTrace[]; readonly work: number; readonly presentation?: MissionWorldPresentation; readonly audio?: MissionWorldAudio;
+  readonly worldEvents: readonly WorldTrace[]; readonly work: number; readonly presentation?: MissionWorldPresentation; readonly audio?: MissionWorldAudio; readonly spatialAudio?: MissionWorldSpatialAudio;
+}
+export interface MissionWorldSpatialAudioState {
+  readonly policy: typeof MISSION_SPATIAL_AUDIO_DISPATCH_POLICY; readonly sourceSha256: string;
+  readonly tick: number; readonly nextSequence: number;
+}
+export interface MissionWorldSpatialAudioRequest {
+  readonly sequence: number; readonly tick: number; readonly vmOrder: number;
+  readonly bindingId: string; readonly triggerId: string; readonly instructionId: string;
+  readonly opcode: 99 | 116; readonly target: MissionSpatialAudioTarget;
+  readonly soundIndex: number | null; readonly playbackAuthorized: false;
+}
+export interface MissionWorldSpatialAudio {
+  readonly policy: typeof MISSION_SPATIAL_AUDIO_DISPATCH_POLICY; readonly modelSha256: string; readonly sourceSha256: string;
+  readonly fromNextTick: number; readonly toNextTick: number; readonly stateSha256: string;
+  readonly sourceDispatchVerified: true; readonly nativePlaybackVerified: false;
+  readonly requests: readonly MissionWorldSpatialAudioRequest[];
+}
+const spatialBatches = new WeakMap<object, MissionWorldModel>();
+export function isMissionWorldSpatialAudio(model: MissionWorldModel, value: unknown): value is MissionWorldSpatialAudio {
+  source(model); return !!value && typeof value === 'object' && spatialBatches.get(value) === model;
+}
+export function missionWorldSpatialAudioSource(model: MissionWorldModel): MissionSpatialAudioSource | null { return source(model).spatial; }
+function spatialBatch(model: MissionWorldModel, from: number, checkpoint: MissionWorldCheckpoint, requests: MissionWorldSpatialAudioRequest[]): MissionWorldSpatialAudio {
+  const spatial = source(model).spatial; if (!spatial) fail('spatial-source');
+  const batch = freeze({ policy: MISSION_SPATIAL_AUDIO_DISPATCH_POLICY, modelSha256: model.sha256, sourceSha256: spatial.sha256,
+    fromNextTick: from, toNextTick: checkpoint.world.nextTick, stateSha256: worldHash(checkpoint),
+    sourceDispatchVerified: true as const, nativePlaybackVerified: false as const, requests });
+  spatialBatches.set(batch, model); return batch;
+}
+function restoreSpatialState(spatial: MissionSpatialAudioSource, value: unknown): MissionWorldSpatialAudioState {
+  const r = worldRecord(value, ['policy', 'sourceSha256', 'tick', 'nextSequence']);
+  if (r.policy !== MISSION_SPATIAL_AUDIO_DISPATCH_POLICY || r.sourceSha256 !== spatial.sha256) fail('spatial-cursor-identity');
+  return freeze({ policy: MISSION_SPATIAL_AUDIO_DISPATCH_POLICY, sourceSha256: spatial.sha256,
+    tick: worldInteger(r.tick, 0, MISSION_LOGIC_LIMITS.tick), nextSequence: worldInteger(r.nextSequence, 0, 1_000_000) });
+}
+function spatialRequestUnits(requests: readonly MissionWorldSpatialAudioRequest[]): number {
+  return requests.reduce((n, r) => n + r.instructionId.length + r.bindingId.length + r.triggerId.length + 16, 0);
+}
+/** The target was resolved during this private VM call, not reconstructed here
+ * from its final world or accepted from a caller-supplied effect list. */
+function appendSpatial(s: Source, cursor: MissionWorldSpatialAudioState, effects: readonly MissionEffect[], tick: number, remainingUnits: number) {
+  if (!s.spatial || cursor.sourceSha256 !== s.spatial.sha256 || tick < cursor.tick) fail('spatial-source');
+  const selected = effects.filter(e => e.kind === 'spatial-audio-request');
+  if (selected.length > 1024 || selected.length > 1_000_000 - cursor.nextSequence) fail('spatial-request-limit');
+  let units = 0;
+  const requests: MissionWorldSpatialAudioRequest[] = selected.map((effect, i) => {
+    const instruction = s.spatialByInstruction.get(effect.instructionId);
+    if (!instruction || instruction.status !== 'supported-initial-source' || instruction.triggerId !== effect.triggerId || instruction.opcode !== effect.opcode ||
+      effect.tick !== tick || !effect.spatialTarget) fail('spatial-effect');
+    units += effect.instructionId.length + effect.bindingId.length + effect.triggerId.length + 16;
+    if (units > remainingUnits) fail('spatial-payload-limit');
+    return { sequence: cursor.nextSequence + i, tick, vmOrder: effect.order, bindingId: effect.bindingId, triggerId: effect.triggerId,
+      instructionId: effect.instructionId, opcode: instruction.opcode, target: effect.spatialTarget, soundIndex: instruction.soundIndex, playbackAuthorized: false };
+  });
+  return { requests, units, work: effects.length + requests.length + units,
+    state: restoreSpatialState(s.spatial, { ...cursor, tick, nextSequence: cursor.nextSequence + requests.length }) };
 }
 export interface MissionWorldAudioState {
   readonly policy: typeof MISSION_AUDIO_DISPATCH_POLICY; readonly policyCatalogSha256: string;
@@ -150,7 +208,8 @@ function freeze<T>(v: T): T {
   if (v && typeof v === 'object' && !Object.isFrozen(v)) { for (const c of Object.values(v)) freeze(c); Object.freeze(v); } return v;
 }
 type Source = { world: WorldModel; bindings: MissionBindingAuthority; flags: MissionInitialFlags; initial: MissionSave; cues: MissionCueCatalog | null;
-  houses: MissionHouseSource | null;
+  houses: MissionHouseSource | null; spatial: MissionSpatialAudioSource | null;
+  spatialByInstruction: ReadonlyMap<string, MissionSpatialAudioSource['instructions'][number]>;
   audio: MissionAudioPolicyCatalog | null; audioByInstruction: ReadonlyMap<string, MissionAudioPolicyBinding>;
   teams: MissionTeamRuntime | null; teamCells: MissionTeamCellSource | null; cells: MissionCellEntrySource | null; cellByAddress: ReadonlyMap<number, string>;
   objects: MissionObjectEventSource | null; objectActors: ReadonlyMap<number, MissionObjectEventActor> };
@@ -176,12 +235,15 @@ export function compileMissionWorld(input: {
     blocked: world.blocked.map(worldPosition), footprints: world.footprints.map(p => ({ entityId: p.entityId, cells: p.cells.map(worldPosition) })) });
   if (base.sha256 !== bindings.worldSha256 || (world.combat && !combatSourceBridge(world.combat))) fail('world-join');
   const teamSource = missionProgramTeamActions(bindings.program), audio = missionProgramAudioPolicy(bindings.program);
-  const houses = missionProgramHouseSource(bindings.program);
+  const houses = missionProgramHouseSource(bindings.program), spatial = missionProgramSpatialAudioSource(bindings.program);
+  if (spatial && (spatial.bindingsSha256 !== bindings.catalogSha256 || spatial.baseWorldSha256 !== base.sha256 ||
+    missionSpatialAudioSourceContext(spatial).audio !== audio)) fail('spatial-source');
+  const spatialByInstruction = new Map(spatial?.instructions.map(i => [i.instructionId, i]));
   if ((world.ownership ?? null) !== houses || (houses && houses.bindingsSha256 !== bindings.catalogSha256)) fail('house-source');
   for (const trigger of bindings.program.triggers) {
     for (const event of trigger.events) if ((event.opcode === 36 || event.opcode === 37) && event.argument >= flags.localCapacity) fail('local-capacity');
     for (const action of trigger.actions) {
-      if (!actions.has(action.opcode) && !(houses && [14, 36].includes(action.opcode)) && !(teamSource && [4, 7, 80].includes(action.opcode)) && !(missionProgramCues(bindings.program) && [11, 48, 55].includes(action.opcode)) && !(audio && [19, 21].includes(action.opcode))) fail('unimplemented-effect');
+      if (!actions.has(action.opcode) && !(houses && [14, 36].includes(action.opcode)) && !(teamSource && [4, 7, 80].includes(action.opcode)) && !(missionProgramCues(bindings.program) && [11, 48, 55].includes(action.opcode)) && !(audio && [19, 21].includes(action.opcode)) && !(spatial && [99, 116].includes(action.opcode))) fail('unimplemented-effect');
       if ((action.opcode === 56 || action.opcode === 57) && action.argument >= flags.localCapacity) fail('local-capacity');
     }
   }
@@ -210,6 +272,7 @@ export function compileMissionWorld(input: {
   // Initial source actors can read current owners from the private candidate.
   // Dynamically constructed team actors still require their own ownership join.
   if (houses && teams) fail('house-team-context');
+  if (spatial && teams) fail('spatial-team-context');
   let teamCells: MissionTeamCellSource | null = null;
   if (hasTeamCells) {
     if (!teams || !cells || !isMissionTeamCellSource(r.teamCells)) fail('team-cell-source');
@@ -229,14 +292,16 @@ export function compileMissionWorld(input: {
   const data = { policy: MISSION_WORLD_POLICY, worldSha256: world.sha256, bindingsSha256: bindings.catalogSha256,
     programSha256: bindings.program.sha256, flagsSha256: flags.sha256, canStartCampaign: false as const, nativeBehaviorVerified: false as const,
     ...(houses && (cells || objects) ? { houseCallbackPolicy: MISSION_WORLD_HOUSE_CALLBACK_POLICY } : {}),
-    ...(houses ? { houseSourceSha256: houses.sha256, houseDispatchPolicy: MISSION_HOUSE_DISPATCH_POLICY, actionWorldPolicy: MISSION_ACTION_WORLD_POLICY } : {}),
+    ...(houses ? { houseSourceSha256: houses.sha256, houseDispatchPolicy: MISSION_HOUSE_DISPATCH_POLICY } : {}),
+    ...(houses || spatial ? { actionWorldPolicy: MISSION_ACTION_WORLD_POLICY } : {}),
+    ...(spatial ? { spatialAudioSourceSha256: spatial.sha256, spatialAudioDispatchPolicy: MISSION_SPATIAL_AUDIO_DISPATCH_POLICY } : {}),
     ...(teams ? { teamActionSourceSha256: teamSource!.sha256, teamRuntimeSha256: teams.sha256, teamPhasePolicy: MISSION_WORLD_TEAM_PHASE_POLICY } : {}),
     ...(teamCells ? { teamCellSourceSha256: teamCells.sha256, teamCellPhasePolicy: MISSION_WORLD_TEAM_CELL_PHASE_POLICY } : {}),
     ...(audio ? { audioPolicySha256: audio.sha256, audioDispatchPolicy: MISSION_AUDIO_DISPATCH_POLICY } : {}),
     ...(cues ? { cueCatalogSha256: cues.sha256, cueDispatchPolicy: MISSION_CUE_DISPATCH_POLICY } : {}),
     ...(cells ? { cellEntrySourceSha256: cells.sha256, cellEntryPhasePolicy: MISSION_WORLD_CELL_PHASE_POLICY } : {}),
     ...(objects ? { objectEventSourceSha256: objects.sha256, objectEventPhasePolicy: MISSION_WORLD_OBJECT_PHASE_POLICY } : {}) };
-  const model = freeze({ ...data, sha256: worldHash(data) }); sources.set(model, { world, bindings, flags, initial, cues, audio, audioByInstruction, teams, teamCells, cells, cellByAddress, objects, objectActors, houses }); return model;
+  const model = freeze({ ...data, sha256: worldHash(data) }); sources.set(model, { world, bindings, flags, initial, cues, audio, audioByInstruction, teams, teamCells, cells, cellByAddress, objects, objectActors, houses, spatial, spatialByInstruction }); return model;
 }
 function checkFlags(s: Source, mission: MissionSave): void {
   if (mission.locals.slice(s.flags.localCapacity).some(Boolean) || mission.pending.some(i => i.kind === 'local' && i.index >= s.flags.localCapacity)) fail('local-capacity');
@@ -246,7 +311,7 @@ function checkFlags(s: Source, mission: MissionSave): void {
 }
 export function restoreMissionWorld(model: MissionWorldModel, value: unknown): MissionWorldCheckpoint {
   const s = source(model), raw = typeof value === 'string' || value instanceof Uint8Array ? parseJson(value) : value;
-  const r = worldRecord(worldClone(raw), ['schemaVersion', 'policy', 'modelSha256', 'world', 'mission', ...(s.teams ? ['teams'] : []), ...(s.cues ? ['presentation'] : []), ...(s.audio ? ['audio'] : [])]);
+  const r = worldRecord(worldClone(raw), ['schemaVersion', 'policy', 'modelSha256', 'world', 'mission', ...(s.teams ? ['teams'] : []), ...(s.cues ? ['presentation'] : []), ...(s.audio ? ['audio'] : []), ...(s.spatial ? ['spatialAudio'] : [])]);
   if (r.schemaVersion !== 1 || r.policy !== MISSION_WORLD_POLICY || r.modelSha256 !== model.sha256) fail('checkpoint-identity');
   if (s.teams && (r.teams as MissionTeamCheckpoint | null)?.pending !== null) fail('team-world');
   const teams = s.teams ? restoreMissionTeamCheckpoint(s.teams, r.teams) : null;
@@ -265,8 +330,12 @@ export function restoreMissionWorld(model: MissionWorldModel, value: unknown): M
   if (audioCursor && (audioCursor.tick !== Math.max(0, world.nextTick - 1) ||
     audioCursor.nextSequence + (cursor?.nextSequence ?? 0) > mission.nextEffectOrder - 1 ||
     (world.nextTick === 0 && audioCursor.nextSequence !== 0))) fail('audio-cursor');
+  const spatialCursor = s.spatial ? restoreSpatialState(s.spatial, r.spatialAudio) : null;
+  if (spatialCursor && (spatialCursor.tick !== Math.max(0, world.nextTick - 1) ||
+    spatialCursor.nextSequence + (audioCursor?.nextSequence ?? 0) + (cursor?.nextSequence ?? 0) > mission.nextEffectOrder - 1 ||
+    (world.nextTick === 0 && spatialCursor.nextSequence !== 0))) fail('spatial-cursor');
   return freeze({ schemaVersion: 1, policy: MISSION_WORLD_POLICY, modelSha256: model.sha256, world, mission, ...(teams ? { teams } : {}),
-    ...(cursor ? { presentation: cursor } : {}), ...(audioCursor ? { audio: audioCursor } : {}) });
+    ...(cursor ? { presentation: cursor } : {}), ...(audioCursor ? { audio: audioCursor } : {}), ...(spatialCursor ? { spatialAudio: spatialCursor } : {}) });
 }
 export function createMissionWorld(model: MissionWorldModel): MissionWorldCheckpoint {
   const s = source(model);
@@ -274,7 +343,8 @@ export function createMissionWorld(model: MissionWorldModel): MissionWorldCheckp
     world: WorldSimulation.create(s.world).save(), mission: s.initial,
     ...(s.teams ? { teams: createMissionTeamCheckpoint(s.teams) } : {}),
     ...(s.cues ? { presentation: createMissionCueState(s.cues) } : {}),
-    ...(s.audio ? { audio: { policy: MISSION_AUDIO_DISPATCH_POLICY, policyCatalogSha256: s.audio.sha256, tick: 0, nextSequence: 0 } } : {}) });
+    ...(s.audio ? { audio: { policy: MISSION_AUDIO_DISPATCH_POLICY, policyCatalogSha256: s.audio.sha256, tick: 0, nextSequence: 0 } } : {}),
+    ...(s.spatial ? { spatialAudio: { policy: MISSION_SPATIAL_AUDIO_DISPATCH_POLICY, sourceSha256: s.spatial.sha256, tick: 0, nextSequence: 0 } } : {}) });
 }
 export interface MissionWorldAdmission {
   readonly commands: readonly CommandEnvelope[]; readonly flags: readonly MissionInput[];
@@ -301,10 +371,10 @@ export function stepMissionWorld(model: MissionWorldModel, value: unknown, ticks
   let world = WorldSimulation.restore(s.world, checkpoint.world);
   const mission = MissionLogic.restore(s.bindings.program, checkpoint.mission);
   const effects: MissionEffect[] = [], worldEvents: WorldTrace[] = [], requests: MissionWorldPresentationRequest[] = []; let work = 0, units = 0;
-  const audioRequests: MissionWorldAudioRequest[] = [];
-  let cursor = checkpoint.presentation, audioCursor = checkpoint.audio;
+  const audioRequests: MissionWorldAudioRequest[] = [], spatialRequests: MissionWorldSpatialAudioRequest[] = [];
+  let cursor = checkpoint.presentation, audioCursor = checkpoint.audio, spatialCursor = checkpoint.spatialAudio;
   for (let at = 0; at < ticks; at++) {
-    const advanced = s.cells || s.objects || s.houses ? world.step(1, workLimit - work) : null;
+    const advanced = s.cells || s.objects || s.houses || s.spatial ? world.step(1, workLimit - work) : null;
     if (advanced) work += advanced.work.entityVisits + advanced.work.navigationExpansions + advanced.work.transitions;
     const entries: { cellId: string; entityId: number }[] = [];
     if (advanced) for (const event of advanced.events) {
@@ -332,7 +402,7 @@ export function stepMissionWorld(model: MissionWorldModel, value: unknown, ticks
     }
     // No caller observation list is accepted. Only successful private world transitions
     // produce source cell delivery; renderer picks, arrivals without movement and reservations do not.
-    const context = s.houses ? createMissionActionWorldContext({ world: s.world, bindings: s.bindings,
+    const context = s.houses || s.spatial ? createMissionActionWorldContext({ world: s.world, bindings: s.bindings,
       checkpoint: world.save(), missionNextTick: checkpoint.mission.nextTick + at }, workLimit - work) : null;
     let polled: ReturnType<MissionLogic['step']>;
     if (context) {
@@ -359,6 +429,12 @@ export function stepMissionWorld(model: MissionWorldModel, value: unknown, ticks
       if (appended.requests.length > MISSION_WORLD_LIMITS.trace - audioRequests.length) fail('audio-trace-limit');
       audioRequests.push(...appended.requests); audioCursor = appended.state;
     }
+    if (s.spatial && spatialCursor) {
+      const appended = appendSpatial(s, spatialCursor, polled.effects, polled.nextTick - 1, MISSION_WORLD_LIMITS.presentationUnits - units);
+      units += appended.units; work += appended.work;
+      if (appended.requests.length > MISSION_WORLD_LIMITS.trace - spatialRequests.length) fail('spatial-trace-limit');
+      spatialRequests.push(...appended.requests); spatialCursor = appended.state;
+    }
     if (work > workLimit) fail('work-limit');
     const moved = advanced ?? world.step(1, workLimit - work);
     if (!advanced) work += moved.work.entityVisits + moved.work.navigationExpansions + moved.work.transitions;
@@ -369,10 +445,11 @@ export function stepMissionWorld(model: MissionWorldModel, value: unknown, ticks
     // this policy never resolves victory, playback, teams or native attachment mutation.
     effects.push(...polled.effects); worldEvents.push(...moved.events);
   }
-  const next = restoreMissionWorld(model, { ...checkpoint, world: world.save(), mission: mission.save(), ...(cursor ? { presentation: cursor } : {}), ...(audioCursor ? { audio: audioCursor } : {}) });
+  const next = restoreMissionWorld(model, { ...checkpoint, world: world.save(), mission: mission.save(), ...(cursor ? { presentation: cursor } : {}), ...(audioCursor ? { audio: audioCursor } : {}), ...(spatialCursor ? { spatialAudio: spatialCursor } : {}) });
   return freeze({ checkpoint: next, effects, worldEvents, work,
     ...(s.cues ? { presentation: presentation(model, checkpoint.world.nextTick, next, requests) } : {}),
-    ...(s.audio ? { audio: audioBatch(model, checkpoint.world.nextTick, next, audioRequests) } : {}) });
+    ...(s.audio ? { audio: audioBatch(model, checkpoint.world.nextTick, next, audioRequests) } : {}),
+    ...(s.spatial ? { spatialAudio: spatialBatch(model, checkpoint.world.nextTick, next, spatialRequests) } : {}) });
 }
 /** D03: one world tick, optional genuine team-cell entries, then poll and next-tick requests. */
 function stepMissionTeams(model: MissionWorldModel, checkpoint: MissionWorldCheckpoint, ticks: number, workLimit: number): MissionWorldResult {
@@ -462,7 +539,7 @@ export function replayMissionWorld(model: MissionWorldModel, value: unknown): Mi
   });
   const effects: MissionEffect[] = [], worldEvents: WorldTrace[] = [], requests: MissionWorldPresentationRequest[] = [];
   const actions: MissionTeamEvent[] = [], orders: TeamOrder[] = [], events: (TeamEvent & { tick: number })[] = [];
-  const audioRequests: MissionWorldAudioRequest[] = [];
+  const audioRequests: MissionWorldAudioRequest[] = [], spatialRequests: MissionWorldSpatialAudioRequest[] = [];
   const start = checkpoint.world.nextTick; let units = 0;
   function advance(tick: number): void {
     while (checkpoint.world.nextTick < tick) {
@@ -482,6 +559,12 @@ export function replayMissionWorld(model: MissionWorldModel, value: unknown): Mi
         if (step.audio.requests.length > MISSION_WORLD_LIMITS.trace - audioRequests.length) fail('replay-audio-trace-limit');
         audioRequests.push(...step.audio.requests);
       }
+      if (step.spatialAudio) {
+        units += spatialRequestUnits(step.spatialAudio.requests);
+        if (units > MISSION_WORLD_LIMITS.presentationUnits) fail('replay-spatial-payload-limit');
+        if (step.spatialAudio.requests.length > MISSION_WORLD_LIMITS.trace - spatialRequests.length) fail('replay-spatial-trace-limit');
+        spatialRequests.push(...step.spatialAudio.requests);
+      }
       checkpoint = step.checkpoint; effects.push(...step.effects); worldEvents.push(...step.worldEvents);
     }
   }
@@ -489,5 +572,6 @@ export function replayMissionWorld(model: MissionWorldModel, value: unknown): Mi
   advance(end); if (worldHash(checkpoint) !== r.finalStateSha256) fail('replay-final-hash');
   return freeze({ checkpoint, effects, worldEvents, work, ...(s.teams ? { teams: { actions, orders, events } } : {}),
     ...(s.cues ? { presentation: presentation(model, start, checkpoint, requests) } : {}),
-    ...(s.audio ? { audio: audioBatch(model, start, checkpoint, audioRequests) } : {}) });
+    ...(s.audio ? { audio: audioBatch(model, start, checkpoint, audioRequests) } : {}),
+    ...(s.spatial ? { spatialAudio: spatialBatch(model, start, checkpoint, spatialRequests) } : {}) });
 }

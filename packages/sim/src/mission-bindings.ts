@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2026 WebRA2 contributors. See ../MISSION_BINDINGS_PROVENANCE.md.
+import { isMissionSpatialAudioSource, missionSpatialAudioSourceContext, type MissionSpatialAudioSource } from './mission-spatial-audio-source.ts';
 import type { MissionAudioPolicyCatalog } from '../../content/src/mission-audio-policy.ts';
 import { isMissionCellEntrySource, missionCellEntrySourceBindings, type MissionCellEntrySource } from './mission-cell-entry-source.ts';
 import { isMissionObjectEventSource, missionObjectEventSourceBindings, type MissionObjectEventSource } from './mission-object-event-source.ts';
@@ -228,19 +229,27 @@ export function compileMissionBindings(input:MissionBindingsInput,options:Partia
 }
 
 /** No caller-supplied bindings or flags are promoted to authority. This does not start or step a VM. */
-export async function prepareMissionBindings(catalog:MissionBindingCatalog,cues?:MissionCueCatalog,cells?:MissionCellEntrySource,objects?:MissionObjectEventSource,teams?:MissionTeamActionSource,audio?:MissionAudioPolicyCatalog,options?:Readonly<{houseSource:MissionHouseSource}>):Promise<MissionBindingPreparation>{
+export async function prepareMissionBindings(catalog:MissionBindingCatalog,cues?:MissionCueCatalog,cells?:MissionCellEntrySource,objects?:MissionObjectEventSource,teams?:MissionTeamActionSource,audio?:MissionAudioPolicyCatalog,options?:Readonly<{houseSource?:MissionHouseSource;spatialAudioSource?:MissionSpatialAudioSource}>):Promise<MissionBindingPreparation>{
   const state=catalogs.get(catalog);if(!state)fail('catalog');
-  let houseSource:MissionHouseSource|undefined;
+  let houseSource:MissionHouseSource|undefined,spatialAudioSource:MissionSpatialAudioSource|undefined;
   if(options!==undefined){
-    exact(options,['houseSource']);const descriptor=Object.getOwnPropertyDescriptor(options,'houseSource');
-    if(!descriptor||!('value'in descriptor)||!isMissionHouseSource(descriptor.value)||missionHouseSourceContext(descriptor.value).bindings!==catalog)fail('house-source');
-    houseSource=descriptor.value;
+    if(!options||typeof options!=='object')fail('options');const keys=Reflect.ownKeys(options);
+    if(keys.some(k=>k!=='houseSource'&&k!=='spatialAudioSource'))fail('options');
+    exact(options,keys as string[]);
+    if(keys.includes('houseSource')){
+      const d=Object.getOwnPropertyDescriptor(options,'houseSource');
+      if(!d||!('value'in d)||!isMissionHouseSource(d.value)||missionHouseSourceContext(d.value).bindings!==catalog)fail('house-source');houseSource=d.value;
+    }
+    if(keys.includes('spatialAudioSource')){
+      const d=Object.getOwnPropertyDescriptor(options,'spatialAudioSource');
+      if(!d||!('value'in d)||!isMissionSpatialAudioSource(d.value)||missionSpatialAudioSourceContext(d.value).bindings!==catalog)fail('spatial-audio-source');spatialAudioSource=d.value;
+    }
   }
   if(cells!==undefined&&(!isMissionCellEntrySource(cells)||missionCellEntrySourceBindings(cells)!==catalog))fail('cell-source');
   if(objects!==undefined&&(!isMissionObjectEventSource(objects)||missionObjectEventSourceBindings(objects)!==catalog))fail('object-source');
   if(teams!==undefined&&(!isMissionTeamActionSource(teams)||missionTeamActionSourceContext(teams).bindings!==catalog))fail('team-source');
   let compilation:MissionCompilation|null=null;const diagnostics=catalog.diagnostics.map(d=>`catalog:${d.code}`);
-  try{compilation=await compileMissionProgram(state.logic,{contentIdentity:state.world.model.contentIdentity,difficulty:catalog.difficulty,timingPolicy:MISSION_TIMING_POLICY,...(houseSource?{houseSource}:{})},async b=>hash(b),cues,cells,objects,teams,audio);}
+  try{compilation=await compileMissionProgram(state.logic,{contentIdentity:state.world.model.contentIdentity,difficulty:catalog.difficulty,timingPolicy:MISSION_TIMING_POLICY,...(houseSource?{houseSource}:{}),...(spatialAudioSource?{spatialAudioSource}:{})},async b=>hash(b),cues,cells,objects,teams,audio);}
   catch(e){if(e instanceof MissionLogicError)diagnostics.push(`vm:${e.code}`);else throw e;}
   if(compilation?.diagnostics.length)diagnostics.push('vm:whole-program-unsupported');
   const bindings=catalog.tags.filter(t=>t.allocated).map(t=>({id:t.id,tagId:t.tagId,attachmentIds:t.dispatchAttachmentIds}));

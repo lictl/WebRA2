@@ -8,9 +8,10 @@ import { isMissionCellEntrySource, missionCellEntrySourceBindings, type MissionC
 import { isMissionObjectEventSource, missionObjectEventSourceBindings, type MissionObjectEventSource, type MissionObjectEventOpcode } from './mission-object-event-source.ts';
 import { isMissionTeamActionSource, missionTeamActionSourceContext, type MissionTeamActionSource } from './mission-team-action-source.ts';
 import { missionTeamCellContextData } from './mission-team-cell-context.ts';
+import { isMissionSpatialAudioSource, missionSpatialAudioSourceContext, type MissionSpatialAudioSource, type MissionSpatialAudioTarget } from './mission-spatial-audio-source.ts';
 import { isMissionHouseSource, missionHouseSourceContext, type MissionHouseSource } from './mission-house-source.ts';
 import { beginMissionActionWorld, abortMissionActionWorld, finishMissionActionWorld, missionActionActorOwner, missionActionPopulation,
-  missionActionTransfer, type MissionActionWorldContext } from './mission-action-world-context.ts';
+  missionActionTransfer, missionActionSpatialTarget, type MissionActionWorldContext } from './mission-action-world-context.ts';
 import type { MissionTeamCellContext, MissionTeamCellActor } from './mission-team-cell-types.ts';
 import { canonicalHash, canonicalText, parseJson } from './canonical.ts';
 import { identity as contentIdentity } from './validation.ts';
@@ -18,6 +19,7 @@ import type { Digest } from './types.ts';
 
 export const MISSION_LOGIC_POLICY = 'webra2-mission-poll-2' as const;
 export const MISSION_AUDIO_DISPATCH_POLICY = 'webra2-source-audio-dispatch-1' as const;
+export const MISSION_SPATIAL_AUDIO_DISPATCH_POLICY = 'webra2-current-world-spatial-audio-dispatch-1' as const;
 export const MISSION_HOUSE_DISPATCH_POLICY = 'webra2-source-house-dispatch-1' as const;
 export const MISSION_CUE_DISPATCH_POLICY = 'webra2-source-cue-dispatch-1' as const;
 export const MISSION_CELL_ENTRY_DISPATCH_POLICY = 'webra2-source-cell-entry-dispatch-1' as const;
@@ -43,6 +45,7 @@ export interface MissionProgramOptions {
   readonly contentIdentity: ContentIdentity; readonly difficulty: 0 | 1 | 2;
   readonly timingPolicy: typeof MISSION_TIMING_POLICY;
   readonly houseSource?: MissionHouseSource;
+  readonly spatialAudioSource?: MissionSpatialAudioSource;
 }
 export interface MissionProgram {
   readonly schemaVersion: 1; readonly policy: typeof MISSION_LOGIC_POLICY;
@@ -50,7 +53,7 @@ export interface MissionProgram {
   readonly contentIdentity: ContentIdentity; readonly source: { readonly id: string; readonly profile: string; readonly sha256: string };
   readonly cueCatalogSha256?: string; readonly cellEntrySourceSha256?: string; readonly objectEventSourceSha256?: string;
   readonly teamActionSourceSha256?: string; readonly audioPolicySha256?: string;
-  readonly houseSourceSha256?: string;
+  readonly houseSourceSha256?: string; readonly spatialAudioSourceSha256?: string;
   readonly sha256: string; readonly triggers: readonly Trigger[]; readonly tags: readonly Tag[];
   readonly canStartCampaign: false; readonly nativeBehaviorVerified: false;
 }
@@ -99,6 +102,8 @@ function freeze<T>(value: T): T {
 }
 function digestString(v: unknown): string { if (typeof v !== 'string' || !/^[a-f0-9]{64}$/.test(v)) fail('mission-hash'); return v; }
 const programs = new WeakSet<object>();
+const programSpatialAudio = new WeakMap<MissionProgram, MissionSpatialAudioSource>();
+export function missionProgramSpatialAudioSource(value: MissionProgram): MissionSpatialAudioSource | null { program(value); return programSpatialAudio.get(value) ?? null; }
 const programHouses = new WeakMap<MissionProgram, MissionHouseSource>();
 export function missionProgramHouseSource(value: MissionProgram): MissionHouseSource | null { program(value); return programHouses.get(value) ?? null; }
 const programAudio = new WeakMap<MissionProgram, MissionAudioPolicyCatalog>();
@@ -111,6 +116,7 @@ export function missionProgramTeamActions(value: MissionProgram): MissionTeamAct
 export function missionProgramObjectEvents(value: MissionProgram): MissionObjectEventSource | null { program(value); return programObjects.get(value) ?? null; }
 export function missionProgramCellEntry(value: MissionProgram): MissionCellEntrySource | null { program(value); return programCells.get(value) ?? null; }
 export function missionProgramCues(value: MissionProgram): MissionCueCatalog | null { program(value); return programCues.get(value) ?? null; }
+const spatialAudioCodes = new Set([99, 116]);
 const audioCodes = new Set([19, 21]);
 const cueCodes = new Set([11, 48, 55]);
 function program(value: MissionProgram): void { if (!programs.has(value)) fail('mission-program'); }
@@ -154,12 +160,14 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
   // Retain a genuine optional source without cloning it into caller metadata.
   // Capture each descriptor once before the asynchronous digest boundary.
   const optionKeys = Reflect.ownKeys(record(options));
-  const hasHouses = optionKeys.includes('houseSource');
-  const allowedOptions = ['contentIdentity', 'difficulty', 'timingPolicy', ...(hasHouses ? ['houseSource'] : [])];
+  const hasHouses = optionKeys.includes('houseSource'), hasSpatial = optionKeys.includes('spatialAudioSource');
+  const allowedOptions = ['contentIdentity', 'difficulty', 'timingPolicy', ...(hasHouses ? ['houseSource'] : []), ...(hasSpatial ? ['spatialAudioSource'] : [])];
   if (optionKeys.length !== allowedOptions.length || optionKeys.some(k => typeof k !== 'string' || !allowedOptions.includes(k))) fail('mission-fields');
   const ownedOptions = Object.fromEntries(allowedOptions.map(k => [k, field(options, k)]));
   const houses = hasHouses ? ownedOptions.houseSource as MissionHouseSource : undefined;
   if (hasHouses && !isMissionHouseSource(houses)) fail('mission-house-source');
+  const spatial = hasSpatial ? ownedOptions.spatialAudioSource as MissionSpatialAudioSource : undefined;
+  if (hasSpatial && !isMissionSpatialAudioSource(spatial)) fail('mission-spatial-audio-source');
   const config = clone({ contentIdentity: ownedOptions.contentIdentity, difficulty: ownedOptions.difficulty, timingPolicy: ownedOptions.timingPolicy });
   const content = contentIdentity(config.contentIdentity), difficulty = integer(config.difficulty, 0, 2);
   if (config.timingPolicy !== MISSION_TIMING_POLICY || field(logic, 'policy') !== 'webra2-logic-1' || field(logic, 'schemaVersion') !== 1 || field(logic, 'newINIFormat') !== 4) fail('mission-version');
@@ -179,6 +187,10 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
     teams.source.id !== source.id || teams.source.sha256 !== source.sha256)) fail('mission-team-source');
   if (audio !== undefined && (!isMissionAudioPolicyCatalog(audio) || !cues || missionAudioPolicyContext(audio).cues !== cues ||
     audio.profile !== source.profile || audio.missionSha256 !== source.sha256 || cues.source.id !== source.id)) fail('mission-audio-source');
+  if (spatial && (spatial.missionSha256 !== source.sha256 || spatial.profile !== source.profile ||
+    missionSpatialAudioSourceContext(spatial).cues !== cues || missionSpatialAudioSourceContext(spatial).audio !== audio ||
+    (houses && missionSpatialAudioSourceContext(spatial).bindings !== missionHouseSourceContext(houses).bindings))) fail('mission-spatial-audio-source');
+  const spatialInstructions = new Map(spatial?.instructions.map(i => [i.instructionId, i])), selectedSpatial = new Set<string>();
   const audioBindings = new Map(audio?.bindings.map(b => [b.instructionId, b])), selectedAudio = new Set<string>();
   const teamContext = teams ? missionTeamActionSourceContext(teams) : null;
   const teamActions = new Map(teams?.actions.map(a => [a.instructionId, a])), selectedTeams = new Set<string>();
@@ -204,7 +216,7 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
         const parameters = list(field(v, 'parameters'), 7).map(p => text(p, 4096));
         if (field(v, 'tokenCount') !== parameters.length + 1 || (key === 'events' && field(v, 'discriminator') !== Number(parameters[0]))) fail('mission-framing');
         const ckey = `${namespace}:${opcode}`;
-        let c = coverage.get(ckey); if (!c) { c = { namespace, opcode, occurrences: 0, supported: 0, effectOnly: namespace === 'action' && (opcode === 1 || opcode === 2 || (cues !== undefined && cueCodes.has(opcode)) || (audio !== undefined && audioCodes.has(opcode)) || (teams !== undefined && teamActionCodes.has(opcode))) }; coverage.set(ckey, c); }
+        let c = coverage.get(ckey); if (!c) { c = { namespace, opcode, occurrences: 0, supported: 0, effectOnly: namespace === 'action' && (opcode === 1 || opcode === 2 || (cues !== undefined && cueCodes.has(opcode)) || (audio !== undefined && audioCodes.has(opcode)) || (spatial !== undefined && spatialAudioCodes.has(opcode)) || (teams !== undefined && teamActionCodes.has(opcode))) }; coverage.set(ckey, c); }
         c.occurrences++; return { id: iid, opcode, parameters };
       }) };
     });
@@ -286,6 +298,12 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
             diagnostic('unsupported-action-cue', a.id); continue;
           }
         }
+      }
+      if (spatial && spatialAudioCodes.has(a.opcode)) {
+        const reference = spatialInstructions.get(a.id); selectedSpatial.add(a.id);
+        if (!reference || reference.triggerId !== id || reference.opcode !== a.opcode || reference.status !== 'supported-initial-source' ||
+          canonicalText(reference.parameters) !== canonicalText(p)) { diagnostic('unsupported-action-spatial-audio-source', a.id); continue; }
+        effects.push({ id: a.id, opcode: a.opcode, argument: 0, target: null }); accepted('action', a.opcode); continue;
       }
       if (audio !== undefined && audioCodes.has(a.opcode)) {
         const binding = audioBindings.get(a.id); selectedAudio.add(a.id);
@@ -371,6 +389,7 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
     if (objects.diagnostics.length) diagnostic('unsupported-object-event-catalog', '');
   }
   if (cues) for (const cue of cues.instructions) if (!selectedCues.has(cue.id)) diagnostic('unhandled-source-cue', cue.id);
+  if (spatial) for (const instruction of spatial.instructions) if (!selectedSpatial.has(instruction.instructionId)) diagnostic('unhandled-source-spatial-audio', instruction.instructionId);
   if (audio) for (const binding of audio.bindings) if (audioCodes.has(binding.opcode) && !selectedAudio.has(binding.instructionId)) diagnostic('unhandled-source-audio', binding.instructionId);
   if (houses) {
     for (const instruction of houses.instructions) if (!selectedHouses.has(instruction.instructionId)) diagnostic('unhandled-source-house', instruction.instructionId);
@@ -385,6 +404,7 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
   const payload = freeze({ schemaVersion: 1 as const, policy: MISSION_LOGIC_POLICY, timingPolicy: MISSION_TIMING_POLICY,
     difficulty, contentIdentity: content, source, triggers, tags, compilerPolicy: 'webra2-logic-1', iniPolicy: 'webra2-ini-1',
     operandRows: { events: eventRows, actions: actionRows },
+    ...(spatial ? { spatialAudioSourceSha256: spatial.sha256, spatialAudioDispatchPolicy: MISSION_SPATIAL_AUDIO_DISPATCH_POLICY } : {}),
     ...(houses ? { houseSourceSha256: houses.sha256, houseDispatchPolicy: MISSION_HOUSE_DISPATCH_POLICY } : {}),
     ...(audio ? { audioPolicySha256: audio.sha256, audioDispatchPolicy: MISSION_AUDIO_DISPATCH_POLICY } : {}),
     ...(cues ? { cueCatalogSha256: cues.sha256, cueDispatchPolicy: MISSION_CUE_DISPATCH_POLICY } : {}),
@@ -395,11 +415,13 @@ export async function compileMissionProgram(logic: ScenarioLogic, options: Missi
   const result: MissionProgram = freeze({ schemaVersion: 1, policy: MISSION_LOGIC_POLICY, timingPolicy: MISSION_TIMING_POLICY,
     difficulty, contentIdentity: content, source, sha256, triggers, tags, canStartCampaign: false, nativeBehaviorVerified: false,
     ...(houses ? { houseSourceSha256: houses.sha256 } : {}),
+    ...(spatial ? { spatialAudioSourceSha256: spatial.sha256 } : {}),
     ...(audio ? { audioPolicySha256: audio.sha256 } : {}),
     ...(cues ? { cueCatalogSha256: cues.sha256 } : {}), ...(cells ? { cellEntrySourceSha256: cells.sha256 } : {}),
     ...(objects ? { objectEventSourceSha256: objects.sha256 } : {}), ...(teams ? { teamActionSourceSha256: teams.sha256 } : {}) });
   if (audio) programAudio.set(result, audio);
   if (houses) programHouses.set(result, houses);
+  if (spatial) programSpatialAudio.set(result, spatial);
   if (teams) programTeams.set(result, teams);
   programs.add(result); if (cells) programCells.set(result, cells); if (objects) programObjects.set(result, objects); if (cues) programCues.set(result, cues); return freeze({ ...report, program: result, canExecuteTriggerSubset: true });
 }
@@ -419,8 +441,9 @@ type TriggerState = { id: string; enabled: boolean; destroyed: boolean; deleted:
 type BindingState = { id: string; tagId: string; attachmentIds: string[]; active: boolean; triggers: TriggerState[] };
 export interface MissionEffect {
   readonly order: number; readonly tick: number; readonly bindingId: string; readonly triggerId: string;
-  readonly instructionId: string; readonly opcode: number; readonly kind: 'action' | 'input' | 'outcome-request' | 'presentation-request' | 'audio-request' | 'team-request' | 'house-transfer';
+  readonly instructionId: string; readonly opcode: number; readonly kind: 'action' | 'input' | 'outcome-request' | 'presentation-request' | 'audio-request' | 'team-request' | 'house-transfer' | 'spatial-audio-request';
   readonly value: number | boolean | null; readonly target: string | null;
+  readonly spatialTarget?: MissionSpatialAudioTarget;
 }
 type Outcome = { order: number; tick: number; opcode: 1 | 2; countryIndex: number };
 export interface MissionSave {
@@ -571,7 +594,7 @@ export class MissionLogic {
     if (!programObjects.has(this.#program)) fail('mission-object-source'); return this.#step(1, cells, events);
   }
   #step(ticks = 1, cellObservations?: readonly MissionCellEntryObservation[], objectObservations?: readonly MissionObjectEventObservation[], cellActors?: readonly MissionTeamCellActor[], worldContext?: MissionActionWorldContext): { nextTick: number; effects: MissionEffect[]; work: number } {
-    if (programHouses.has(this.#program) && !worldContext) fail('mission-world-context-required');
+    if ((programHouses.has(this.#program) || programSpatialAudio.has(this.#program)) && !worldContext) fail('mission-world-context-required');
     integer(ticks, 1, C.stepTicks); if (ticks > C.tick - this.#state.nextTick) fail('mission-tick-limit');
     const state = clone(this.#state), p = this.#program, effects: MissionEffect[] = [];
     const definitions = new Map(p.triggers.map(t => [t.id, t])), tags = new Map(p.tags.map(t => [t.id, t]));
@@ -695,8 +718,10 @@ export class MissionLogic {
           }
           value = timerRemaining(state.timer, state.nextTick);
         }
-        const kind = a.opcode === 1 || a.opcode === 2 ? 'outcome-request' : programHouses.has(p) && houseActionCodes.has(a.opcode) ? 'house-transfer' : cueCodes.has(a.opcode) ? 'presentation-request' : audioCodes.has(a.opcode) ? 'audio-request' : teamActionCodes.has(a.opcode) ? 'team-request' : 'action';
-        const order = emit({ bindingId: b.id, triggerId: t.id, instructionId: a.id, opcode: a.opcode, kind, value, target });
+        const kind = a.opcode === 1 || a.opcode === 2 ? 'outcome-request' : programHouses.has(p) && houseActionCodes.has(a.opcode) ? 'house-transfer' : programSpatialAudio.has(p) && spatialAudioCodes.has(a.opcode) ? 'spatial-audio-request' : cueCodes.has(a.opcode) ? 'presentation-request' : audioCodes.has(a.opcode) ? 'audio-request' : teamActionCodes.has(a.opcode) ? 'team-request' : 'action';
+        // Resolve during the private ordered invocation, before later actions run.
+        const spatialTarget = kind === 'spatial-audio-request' ? missionActionSpatialTarget(worldContext!, p, a.id, b.id, t.id) : null;
+        const order = emit({ bindingId: b.id, triggerId: t.id, instructionId: a.id, opcode: a.opcode, kind, value, target, ...(spatialTarget ? { spatialTarget } : {}) });
         if (a.opcode === 1 || a.opcode === 2) state.lastOutcomeRequest = { order, tick: state.nextTick, opcode: a.opcode, countryIndex: a.argument };
         if (a.opcode === 22) push({ kind: 'force', targets: targets.get(a.target!) ?? [], at: 0 });
       }

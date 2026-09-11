@@ -202,3 +202,10 @@ cell-entry/event44 predicate from the private candidate after preceding transfer
 It preserves the source actor/type/tag and ordinary damage-family joins. The
 explicit D03 compound phase is documented in the same dispatch report; source
 rows alone do not grant dynamic team, hijacker or native reentrant callback scope.
+
+The optional initial-world spatial-audio source joins genuine binding/cue/audio
+catalogs and exact99/116 operands. A private current-world context resolves targets
+in action order and the compound adapter publishes request batches with a saved
+cursor. This is original GPL-3.0-or-later code. Browser playback, native audio-pump
+phase parity and dynamic actor authority remain outside this checkpoint; see the
+[spatial dispatch report](../../docs/mission-spatial-world.md).

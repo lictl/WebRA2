@@ -56,3 +56,10 @@ the distinct source-country versus event-derived trigger-house values. The
 world/VM composition, original fixtures and its remaining callback/team gates.
 Default callers retain their prior model and save policies. No native listing,
 retail fixture or new third-party dependency is incorporated.
+
+The optional initial-world spatial-audio source joins genuine binding/cue/audio
+catalogs and exact99/116 operands. A private current-world context resolves targets
+in action order and the compound adapter publishes request batches with a saved
+cursor. This is original GPL-3.0-or-later code. Browser playback, native audio-pump
+phase parity and dynamic actor authority remain outside this checkpoint; see the
+[spatial dispatch report](../../docs/mission-spatial-world.md).

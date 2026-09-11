@@ -98,3 +98,23 @@ cell-entry/event44 predicate from the private candidate after preceding transfer
 It preserves the source actor/type/tag and ordinary damage-family joins. The
 explicit D03 compound phase is documented in the same dispatch report; source
 rows alone do not grant dynamic team, hijacker or native reentrant callback scope.
+
+The initial spatial sound source and read-only target resolver in
+`src/mission-spatial-audio-source.ts` are original GPL-3.0-or-later work.
+They join genuine mission/traversal/audio catalogs and preserve the bounded
+initial-world geometry and lifetime policy described in the
+[spatial world report](../../docs/mission-spatial-world.md). Paired caller metadata
+is retained in the [spatial source ledger](../../docs/analysis/mission-spatial-audio-native.json).
+The paired [level/reader metadata](../../docs/mission-spatial-geometry.md) is
+independently reviewed. No native code, retail rows or audio samples are distributed.
+
+The follow-up spatial dispatch joins exact99/116 source operands to a private
+current-world read at each VM action boundary. It emits authenticated request
+batches and saves their cursor; it does not start or restore browser voices.
+The standalone resolver reserves descriptor capture and ownership history work
+before restore. Runtime queries use the original MIT-licensed current-world read
+in `src/world.ts`, without repeated serialization/history validation per target.
+Its module-private factory identity protects the read; returned component data
+is not mission-invocation authority. No WorldSave schema or legacy source hash is
+changed by that read seam. The new spatial/context/dispatch components and their
+original tests are GPL-3.0-or-later under this notice.
