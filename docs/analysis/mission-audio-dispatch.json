@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "cd4ed44b702338f3041e08954b25d3e5a32cccfb",
+  "scope": "complete opening source preflight with optional sound19/EVA21 dispatch; no mission execution",
+  "independentRawComparisons": 7930,
+  "dispatchComparisons": 976,
+  "profiles": [
+    {
+      "sourceRevision": "cd4ed44b702338f3041e08954b25d3e5a32cccfb",
+      "profile": "ra2",
+      "missionSha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+      "side": 0,
+      "sourceFilesVerified": 438,
+      "baselineRequired": 254,
+      "afterAudioRequired": 197,
+      "audioPolicySha256": "d3f37dec3663c1d815bac79c2601e9a8858f7de79766ca42a16d2cd803a14a2f",
+      "coverage": [
+        {
+          "namespace": "action",
+          "opcode": 19,
+          "occurrences": 39,
+          "supported": 39,
+          "effectOnly": true
+        },
+        {
+          "namespace": "action",
+          "opcode": 21,
+          "occurrences": 18,
+          "supported": 18,
+          "effectOnly": true
+        }
+      ],
+      "wholeMissionAuthority": false,
+      "nativeExecution": false,
+      "browserExecution": false
+    },
+    {
+      "sourceRevision": "cd4ed44b702338f3041e08954b25d3e5a32cccfb",
+      "profile": "yr",
+      "missionSha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+      "side": 0,
+      "sourceFilesVerified": 438,
+      "baselineRequired": 461,
+      "afterAudioRequired": 437,
+      "audioPolicySha256": "44da0b17ca79816fce49f3afc2a3a63a2cd3976fb02744500400461ad183f58d",
+      "coverage": [
+        {
+          "namespace": "action",
+          "opcode": 19,
+          "occurrences": 10,
+          "supported": 10,
+          "effectOnly": true
+        },
+        {
+          "namespace": "action",
+          "opcode": 21,
+          "occurrences": 14,
+          "supported": 14,
+          "effectOnly": true
+        }
+      ],
+      "wholeMissionAuthority": false,
+      "nativeExecution": false,
+      "browserExecution": false
+    }
+  ],
+  "wholeMissionAuthority": false,
+  "nativeExecution": false,
+  "browserExecution": false
+}
