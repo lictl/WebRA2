@@ -37,7 +37,7 @@ export interface MissionAudioSample {
   readonly index: Readonly<{ sourceOrdinal: number; nativeSortedIndex: number; sampleRate: number; flags: number; chunkSize: number }> | null;
 }
 export interface MissionAudioBinding {
-  readonly instructionId: string; readonly opcode: 19 | 20 | 21;
+  readonly instructionId: string; readonly opcode: 19 | 20 | 21 | 99;
   readonly status: 'planned-reference' | 'unsupported'; readonly reasons: readonly string[];
   readonly registryPath: string; readonly registrySha256: string | null;
   readonly registryOrdinal: number | null; readonly registryName: string | null;

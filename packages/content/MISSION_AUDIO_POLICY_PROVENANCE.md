@@ -48,3 +48,9 @@ The [component report](../../docs/mission-audio-policy.md) separates source read
 from invocation, playback and campaign authority. All four authority/verification
 flags stay false. The independent raw oracle uses Python parsing, binary packing
 and rational arithmetic, not the TypeScript policy/numeric functions.
+
+The optional [spatial mission source slice](../../docs/mission-spatial-audio.md)
+normalizes99's verified sound definitions with the same field and partition rules,
+while retaining its separate waypoint/object/position caller and required state.
+The paired native spatial dispatch/assignment/stop evidence is recorded there.
+This source interpretation adds no native timing or browser playback claim.

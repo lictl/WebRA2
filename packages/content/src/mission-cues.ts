@@ -2,10 +2,11 @@
 // Copyright 2026 WebRA2 contributors. Original source binding; see ../MISSION_CUES_PROVENANCE.md.
 import { compileScenarioLogic } from './scenario-logic.ts';
 import { compileScenarioObjects } from './scenario-objects.ts';
+import { compileInitialWaypointSource, resolveInitialWaypoint } from './initial-waypoints.ts';
 import { scanIni } from './ini.ts';
 import { decodeCsf } from './csf-decode.ts';
 import { cueBytes, cueFail, cueFingerprint, cueFreeze, cueHash, cueInteger, cueRecord, cueText,
-  MISSION_CUE_LIMITS, MISSION_CUE_POLICY, type MissionCueCatalog, type MissionCueInstruction,
+  MISSION_CUE_LIMITS, MISSION_CUE_POLICY, MISSION_SPATIAL_AUDIO_CUE_POLICY, type MissionSpatialAudioLocation, type MissionCueCatalog, type MissionCueInstruction,
   type MissionCueOpcode, type MissionCuePayload, type MissionCueSource } from './mission-cue-types.ts';
 export type { MissionCueCatalog, MissionCueInstruction, MissionCuePayload } from './mission-cue-types.ts';
 export { MISSION_CUE_LIMITS, MISSION_CUE_POLICY, MissionCueError } from './mission-cue-types.ts';
@@ -34,6 +35,8 @@ function waypoint(raw: string): number | null {
 }
 export interface MissionCueInput {
   readonly profile: 'ra2' | 'yr';
+  /** Opt in to source locations for99/116; this grants no runtime dispatch or output. */
+  readonly spatialAudio?: true;
   readonly mission: { readonly path: string; readonly source: MissionCueSource; readonly bytes: Uint8Array };
   /** Exactly one already selected profile CSF, or null. This does not choose archive/layer precedence. */
   readonly strings: { readonly path: 'ra2.csf' | 'ra2md.csf'; readonly sha256: string; readonly bytes: Uint8Array } | null;
@@ -41,7 +44,10 @@ export interface MissionCueInput {
 /** Binds selected source bytes to cue references; does not authenticate trigger invocation or media playback. */
 type Limits = { -readonly [K in keyof typeof MISSION_CUE_LIMITS]: number };
 export function compileMissionCues(input: MissionCueInput, lower: Partial<Limits> = {}): MissionCueCatalog {
-  const r = cueRecord(input, ['profile', 'mission', 'strings']);
+  const spatial = !!input && typeof input === 'object' && Object.hasOwn(input, 'spatialAudio');
+  const r = cueRecord(input, ['profile', 'mission', 'strings', ...(spatial ? ['spatialAudio'] : [])]);
+  if (spatial && r.spatialAudio !== true) cueFail('spatial-audio-mode');
+  const selectedOpcodes: readonly MissionCueOpcode[] = spatial ? [...opcodes, 99, 116] : opcodes;
   if (r.profile !== 'ra2' && r.profile !== 'yr') cueFail('profile'); const profile: 'ra2' | 'yr' = r.profile;
   const caps: Limits = { ...MISSION_CUE_LIMITS };
   if (!lower || typeof lower !== 'object' || ![Object.prototype, null].includes(Object.getPrototypeOf(lower))) cueFail('limits');
@@ -69,22 +75,32 @@ export function compileMissionCues(input: MissionCueInput, lower: Partial<Limits
   }
   const logic = compileScenarioLogic({ profile, source, bytes });
   const objects = compileScenarioObjects({ profile, source, bytes });
+  const initial = spatial ? compileInitialWaypointSource({ profile, source, bytes }, { bytes: Math.min(caps.memberBytes, caps.inputBytes) }) : null;
   const csf = stringBytes ? decodeCsf(stringBytes) : null;
   const pins: {role:'mission'|'strings';path:string;sha256:string;size:number}[] = [{ role:'mission', path, sha256:source.sha256, size:bytes.length }];
   if (stringBytes) pins.push({ role:'strings', path:sr!.path as string, sha256:sr!.sha256 as string, size:stringBytes.length });
   const waypoints = new Map(objects.waypoints.map(w => [w.number, w]));
   const instructions: MissionCueInstruction[] = []; let textUnits = 0;
-  const selectedCount = logic.actions.reduce((n, row) => n + row.instructions.filter(a => opcodes.includes(a.opcode as MissionCueOpcode)).length, 0);
+  const selectedCount = logic.actions.reduce((n, row) => n + row.instructions.filter(a => selectedOpcodes.includes(a.opcode as MissionCueOpcode)).length, 0);
   if (selectedCount > caps.instructions) cueFail('instruction-limit');
   for (const row of logic.actions) for (const a of row.instructions) {
-    if (!opcodes.includes(a.opcode as MissionCueOpcode)) continue;
+    if (!selectedOpcodes.includes(a.opcode as MissionCueOpcode)) continue;
     const opcode = a.opcode as MissionCueOpcode, p = row.row.tokens.slice(a.tokenStart + 1, a.tokenStart + a.tokenCount);
-    const reasons: string[] = [], pending: string[] = []; let payload: MissionCuePayload | null = null;
+    const reasons: string[] = [], pending: string[] = []; let payload: MissionCuePayload | null = null, spatialLocation: MissionSpatialAudioLocation | undefined;
     const add = (v:string) => { if (!reasons.includes(v)) reasons.push(v); };
-    const mode = decimal(p[0]!), expectedMode = opcode === 11 ? 4 : opcode === 19 ? 7 : opcode === 20 ? 8 : opcode === 21 ? 6 : 0;
+    const mode = decimal(p[0]!), expectedMode = opcode === 11 ? 4 : (opcode === 19 || opcode === 99) ? 7 : opcode === 20 ? 8 : opcode === 21 ? 6 : 0;
     if (p.length !== 7 || mode !== expectedMode || p.some(v => !/^[\t\x20-\x7e]+$/.test(v))) add('operand-framing');
     if (p.slice(2,6).some(v => decimal(v) !== 0)) add('nonzero-reserved-operands');
-    if (!reasons.length && opcode === 11) {
+    if (!reasons.length && (opcode === 99 || opcode === 116)) {
+      const number = waypoint(p[6]!), resolution = number === null ? null : resolveInitialWaypoint(initial!, number);
+      if (resolution?.status !== 'supported-source') add('spatial-waypoint-source');
+      else spatialLocation = { waypoint: number!, x: resolution.waypoint.x, y: resolution.waypoint.y,
+        selection: 'current-building-first-terrain-otherwise-position' };
+      if (opcode === 116 && decimal(p[1]!) === null) add('unsupported-stop-ignored-operand');
+      if (opcode === 99) add('sound-definition-sample-closure-unresolved');
+      pending.push('current-cell-object-content-order', 'waypoint-map-bridge-world-height',
+        'custom-object-sound-controller-lifetime', 'positional-controller-flags-and-exact-coordinate-stop');
+    } else if (!reasons.length && opcode === 11) {
       if (decimal(p[1]!) === -1) payload = { kind:'empty-text' };
       else if (/^[ \t]*[+-]?\d/.test(p[1]!)) add('numeric-label-atoi-boundary');
       else {
@@ -111,11 +127,12 @@ export function compileMissionCues(input: MissionCueInput, lower: Partial<Limits
       add(opcode===10?'movie-index-resource-table-unresolved':opcode===19?'sound-definition-sample-closure-unresolved':opcode===20?'theme-definition-resource-closure-unresolved':'speech-definition-side-resource-closure-unresolved');
     }
     instructions.push({ id:a.id, triggerId:`trigger:${row.row.entry.key}`, ordinal:a.ordinal, opcode,
-      status:payload?'resolved-reference':'unsupported',payload,operand:{mode:p[0]!,value:p[1]!,waypoint:p[6]!},reasons,pendingPresentation:pending });
+      status:payload || (opcode === 116 && spatialLocation && !reasons.length) ? 'resolved-reference' : 'unsupported',payload,
+      ...(spatialLocation ? { spatialLocation } : {}),operand:{mode:p[0]!,value:p[1]!,waypoint:p[6]!},reasons,pendingPresentation:pending });
   }
-  const data = {policy:MISSION_CUE_POLICY,profile: profile as 'ra2' | 'yr',source,pins,instructions,
-    coverage:opcodes.map(opcode=>({opcode,occurrences:instructions.filter(a=>a.opcode===opcode).length,resolvedReferences:instructions.filter(a=>a.opcode===opcode&&a.status==='resolved-reference').length})),
+  const data = {...(initial ? { spatialAudioPolicy: MISSION_SPATIAL_AUDIO_CUE_POLICY, initialWaypointsSha256: initial.sha256 } : {}),policy:MISSION_CUE_POLICY,profile: profile as 'ra2' | 'yr',source,pins,instructions,
+    coverage:selectedOpcodes.map(opcode=>({opcode,occurrences:instructions.filter(a=>a.opcode===opcode).length,resolvedReferences:instructions.filter(a=>a.opcode===opcode&&a.status==='resolved-reference').length})),
     nativeExecutionVerified:false as const,canStartCampaign:false as const,playbackReady:false as const};
   const catalog = cueFreeze({...data,sha256:cueFingerprint({...data,source:{profile,sha256:source.sha256}},caps.serializedBytes)}); brands.set(catalog,new Map(instructions.map(a=>[a.id,a])));
-  sourceParameters.set(catalog,new Map(logic.actions.flatMap(row=>row.instructions.filter(a=>opcodes.includes(a.opcode as MissionCueOpcode)).map(a=>[a.id,Object.freeze([...a.parameters])] as const)))); return catalog;
+  sourceParameters.set(catalog,new Map(logic.actions.flatMap(row=>row.instructions.filter(a=>selectedOpcodes.includes(a.opcode as MissionCueOpcode)).map(a=>[a.id,Object.freeze([...a.parameters])] as const)))); return catalog;
 }

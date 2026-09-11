@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "b31de63c2797b8ecd1f62d1d838a86c6657527da",
+  "scope": "source-only spatial99/stop116 references and unchanged19/21 dispatch closure",
+  "independentRawComparisons": 9499,
+  "spatialComparisons": 2545,
+  "profiles": [
+    {
+      "sourceRevision": "b31de63c2797b8ecd1f62d1d838a86c6657527da",
+      "profile": "ra2",
+      "missionSha256": "ad64c9293a8bccb85c38f5871a974ed9c09b8b5da11bb346e990423bf625c79c",
+      "side": 0,
+      "sourceFilesVerified": 438,
+      "baselineRequired": 254,
+      "afterAudioRequired": 197,
+      "audioPolicySha256": "1f77adf98da59c2f9064ee627a2d55d74f9984cbd72f9989ef238cfc2c79cdd1",
+      "coverage": [
+        {
+          "namespace": "action",
+          "opcode": 19,
+          "occurrences": 39,
+          "supported": 39,
+          "effectOnly": true
+        },
+        {
+          "namespace": "action",
+          "opcode": 21,
+          "occurrences": 18,
+          "supported": 18,
+          "effectOnly": true
+        }
+      ],
+      "spatialSource": [
+        {
+          "opcode": 99,
+          "occurrences": 26,
+          "locations": 26,
+          "statuses": {
+            "unsupported": 26
+          },
+          "audioBindings": 26
+        },
+        {
+          "opcode": 116,
+          "occurrences": 1,
+          "locations": 1,
+          "statuses": {
+            "resolved-reference": 1
+          },
+          "audioBindings": 0
+        }
+      ],
+      "wholeMissionAuthority": false,
+      "nativeExecution": false,
+      "browserExecution": false
+    },
+    {
+      "sourceRevision": "b31de63c2797b8ecd1f62d1d838a86c6657527da",
+      "profile": "yr",
+      "missionSha256": "dee38769f2247a85908705486c175ef14a4cf90437899defe7c8b4c0d1c51fb0",
+      "side": 0,
+      "sourceFilesVerified": 438,
+      "baselineRequired": 461,
+      "afterAudioRequired": 437,
+      "audioPolicySha256": "41bc08c575dd8731da1bc3dc8499f83db870c83145c1758cfbfd1d81c93899ff",
+      "coverage": [
+        {
+          "namespace": "action",
+          "opcode": 19,
+          "occurrences": 10,
+          "supported": 10,
+          "effectOnly": true
+        },
+        {
+          "namespace": "action",
+          "opcode": 21,
+          "occurrences": 14,
+          "supported": 14,
+          "effectOnly": true
+        }
+      ],
+      "spatialSource": [
+        {
+          "opcode": 99,
+          "occurrences": 97,
+          "locations": 97,
+          "statuses": {
+            "unsupported": 97
+          },
+          "audioBindings": 97
+        },
+        {
+          "opcode": 116,
+          "occurrences": 19,
+          "locations": 19,
+          "statuses": {
+            "resolved-reference": 19
+          },
+          "audioBindings": 0
+        }
+      ],
+      "wholeMissionAuthority": false,
+      "nativeExecution": false,
+      "browserExecution": false
+    }
+  ],
+  "wholeMissionAuthority": false,
+  "nativeExecution": false,
+  "browserExecution": false
+}
