@@ -1,81 +1,59 @@
 # Current task and refreshed-session handoff
 
-State: **COMPLETE — GPU experiment #225 implementation and measurements.**
-Final exact-head review and merge status are recorded in PR227; verify them below.
-The owner requested at least60FPS on2026-09-11. No human input is needed.
-[Issue225](https://github.com/lictl/WebRA2/issues/225) /
-[PR227](https://github.com/lictl/WebRA2/pull/227) contain the WebGL2 terrain/SHP
-experiment. Root branch is codex/225-gpu-renderer in
-local/worktrees/gpu-renderer-integration; primary main remains clean e15351c.
-Read current GitHub head/check/review/merge state before resuming.
+State: **WORKING — first playable original RA2 mission, GPU product integration first.**
+The owner accepted GPU rendering as the direction and instructed autonomous work
+until the first playable mission or essential human input is needed (2026-09-11).
+[Parent230](https://github.com/lictl/WebRA2/issues/230) defines the real all01t mission
+acceptance: original player house/objectives, legitimate victory/defeat/restart,
+active save/restore, required AI/combat/presentation and reference comparisons.
+Do not substitute a synthetic scenario or skip required original instructions.
+No human input is currently needed. YR and wider campaigns remain the standing scope.
 
-The [experiment report](gpu-renderer-experiment.md) records final measurements,
-identities, method and limitations. Six rotated60second primary Chrome runs at
-960×640 and1280×720 sustained119.990–120.105 observed GPU completions/s, with
-1,024 simulated actors/64 movers and256 rendered SHP sprites. Every primary RAF timestamp
-gap between submitted frames stayed within1000/60ms; minimum full1second completion count was118. Four
-renderer-only and two smaller coupled supporting runs also exceeded60FPS; one
-renderer-only frame gap exceeded16.667ms and remains in the evidence. These are
-original diagnostic workloads, not complete campaign or physical-scanout results.
+Current reviewed main is28ed58273164ad8556c378b5d9b75da9f8645d5e.
+[GPU PR227](https://github.com/lictl/WebRA2/pull/227) merged after exactf20407a
+[diagnostic review](https://github.com/lictl/WebRA2/pull/227#pullrequestreview-5170235428),
+[preparation review](https://github.com/lictl/WebRA2/pull/227#pullrequestreview-5170236517),
+[backend/evidence review](https://github.com/lictl/WebRA2/pull/227#pullrequestreview-5170242003)
+and hosted34507694647. [Canonical completion](https://github.com/lictl/WebRA2/issues/225#issuecomment-5622711246)
+closes225/228. Its original-only six primary runs sustained119.990–120.105 successful
+fence observations/s;17scenes/84variants/46,501pixels and8coupled replays passed.
+See [the report](gpu-renderer-experiment.md) for timestamp definitions, source/raw
+identities, supporting outlier and native hidden/hardware-backend limitations.
+This is no production campaign performance claim.
 
-All12 raw runs (86,437 submitted frames) passed independent rate/window/receipt/
-tick/replay auditing. All8 coupled runs matched fresh-worker replay; the4 manual
-commands reached the expected rendered frame. The original17scene corpus passed
-84viewport/atlas variants,46,501pixels, integer/default framebuffer RGBA and all
-pixel depth/owner/picks. Forced context loss, refused lost draws, restoration and
-double disposal passed. Separate pause/cancel/restart checks passed. Native hidden-tab
-delivery remains unconfirmed because debugging kept the document visible; synthetic
-hidden/pagehide cleanup passes. Browser URL policy blocked internal GPU status
-inspection, so hardware-versus-software backend verification remains unconfirmed.
+Active wave (one root +three workers; use existing agents):
 
-Final frozen build: source ee3634eef42155debf8d553369203bc299eb2f2c,
-port4209, local/worktrees/gpu-performance/local/gpu/final-6, manifest SHA256
-1aa4d91c64f8e9eb9470dbd2d9e98623337773c53571a1816c5a693f2225fcfc.
-Root checked all70 outputs on disk and HTTP, all67 inputs against composed source,
-product CSP/non-isolated headers and six refused routes. No source game executable
-was run; no retail content was distributed. Browser timings are complete and the
-quiet window has ended. Preserve immutable servers through4209 and private evidence.
+- Root: [229](https://github.com/lictl/WebRA2/issues/229), codex/229-gpu-product in
+  local/worktrees/gpu-product. Own GPU shared contracts/scene adapters, product
+  worker/protocol integration, shared configuration/provenance/task and merges.
+  Build resident scene transport and independent presentation without changing
+  logical commands/ticks/saves or dropping current voxel/effect artwork.
+- bootstrap_review: codex/229-gpu-picking in local/worktrees/gpu-picking. Own new
+  gpu-picking module/tests for bounded exact displayed-frame picking without GPU
+  readback. Root supplies the scalar-only frame-pixel visitor in gpu-scene.ts.
+- browser_feasibility: sole CUA/Chrome owner. First resume preserved216/PR221 in
+  local/worktrees/mission-audio-playback with actual original PCM lifecycle checks,
+  then229 UI integration after contract freeze. Exclusive component/report paths
+  until root assigns product UI. No root CUA initialization.
+- mix_reader: codex/230-mission-closure in local/worktrees/mission-closure. Own new
+  first-mission closure report/metadata. Fresh current all01t dependency preflight,
+  group concrete execution blockers and shortest next implementation order. No
+  engine/shared files until an assigned follow-up. Whole-source gates and source
+  provenance remain; diagnostic occurrence counts are not missing-feature counts.
 
-Full composed check:1,271 public tests +5 baseline-tool +9 GPU-tool tests, types,
-196documents/1001links,711tracked publication paths, M0 consistency and77 application
-outputs/145inputs passed. Final documentation link and whitespace checks also pass.
-Independent preparation and backend reviews resolved all findings, including CPU
-viewport descriptor capture866d8c9. Final exact-head GitHub COMMENT reviews remain
-required; shared-account comments are not another account's formal approval.
+Preserve audio drafts221/223/226 and frozen servers through4209/media8767/8768.
+New immutable browser builds use4210 onward. The game/ installation is read-only;
+no bundled executables run and no retail content enters commits/builds/GitHub.
+Commit coherent changes, obtain independent exact-head scoped COMMENT reviews,
+check CI/rules, and ordinarily merge matching that SHA. Shared accounts never
+impersonate separate approvals. Record genuine blockers as issues and continue
+independent work. Do not stop just because one bounded subtask completes.
 
-[Blocker228](https://github.com/lictl/WebRA2/issues/228) records large telemetry
-freezing the diagnostic DOM. A capped local Blob download and compact visible
-summary fixed collection; all final reports download successfully. The recovered
-preliminary run and earlier exploratory failures remain separate from the final pool.
-
-Root owns contracts/adapters/config/handoff, evidence composition and ordinary
-merge. bootstrap_review authored the backend and independently reviews preparation/
-fixtures; mix_reader authored fixtures and independently reviews backend/preparation;
-browser_feasibility owns the diagnostic/report and remains sole CUA/Chrome owner.
-Root reviews the diagnostic. Keep exclusive paths and no more than four active agents.
-Next: integrate the finalized report, check documentation, freeze/push the final
-head, record scoped independent reviews, verify hosted checks and ordinarily merge
-PR227 with the reviewed SHA. Record canonical merge/review URLs in GitHub, avoiding
-an endless merge-SHA-only documentation commit.
-
-The next implementation slice is [issue229](https://github.com/lictl/WebRA2/issues/229):
-use this backend in the actual game viewport with bounded versioned worker scene/
-snapshot transport, independent presentation cadence and displayed-frame picking.
-Preserve every currently supported voxel/effect layer through explicit CPU fallback
-until GPU equivalence exists. Handle context/resource/visibility lifecycle in the
-product. Re-run original and private imported-content Chrome acceptance and sustained
-performance gates. The product still uses CPU composition; no original mission is
-yet fully playable. This experiment does not choose a WASM simulation language.
-
-Previous performance gate [PR224](https://github.com/lictl/WebRA2/pull/224) merged
-as e15351c982c907bfa2670757bd2f7569082455b3, after exact5b0c199
-[architecture review](https://github.com/lictl/WebRA2/pull/224#pullrequestreview-5169241571),
-[harness review](https://github.com/lictl/WebRA2/pull/224#pullrequestreview-5169250951)
-and hosted34497097078.
-[Issue222 completion](https://github.com/lictl/WebRA2/issues/222#issuecomment-5621423178)
-and [ADR0004](adr/0004-hybrid-engine-and-performance-gates.md) preserve the hybrid
-TS/WASM decision and baseline limitations. Compare language/data-layout costs with
-measurements; rendering FPS is not evidence that all simulation work needs a rewrite.
+Baseline full check:1,271 public tests +5 baseline-tool +9 GPU-tool tests, types,
+196docs/1,001links,711publication paths, M0 consistency and77product outputs/145inputs.
+Next checks belong to each changed component and composed229. Pause heavy work during
+sole-browser-owner timing windows. Native hidden/backend checks remain explicit
+product gates; do not bypass browser tool security restrictions to obtain them.
 
 ## Preserved audio wave
 

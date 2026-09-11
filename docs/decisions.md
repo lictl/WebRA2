@@ -27,6 +27,8 @@ This file is the product decision record; `task.md` is the work-state record.
 | D18 | Owner raised possible TypeScript performance issues and the need for WebAssembly (2026-09-11) | Bring the performance/TS-WASM gate forward before more broad gameplay expansion. This does not select a native language or authorize a blanket rewrite by assumption |
 | D19 | Proceed with the GPU renderer experiment and target at least 60 FPS (2026-09-11) | Use a 16.67 ms frame budget and measure sustained useful-frame cadence and GPU completion in Chrome; preserve exact CPU output and report refresh limits, stalls and unmeasured campaign scope |
 
+| D20 | Owner selected GPU rendering as the direction and instructed continued work until essential human input or a first playable mission (2026-09-11) | Integrate the measured WebGL2 backend under229 and pursue the original RA2 opening end to end under230; a diagnostic or completed component is not the stopping milestone |
+
 ## Completed question round
 
 All twelve initial product questions were answered. Do not repeat them in a fresh
